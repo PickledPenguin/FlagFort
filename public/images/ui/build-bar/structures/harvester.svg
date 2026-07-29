@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 38">
+  <g id="icon">
+    <circle id="body" cx="21" cy="19" r="15" fill="currentColor" stroke="#2d2922" stroke-width="4"/>
+    <g id="arm" transform="rotate(-24 21 20)">
+      <rect x="21" y="17" width="22" height="6" rx="3" fill="#27332c"/>
+      <circle cx="42" cy="20" r="6" fill="#edf4e6"/>
+    </g>
+  </g>
+</svg>

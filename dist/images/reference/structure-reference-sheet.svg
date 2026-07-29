@@ -1,0 +1,222 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1260">
+  <title>Flagfall structure reference sheet</title>
+  <desc>Reference-only translation of the Canvas structure renderer at full health and neutral orientation.</desc>
+  <style>
+    .sheet-title { fill: #f0f7db; font: 700 28px sans-serif; text-anchor: middle; }
+    .sheet-note { fill: #aebdaf; font: 14px sans-serif; text-anchor: middle; }
+    .column-label, .row-label { fill: #dce8d7; font: 700 17px sans-serif; text-anchor: middle; }
+    .cell-label { fill: #dce8d7; font: 13px sans-serif; text-anchor: middle; }
+    .cell-background { fill: #12271b; stroke: #385044; stroke-width: 1; }
+    .base-outline { stroke: #2b241d; stroke-width: 4; }
+    .wall-brace { fill: none; stroke: #fff; stroke-width: 4; opacity: .32; }
+  </style>
+
+  <g id="sheet-background">
+    <rect width="1400" height="1260" fill="#09170f"/>
+  </g>
+
+  <g id="sheet-labels">
+    <text class="sheet-title" x="700" y="42">FLAGFALL STRUCTURE REFERENCE</text>
+    <text class="sheet-note" x="700" y="70">Canvas renderer translation · neutral orientation · full health · reference only</text>
+    <text class="column-label" x="310" y="112">WOOD</text>
+    <text class="column-label" x="610" y="112">STONE</text>
+    <text class="column-label" x="910" y="112">GOLD</text>
+    <text class="column-label" x="1210" y="112">DIAMOND</text>
+    <text class="row-label" x="82" y="245">WALL</text>
+    <text class="row-label" x="82" y="435">SPIKES</text>
+    <text class="row-label" x="82" y="625">DOOR</text>
+    <text class="row-label" x="82" y="815">HARVESTER</text>
+    <text class="row-label" x="82" y="1005">TURRET</text>
+  </g>
+
+  <g id="wall-wood" transform="translate(310 240)">
+    <title>Wood wall</title>
+    <rect class="cell-background" x="-140" y="-85" width="280" height="170" rx="10"/>
+    <text class="cell-label" y="-63">Wood Wall</text>
+    <g id="wall-wood-artwork">
+      <circle r="33" fill="#b77a45" class="base-outline"/>
+      <path d="M-17-17 17 17M17-17-17 17" class="wall-brace"/>
+    </g>
+  </g>
+  <g id="wall-stone" transform="translate(610 240)">
+    <title>Stone wall</title>
+    <rect class="cell-background" x="-140" y="-85" width="280" height="170" rx="10"/>
+    <text class="cell-label" y="-63">Stone Wall</text>
+    <g id="wall-stone-artwork">
+      <circle r="33" fill="#aeb7bc" class="base-outline"/>
+      <path d="M-17-17 17 17M17-17-17 17" class="wall-brace"/>
+    </g>
+  </g>
+  <g id="wall-gold" transform="translate(910 240)">
+    <title>Gold wall</title>
+    <rect class="cell-background" x="-140" y="-85" width="280" height="170" rx="10"/>
+    <text class="cell-label" y="-63">Gold Wall</text>
+    <g id="wall-gold-artwork">
+      <circle r="33" fill="#f6c945" class="base-outline"/>
+      <path d="M-17-17 17 17M17-17-17 17" class="wall-brace"/>
+    </g>
+  </g>
+  <g id="wall-diamond" transform="translate(1210 240)">
+    <title>Diamond wall</title>
+    <rect class="cell-background" x="-140" y="-85" width="280" height="170" rx="10"/>
+    <text class="cell-label" y="-63">Diamond Wall</text>
+    <g id="wall-diamond-artwork">
+      <circle r="33" fill="#57e5ef" class="base-outline"/>
+      <path d="M-17-17 17 17M17-17-17 17" class="wall-brace"/>
+    </g>
+  </g>
+
+  <g id="spikes-wood" transform="translate(310 430)">
+    <title>Wood spikes</title>
+    <rect class="cell-background" x="-140" y="-85" width="280" height="170" rx="10"/>
+    <text class="cell-label" y="-63">Wood Spikes</text>
+    <g id="spikes-wood-artwork"><path d="M42 0 22.516 13 21 36.373 0 26-21 36.373-22.516 13-42 0-22.516-13-21-36.373 0-26 21-36.373 22.516-13Z" fill="#b77a45" class="base-outline"/></g>
+  </g>
+  <g id="spikes-stone" transform="translate(610 430)">
+    <title>Stone spikes</title>
+    <rect class="cell-background" x="-140" y="-85" width="280" height="170" rx="10"/>
+    <text class="cell-label" y="-63">Stone Spikes</text>
+    <g id="spikes-stone-artwork"><path d="M42 0 22.516 13 21 36.373 0 26-21 36.373-22.516 13-42 0-22.516-13-21-36.373 0-26 21-36.373 22.516-13Z" fill="#aeb7bc" class="base-outline"/></g>
+  </g>
+  <g id="spikes-gold" transform="translate(910 430)">
+    <title>Gold spikes</title>
+    <rect class="cell-background" x="-140" y="-85" width="280" height="170" rx="10"/>
+    <text class="cell-label" y="-63">Gold Spikes</text>
+    <g id="spikes-gold-artwork"><path d="M42 0 22.516 13 21 36.373 0 26-21 36.373-22.516 13-42 0-22.516-13-21-36.373 0-26 21-36.373 22.516-13Z" fill="#f6c945" class="base-outline"/></g>
+  </g>
+  <g id="spikes-diamond" transform="translate(1210 430)">
+    <title>Diamond spikes</title>
+    <rect class="cell-background" x="-140" y="-85" width="280" height="170" rx="10"/>
+    <text class="cell-label" y="-63">Diamond Spikes</text>
+    <g id="spikes-diamond-artwork"><path d="M42 0 22.516 13 21 36.373 0 26-21 36.373-22.516 13-42 0-22.516-13-21-36.373 0-26 21-36.373 22.516-13Z" fill="#57e5ef" class="base-outline"/></g>
+  </g>
+
+  <g id="door-wood" transform="translate(310 620)">
+    <title>Wood door</title>
+    <rect class="cell-background" x="-140" y="-85" width="280" height="170" rx="10"/>
+    <text class="cell-label" y="-63">Wood Door</text>
+    <g id="door-wood-artwork">
+      <circle r="34" fill="#b77a45" class="base-outline"/>
+      <g fill="#2b241d"><circle cx="-11" cy="-11" r="5"/><circle cx="11" cy="-11" r="5"/><circle cx="-11" cy="11" r="5"/><circle cx="11" cy="11" r="5"/></g>
+    </g>
+  </g>
+  <g id="door-stone" transform="translate(610 620)">
+    <title>Stone door</title>
+    <rect class="cell-background" x="-140" y="-85" width="280" height="170" rx="10"/>
+    <text class="cell-label" y="-63">Stone Door</text>
+    <g id="door-stone-artwork">
+      <circle r="34" fill="#aeb7bc" class="base-outline"/>
+      <g fill="#2b241d"><circle cx="-11" cy="-11" r="5"/><circle cx="11" cy="-11" r="5"/><circle cx="-11" cy="11" r="5"/><circle cx="11" cy="11" r="5"/></g>
+    </g>
+  </g>
+  <g id="door-gold" transform="translate(910 620)">
+    <title>Gold door</title>
+    <rect class="cell-background" x="-140" y="-85" width="280" height="170" rx="10"/>
+    <text class="cell-label" y="-63">Gold Door</text>
+    <g id="door-gold-artwork">
+      <circle r="34" fill="#f6c945" class="base-outline"/>
+      <g fill="#2b241d"><circle cx="-11" cy="-11" r="5"/><circle cx="11" cy="-11" r="5"/><circle cx="-11" cy="11" r="5"/><circle cx="11" cy="11" r="5"/></g>
+    </g>
+  </g>
+  <g id="door-diamond" transform="translate(1210 620)">
+    <title>Diamond door</title>
+    <rect class="cell-background" x="-140" y="-85" width="280" height="170" rx="10"/>
+    <text class="cell-label" y="-63">Diamond Door</text>
+    <g id="door-diamond-artwork">
+      <circle r="34" fill="#57e5ef" class="base-outline"/>
+      <g fill="#2b241d"><circle cx="-11" cy="-11" r="5"/><circle cx="11" cy="-11" r="5"/><circle cx="-11" cy="11" r="5"/><circle cx="11" cy="11" r="5"/></g>
+    </g>
+  </g>
+
+  <g id="harvester-wood" transform="translate(310 810)">
+    <title>Wood harvester</title>
+    <rect class="cell-background" x="-140" y="-85" width="280" height="170" rx="10"/>
+    <text class="cell-label" y="-63">Wood Harvester</text>
+    <g id="harvester-wood-artwork">
+      <circle r="39" fill="#b77a45" class="base-outline"/>
+      <path d="M0 0H98" fill="none" stroke="#b77a45" stroke-width="9"/>
+      <circle cx="98" r="12" fill="#eff7e9"/>
+    </g>
+  </g>
+  <g id="harvester-stone" transform="translate(610 810)">
+    <title>Stone harvester</title>
+    <rect class="cell-background" x="-140" y="-85" width="280" height="170" rx="10"/>
+    <text class="cell-label" y="-63">Stone Harvester</text>
+    <g id="harvester-stone-artwork">
+      <circle r="39" fill="#aeb7bc" class="base-outline"/>
+      <path d="M0 0H108" fill="none" stroke="#aeb7bc" stroke-width="9"/>
+      <circle cx="108" r="12" fill="#eff7e9"/>
+    </g>
+  </g>
+  <g id="harvester-gold" transform="translate(910 810)">
+    <title>Gold harvester</title>
+    <rect class="cell-background" x="-140" y="-85" width="280" height="170" rx="10"/>
+    <text class="cell-label" y="-63">Gold Harvester</text>
+    <g id="harvester-gold-artwork">
+      <circle r="39" fill="#f6c945" class="base-outline"/>
+      <path d="M0 0H120" fill="none" stroke="#f6c945" stroke-width="9"/>
+      <circle cx="120" r="12" fill="#eff7e9"/>
+    </g>
+  </g>
+  <g id="harvester-diamond" transform="translate(1210 810)">
+    <title>Diamond harvester</title>
+    <rect class="cell-background" x="-140" y="-85" width="280" height="170" rx="10"/>
+    <text class="cell-label" y="-63">Diamond Harvester</text>
+    <g id="harvester-diamond-artwork">
+      <circle r="39" fill="#57e5ef" class="base-outline"/>
+      <path d="M0 0H134" fill="none" stroke="#57e5ef" stroke-width="9"/>
+      <circle cx="134" r="12" fill="#eff7e9"/>
+    </g>
+  </g>
+
+  <g id="turret-wood" transform="translate(310 1000)">
+    <title>Wood turret</title>
+    <rect class="cell-background" x="-140" y="-85" width="280" height="170" rx="10"/>
+    <text class="cell-label" y="-63">Wood Turret</text>
+    <g id="turret-wood-artwork">
+      <circle r="36" fill="#b77a45" class="base-outline"/>
+      <rect x="0" y="-8" width="44" height="16" fill="#202d28"/>
+      <circle r="17" fill="#b77a45"/>
+    </g>
+  </g>
+  <g id="turret-stone" transform="translate(610 1000)">
+    <title>Stone turret</title>
+    <rect class="cell-background" x="-140" y="-85" width="280" height="170" rx="10"/>
+    <text class="cell-label" y="-63">Stone Turret</text>
+    <g id="turret-stone-artwork">
+      <circle r="36" fill="#aeb7bc" class="base-outline"/>
+      <rect x="0" y="-8" width="44" height="16" fill="#202d28"/>
+      <circle r="17" fill="#aeb7bc"/>
+    </g>
+  </g>
+  <g id="turret-gold" transform="translate(910 1000)">
+    <title>Gold turret</title>
+    <rect class="cell-background" x="-140" y="-85" width="280" height="170" rx="10"/>
+    <text class="cell-label" y="-63">Gold Turret</text>
+    <g id="turret-gold-artwork">
+      <circle r="36" fill="#f6c945" class="base-outline"/>
+      <rect x="0" y="-8" width="44" height="16" fill="#202d28"/>
+      <circle r="17" fill="#f6c945"/>
+    </g>
+  </g>
+  <g id="turret-diamond" transform="translate(1210 1000)">
+    <title>Diamond turret</title>
+    <rect class="cell-background" x="-140" y="-85" width="280" height="170" rx="10"/>
+    <text class="cell-label" y="-63">Diamond Turret</text>
+    <g id="turret-diamond-artwork">
+      <circle r="36" fill="#57e5ef" class="base-outline"/>
+      <rect x="0" y="-8" width="44" height="16" fill="#202d28"/>
+      <circle r="17" fill="#57e5ef"/>
+    </g>
+  </g>
+
+  <g id="door-proximity-transparency-example" transform="translate(700 1170)">
+    <title>Door at minimum proximity opacity</title>
+    <text class="cell-label" x="-190" y="4">DOOR PROXIMITY</text>
+    <g id="door-proximity-artwork" opacity=".38">
+      <circle r="34" fill="#b77a45" class="base-outline"/>
+      <g fill="#2b241d"><circle cx="-11" cy="-11" r="5"/><circle cx="11" cy="-11" r="5"/><circle cx="-11" cy="11" r="5"/><circle cx="11" cy="11" r="5"/></g>
+    </g>
+    <text class="sheet-note" x="285" y="4">minimum Canvas globalAlpha = 0.38 inside the 112px fade radius</text>
+  </g>
+</svg>

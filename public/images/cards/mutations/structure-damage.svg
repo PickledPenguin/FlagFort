@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 128 128"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="structure-damage.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="2.306729"
+     inkscape:cx="74.56446"
+     inkscape:cy="71.963374"
+     inkscape:window-width="1545"
+     inkscape:window-height="883"
+     inkscape:window-x="0"
+     inkscape:window-y="33"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="structure-damage" />
+  <g
+     id="structure-damage"
+     stroke="#253027"
+     stroke-width="8">
+    <circle
+       style="fill:#b9783d;fill-opacity:1;stroke-width:8"
+       id="path2"
+       cx="62.580688"
+       cy="64.746109"
+       r="54.352085" />
+    <path
+       d="M 62,27 53,56 75,69 49,102"
+       stroke="#ff6b61"
+       id="path1"
+       style="fill:none;stroke:#253027;stroke-opacity:1"
+       sodipodi:nodetypes="cccc" />
+    <path
+       d="m 105.07439,3.5477033 0.26766,35.3543277 m 17.54333,-17.810988 -35.354325,0.267648"
+       style="fill:none;stroke:#ff6b61"
+       id="path1-8" />
+  </g>
+</svg>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 50 38"
+   version="1.1"
+   id="svg1"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <g
+     id="icon">
+    <circle
+       id="body"
+       cx="21"
+       cy="19"
+       r="15"
+       fill="currentColor"
+       stroke="#2d2922"
+       stroke-width="4" />
+    <rect
+       id="barrel"
+       x="26.327225"
+       y="19.66925"
+       width="15.94044"
+       height="5.7929358"
+       rx="2.2684979"
+       fill="#27332c"
+       transform="matrix(0.9845226,-0.17525767,0.11027997,0.99390056,0,0)"
+       ry="1.6792746"
+       style="stroke-width:0.889496" />
+  </g>
+</svg>

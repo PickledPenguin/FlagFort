@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 50 38"
+   version="1.1"
+   id="svg4"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs4" />
+  <g
+     id="icon">
+    <circle
+       id="body"
+       cx="21"
+       cy="19"
+       r="15"
+       fill="currentColor"
+       stroke="#2d2922"
+       stroke-width="4" />
+    <g
+       id="studs"
+       fill="#2d2922"
+       transform="matrix(0.76548254,0,0,0.76548254,4.9248667,4.4558318)">
+      <circle
+         cx="14.5"
+         cy="12.5"
+         r="2.5"
+         id="circle1" />
+      <circle
+         cx="27.5"
+         cy="12.5"
+         r="2.5"
+         id="circle2" />
+      <circle
+         cx="14.5"
+         cy="25.5"
+         r="2.5"
+         id="circle3" />
+      <circle
+         cx="27.5"
+         cy="25.5"
+         r="2.5"
+         id="circle4" />
+    </g>
+  </g>
+</svg>

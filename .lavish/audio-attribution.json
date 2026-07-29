@@ -1,0 +1,1819 @@
+{
+  "generatedAt": "2026-07-25T03:49:51.470Z",
+  "sourceFoldersSearched": [
+    "/Users/aiagents/Documents/GMTK/Audio"
+  ],
+  "canonicalSoundCount": 50,
+  "assignedSoundCount": 50,
+  "missingSounds": [],
+  "licenses": {
+    "kenney": "CC0 1.0; credit appreciated but not required",
+    "sonniss": "Royalty-free personal and commercial use; attribution not required"
+  },
+  "entries": [
+    {
+      "canonicalFilename": "ui-hover.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/kenney_ui-audio/Audio/rollover2.ogg",
+      "originalFilename": "rollover2.ogg",
+      "creator": "Kenney",
+      "pack": "UI SFX Set",
+      "license": "CC0 1.0",
+      "sourceSha256": "d0bc0fcba496d73df1da8c145e5330df75f87ab5a4f33a9b71461b006b5c338e",
+      "modifications": [
+        "Trimmed leading and trailing digital silence below -55 dB",
+        "+0.5 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 80 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "First entry into an enabled interactive hover state"
+      ],
+      "sourceTechnical": {
+        "codec": "vorbis",
+        "sampleRate": 44100,
+        "channels": 2,
+        "duration": 0.057324,
+        "bytes": 4701,
+        "integratedLufs": -70,
+        "truePeakDbfs": -1.7,
+        "meanDbfs": -24.5,
+        "maxDbfs": -1.8
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 0.063813,
+        "bytes": 1324
+      }
+    },
+    {
+      "canonicalFilename": "ui-click.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/kenney_ui-audio/Audio/click2.ogg",
+      "originalFilename": "click2.ogg",
+      "creator": "Kenney",
+      "pack": "UI SFX Set",
+      "license": "CC0 1.0",
+      "sourceSha256": "c394b46bc6737f7f7edfbfa3031ce621b7a43d498d456d6198364eee9cd3e306",
+      "modifications": [
+        "Trimmed leading and trailing digital silence below -55 dB",
+        "-7.2 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 80 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "Ordinary toolbar, menu, and icon-button activation"
+      ],
+      "sourceTechnical": {
+        "codec": "vorbis",
+        "sampleRate": 44100,
+        "channels": 2,
+        "duration": 0.055737,
+        "bytes": 4656,
+        "integratedLufs": -70,
+        "truePeakDbfs": -1.1,
+        "meanDbfs": -16.8,
+        "maxDbfs": -1.1
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 0.062271,
+        "bytes": 1265
+      }
+    },
+    {
+      "canonicalFilename": "ui-confirm.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/kenney_interface-sounds/Audio/confirmation_001.ogg",
+      "originalFilename": "confirmation_001.ogg",
+      "creator": "Kenney",
+      "pack": "Interface Sounds",
+      "license": "CC0 1.0",
+      "sourceSha256": "063564703b6094d70718a3e787a55cc9141611e4ecd6b6637f8828f79b4a8c3a",
+      "modifications": [
+        "Trimmed leading and trailing digital silence below -55 dB",
+        "-12 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 80 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "Accepted confirmation actions"
+      ],
+      "sourceTechnical": {
+        "codec": "vorbis",
+        "sampleRate": 44100,
+        "channels": 1,
+        "duration": 0.289841,
+        "bytes": 8968,
+        "integratedLufs": -70,
+        "truePeakDbfs": -0.9,
+        "meanDbfs": -11.3,
+        "maxDbfs": -0.9
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 0.296375,
+        "bytes": 3287
+      }
+    },
+    {
+      "canonicalFilename": "ui-cancel.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/kenney_interface-sounds/Audio/back_003.ogg",
+      "originalFilename": "back_003.ogg",
+      "creator": "Kenney",
+      "pack": "Interface Sounds",
+      "license": "CC0 1.0",
+      "sourceSha256": "ff5e87de1230b1a5f1fa83e5a4ba9d7eb1c07154267ac34b510a17d4caa03cef",
+      "modifications": [
+        "Trimmed leading and trailing digital silence below -55 dB",
+        "-4.4 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 80 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "Cancelled modals, back actions, and closing panels"
+      ],
+      "sourceTechnical": {
+        "codec": "vorbis",
+        "sampleRate": 44100,
+        "channels": 1,
+        "duration": 0.09288,
+        "bytes": 7208,
+        "integratedLufs": -70,
+        "truePeakDbfs": 0.1,
+        "meanDbfs": -19.6,
+        "maxDbfs": -0.9
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 0.099396,
+        "bytes": 1902
+      }
+    },
+    {
+      "canonicalFilename": "ui-invalid.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/kenney_interface-sounds/Audio/error_004.ogg",
+      "originalFilename": "error_004.ogg",
+      "creator": "Kenney",
+      "pack": "Interface Sounds",
+      "license": "CC0 1.0",
+      "sourceSha256": "0b574cea597d96507e782ae9764f88482ce49f46e931e57054bf7150047f2d69",
+      "modifications": [
+        "Trimmed leading and trailing digital silence below -55 dB",
+        "-7.6 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 80 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "Unavailable actions, invalid placement, insufficient resources, and disabled controls"
+      ],
+      "sourceTechnical": {
+        "codec": "vorbis",
+        "sampleRate": 44100,
+        "channels": 2,
+        "duration": 0.102698,
+        "bytes": 6393,
+        "integratedLufs": -70,
+        "truePeakDbfs": -1.2,
+        "meanDbfs": -16.4,
+        "maxDbfs": -1.3
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 0.113917,
+        "bytes": 2000
+      }
+    },
+    {
+      "canonicalFilename": "card-select.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/kenney_interface-sounds/Audio/select_004.ogg",
+      "originalFilename": "select_004.ogg",
+      "creator": "Kenney",
+      "pack": "Interface Sounds",
+      "license": "CC0 1.0",
+      "sourceSha256": "eb6cb435f3f2ab14f85f46a2bdd9073ec511d0f1f8d8c890c6636045703a5fd4",
+      "modifications": [
+        "Trimmed leading and trailing digital silence below -55 dB",
+        "-4.8 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 80 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "Benefit or unlock pair selected"
+      ],
+      "sourceTechnical": {
+        "codec": "vorbis",
+        "sampleRate": 44100,
+        "channels": 1,
+        "duration": 0.382766,
+        "bytes": 6909,
+        "integratedLufs": -70,
+        "truePeakDbfs": -0.7,
+        "meanDbfs": -19.2,
+        "maxDbfs": -0.7
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 0.315875,
+        "bytes": 4188
+      }
+    },
+    {
+      "canonicalFilename": "card-mutation.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/Sonniss.com-GDC2026-GameAudioBundle2of5/Cinematic Sound Design - System & UI Feedback Elements/Interface Sci-Fi Ping Down.wav",
+      "originalFilename": "Interface Sci-Fi Ping Down.wav",
+      "creator": "Cinematic Sound Design",
+      "pack": "System & UI Feedback Elements",
+      "license": "Sonniss GDC Game Audio Bundle Part 9 royalty-free license",
+      "sourceSha256": "93249fc63f754fc3f6b0f902247e7a1920e81afcd2ae9dd865f170e6ad24e2be",
+      "modifications": [
+        "Trimmed leading and trailing digital silence below -55 dB",
+        "-4.7 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 80 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "Attached mutation applies"
+      ],
+      "sourceTechnical": {
+        "codec": "pcm_s24le",
+        "sampleRate": 96000,
+        "channels": 2,
+        "duration": 0.75,
+        "bytes": 433814,
+        "integratedLufs": -13.3,
+        "truePeakDbfs": -3.4,
+        "meanDbfs": -15.9,
+        "maxDbfs": -3.4
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 0.670125,
+        "bytes": 6563
+      }
+    },
+    {
+      "canonicalFilename": "card-reroll.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/Sonniss.com-GDC2026-GameAudioBundle2of5/Epic Stock Media - Fantasy Game 2 - Sound Kit for Enchanted Realms/GAMEMisc_Source Card Tarot Deck Generic Neutral Dry Heavy Shuffle 01_ESM_FG2.wav",
+      "originalFilename": "GAMEMisc_Source Card Tarot Deck Generic Neutral Dry Heavy Shuffle 01_ESM_FG2.wav",
+      "creator": "Epic Stock Media",
+      "pack": "Fantasy Game 2 - Sound Kit for Enchanted Realms",
+      "license": "Sonniss GDC Game Audio Bundle Part 9 royalty-free license",
+      "sourceSha256": "c4eb9547aed4e2818114f3260935d5ad1f0ca97823755f11c793014352d9ae60",
+      "modifications": [
+        "Trimmed leading and trailing digital silence below -55 dB",
+        "-0.2 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 80 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "Reroll begins"
+      ],
+      "sourceTechnical": {
+        "codec": "pcm_s24le",
+        "sampleRate": 96000,
+        "channels": 2,
+        "duration": 4.907677,
+        "bytes": 3430834,
+        "integratedLufs": -31.7,
+        "truePeakDbfs": -1,
+        "meanDbfs": -39.6,
+        "maxDbfs": -1
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 2.730854,
+        "bytes": 28285
+      }
+    },
+    {
+      "canonicalFilename": "upgrade-unlock.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/Sonniss.com-GDC2026-GameAudioBundle2of5/Epic Stock Media - Anime Game/DSGNStngr_Power Up Bright Positive Successful Light Saturation Crash Shimmer 05_ESM_AG.wav",
+      "originalFilename": "DSGNStngr_Power Up Bright Positive Successful Light Saturation Crash Shimmer 05_ESM_AG.wav",
+      "creator": "Epic Stock Media",
+      "pack": "Anime Game",
+      "license": "Sonniss GDC Game Audio Bundle Part 9 royalty-free license",
+      "sourceSha256": "3bf090678bb55da7d38f2bf76ac6a8d826f5245452a36d54666d2597c0be0299",
+      "modifications": [
+        "Trimmed leading and trailing digital silence below -55 dB",
+        "-2.8 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 80 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "Upgrade or unlock successfully applies"
+      ],
+      "sourceTechnical": {
+        "codec": "pcm_s24le",
+        "sampleRate": 96000,
+        "channels": 2,
+        "duration": 1.52476,
+        "bytes": 1428656,
+        "integratedLufs": -15.2,
+        "truePeakDbfs": -0.7,
+        "meanDbfs": -22.3,
+        "maxDbfs": -1
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 1.351229,
+        "bytes": 12923
+      }
+    },
+    {
+      "canonicalFilename": "countdown-tick.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/kenney_interface-sounds/Audio/tick_004.ogg",
+      "originalFilename": "tick_004.ogg",
+      "creator": "Kenney",
+      "pack": "Interface Sounds",
+      "license": "CC0 1.0",
+      "sourceSha256": "0253d5f7d8d2afbbc370eac2a4539bb844239f0c98343e516d376b137c06d27c",
+      "modifications": [
+        "Trimmed leading and trailing digital silence below -55 dB",
+        "-8.1 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 80 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "Ordinary countdown seconds from ten through four"
+      ],
+      "sourceTechnical": {
+        "codec": "vorbis",
+        "sampleRate": 44100,
+        "channels": 1,
+        "duration": 0.054807,
+        "bytes": 5031,
+        "integratedLufs": -70,
+        "truePeakDbfs": -0.7,
+        "meanDbfs": -15.9,
+        "maxDbfs": -0.9
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 0.064583,
+        "bytes": 1465
+      }
+    },
+    {
+      "canonicalFilename": "countdown-final-tick.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/kenney_impact-sounds/Audio/impactBell_heavy_004.ogg",
+      "originalFilename": "impactBell_heavy_004.ogg",
+      "creator": "Kenney",
+      "pack": "Impact Sounds",
+      "license": "CC0 1.0",
+      "sourceSha256": "49fe4fafa2001bd0d312976796824571ca8429851f285997e1327d17bb34fd00",
+      "modifications": [
+        "Trimmed leading and trailing digital silence below -55 dB",
+        "-1.8 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 80 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "Final urgent countdown seconds from three through one"
+      ],
+      "sourceTechnical": {
+        "codec": "vorbis",
+        "sampleRate": 44100,
+        "channels": 2,
+        "duration": 0.301451,
+        "bytes": 6529,
+        "integratedLufs": -70,
+        "truePeakDbfs": -1.1,
+        "meanDbfs": -22.2,
+        "maxDbfs": -1.1
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 0.307979,
+        "bytes": 3441
+      }
+    },
+    {
+      "canonicalFilename": "countdown-zero.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/kenney_impact-sounds/Audio/impactBell_heavy_003.ogg",
+      "originalFilename": "impactBell_heavy_003.ogg",
+      "creator": "Kenney",
+      "pack": "Impact Sounds",
+      "license": "CC0 1.0",
+      "sourceSha256": "5572ccdeb3b62373b86fa955355b3a222c36e815f0636ba16165189a21cf2514",
+      "modifications": [
+        "Trimmed leading and trailing digital silence below -55 dB",
+        "-0.2 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 80 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "Phase timer reaches zero"
+      ],
+      "sourceTechnical": {
+        "codec": "vorbis",
+        "sampleRate": 44100,
+        "channels": 2,
+        "duration": 0.653605,
+        "bytes": 9429,
+        "integratedLufs": -23.1,
+        "truePeakDbfs": -1,
+        "meanDbfs": -24.6,
+        "maxDbfs": -1
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 0.660146,
+        "bytes": 6965
+      }
+    },
+    {
+      "canonicalFilename": "night-start.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/Sonniss.com-GDC2026-GameAudioBundle2of5/Cinematic Sound Design - Ultra Transitions & Impacts/Transition Braam Slow Dark Creepy.wav",
+      "originalFilename": "Transition Braam Slow Dark Creepy.wav",
+      "creator": "Cinematic Sound Design",
+      "pack": "Ultra Transitions & Impacts",
+      "license": "Sonniss GDC Game Audio Bundle Part 9 royalty-free license",
+      "sourceSha256": "894f247e3a4a83e8f9763513502854dbe648951dbbfb588c03d9bef2c2de91c3",
+      "modifications": [
+        "Trimmed leading and trailing digital silence below -55 dB",
+        "-1.2 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 80 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "Transition into night"
+      ],
+      "sourceTechnical": {
+        "codec": "pcm_s24le",
+        "sampleRate": 96000,
+        "channels": 2,
+        "duration": 4.5,
+        "bytes": 2596696,
+        "integratedLufs": -16.8,
+        "truePeakDbfs": -2.9,
+        "meanDbfs": -21.2,
+        "maxDbfs": -2.9
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 3.577708,
+        "bytes": 38129
+      }
+    },
+    {
+      "canonicalFilename": "dawn-start.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/Sonniss.com-GDC2026-GameAudioBundle2of5/Cinematic Sound Design - Hybrid Game & UI Elements/Game Entry Happy Short.wav",
+      "originalFilename": "Game Entry Happy Short.wav",
+      "creator": "Cinematic Sound Design",
+      "pack": "Hybrid Game & UI Elements",
+      "license": "Sonniss GDC Game Audio Bundle Part 9 royalty-free license",
+      "sourceSha256": "8ccca44905900169d322f1a0cb4afac4be4afa372c4242bf6484cb081b42f94b",
+      "modifications": [
+        "Trimmed leading and trailing digital silence below -55 dB",
+        "-1.2 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 80 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "Transition into day"
+      ],
+      "sourceTechnical": {
+        "codec": "pcm_s24le",
+        "sampleRate": 96000,
+        "channels": 2,
+        "duration": 0.875021,
+        "bytes": 505876,
+        "integratedLufs": -16.8,
+        "truePeakDbfs": -4.2,
+        "meanDbfs": -20.2,
+        "maxDbfs": -4.2
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 0.421063,
+        "bytes": 6827
+      }
+    },
+    {
+      "canonicalFilename": "wave-cleared.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/Sonniss.com-GDC2026-GameAudioBundle2of5/Cinematic Sound Design - User Interface/Interface Plucks Happy.wav",
+      "originalFilename": "Interface Plucks Happy.wav",
+      "creator": "Cinematic Sound Design",
+      "pack": "User Interface",
+      "license": "Sonniss GDC Game Audio Bundle Part 9 royalty-free license",
+      "sourceSha256": "a6866b6e04580d6f4007c59514a5530c7699f785beb27b2eda6a2b4579478ded",
+      "modifications": [
+        "Trimmed leading and trailing digital silence below -55 dB",
+        "-4.4 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 80 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "Scheduled wave is eliminated early"
+      ],
+      "sourceTechnical": {
+        "codec": "pcm_s24le",
+        "sampleRate": 96000,
+        "channels": 2,
+        "duration": 0.853125,
+        "bytes": 493094,
+        "integratedLufs": -13.6,
+        "truePeakDbfs": -3.3,
+        "meanDbfs": -19.4,
+        "maxDbfs": -3.3
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 0.725104,
+        "bytes": 9539
+      }
+    },
+    {
+      "canonicalFilename": "player-footstep-grass.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/kenney_impact-sounds/Audio/footstep_grass_004.ogg",
+      "originalFilename": "footstep_grass_004.ogg",
+      "creator": "Kenney",
+      "pack": "Impact Sounds",
+      "license": "CC0 1.0",
+      "sourceSha256": "086fd4ab3546a507ea5f5c759a9a10e535c95ade13705c238bc0eeffd7d4e8ba",
+      "modifications": [
+        "Trimmed leading and trailing digital silence below -55 dB",
+        "-0.1 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 80 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "Player movement across forest ground at a controlled interval"
+      ],
+      "sourceTechnical": {
+        "codec": "vorbis",
+        "sampleRate": 44100,
+        "channels": 2,
+        "duration": 0.590227,
+        "bytes": 7800,
+        "integratedLufs": -25.5,
+        "truePeakDbfs": -1.1,
+        "meanDbfs": -28.5,
+        "maxDbfs": -1.1
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 0.59675,
+        "bytes": 6853
+      }
+    },
+    {
+      "canonicalFilename": "player-punch-swing.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/Sonniss.com-GDC2026-GameAudioBundle2of5/Cinematic Sound Design - Ultra Transitions & Impacts/Woosh Sweep Slide Infographics Basic.wav",
+      "originalFilename": "Woosh Sweep Slide Infographics Basic.wav",
+      "creator": "Cinematic Sound Design",
+      "pack": "Ultra Transitions & Impacts",
+      "license": "Sonniss GDC Game Audio Bundle Part 9 royalty-free license",
+      "sourceSha256": "c4e52e70037d52909874ad89d07720c72a24923a54bacb8892f742f2f5660fb5",
+      "modifications": [
+        "Trimmed leading and trailing digital silence below -55 dB",
+        "-1.1 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 80 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "Alternating-hand punch begins"
+      ],
+      "sourceTechnical": {
+        "codec": "pcm_s24le",
+        "sampleRate": 96000,
+        "channels": 2,
+        "duration": 0.5,
+        "bytes": 289696,
+        "integratedLufs": -17.4,
+        "truePeakDbfs": -0.1,
+        "meanDbfs": -19.6,
+        "maxDbfs": -0.1
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 0.35475,
+        "bytes": 3937
+      }
+    },
+    {
+      "canonicalFilename": "player-punch-impact.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/kenney_impact-sounds/Audio/impactPunch_medium_003.ogg",
+      "originalFilename": "impactPunch_medium_003.ogg",
+      "creator": "Kenney",
+      "pack": "Impact Sounds",
+      "license": "CC0 1.0",
+      "sourceSha256": "2d7c719c05999e0532f4384e1018e04cd916db715140bf16dee2dff3f820e908",
+      "modifications": [
+        "Trimmed leading and trailing digital silence below -55 dB",
+        "-1.3 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 80 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "Punch hits a zombie or portal"
+      ],
+      "sourceTechnical": {
+        "codec": "vorbis",
+        "sampleRate": 44100,
+        "channels": 2,
+        "duration": 0.455261,
+        "bytes": 9509,
+        "integratedLufs": -16.7,
+        "truePeakDbfs": -0.9,
+        "meanDbfs": -18.2,
+        "maxDbfs": -0.9
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 0.401708,
+        "bytes": 3463
+      }
+    },
+    {
+      "canonicalFilename": "player-hurt.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/kenney_impact-sounds/Audio/impactSoft_medium_001.ogg",
+      "originalFilename": "impactSoft_medium_001.ogg",
+      "creator": "Kenney",
+      "pack": "Impact Sounds",
+      "license": "CC0 1.0",
+      "sourceSha256": "7642a4fd43e547afe4f7adfadb3dabb681c0ff512f52c1674bae30a726841faf",
+      "modifications": [
+        "Trimmed leading and trailing digital silence below -55 dB",
+        "-9.2 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 80 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "Player receives actual damage"
+      ],
+      "sourceTechnical": {
+        "codec": "vorbis",
+        "sampleRate": 44100,
+        "channels": 2,
+        "duration": 0.183288,
+        "bytes": 5506,
+        "integratedLufs": -70,
+        "truePeakDbfs": -0.9,
+        "meanDbfs": -14.8,
+        "maxDbfs": -0.9
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 0.189813,
+        "bytes": 3646
+      }
+    },
+    {
+      "canonicalFilename": "player-heal.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/Sonniss.com-GDC2026-GameAudioBundle2of5/CB_Sounddesign - Applicable Sounds - Organic UI and Building Games SFX/UIMisc_Kalimba 3 Up_CB Sounddesign_APPlicable Sounds.wav",
+      "originalFilename": "UIMisc_Kalimba 3 Up_CB Sounddesign_APPlicable Sounds.wav",
+      "creator": "CB_Sounddesign",
+      "pack": "Applicable Sounds - Organic UI and Building Games SFX",
+      "license": "Sonniss GDC Game Audio Bundle Part 9 royalty-free license",
+      "sourceSha256": "0298f3405836720e064d1ff486f58fa032b03009d6f9e55e668b84e759dca360",
+      "modifications": [
+        "Trimmed leading and trailing digital silence below -55 dB",
+        "+1.5 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 80 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "Player begins healing near the flag"
+      ],
+      "sourceTechnical": {
+        "codec": "pcm_s24le",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 0.552979,
+        "bytes": 160420,
+        "integratedLufs": -20.6,
+        "truePeakDbfs": -2.7,
+        "meanDbfs": -25,
+        "maxDbfs": -3
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 0.460354,
+        "bytes": 7639
+      }
+    },
+    {
+      "canonicalFilename": "player-death.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/Sonniss.com-GDC2026-GameAudioBundle2of5/Cinematic Sound Design - Cartoon & Animation Vol 2/Cartoon Transition Bass Down.wav",
+      "originalFilename": "Cartoon Transition Bass Down.wav",
+      "creator": "Cinematic Sound Design",
+      "pack": "Cartoon & Animation Vol 2",
+      "license": "Sonniss GDC Game Audio Bundle Part 9 royalty-free license",
+      "sourceSha256": "7eb88bfbff719dd1bab0a6d97c72d964f5ccd97f5798feacee55b598564b41d5",
+      "modifications": [
+        "Trimmed leading and trailing digital silence below -55 dB",
+        "-2.1 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 80 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "Player dies"
+      ],
+      "sourceTechnical": {
+        "codec": "pcm_s24le",
+        "sampleRate": 96000,
+        "channels": 2,
+        "duration": 3.5,
+        "bytes": 2019974,
+        "integratedLufs": -15.9,
+        "truePeakDbfs": -2.9,
+        "meanDbfs": -19.9,
+        "maxDbfs": -3
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 3.202958,
+        "bytes": 37252
+      }
+    },
+    {
+      "canonicalFilename": "bow-fire.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/kenney_rpg-audio/Audio/knifeSlice2.ogg",
+      "originalFilename": "knifeSlice2.ogg",
+      "creator": "Kenney",
+      "pack": "RPG Audio",
+      "license": "CC0 1.0",
+      "sourceSha256": "6c2064d0ef988d1ec3d56868e823ea8823a5cac00f2742560052633529407def",
+      "modifications": [
+        "Trimmed leading and trailing digital silence below -55 dB",
+        "-6.3 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 80 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "Player arrow is successfully fired"
+      ],
+      "sourceTechnical": {
+        "codec": "vorbis",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 0.568792,
+        "bytes": 15099,
+        "integratedLufs": -11.7,
+        "truePeakDbfs": 0.6,
+        "meanDbfs": -19.1,
+        "maxDbfs": 0
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 0.547563,
+        "bytes": 5774
+      }
+    },
+    {
+      "canonicalFilename": "arrow-impact.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/Sonniss.com-GDC2026-GameAudioBundle2of5/Cinematic Sound Design - Cartoon Bloopers/Arrow Hit Rattle.wav",
+      "originalFilename": "Arrow Hit Rattle.wav",
+      "creator": "Cinematic Sound Design",
+      "pack": "Cartoon Bloopers",
+      "license": "Sonniss GDC Game Audio Bundle Part 9 royalty-free license",
+      "sourceSha256": "1f9359e4ef457626bca33e9ed3cb948462209771b6328164173a6a35018c5f45",
+      "modifications": [
+        "Trimmed leading and trailing digital silence below -55 dB",
+        "+2 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 80 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "Player arrow hits a valid target or world obstacle"
+      ],
+      "sourceTechnical": {
+        "codec": "pcm_s24le",
+        "sampleRate": 96000,
+        "channels": 2,
+        "duration": 1.083333,
+        "bytes": 625998,
+        "integratedLufs": -20,
+        "truePeakDbfs": -3.3,
+        "meanDbfs": -26.5,
+        "maxDbfs": -3.3
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 0.949917,
+        "bytes": 10096
+      }
+    },
+    {
+      "canonicalFilename": "wood-hit.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/kenney_impact-sounds/Audio/impactWood_medium_002.ogg",
+      "originalFilename": "impactWood_medium_002.ogg",
+      "creator": "Kenney",
+      "pack": "Impact Sounds",
+      "license": "CC0 1.0",
+      "sourceSha256": "3f3f1917428b828f733a963167833c707bf88296ff158e1559c57c5cb813d799",
+      "modifications": [
+        "Trimmed leading and trailing digital silence below -55 dB",
+        "-1.4 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 80 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "Player or harvester successfully strikes a tree"
+      ],
+      "sourceTechnical": {
+        "codec": "vorbis",
+        "sampleRate": 44100,
+        "channels": 2,
+        "duration": 0.332676,
+        "bytes": 6607,
+        "integratedLufs": -70,
+        "truePeakDbfs": -1.1,
+        "meanDbfs": -22.6,
+        "maxDbfs": -1.1
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 0.339208,
+        "bytes": 3305
+      }
+    },
+    {
+      "canonicalFilename": "stone-hit.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/kenney_impact-sounds/Audio/impactMining_002.ogg",
+      "originalFilename": "impactMining_002.ogg",
+      "creator": "Kenney",
+      "pack": "Impact Sounds",
+      "license": "CC0 1.0",
+      "sourceSha256": "059558ec751115ca6b1441e00f0adc837c1a3eeb0a066b109e0fd879fc5d0b0c",
+      "modifications": [
+        "Trimmed leading and trailing digital silence below -55 dB",
+        "-0.1 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 80 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "Player or harvester successfully strikes stone"
+      ],
+      "sourceTechnical": {
+        "codec": "vorbis",
+        "sampleRate": 44100,
+        "channels": 2,
+        "duration": 0.804671,
+        "bytes": 11235,
+        "integratedLufs": -22.9,
+        "truePeakDbfs": -1.2,
+        "meanDbfs": -22.9,
+        "maxDbfs": -1.2
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 0.617021,
+        "bytes": 9355
+      }
+    },
+    {
+      "canonicalFilename": "gold-hit.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/kenney_impact-sounds/Audio/impactMetal_medium_001.ogg",
+      "originalFilename": "impactMetal_medium_001.ogg",
+      "creator": "Kenney",
+      "pack": "Impact Sounds",
+      "license": "CC0 1.0",
+      "sourceSha256": "e8a9eaba7c4d27422e4eeb3e6c7100d5d7dc0f83e005efc98c960adcc5265337",
+      "modifications": [
+        "Trimmed leading and trailing digital silence below -55 dB",
+        "-4.5 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 80 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "Player or harvester successfully strikes gold"
+      ],
+      "sourceTechnical": {
+        "codec": "vorbis",
+        "sampleRate": 44100,
+        "channels": 2,
+        "duration": 0.143447,
+        "bytes": 6151,
+        "integratedLufs": -70,
+        "truePeakDbfs": -1.2,
+        "meanDbfs": -19.5,
+        "maxDbfs": -1.2
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 0.149979,
+        "bytes": 2512
+      }
+    },
+    {
+      "canonicalFilename": "diamond-hit.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/kenney_impact-sounds/Audio/impactGlass_light_003.ogg",
+      "originalFilename": "impactGlass_light_003.ogg",
+      "creator": "Kenney",
+      "pack": "Impact Sounds",
+      "license": "CC0 1.0",
+      "sourceSha256": "765290ce32fa108c939a0dbd6fbacbcd05abde622b57b708eb8a64058ef4225a",
+      "modifications": [
+        "Trimmed leading and trailing digital silence below -55 dB",
+        "-3 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 80 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "Player or harvester successfully strikes diamond"
+      ],
+      "sourceTechnical": {
+        "codec": "vorbis",
+        "sampleRate": 44100,
+        "channels": 2,
+        "duration": 0.209592,
+        "bytes": 6618,
+        "integratedLufs": -70,
+        "truePeakDbfs": -1.1,
+        "meanDbfs": -21,
+        "maxDbfs": -1.1
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 0.216125,
+        "bytes": 3186
+      }
+    },
+    {
+      "canonicalFilename": "resource-collected.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/Sonniss.com-GDC2026-GameAudioBundle2of5/Cinematic Sound Design - UI Interaction Elements/Ting Coins.wav",
+      "originalFilename": "Ting Coins.wav",
+      "creator": "Cinematic Sound Design",
+      "pack": "UI Interaction Elements",
+      "license": "Sonniss GDC Game Audio Bundle Part 9 royalty-free license",
+      "sourceSha256": "7467e2687c5b9bf3cedebd0fcb3af58f7eaeffdd7201a97790daf3c87c42f1a1",
+      "modifications": [
+        "Trimmed leading and trailing digital silence below -55 dB",
+        "+5.3 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 80 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "A resource amount is successfully added"
+      ],
+      "sourceTechnical": {
+        "codec": "pcm_s24le",
+        "sampleRate": 96000,
+        "channels": 2,
+        "duration": 1.104177,
+        "bytes": 637214,
+        "integratedLufs": -23.8,
+        "truePeakDbfs": -6.5,
+        "meanDbfs": -28.9,
+        "maxDbfs": -6.8
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 0.752583,
+        "bytes": 13778
+      }
+    },
+    {
+      "canonicalFilename": "resource-depleted.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/kenney_impact-sounds/Audio/impactSoft_heavy_002.ogg",
+      "originalFilename": "impactSoft_heavy_002.ogg",
+      "creator": "Kenney",
+      "pack": "Impact Sounds",
+      "license": "CC0 1.0",
+      "sourceSha256": "d130ae541951243d3f6ed963d0057450a445ffe117fbf9a084d34eb1635cb563",
+      "modifications": [
+        "Trimmed leading and trailing digital silence below -55 dB",
+        "-0.3 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 80 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "A resource node becomes depleted"
+      ],
+      "sourceTechnical": {
+        "codec": "vorbis",
+        "sampleRate": 44100,
+        "channels": 2,
+        "duration": 0.572313,
+        "bytes": 6749,
+        "integratedLufs": -18.1,
+        "truePeakDbfs": -0.9,
+        "meanDbfs": -17.1,
+        "maxDbfs": -0.9
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 0.578833,
+        "bytes": 6096
+      }
+    },
+    {
+      "canonicalFilename": "structure-place.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/Sonniss.com-GDC2026-GameAudioBundle2of5/Epic Stock Media - Tower Defense Game/ROBTMvmt_Tower Deploy Hitech Robot Motor Dark Thump Servo Whine 04_ESM_TDG.wav",
+      "originalFilename": "ROBTMvmt_Tower Deploy Hitech Robot Motor Dark Thump Servo Whine 04_ESM_TDG.wav",
+      "creator": "Epic Stock Media",
+      "pack": "Tower Defense Game",
+      "license": "Sonniss GDC Game Audio Bundle Part 9 royalty-free license",
+      "sourceSha256": "c9f2c8b24ce6ae6fb7b519b2bbcdb2503816ca5cdd6c8f81ee3fc27149600d48",
+      "modifications": [
+        "Trimmed leading and trailing digital silence below -55 dB",
+        "-7.8 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 80 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "A structure is successfully placed"
+      ],
+      "sourceTechnical": {
+        "codec": "pcm_s24le",
+        "sampleRate": 96000,
+        "channels": 2,
+        "duration": 1.036229,
+        "bytes": 3849898,
+        "integratedLufs": -10.2,
+        "truePeakDbfs": -1,
+        "meanDbfs": -14.2,
+        "maxDbfs": -1
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 0.937,
+        "bytes": 10030
+      }
+    },
+    {
+      "canonicalFilename": "structure-upgrade.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/Sonniss.com-GDC2026-GameAudioBundle2of5/CB_Sounddesign - Applicable Sounds - Organic UI and Building Games SFX/GAMEMisc_Magic Creation 23_CB Sounddesign_APPlicable Sounds.wav",
+      "originalFilename": "GAMEMisc_Magic Creation 23_CB Sounddesign_APPlicable Sounds.wav",
+      "creator": "CB_Sounddesign",
+      "pack": "Applicable Sounds - Organic UI and Building Games SFX",
+      "license": "Sonniss GDC Game Audio Bundle Part 9 royalty-free license",
+      "sourceSha256": "061a4899d8c85abcd53eb074cbb81c56ab3688692c2838a1cdf20e64b03b506c",
+      "modifications": [
+        "Trimmed leading and trailing digital silence below -55 dB",
+        "+1.4 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 80 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "An existing structure is upgraded"
+      ],
+      "sourceTechnical": {
+        "codec": "pcm_s24le",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 3.18575,
+        "bytes": 918434,
+        "integratedLufs": -19.9,
+        "truePeakDbfs": -2.6,
+        "meanDbfs": -26.8,
+        "maxDbfs": -3
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 2.786625,
+        "bytes": 27793
+      }
+    },
+    {
+      "canonicalFilename": "structure-repair.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/Sonniss.com-GDC2026-GameAudioBundle2of5/Epic Stock Media - HD Lock And Mechanism Sound Design Kit/MACHMech_Mechanism Counting Machine Interact Loose Container Short 01_ESM_HDLM.wav",
+      "originalFilename": "MACHMech_Mechanism Counting Machine Interact Loose Container Short 01_ESM_HDLM.wav",
+      "creator": "Epic Stock Media",
+      "pack": "HD Lock And Mechanism Sound Design Kit",
+      "license": "Sonniss GDC Game Audio Bundle Part 9 royalty-free license",
+      "sourceSha256": "22a02e08af147649519a9081ac77e13e711387944a13bb8688ae5997c6efd968",
+      "modifications": [
+        "Trimmed leading and trailing digital silence below -55 dB",
+        "-5.3 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 80 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "A damaged structure is repaired"
+      ],
+      "sourceTechnical": {
+        "codec": "pcm_s24le",
+        "sampleRate": 192000,
+        "channels": 2,
+        "duration": 0.27051,
+        "bytes": 464010,
+        "integratedLufs": -70,
+        "truePeakDbfs": -1,
+        "meanDbfs": -18.7,
+        "maxDbfs": -1
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 0.277021,
+        "bytes": 4057
+      }
+    },
+    {
+      "canonicalFilename": "structure-recycle.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/Sonniss.com-GDC2026-GameAudioBundle2of5/Epic Stock Media - Board Game - Sound Set Kit for Tabletop and Digital Games/GAMEBoard_Event Board Reset Organic Multiple Pieces Wood Small 02_ESM_BG.wav",
+      "originalFilename": "GAMEBoard_Event Board Reset Organic Multiple Pieces Wood Small 02_ESM_BG.wav",
+      "creator": "Epic Stock Media",
+      "pack": "Board Game - Sound Set Kit for Tabletop and Digital Games",
+      "license": "Sonniss GDC Game Audio Bundle Part 9 royalty-free license",
+      "sourceSha256": "8ee324529ccf157cc0f3f64c6965706f4dc320a4ecd300f9a45309ab24cfb197",
+      "modifications": [
+        "Trimmed leading and trailing digital silence below -55 dB",
+        "-6.3 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 80 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "A structure is recycled"
+      ],
+      "sourceTechnical": {
+        "codec": "pcm_s24le",
+        "sampleRate": 96000,
+        "channels": 2,
+        "duration": 1.112698,
+        "bytes": 771518,
+        "integratedLufs": -11.7,
+        "truePeakDbfs": -1,
+        "meanDbfs": -17.9,
+        "maxDbfs": -1
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 1.048917,
+        "bytes": 12365
+      }
+    },
+    {
+      "canonicalFilename": "structure-damaged.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/kenney_impact-sounds/Audio/impactPlate_medium_002.ogg",
+      "originalFilename": "impactPlate_medium_002.ogg",
+      "creator": "Kenney",
+      "pack": "Impact Sounds",
+      "license": "CC0 1.0",
+      "sourceSha256": "68762e1ed49bb59ae6602fad6ce2ebac61958478ddb2668de9106f010cd4b6b0",
+      "modifications": [
+        "Trimmed leading and trailing digital silence below -55 dB",
+        "-0.2 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 80 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "A structure receives meaningful damage"
+      ],
+      "sourceTechnical": {
+        "codec": "vorbis",
+        "sampleRate": 44100,
+        "channels": 2,
+        "duration": 0.515238,
+        "bytes": 10250,
+        "integratedLufs": -21.3,
+        "truePeakDbfs": -1,
+        "meanDbfs": -24.2,
+        "maxDbfs": -1.1
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 0.52175,
+        "bytes": 3627
+      }
+    },
+    {
+      "canonicalFilename": "structure-destroyed.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/Sonniss.com-GDC2026-GameAudioBundle2of5/Alexander Kopeikin - 100 kHz Designed Ice/ice, block of ice crushed, heavy-015.wav",
+      "originalFilename": "ice, block of ice crushed, heavy-015.wav",
+      "creator": "Alexander Kopeikin",
+      "pack": "100 kHz Designed Ice",
+      "license": "Sonniss GDC Game Audio Bundle Part 9 royalty-free license",
+      "sourceSha256": "daf4e7d3087ab4cff41985396f51751637e1980648b07b404c939d797d38f69a",
+      "modifications": [
+        "Trimmed leading and trailing digital silence below -55 dB",
+        "-4.9 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 80 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "A structure reaches zero health"
+      ],
+      "sourceTechnical": {
+        "codec": "pcm_s24le",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 2.835729,
+        "bytes": 822678,
+        "integratedLufs": -13.1,
+        "truePeakDbfs": -0.3,
+        "meanDbfs": -20,
+        "maxDbfs": -0.7
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 2.272771,
+        "bytes": 22160
+      }
+    },
+    {
+      "canonicalFilename": "turret-fire.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/Sonniss.com-GDC2026-GameAudioBundle2of5/David Dumais Audio - Melee Weapons Sound Effects Pack 2/WEAPWhip_WHIP Snap Crack 05_DDUMAIS_MWP2.wav",
+      "originalFilename": "WEAPWhip_WHIP Snap Crack 05_DDUMAIS_MWP2.wav",
+      "creator": "David Dumais Audio",
+      "pack": "Melee Weapons Sound Effects Pack 2",
+      "license": "Sonniss GDC Game Audio Bundle Part 9 royalty-free license",
+      "sourceSha256": "6f6d12cf051d597e34f58b65bcceb454a4673a4b230065d90f93636b49ec9f48",
+      "modifications": [
+        "Trimmed leading and trailing digital silence below -55 dB",
+        "-5.1 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 80 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "A turret successfully fires"
+      ],
+      "sourceTechnical": {
+        "codec": "pcm_s24le",
+        "sampleRate": 96000,
+        "channels": 2,
+        "duration": 1.470573,
+        "bytes": 5146722,
+        "integratedLufs": -12.9,
+        "truePeakDbfs": -1.9,
+        "meanDbfs": -19.8,
+        "maxDbfs": -1.9
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 1.221,
+        "bytes": 11358
+      }
+    },
+    {
+      "canonicalFilename": "harvester-swing.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/kenney_rpg-audio/Audio/drawKnife2.ogg",
+      "originalFilename": "drawKnife2.ogg",
+      "creator": "Kenney",
+      "pack": "RPG Audio",
+      "license": "CC0 1.0",
+      "sourceSha256": "d5df6a4130cbb016f97b4883769a418917b9629cb4c21717030b186e0c73281a",
+      "modifications": [
+        "Trimmed leading and trailing digital silence below -55 dB",
+        "+12 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 80 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "A harvester begins a new arm revolution"
+      ],
+      "sourceTechnical": {
+        "codec": "vorbis",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 0.445833,
+        "bytes": 12395,
+        "integratedLufs": -35.2,
+        "truePeakDbfs": -22.9,
+        "meanDbfs": -41.3,
+        "maxDbfs": -22.9
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 0.415896,
+        "bytes": 4366
+      }
+    },
+    {
+      "canonicalFilename": "portal-ambient.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/Sonniss.com-GDC2026-GameAudioBundle2of5/Epic Stock Media - Strange Game Ambient Loops 3/DSGNSynth_Dark Loop Mystic Forest Tonal Steady Synth_ESM_SGA3.wav",
+      "originalFilename": "DSGNSynth_Dark Loop Mystic Forest Tonal Steady Synth_ESM_SGA3.wav",
+      "creator": "Epic Stock Media",
+      "pack": "Strange Game Ambient Loops 3",
+      "license": "Sonniss GDC Game Audio Bundle Part 9 royalty-free license",
+      "sourceSha256": "c374c5b2896c9ee3ea6383108f15c8a379b93e29d3c24f4e85542aaf7a41a450",
+      "modifications": [
+        "Preserved loop boundaries",
+        "-10.7 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 64 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "Spatial loop near either of the two nearest active portals"
+      ],
+      "sourceTechnical": {
+        "codec": "pcm_s24le",
+        "sampleRate": 96000,
+        "channels": 2,
+        "duration": 59.657229,
+        "bytes": 34912614,
+        "integratedLufs": -16.3,
+        "truePeakDbfs": -1,
+        "meanDbfs": -16.8,
+        "maxDbfs": -1
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 59.663729,
+        "bytes": 578002
+      }
+    },
+    {
+      "canonicalFilename": "portal-spawn.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/Sonniss.com-GDC2026-GameAudioBundle2of5/Epic Stock Media - Anime Game/DSGNMisc_Misc Monster Tentacle Modulated Creature Shadow Abstract Swept Wobble Lfo 02_ESM_AG.wav",
+      "originalFilename": "DSGNMisc_Misc Monster Tentacle Modulated Creature Shadow Abstract Swept Wobble Lfo 02_ESM_AG.wav",
+      "creator": "Epic Stock Media",
+      "pack": "Anime Game",
+      "license": "Sonniss GDC Game Audio Bundle Part 9 royalty-free license",
+      "sourceSha256": "d10c51599a12fbf9bcd9e73bc44bddd040029265fd33a514ff145396d7aebc2c",
+      "modifications": [
+        "Trimmed leading and trailing digital silence below -55 dB",
+        "-3.8 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 80 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "Portals appear or release a major spawn"
+      ],
+      "sourceTechnical": {
+        "codec": "pcm_s24le",
+        "sampleRate": 96000,
+        "channels": 2,
+        "duration": 2.040958,
+        "bytes": 1726032,
+        "integratedLufs": -14.2,
+        "truePeakDbfs": -1,
+        "meanDbfs": -13.3,
+        "maxDbfs": -1
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 1.991417,
+        "bytes": 23922
+      }
+    },
+    {
+      "canonicalFilename": "portal-destroyed.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/Sonniss.com-GDC2026-GameAudioBundle2of5/Epic Stock Media - Tower Defense Game/ICEBrk_Skill Freeze Whoosh Break Impact Layered Movement Shatter 03_ESM_TDG.wav",
+      "originalFilename": "ICEBrk_Skill Freeze Whoosh Break Impact Layered Movement Shatter 03_ESM_TDG.wav",
+      "creator": "Epic Stock Media",
+      "pack": "Tower Defense Game",
+      "license": "Sonniss GDC Game Audio Bundle Part 9 royalty-free license",
+      "sourceSha256": "ce74c26069a84d55ba7c5fa7a01369ec3b38f88fc787b02ced9d7d1e02ffcc55",
+      "modifications": [
+        "Trimmed leading and trailing digital silence below -55 dB",
+        "-8.2 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 80 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "A portal is destroyed before relocating"
+      ],
+      "sourceTechnical": {
+        "codec": "pcm_s24le",
+        "sampleRate": 96000,
+        "channels": 2,
+        "duration": 2.509198,
+        "bytes": 4698230,
+        "integratedLufs": -9.8,
+        "truePeakDbfs": -1,
+        "meanDbfs": -16.1,
+        "maxDbfs": -1
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 2.278271,
+        "bytes": 20027
+      }
+    },
+    {
+      "canonicalFilename": "zombie-attack.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/Sonniss.com-GDC2026-GameAudioBundle5of5/SoundBits - Vox Bestiae - Source Elements/CREAHmn_Violent Humanoid Creature Exhale Short 4_SNDBTS_VB-SE.wav",
+      "originalFilename": "CREAHmn_Violent Humanoid Creature Exhale Short 4_SNDBTS_VB-SE.wav",
+      "creator": "SoundBits",
+      "pack": "Vox Bestiae - Source Elements",
+      "license": "Sonniss GDC Game Audio Bundle Part 9 royalty-free license",
+      "sourceSha256": "5cbfa96b0b5702b3898b543354a07bc3874126c5ac30625e400af1d8c71210d0",
+      "modifications": [
+        "Trimmed leading and trailing digital silence below -55 dB",
+        "-0.1 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 80 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "A standard zombie attack reaches its active strike"
+      ],
+      "sourceTechnical": {
+        "codec": "pcm_s24le",
+        "sampleRate": 96000,
+        "channels": 1,
+        "duration": 0.42999,
+        "bytes": 125424,
+        "integratedLufs": -17.9,
+        "truePeakDbfs": -3,
+        "meanDbfs": -17.5,
+        "maxDbfs": -3
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 0.4365,
+        "bytes": 3449
+      }
+    },
+    {
+      "canonicalFilename": "zombie-hurt.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/Sonniss.com-GDC2026-GameAudioBundle2of5/Epic Stock Media - Humanoid Creatures Vol 4 - Monstrous and Undead Creature Vocalization Sound Sets/HMNBrth_Construction Kit Male Screeching Breath Inhale Weak Squeal 05_ESM_HC4.wav",
+      "originalFilename": "HMNBrth_Construction Kit Male Screeching Breath Inhale Weak Squeal 05_ESM_HC4.wav",
+      "creator": "Epic Stock Media",
+      "pack": "Humanoid Creatures Vol 4",
+      "license": "Sonniss GDC Game Audio Bundle Part 9 royalty-free license",
+      "sourceSha256": "f85227648434c27d41932a88029be05f809c8d825dbe93de86f3d40260c0d09c",
+      "modifications": [
+        "Trimmed leading and trailing digital silence below -55 dB",
+        "-9.2 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 80 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "A zombie receives damage"
+      ],
+      "sourceTechnical": {
+        "codec": "pcm_s24le",
+        "sampleRate": 96000,
+        "channels": 2,
+        "duration": 0.980771,
+        "bytes": 1058914,
+        "integratedLufs": -8.8,
+        "truePeakDbfs": -1,
+        "meanDbfs": -13.4,
+        "maxDbfs": -1
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 0.984104,
+        "bytes": 10558
+      }
+    },
+    {
+      "canonicalFilename": "zombie-death.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/Sonniss.com-GDC2026-GameAudioBundle2of5/Epic Stock Media - Humanoid Creatures Vol 4 - Monstrous and Undead Creature Vocalization Sound Sets/VOXReac_Construction Kit Male Flutter Death Vocal Stuttered Long 05_ESM_HC4.wav",
+      "originalFilename": "VOXReac_Construction Kit Male Flutter Death Vocal Stuttered Long 05_ESM_HC4.wav",
+      "creator": "Epic Stock Media",
+      "pack": "Humanoid Creatures Vol 4",
+      "license": "Sonniss GDC Game Audio Bundle Part 9 royalty-free license",
+      "sourceSha256": "609cb0672b154a41a97f6122858d64bbd922879b0ed1c3e475b22c2d34f13d14",
+      "modifications": [
+        "Trimmed leading and trailing digital silence below -55 dB",
+        "Limited to the clean first 3 seconds",
+        "-5.8 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 80 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "A standard zombie dies"
+      ],
+      "sourceTechnical": {
+        "codec": "pcm_s24le",
+        "sampleRate": 96000,
+        "channels": 2,
+        "duration": 4.951854,
+        "bytes": 3346358,
+        "integratedLufs": -12.2,
+        "truePeakDbfs": -1,
+        "meanDbfs": -15.9,
+        "maxDbfs": -1
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 3.0065,
+        "bytes": 30740
+      }
+    },
+    {
+      "canonicalFilename": "breaker-smash.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/Sonniss.com-GDC2026-GameAudioBundle2of5/Epic Stock Media - Halloween Game - Haunted House and Horror Audio Scare Kit/GORESplt_Gore Designed Transient Heavy Impact Smash 01_ESM_HALG.wav",
+      "originalFilename": "GORESplt_Gore Designed Transient Heavy Impact Smash 01_ESM_HALG.wav",
+      "creator": "Epic Stock Media",
+      "pack": "Halloween Game - Haunted House and Horror Audio Scare Kit",
+      "license": "Sonniss GDC Game Audio Bundle Part 9 royalty-free license",
+      "sourceSha256": "acbc8d2d58b21562556f6379bfbab92042fe01247cff6cf55beed6f59d5a1b32",
+      "modifications": [
+        "Trimmed leading and trailing digital silence below -55 dB",
+        "-0.6 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 80 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "A breaker performs its heavy attack"
+      ],
+      "sourceTechnical": {
+        "codec": "pcm_s24le",
+        "sampleRate": 96000,
+        "channels": 2,
+        "duration": 1.800667,
+        "bytes": 1240452,
+        "integratedLufs": -17.4,
+        "truePeakDbfs": -1,
+        "meanDbfs": -22.2,
+        "maxDbfs": -1
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 1.247375,
+        "bytes": 14329
+      }
+    },
+    {
+      "canonicalFilename": "jumper-jump.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/Sonniss.com-GDC2026-GameAudioBundle1of5/344 Audio - Air Designed/AEROJet_Blast Off Clean_344 Audio_Air Designed.wav",
+      "originalFilename": "AEROJet_Blast Off Clean_344 Audio_Air Designed.wav",
+      "creator": "344 Audio",
+      "pack": "Air Designed",
+      "license": "Sonniss GDC Game Audio Bundle Part 9 royalty-free license",
+      "sourceSha256": "1de110cf09a62fb5fd117a415f7fb58bdf5ed05de436e7a12c5a228d3acaf5ac",
+      "modifications": [
+        "Trimmed leading and trailing digital silence below -55 dB",
+        "Limited to the clean first 2.5 seconds",
+        "+1.6 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 80 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "A jumper launches"
+      ],
+      "sourceTechnical": {
+        "codec": "pcm_s24le",
+        "sampleRate": 96000,
+        "channels": 2,
+        "duration": 8.73626,
+        "bytes": 5061266,
+        "integratedLufs": -19.6,
+        "truePeakDbfs": -6.5,
+        "meanDbfs": -23.4,
+        "maxDbfs": -6.5
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 2.5065,
+        "bytes": 22901
+      }
+    },
+    {
+      "canonicalFilename": "summoner-cast.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/Sonniss.com-GDC2026-GameAudioBundle2of5/Epic Stock Media - Fantasy Game 2 - Sound Kit for Enchanted Realms/MAGAngl_Magic Light Spell Enchantment Potion Effect Tonal Bright 03_ESM_FG2.wav",
+      "originalFilename": "MAGAngl_Magic Light Spell Enchantment Potion Effect Tonal Bright 03_ESM_FG2.wav",
+      "creator": "Epic Stock Media",
+      "pack": "Fantasy Game 2 - Sound Kit for Enchanted Realms",
+      "license": "Sonniss GDC Game Audio Bundle Part 9 royalty-free license",
+      "sourceSha256": "66fd5c33f2b5e221dce96ba2e24a172683c8c696621d8567ef895627d981d869",
+      "modifications": [
+        "Trimmed leading and trailing digital silence below -55 dB",
+        "Limited to the clean first 2.75 seconds",
+        "-4.5 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 80 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "A summoner successfully summons zombies"
+      ],
+      "sourceTechnical": {
+        "codec": "pcm_s24le",
+        "sampleRate": 96000,
+        "channels": 2,
+        "duration": 5.2,
+        "bytes": 3599350,
+        "integratedLufs": -13.5,
+        "truePeakDbfs": -1,
+        "meanDbfs": -20.2,
+        "maxDbfs": -1
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 2.7565,
+        "bytes": 24559
+      }
+    },
+    {
+      "canonicalFilename": "flag-damaged.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/Sonniss.com-GDC2026-GameAudioBundle2of5/Cinematic Sound Design - System & UI Feedback Elements/Interface Deny Low Fat Dark.wav",
+      "originalFilename": "Interface Deny Low Fat Dark.wav",
+      "creator": "Cinematic Sound Design",
+      "pack": "System & UI Feedback Elements",
+      "license": "Sonniss GDC Game Audio Bundle Part 9 royalty-free license",
+      "sourceSha256": "b63554a4791b9d7c034e2e49e2383971870394d4a70d9e3c2bc6f99fb2fcc101",
+      "modifications": [
+        "Trimmed leading and trailing digital silence below -55 dB",
+        "-0.4 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 80 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "The flag receives actual damage"
+      ],
+      "sourceTechnical": {
+        "codec": "pcm_s24le",
+        "sampleRate": 96000,
+        "channels": 2,
+        "duration": 0.742865,
+        "bytes": 429698,
+        "integratedLufs": -17.6,
+        "truePeakDbfs": -2.8,
+        "meanDbfs": -20.4,
+        "maxDbfs": -2.8
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 0.545417,
+        "bytes": 7819
+      }
+    },
+    {
+      "canonicalFilename": "boss-roar.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/Sonniss.com-GDC2026-GameAudioBundle1of5/344 Audio - Dinosaurs Vol. 2/ANMLRept_Large Herbivore Roar 01_344 Audio_Dinosaurs Vol 2.wav",
+      "originalFilename": "ANMLRept_Large Herbivore Roar 01_344 Audio_Dinosaurs Vol 2.wav",
+      "creator": "344 Audio",
+      "pack": "Dinosaurs Vol. 2",
+      "license": "Sonniss GDC Game Audio Bundle Part 9 royalty-free license",
+      "sourceSha256": "885b297bc1cba43a4b5a59dafcd220a50302f106d400d0d3c8aa469ba84d399c",
+      "modifications": [
+        "Trimmed leading and trailing digital silence below -55 dB",
+        "Limited to the clean first 4 seconds",
+        "-1.1 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 80 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "The boss enters its major phase"
+      ],
+      "sourceTechnical": {
+        "codec": "pcm_s24le",
+        "sampleRate": 96000,
+        "channels": 2,
+        "duration": 12.461333,
+        "bytes": 7218028,
+        "integratedLufs": -16.9,
+        "truePeakDbfs": -1.6,
+        "meanDbfs": -20.4,
+        "maxDbfs": -1.6
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 4.0065,
+        "bytes": 54911
+      }
+    },
+    {
+      "canonicalFilename": "boss-acid-spit.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/Sonniss.com-GDC2026-GameAudioBundle1of5/344 Audio - Barbershop Vol. 1/OBJMisc_Spray Bottle, Spray 1_344 Audio_Barbershop Vol 1.wav",
+      "originalFilename": "OBJMisc_Spray Bottle, Spray 1_344 Audio_Barbershop Vol 1.wav",
+      "creator": "344 Audio",
+      "pack": "Barbershop Vol. 1",
+      "license": "Sonniss GDC Game Audio Bundle Part 9 royalty-free license",
+      "sourceSha256": "fe3d9f33fbfafcf99e2bb440fb494e5b372377c3b5d3485074d38d3cc577daab",
+      "modifications": [
+        "Trimmed leading and trailing digital silence below -55 dB",
+        "+12 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 80 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "The boss launches an acid projectile"
+      ],
+      "sourceTechnical": {
+        "codec": "pcm_s24le",
+        "sampleRate": 96000,
+        "channels": 2,
+        "duration": 0.52,
+        "bytes": 303404,
+        "integratedLufs": -35.7,
+        "truePeakDbfs": -21.3,
+        "meanDbfs": -42.7,
+        "maxDbfs": -21.3
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 0.48225,
+        "bytes": 5389
+      }
+    },
+    {
+      "canonicalFilename": "boss-death.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/Sonniss.com-GDC2026-GameAudioBundle2of5/Epic Stock Media - Anime Game/EXPLDsgn_Explosion Small Blast Enemy Death Crunchy Boom Cartoon Noisy Crash Impact Delay 03_ESM_AG.wav",
+      "originalFilename": "EXPLDsgn_Explosion Small Blast Enemy Death Crunchy Boom Cartoon Noisy Crash Impact Delay 03_ESM_AG.wav",
+      "creator": "Epic Stock Media",
+      "pack": "Anime Game",
+      "license": "Sonniss GDC Game Audio Bundle Part 9 royalty-free license",
+      "sourceSha256": "0fdfac62d1c0b80a9db28e41c878562ab67825202cb863e8a0a600c35c333dc4",
+      "modifications": [
+        "Trimmed leading and trailing digital silence below -55 dB",
+        "-0.2 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 80 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "The boss dies"
+      ],
+      "sourceTechnical": {
+        "codec": "pcm_s24le",
+        "sampleRate": 96000,
+        "channels": 2,
+        "duration": 1.477833,
+        "bytes": 1402002,
+        "integratedLufs": -17.9,
+        "truePeakDbfs": -1,
+        "meanDbfs": -20.3,
+        "maxDbfs": -1
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 1.253667,
+        "bytes": 10182
+      }
+    }
+  ]
+}

@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Flagfall Audio Implementation Report</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: "Trebuchet MS", "Arial Rounded MT Bold", Arial, sans-serif;
+      --ink: #fff8dc;
+      --muted: #b8c7b3;
+      --panel: rgba(12, 31, 22, 0.97);
+      --panel-light: rgba(33, 64, 44, 0.97);
+      --line: rgba(238, 246, 218, 0.22);
+      --green: #78f29f;
+      --green-dark: #1d6b3c;
+      --red: #ff695f;
+      --gold: #f7ca4b;
+      --purple: #a884ff;
+      --shadow: 0 8px 0 rgba(3, 13, 8, 0.5), 0 18px 40px rgba(0, 0, 0, 0.35);
+    }
+    * { box-sizing: border-box; min-width: 0; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 18% 10%, rgba(29, 107, 60, 0.44), transparent 34rem),
+        radial-gradient(circle at 86% 0%, rgba(168, 132, 255, 0.13), transparent 28rem),
+        #06130d;
+    }
+    main { width: min(1500px, calc(100% - 32px)); margin: 0 auto; padding: 36px 0 72px; }
+    header {
+      position: relative;
+      overflow: hidden;
+      padding: clamp(24px, 5vw, 54px);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: linear-gradient(145deg, var(--panel-light), var(--panel));
+      box-shadow: var(--shadow);
+    }
+    header::after {
+      content: "♪";
+      position: absolute;
+      right: clamp(18px, 5vw, 64px);
+      top: 6px;
+      color: rgba(120, 242, 159, 0.12);
+      font-size: clamp(120px, 22vw, 270px);
+      line-height: 1;
+      transform: rotate(-8deg);
+      pointer-events: none;
+    }
+    .eyebrow { color: var(--green); font-weight: 900; letter-spacing: .16em; text-transform: uppercase; }
+    h1 { max-width: 780px; margin: 10px 0 12px; padding-bottom: 5px; font-size: clamp(36px, 7vw, 80px); line-height: 1.04; }
+    .lede { max-width: 800px; margin: 0; color: var(--muted); font-size: clamp(16px, 2vw, 21px); line-height: 1.55; }
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      margin-top: 22px;
+      padding: 9px 13px;
+      border: 1px solid rgba(120, 242, 159, .36);
+      border-radius: 999px;
+      color: var(--green);
+      background: rgba(7, 24, 15, .75);
+      font-weight: 900;
+    }
+    .status::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--green); box-shadow: 0 0 14px var(--green); }
+    .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin: 26px 0; }
+    .stat, section {
+      border: 1px solid var(--line);
+      border-radius: 17px;
+      background: var(--panel);
+      box-shadow: 0 5px 0 rgba(3, 13, 8, .42);
+    }
+    .stat { padding: 19px; }
+    .stat strong { display: block; color: var(--gold); font-size: clamp(24px, 4vw, 42px); }
+    .stat span { color: var(--muted); font-weight: 700; }
+    section { margin-top: 18px; padding: clamp(19px, 3vw, 30px); }
+    h2 { margin: 0 0 15px; font-size: clamp(22px, 3vw, 32px); }
+    h3 { margin: 0 0 7px; font-size: 17px; }
+    p { line-height: 1.55; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .card { padding: 18px; border: 1px solid var(--line); border-radius: 13px; background: rgba(33, 64, 44, .56); }
+    .card p { margin: 0; color: var(--muted); }
+    code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    code { color: #c9ffdc; overflow-wrap: anywhere; }
+    .filters { display: grid; grid-template-columns: minmax(220px, 1fr) minmax(180px, 260px); gap: 10px; margin: 16px 0; }
+    input, select {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      color: var(--ink);
+      background: #081a11;
+      font: inherit;
+    }
+    .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; }
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; background: rgba(4, 17, 10, .42); }
+    th, td { padding: 12px; border-bottom: 1px solid var(--line); vertical-align: top; text-align: left; overflow-wrap: anywhere; }
+    th { position: sticky; top: 0; color: var(--green); background: #102c1d; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
+    tr:last-child td { border-bottom: 0; }
+    tbody tr:hover { background: rgba(120, 242, 159, .05); }
+    th:nth-child(1) { width: 16%; }
+    th:nth-child(2) { width: 27%; }
+    th:nth-child(3) { width: 21%; }
+    th:nth-child(4) { width: 18%; }
+    th:nth-child(5) { width: 18%; }
+    .sub { display: block; margin-top: 5px; color: var(--muted); font-size: 12px; line-height: 1.4; }
+    .license { display: inline-block; padding: 4px 7px; border: 1px solid rgba(247, 202, 75, .35); border-radius: 7px; color: var(--gold); font-size: 11px; font-weight: 900; }
+    .checklist { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 18px; padding: 0; list-style: none; }
+    .checklist li { position: relative; padding: 10px 10px 10px 34px; border-bottom: 1px solid var(--line); color: var(--muted); }
+    .checklist li::before { content: "✓"; position: absolute; left: 7px; top: 8px; color: var(--green); font-weight: 900; }
+    .warning { border-color: rgba(247, 202, 75, .32); background: rgba(72, 50, 4, .22); }
+    .warning strong { color: var(--gold); }
+    .paths { display: grid; gap: 8px; padding: 0; list-style: none; }
+    .paths li { padding: 10px 12px; border: 1px solid var(--line); border-radius: 9px; background: #081a11; overflow-wrap: anywhere; }
+    footer { margin-top: 22px; color: var(--muted); text-align: center; font-size: 13px; }
+    @media (max-width: 860px) {
+      .stats, .grid, .checklist { grid-template-columns: 1fr 1fr; }
+      table { min-width: 980px; }
+    }
+    @media (max-width: 600px) {
+      main { width: min(100% - 18px, 1500px); padding-top: 12px; }
+      .stats, .grid, .checklist, .filters { grid-template-columns: 1fr; }
+      header { border-radius: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div class="eyebrow">Flagfall · Audio handoff</div>
+      <h1>Every gameplay sound is wired, licensed, and tested.</h1>
+      <p class="lede">A centralized Web Audio system now covers all 50 requested events, from restrained UI feedback and spatial portal ambience to high-priority flag warnings and boss cues.</p>
+      <div class="status">Production ready</div>
+    </header>
+
+    <div class="stats" aria-label="Implementation summary">
+      <div class="stat"><strong>50 / 50</strong><span>canonical sounds assigned</span></div>
+      <div class="stat"><strong>0</strong><span>missing sounds</span></div>
+      <div class="stat"><strong>1.2 MB</strong><span>complete production audio</span></div>
+      <div class="stat"><strong>50 / 50</strong><span>decoded in final itch build</span></div>
+    </div>
+
+    <section>
+      <h2>What shipped</h2>
+      <div class="grid">
+        <article class="card">
+          <h3>Centralized playback</h3>
+          <p>Preloading, autoplay unlock, queued playback, one-shots, loops, spatial panning, cooldowns, concurrency, and missing-file tolerance live in <code>src/audio.ts</code>.</p>
+        </article>
+        <article class="card">
+          <h3>Persistent controls</h3>
+          <p>Master, effects, and ambience levels plus mute are exposed in Settings and persisted locally across browser reloads.</p>
+        </article>
+        <article class="card">
+          <h3>Combat-safe mix</h3>
+          <p>Flag damage sits above horde noise. Zombie, resource, structure, turret, hover, and portal channels have tunable limits and cooldowns.</p>
+        </article>
+        <article class="card">
+          <h3>Spatial ambience</h3>
+          <p>Only the two nearest active portals can contribute ambience, with distance attenuation inside a 1,250-world-unit radius.</p>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <h2>Source and attribution matrix</h2>
+      <p id="table-summary">Loading the generated attribution manifest...</p>
+      <div class="filters">
+        <input id="search" type="search" placeholder="Filter canonical or source filename" aria-label="Filter sounds">
+        <select id="license-filter" aria-label="Filter by license">
+          <option value="">All licenses</option>
+          <option value="CC0">CC0 1.0</option>
+          <option value="Sonniss">Sonniss royalty-free</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Canonical</th>
+              <th>Original source</th>
+              <th>Creator / pack</th>
+              <th>Rights</th>
+              <th>Event and processing</th>
+            </tr>
+          </thead>
+          <tbody id="sound-rows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2>Selection and processing</h2>
+      <div class="grid">
+        <article class="card">
+          <h3>Source search</h3>
+          <p><code>/Users/aiagents/Documents/GMTK/Audio</code> was searched recursively. Kenney Impact, Interface, RPG, and UI SFX packs plus all five Sonniss Part 9 sections were accessible.</p>
+        </article>
+        <article class="card">
+          <h3>Rights boundary</h3>
+          <p>Kenney assets use CC0 1.0. Sonniss Part 9 assets use the included royalty-free license. The unlabeled <code>Audio/zombies</code> folder was rejected in full because provenance and rights were unclear.</p>
+        </article>
+        <article class="card">
+          <h3>Conversion</h3>
+          <p>Non-looping effects were trimmed below -55 dB, normalized with fixed gain, peak-capped below -1.25 dBFS, resampled to 48 kHz stereo, and encoded as OGG Opus at 80 kbps VBR. Ambience uses 64 kbps.</p>
+        </article>
+        <article class="card">
+          <h3>Source preservation</h3>
+          <p>The pipeline stores each original SHA-256 hash and verifies it again after conversion. Source-folder files were never modified, moved, renamed, or deleted.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="warning">
+      <h2>Important rejected candidates</h2>
+      <p><strong>Unlicensed zombie files:</strong> rejected due to missing creator, pack, source, and license data.</p>
+      <p><strong>Boss acid liquid impact:</strong> rejected because it read as several impacts. A clean 0.52-second isolated spray was selected instead.</p>
+      <p><strong>Long multi-variant and alarm files:</strong> rejected because unrelated material, 30 to 60-second length, or spoken wording would obscure combat and countdown timing.</p>
+    </section>
+
+    <section>
+      <h2>Verification completed</h2>
+      <ul class="checklist">
+        <li>Generated attribution covers all 50 outputs.</li>
+        <li>Source hashes remain unchanged.</li>
+        <li>No sound is missing or silently substituted.</li>
+        <li>Production contains exactly 50 OGG files and one manifest.</li>
+        <li>Every requested event has a typed hook.</li>
+        <li>Hover and update-loop spam are prevented.</li>
+        <li>Pause, scene change, and run end stop loops.</li>
+        <li>Portal ambience is spatial and limited to two sources.</li>
+        <li>Flag damage bypasses horde concurrency and stays prominent.</li>
+        <li>Zombie voices and attacks are concurrency-limited.</li>
+        <li>Repeated cues use restrained pitch and volume variation.</li>
+        <li>Volume and mute state persist.</li>
+        <li>Missing files fail gracefully.</li>
+        <li>Type checking and the full Vitest suite pass.</li>
+        <li>The Vite production build passes.</li>
+        <li>The exact itch archive loads and decodes 50 / 50 sounds.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Deliverables</h2>
+      <ul class="paths">
+        <li><code>/Users/aiagents/Documents/GMTK/dist</code></li>
+        <li><code>/Users/aiagents/Documents/GMTK/flagfall-itch-2026-07-24.zip</code></li>
+        <li><code>/Users/aiagents/Documents/GMTK/AUDIO_SOURCE_MAP.md</code></li>
+        <li><code>/Users/aiagents/Documents/GMTK/public/audio/audio-attribution.json</code></li>
+        <li><code>/Users/aiagents/Documents/GMTK/AUDIO_SELECTION_REPORT.md</code></li>
+        <li><code>/Users/aiagents/Documents/GMTK/AUDIO_MISSING_SOUNDS.md</code></li>
+      </ul>
+    </section>
+    <footer>Report generated for the final Flagfall audio implementation handoff.</footer>
+  </main>
+
+  <script>
+    const tbody = document.querySelector("#sound-rows");
+    const summary = document.querySelector("#table-summary");
+    const search = document.querySelector("#search");
+    const licenseFilter = document.querySelector("#license-filter");
+    let entries = [];
+
+    const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (character) => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
+    })[character]);
+
+    const render = () => {
+      const query = search.value.trim().toLowerCase();
+      const licenseQuery = licenseFilter.value.toLowerCase();
+      const visible = entries.filter((entry) => {
+        const haystack = [
+          entry.canonicalFilename,
+          entry.originalFilename,
+          entry.creator,
+          entry.pack,
+          entry.license,
+          ...(entry.gameplayEvents || [])
+        ].join(" ").toLowerCase();
+        return (!query || haystack.includes(query))
+          && (!licenseQuery || String(entry.license).toLowerCase().includes(licenseQuery));
+      });
+
+      tbody.innerHTML = visible.map((entry) => `
+        <tr>
+          <td><code>${escapeHtml(entry.canonicalFilename)}</code><span class="sub">${entry.outputTechnical?.duration?.toFixed(2) ?? "?"}s · ${entry.outputTechnical?.bytes ? Math.round(entry.outputTechnical.bytes / 1024) : "?"} KB</span></td>
+          <td><span class="mono">${escapeHtml(entry.originalFilename)}</span><span class="sub">${escapeHtml(entry.sourceTechnical?.codec)} · ${escapeHtml(entry.sourceTechnical?.sampleRate)} Hz</span></td>
+          <td>${escapeHtml(entry.creator || "Recorded creator unavailable")}<span class="sub">${escapeHtml(entry.pack || "Pack name preserved in source path")}</span></td>
+          <td><span class="license">${escapeHtml(entry.license)}</span></td>
+          <td>${escapeHtml((entry.gameplayEvents || []).join("; "))}<span class="sub">${escapeHtml((entry.modifications || []).join("; "))}</span></td>
+        </tr>
+      `).join("");
+      summary.textContent = `Showing ${visible.length} of ${entries.length} assigned sounds. No canonical sound is missing.`;
+    };
+
+    fetch("./audio-attribution.json")
+      .then((response) => {
+        if (!response.ok) throw new Error(`Manifest request failed: ${response.status}`);
+        return response.json();
+      })
+      .then((manifest) => {
+        entries = manifest.entries || [];
+        render();
+      })
+      .catch((error) => {
+        summary.textContent = `Attribution manifest could not be loaded: ${error.message}`;
+      });
+
+    search.addEventListener("input", render);
+    licenseFilter.addEventListener("change", render);
+  </script>
+</body>
+</html>

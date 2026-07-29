@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 96 96"
+   version="1.1"
+   id="svg2"
+   sodipodi:docname="turret.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs2" />
+  <sodipodi:namedview
+     id="namedview2"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="2.8669258"
+     inkscape:cx="49.181601"
+     inkscape:cy="64.005842"
+     inkscape:window-width="1577"
+     inkscape:window-height="772"
+     inkscape:window-x="0"
+     inkscape:window-y="33"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="turret" />
+  <g
+     id="turret"
+     stroke="#253027"
+     stroke-width="7">
+    <circle
+       cx="42.348804"
+       cy="48.767914"
+       r="29"
+       fill="#b47742"
+       id="circle1" />
+    <path
+       d="m 42.348806,48.767915 h 45"
+       fill="none"
+       id="path1" />
+    <circle
+       cx="42.348804"
+       cy="48.767914"
+       r="13"
+       fill="#26332f"
+       id="circle2"
+       style="fill:#b47742;fill-opacity:1;stroke:#b47742;stroke-opacity:1" />
+  </g>
+</svg>
