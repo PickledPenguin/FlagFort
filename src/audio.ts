@@ -292,6 +292,7 @@ export class AudioManager {
   private effectsGain: GainNode | null = null;
   private ambienceGain: GainNode | null = null;
   private settings = this.loadSettings();
+  private platformMuted = false;
   private encoded = new Map<SoundId, Promise<ArrayBuffer | null>>();
   private buffers = new Map<SoundId, Promise<AudioBuffer | null>>();
   private cooldowns = new Map<SoundId, number>();
@@ -352,6 +353,16 @@ export class AudioManager {
     this.applySettings();
     this.saveSettings();
     this.updateDebug();
+  }
+
+  setPlatformMuted(muted: boolean): void {
+    this.platformMuted = muted;
+    this.applySettings();
+    this.updateDebug();
+  }
+
+  isEffectivelyMuted(): boolean {
+    return this.settings.muted || this.platformMuted;
   }
 
   toggleMuted(): void {
@@ -610,7 +621,7 @@ export class AudioManager {
   private applySettings(): void {
     if (!this.context || !this.masterGain || !this.effectsGain || !this.ambienceGain) return;
     const now = this.context.currentTime;
-    this.masterGain.gain.setTargetAtTime(this.settings.muted ? 0 : this.settings.master, now, 0.015);
+    this.masterGain.gain.setTargetAtTime(this.isEffectivelyMuted() ? 0 : this.settings.master, now, 0.015);
     this.effectsGain.gain.setTargetAtTime(this.settings.effects, now, 0.015);
     this.ambienceGain.gain.setTargetAtTime(this.settings.ambience, now, 0.015);
   }
@@ -656,7 +667,7 @@ export class AudioManager {
       `${this.decodedCount}/${SOUND_IDS.length} decoded`,
       `last ${this.lastPlayed}`,
       `loops ${this.loops.size}`,
-      this.settings.muted ? "muted" : "audible",
+      this.isEffectivelyMuted() ? (this.platformMuted ? "platform-muted" : "muted") : "audible",
     ].join(" · ");
   }
 }

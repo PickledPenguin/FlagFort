@@ -2,6 +2,7 @@ import { BALANCE } from "./config";
 import { allAssetPaths, ASSETS } from "./assets";
 import { BUILD_BAR_ICON_PATHS } from "./build-bar-icons";
 import type { Game } from "./game";
+import { META_BALANCE } from "./meta-balance";
 import { affordability, type ResourceWallet } from "./rules";
 import { costLayoutRows } from "./cost-layout";
 import type { Enemy, Player, ResourceNode, Structure } from "./types";
@@ -73,6 +74,7 @@ export class Renderer {
     y: number,
     width: number,
     height: number,
+    flash = false,
   ): boolean {
     const sprite = this.images.get(path);
     if (!sprite?.complete || sprite.naturalWidth <= 0) return false;
@@ -90,7 +92,14 @@ export class Renderer {
       tintContext.fillRect(0, 0, 96, 96);
       this.tintedSprites.set(key, tinted);
     }
-    this.ctx.drawImage(tinted, x, y, width, height);
+    if (flash) {
+      this.ctx.save();
+      this.ctx.filter = "brightness(0) invert(1)";
+      this.ctx.drawImage(tinted, x, y, width, height);
+      this.ctx.restore();
+    } else {
+      this.ctx.drawImage(tinted, x, y, width, height);
+    }
     return true;
   }
 
@@ -370,7 +379,7 @@ export class Renderer {
       103,
     );
     this.drawSprite(ASSETS.flag.base, -70, -75, 140, 150);
-    this.drawSprite(ASSETS.flag.cloth, -18, -64, 77, 52, flag.hurtFlash > 0);
+    this.drawSprite(ASSETS.flag.cloth, -18, -74, 77, 52, flag.hurtFlash > 0);
     ctx.fillStyle = "#f8f1d3";
     ctx.font = "950 34px system-ui";
     ctx.textAlign = "center";
@@ -655,7 +664,13 @@ export class Renderer {
     } else if (!["fists", "tool", "recycle"].includes(action)) {
       this.drawSprite(ASSETS.player.tools.blueprint, 20, -22, 45, 44);
     }
-    this.drawSprite(ASSETS.player.body, -30, -30, 60, 60, player.hurtFlash > 0);
+    const profile = game.profileManager?.profile;
+    const playerColor = profile?.playerColor ?? META_BALANCE.customization.colors[0];
+    const eyeStyle = profile?.eyeStyle ?? "round";
+    const flashing = player.hurtFlash > 0;
+    this.drawTintedSprite(ASSETS.player.body, playerColor, -30, -30, 60, 60, flashing);
+    this.drawSprite(ASSETS.player.bodyDetails, -30, -30, 60, 60, flashing);
+    this.drawSprite(ASSETS.player.eyes[eyeStyle], -30, -30, 60, 60, flashing);
     ctx.restore();
   }
 

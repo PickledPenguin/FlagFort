@@ -1,0 +1,439 @@
+import {
+  EQUIPMENT_ORDER,
+  META_BALANCE,
+  PERMANENT_UPGRADES,
+  permanentUpgradeCost,
+  type EquipmentKind,
+  type EquipmentTier,
+  type EyeStyle,
+  type PermanentUpgradeId,
+} from "./meta-balance";
+import {
+  createEquipmentInventory,
+  equipmentUpgradePrice,
+  nextEquipmentTier,
+  type EquipmentInventory,
+} from "./equipment";
+import type { KeyValueStore } from "./platform";
+import type { CoinSettlement, XpRewardBreakdown } from "./rewards";
+import type { RunRecord } from "./types";
+
+export interface PendingRunSettlement {
+  id: string;
+  investment: number;
+  startedAt: string;
+}
+
+export interface ProfileProgress {
+  highestNight: number;
+  campaignWins: number;
+  totalRuns: number;
+  bestStructureScore: number;
+}
+
+export interface PlayerProfile {
+  schemaVersion: number;
+  lifetimeXp: number;
+  spendableXp: number;
+  playerLevel: number;
+  coins: number;
+  lastDailyRewardDate: string | null;
+  permanentUpgrades: Record<PermanentUpgradeId, number>;
+  equipment: EquipmentInventory;
+  playerColor: string;
+  eyeStyle: EyeStyle;
+  progress: ProfileProgress;
+  pendingRunSettlement: PendingRunSettlement | null;
+  completedSettlementIds: string[];
+  recentRuns: RunRecord[];
+}
+
+export interface DailyRewardResult {
+  granted: boolean;
+  amount: number;
+  date: string;
+}
+
+export interface RunSettlementResult {
+  id: string;
+  xp: XpRewardBreakdown;
+  coins: CoinSettlement;
+  previousLifetimeXp: number;
+  newLifetimeXp: number;
+  previousSpendableXp: number;
+  newSpendableXp: number;
+  previousCoins: number;
+  newCoins: number;
+  previousLevel: number;
+  newLevel: number;
+}
+
+export interface RunSettlementProgress {
+  nightsSurvived: number;
+  victory: boolean;
+  structureScore: number;
+}
+
+function createPermanentUpgrades(): Record<PermanentUpgradeId, number> {
+  return Object.fromEntries(
+    PERMANENT_UPGRADES.map(({ id }) => [id, 0]),
+  ) as Record<PermanentUpgradeId, number>;
+}
+
+export function createDefaultProfile(): PlayerProfile {
+  return {
+    schemaVersion: META_BALANCE.profileSchemaVersion,
+    lifetimeXp: 0,
+    spendableXp: 0,
+    playerLevel: 1,
+    coins: 0,
+    lastDailyRewardDate: null,
+    permanentUpgrades: createPermanentUpgrades(),
+    equipment: createEquipmentInventory(),
+    playerColor: META_BALANCE.customization.colors[0],
+    eyeStyle: "round",
+    progress: {
+      highestNight: 0,
+      campaignWins: 0,
+      totalRuns: 0,
+      bestStructureScore: 0,
+    },
+    pendingRunSettlement: null,
+    completedSettlementIds: [],
+    recentRuns: [],
+  };
+}
+
+function finiteNonNegative(value: unknown, fallback = 0): number {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0
+    ? Math.floor(value)
+    : fallback;
+}
+
+function recordObject(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+}
+
+export function xpForNextLevel(level: number): number {
+  const safeLevel = Math.max(1, Math.floor(level));
+  return META_BALANCE.levels.baseXp + (safeLevel - 1) * META_BALANCE.levels.growthXp;
+}
+
+export function lifetimeXpAtLevel(level: number): number {
+  let total = 0;
+  for (let current = 1; current < Math.max(1, Math.floor(level)); current += 1) {
+    total += xpForNextLevel(current);
+  }
+  return total;
+}
+
+export function derivePlayerLevel(lifetimeXp: number): number {
+  const xp = finiteNonNegative(lifetimeXp);
+  let level = 1;
+  let threshold = xpForNextLevel(level);
+  let consumed = 0;
+  while (xp >= consumed + threshold && level < 999) {
+    consumed += threshold;
+    level += 1;
+    threshold = xpForNextLevel(level);
+  }
+  return level;
+}
+
+export function levelProgress(lifetimeXp: number): {
+  level: number;
+  current: number;
+  required: number;
+  ratio: number;
+} {
+  const level = derivePlayerLevel(lifetimeXp);
+  const current = Math.max(0, finiteNonNegative(lifetimeXp) - lifetimeXpAtLevel(level));
+  const required = xpForNextLevel(level);
+  return { level, current, required, ratio: Math.min(1, current / required) };
+}
+
+export function crazyGamesCalendarDate(now: Date): string {
+  if (Number.isNaN(now.getTime())) throw new Error("Invalid daily reward date");
+  return now.toISOString().slice(0, 10);
+}
+
+export function migrateProfile(raw: unknown): PlayerProfile {
+  const defaults = createDefaultProfile();
+  const source = recordObject(raw);
+  const permanentSource = recordObject(source.permanentUpgrades);
+  const equipmentSource = recordObject(source.equipment);
+  const progressSource = recordObject(source.progress);
+  const lifetimeXp = finiteNonNegative(source.lifetimeXp);
+  const spendableXp = Math.min(lifetimeXp, finiteNonNegative(source.spendableXp, lifetimeXp));
+
+  const permanentUpgrades = createPermanentUpgrades();
+  for (const definition of PERMANENT_UPGRADES) {
+    permanentUpgrades[definition.id] = Math.min(
+      META_BALANCE.permanentUpgrade.maximumLevel,
+      finiteNonNegative(permanentSource[definition.id]),
+    );
+  }
+
+  const equipment = createEquipmentInventory();
+  for (const kind of EQUIPMENT_ORDER) {
+    const item = recordObject(equipmentSource[kind]);
+    const tier = typeof item.tier === "string"
+      && ["wood", "stone", "gold", "diamond"].includes(item.tier)
+      ? item.tier as EquipmentTier
+      : null;
+    equipment[kind] = { tier, equipped: tier !== null && item.equipped !== false };
+  }
+
+  const pendingSource = recordObject(source.pendingRunSettlement);
+  const pendingRunSettlement = typeof pendingSource.id === "string"
+    && typeof pendingSource.startedAt === "string"
+    ? {
+        id: pendingSource.id.slice(0, 96),
+        investment: Math.min(
+          META_BALANCE.investment.maximum,
+          finiteNonNegative(pendingSource.investment),
+        ),
+        startedAt: pendingSource.startedAt,
+      }
+    : null;
+
+  const playerColor = typeof source.playerColor === "string"
+    && META_BALANCE.customization.colors.includes(source.playerColor as typeof META_BALANCE.customization.colors[number])
+    ? source.playerColor
+    : defaults.playerColor;
+  const eyeStyle = typeof source.eyeStyle === "string"
+    && META_BALANCE.customization.eyeStyles.includes(source.eyeStyle as EyeStyle)
+    ? source.eyeStyle as EyeStyle
+    : defaults.eyeStyle;
+
+  return {
+    schemaVersion: META_BALANCE.profileSchemaVersion,
+    lifetimeXp,
+    spendableXp,
+    playerLevel: derivePlayerLevel(lifetimeXp),
+    coins: finiteNonNegative(source.coins),
+    lastDailyRewardDate: typeof source.lastDailyRewardDate === "string"
+      && /^\d{4}-\d{2}-\d{2}$/.test(source.lastDailyRewardDate)
+      ? source.lastDailyRewardDate
+      : null,
+    permanentUpgrades,
+    equipment,
+    playerColor,
+    eyeStyle,
+    progress: {
+      highestNight: finiteNonNegative(progressSource.highestNight),
+      campaignWins: finiteNonNegative(progressSource.campaignWins),
+      totalRuns: finiteNonNegative(progressSource.totalRuns),
+      bestStructureScore: finiteNonNegative(progressSource.bestStructureScore),
+    },
+    pendingRunSettlement,
+    completedSettlementIds: Array.isArray(source.completedSettlementIds)
+      ? [...new Set(source.completedSettlementIds
+        .filter((id): id is string => typeof id === "string")
+        .map((id) => id.slice(0, 96)))].slice(-100)
+      : [],
+    recentRuns: Array.isArray(source.recentRuns)
+      ? source.recentRuns.filter((record): record is RunRecord =>
+        Boolean(record && typeof record === "object"
+          && typeof (record as RunRecord).seed === "string"
+          && typeof (record as RunRecord).date === "string")).slice(0, 10)
+      : [],
+  };
+}
+
+export function parseProfile(serialized: string | null): PlayerProfile {
+  if (!serialized) return createDefaultProfile();
+  try {
+    return migrateProfile(JSON.parse(serialized));
+  } catch {
+    return createDefaultProfile();
+  }
+}
+
+export class ProfileManager {
+  profile: PlayerProfile;
+  private readonly listeners = new Set<(profile: PlayerProfile) => void>();
+
+  constructor(private storage: KeyValueStore) {
+    this.profile = parseProfile(storage.getItem(META_BALANCE.profileStorageKey));
+    if (this.profile.recentRuns.length === 0) {
+      try {
+        const legacy = storage.getItem(META_BALANCE.legacyRecordsKey);
+        if (legacy) {
+          const records = JSON.parse(legacy) as unknown;
+          if (Array.isArray(records)) this.profile.recentRuns = records.slice(0, 10) as RunRecord[];
+        }
+      } catch {
+        // A corrupt legacy record list must not affect the profile.
+      }
+    }
+    this.save();
+  }
+
+  setStorage(storage: KeyValueStore): void {
+    this.storage = storage;
+    this.reload();
+  }
+
+  reload(): void {
+    this.profile = parseProfile(this.storage.getItem(META_BALANCE.profileStorageKey));
+    this.save();
+    this.emit();
+  }
+
+  subscribe(listener: (profile: PlayerProfile) => void): () => void {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  }
+
+  claimDailyReward(now = new Date()): DailyRewardResult {
+    const date = crazyGamesCalendarDate(now);
+    if (this.profile.lastDailyRewardDate === date) return { granted: false, amount: 0, date };
+    this.profile.lastDailyRewardDate = date;
+    this.profile.coins += META_BALANCE.dailyRewardCoins;
+    this.commit();
+    return { granted: true, amount: META_BALANCE.dailyRewardCoins, date };
+  }
+
+  beginRunSettlement(id: string, requestedInvestment: number, startedAt = new Date()): boolean {
+    const runId = id.trim().slice(0, 96);
+    if (!runId || this.profile.completedSettlementIds.includes(runId)) return false;
+    if (this.profile.pendingRunSettlement?.id === runId) return true;
+    if (this.profile.pendingRunSettlement) {
+      this.completeSettlementId(this.profile.pendingRunSettlement.id);
+      this.profile.pendingRunSettlement = null;
+    }
+    const investment = Math.min(
+      META_BALANCE.investment.maximum,
+      Math.max(0, Math.floor(requestedInvestment)),
+      this.profile.coins,
+    );
+    this.profile.coins -= investment;
+    this.profile.pendingRunSettlement = {
+      id: runId,
+      investment,
+      startedAt: startedAt.toISOString(),
+    };
+    this.commit();
+    return true;
+  }
+
+  settleRun(
+    id: string,
+    xp: XpRewardBreakdown,
+    coins: CoinSettlement,
+    progress: RunSettlementProgress,
+  ): RunSettlementResult | null {
+    if (this.profile.completedSettlementIds.includes(id)) return null;
+    const pending = this.profile.pendingRunSettlement;
+    if (!pending || pending.id !== id || pending.investment !== coins.investment) return null;
+
+    const previousLifetimeXp = this.profile.lifetimeXp;
+    const previousSpendableXp = this.profile.spendableXp;
+    const previousCoins = this.profile.coins;
+    const previousLevel = derivePlayerLevel(previousLifetimeXp);
+    this.profile.lifetimeXp += xp.total;
+    this.profile.spendableXp += xp.total;
+    this.profile.coins += coins.totalReturn;
+    this.profile.playerLevel = derivePlayerLevel(this.profile.lifetimeXp);
+    this.profile.progress.highestNight = Math.max(
+      this.profile.progress.highestNight,
+      progress.nightsSurvived,
+    );
+    this.profile.progress.campaignWins += progress.victory ? 1 : 0;
+    this.profile.progress.totalRuns += 1;
+    this.profile.progress.bestStructureScore = Math.max(
+      this.profile.progress.bestStructureScore,
+      progress.structureScore,
+    );
+    this.profile.pendingRunSettlement = null;
+    this.completeSettlementId(id);
+    this.commit();
+
+    return {
+      id,
+      xp,
+      coins,
+      previousLifetimeXp,
+      newLifetimeXp: this.profile.lifetimeXp,
+      previousSpendableXp,
+      newSpendableXp: this.profile.spendableXp,
+      previousCoins,
+      newCoins: this.profile.coins,
+      previousLevel,
+      newLevel: this.profile.playerLevel,
+    };
+  }
+
+  buyPermanentUpgrade(id: PermanentUpgradeId): boolean {
+    const level = this.profile.permanentUpgrades[id];
+    if (level >= META_BALANCE.permanentUpgrade.maximumLevel) return false;
+    const cost = permanentUpgradeCost(level + 1);
+    if (this.profile.spendableXp < cost) return false;
+    this.profile.spendableXp -= cost;
+    this.profile.permanentUpgrades[id] += 1;
+    this.commit();
+    return true;
+  }
+
+  buyEquipment(kind: EquipmentKind): boolean {
+    const item = this.profile.equipment[kind];
+    const price = equipmentUpgradePrice(item.tier);
+    const next = nextEquipmentTier(item.tier);
+    if (price === null || !next || this.profile.coins < price) return false;
+    this.profile.coins -= price;
+    item.tier = next;
+    item.equipped = true;
+    this.commit();
+    return true;
+  }
+
+  toggleEquipment(kind: EquipmentKind): boolean {
+    const item = this.profile.equipment[kind];
+    if (!item.tier) return false;
+    item.equipped = !item.equipped;
+    this.commit();
+    return true;
+  }
+
+  saveCustomization(color: string, eyeStyle: EyeStyle): boolean {
+    if (!META_BALANCE.customization.colors.includes(color as typeof META_BALANCE.customization.colors[number])
+      || !META_BALANCE.customization.eyeStyles.includes(eyeStyle)) return false;
+    this.profile.playerColor = color;
+    this.profile.eyeStyle = eyeStyle;
+    this.commit();
+    return true;
+  }
+
+  saveRunRecords(records: readonly RunRecord[]): void {
+    this.profile.recentRuns = [...records].slice(0, 10);
+    this.commit();
+  }
+
+  private completeSettlementId(id: string): void {
+    this.profile.completedSettlementIds = [
+      ...this.profile.completedSettlementIds.filter((value) => value !== id),
+      id,
+    ].slice(-100);
+  }
+
+  private commit(): void {
+    this.profile.playerLevel = derivePlayerLevel(this.profile.lifetimeXp);
+    this.save();
+    this.emit();
+  }
+
+  private save(): void {
+    try {
+      this.storage.setItem(META_BALANCE.profileStorageKey, JSON.stringify(this.profile));
+    } catch (error) {
+      console.warn("Profile save failed; progress remains available for this session.", error);
+    }
+  }
+
+  private emit(): void {
+    for (const listener of this.listeners) listener(this.profile);
+  }
+}

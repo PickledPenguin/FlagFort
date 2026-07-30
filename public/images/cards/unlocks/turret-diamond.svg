@@ -1,1 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><g id="turret-diamond" stroke="#253027" stroke-width="8"><circle cx="51" cy="70" r="40" fill="#57e5ef"/><path d="M51 70h70"/><circle cx="51" cy="70" r="17" fill="#253027"/></g></svg>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" viewBox="0 0 128 128" version="1.1" id="svg2">
+  <defs id="defs2"/>
+  <g id="turret-diamond" stroke="#253027" stroke-width="8">
+    <g id="g2" transform="matrix(0.99992479,0,0,0.99992479,0.00113225,0.001462)">
+      <circle r="42.634785" fill="#57e5ef" class="base-outline" id="circle54" style="stroke:#2b241d;stroke-width:4.7372" cx="60.058357" cy="64.44297"/>
+      <rect x="60.058357" y="54.968571" width="52.109184" height="18.948793" fill="#202d28" id="rect54" style="stroke:none;stroke-width:9.4744"/>
+      <circle r="20.133093" fill="#57e5ef" id="circle55" cx="60.058357" cy="64.44297" style="stroke:none;stroke-width:9.4744"/>
+    </g>
+  </g>
+</svg>

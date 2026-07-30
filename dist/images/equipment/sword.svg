@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-14 -48 88 96">
+  <g id="sword">
+    <path id="blade" d="M15 11L48-42L62-47L58-31L26 18Z" fill="#b77a45" stroke="#392f24" stroke-width="4" stroke-linejoin="round"/>
+    <path id="blade-highlight" d="M26 6L52-35" fill="none" stroke="#fff" stroke-opacity=".38" stroke-width="3" stroke-linecap="round"/>
+    <path id="guard" d="M5 10L31 25L27 33L1 18Z" fill="#f0cf88" stroke="#392f24" stroke-width="4" stroke-linejoin="round"/>
+    <path id="grip" d="M10 22L-3 42" fill="none" stroke="#8f5b32" stroke-width="10" stroke-linecap="round"/>
+    <circle id="pommel" cx="-5" cy="44" r="6" fill="#f0cf88" stroke="#392f24" stroke-width="3"/>
+  </g>
+</svg>

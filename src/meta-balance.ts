@@ -1,0 +1,140 @@
+import { cardAsset, svgAsset } from "./assets";
+import type { EnemyKind, ResourceKind, StructureKind, Tier } from "./types";
+
+export type PermanentUpgradeId =
+  | "bowDamage"
+  | "bowRate"
+  | "punchDamage"
+  | "moveSpeed"
+  | "turretDamage"
+  | "turretRate"
+  | "turretRange"
+  | "harvesterSpeed"
+  | "harvestRate"
+  | "wallHealth"
+  | "structureHealth";
+
+export type EquipmentKind = "helmet" | "wrench" | "sword";
+export type EquipmentTier = Tier;
+export type EyeStyle = "round" | "focused" | "sleepy";
+
+export interface PermanentUpgradeDefinition {
+  id: PermanentUpgradeId;
+  title: string;
+  theme: string;
+  description: string;
+  icon: string;
+}
+
+export const PERMANENT_UPGRADES: readonly PermanentUpgradeDefinition[] = [
+  { id: "bowDamage", title: "Bow Damage", theme: "Ranged", description: "Increase starting bow damage.", icon: cardAsset("upgrades", "bow-damage") },
+  { id: "bowRate", title: "Bow Speed", theme: "Ranged", description: "Increase starting bow fire rate.", icon: cardAsset("upgrades", "bow-rate") },
+  { id: "punchDamage", title: "Melee Damage", theme: "Player", description: "Increase starting fist and sword damage.", icon: cardAsset("upgrades", "punch-damage") },
+  { id: "moveSpeed", title: "Movement", theme: "Player", description: "Increase starting movement speed.", icon: cardAsset("upgrades", "move-speed") },
+  { id: "harvestRate", title: "Gathering", theme: "Player", description: "Increase starting gathering speed.", icon: cardAsset("upgrades", "harvest-rate") },
+  { id: "turretDamage", title: "Turret Damage", theme: "Structures", description: "Increase owned turret damage.", icon: cardAsset("upgrades", "turret-damage") },
+  { id: "turretRate", title: "Turret Fire Rate", theme: "Structures", description: "Increase owned turret fire rate.", icon: cardAsset("upgrades", "turret-rate") },
+  { id: "turretRange", title: "Turret Range", theme: "Structures", description: "Increase owned turret range.", icon: cardAsset("upgrades", "turret-range") },
+  { id: "harvesterSpeed", title: "Harvester Speed", theme: "Structures", description: "Increase owned harvester rotation speed.", icon: cardAsset("upgrades", "harvester-speed") },
+  { id: "wallHealth", title: "Wall Health", theme: "Durability", description: "Increase owned wall durability.", icon: cardAsset("upgrades", "structure-durability") },
+  { id: "structureHealth", title: "Structure Health", theme: "Durability", description: "Increase all owned structure durability.", icon: cardAsset("upgrades", "structure-durability") },
+] as const;
+
+export const META_BALANCE = {
+  profileSchemaVersion: 2,
+  profileStorageKey: "flagfort-profile-v2",
+  legacyRecordsKey: "countdown-forest-records",
+  dailyRewardCoins: 10,
+  permanentUpgrade: {
+    maximumLevel: 5,
+    percentPerLevel: 0.1,
+    typicalCampaignVictoryXp: 1000,
+    costMultipliers: [1, 2, 3, 4, 5],
+  },
+  levels: {
+    baseXp: 300,
+    growthXp: 125,
+  },
+  investment: {
+    maximum: 100,
+    returnPercentByNightsSurvived: [0, 20, 40, 60, 80, 100, 120, 140, 160, 180, 200],
+    endlessReturnPercentByNightsSurvived: [200, 205, 210, 215, 220, 225],
+    endlessCapPercent: 225,
+    rounding: "nearest" as const,
+  },
+  rewards: {
+    structurePointXp: 1,
+    enemyKillXp: {
+      basic: 2,
+      runner: 3,
+      breaker: 6,
+      jumper: 7,
+      summoner: 10,
+      boss: 100,
+    } satisfies Record<EnemyKind, number>,
+    resourceWeights: {
+      wood: 1,
+      stone: 2,
+      gold: 4,
+      diamond: 8,
+    } satisfies Record<ResourceKind, number>,
+    resourceLogScale: 12,
+    nightXp: [0, 20, 24, 29, 34, 40, 45, 49, 53, 57, 60],
+    campaignVictoryBonus: 500,
+  },
+  equipment: {
+    tierPrices: { wood: 100, stone: 250, gold: 500, diamond: 900 } satisfies Record<Tier, number>,
+    helmetMitigation: { wood: 0.1, stone: 0.22, gold: 0.35, diamond: 0.5 } satisfies Record<Tier, number>,
+    wrenchFreeRepairChance: { wood: 0.1, stone: 0.22, gold: 0.35, diamond: 0.5 } satisfies Record<Tier, number>,
+    sword: {
+      wood: { damageMultiplier: 1.1, cooldownMultiplier: 2, range: 88, arc: 1.15, targetLimit: 2, knockback: 14 },
+      stone: { damageMultiplier: 1.35, cooldownMultiplier: 1.6, range: 94, arc: 1.3, targetLimit: 3, knockback: 18 },
+      gold: { damageMultiplier: 1.65, cooldownMultiplier: 1.25, range: 101, arc: 1.45, targetLimit: 4, knockback: 23 },
+      diamond: { damageMultiplier: 2, cooldownMultiplier: 1, range: 108, arc: 1.6, targetLimit: 5, knockback: 30 },
+    } satisfies Record<Tier, {
+      damageMultiplier: number;
+      cooldownMultiplier: number;
+      range: number;
+      arc: number;
+      targetLimit: number;
+      knockback: number;
+    }>,
+  },
+  customization: {
+    colors: ["#d9b783", "#f1c7a5", "#a96f4d", "#6f4938", "#d7a6c8", "#8fc7ba"],
+    eyeStyles: ["round", "focused", "sleepy"] as readonly EyeStyle[],
+  },
+  assets: {
+    equipment: {
+      helmet: svgAsset("equipment/helmet"),
+      wrench: svgAsset("equipment/wrench"),
+      sword: svgAsset("equipment/sword"),
+    } satisfies Record<EquipmentKind, string>,
+    player: {
+      body: svgAsset("gameplay/player/body-base"),
+      bodyDetails: svgAsset("gameplay/player/body-details"),
+      eyes: {
+        round: svgAsset("gameplay/player/eyes-round"),
+        focused: svgAsset("gameplay/player/eyes-focused"),
+        sleepy: svgAsset("gameplay/player/eyes-sleepy"),
+      } satisfies Record<EyeStyle, string>,
+    },
+  },
+} as const;
+
+export const EQUIPMENT_ORDER: readonly EquipmentKind[] = ["helmet", "wrench", "sword"];
+export const EQUIPMENT_TIER_ORDER: readonly EquipmentTier[] = ["wood", "stone", "gold", "diamond"];
+
+export function permanentUpgradeCost(levelToBuy: number): number {
+  const multiplier = META_BALANCE.permanentUpgrade.costMultipliers[levelToBuy - 1];
+  return Math.round(META_BALANCE.permanentUpgrade.typicalCampaignVictoryXp * (multiplier ?? levelToBuy));
+}
+
+export function permanentUpgradePercent(level: number): number {
+  return Math.max(0, Math.min(META_BALANCE.permanentUpgrade.maximumLevel, Math.floor(level)))
+    * META_BALANCE.permanentUpgrade.percentPerLevel;
+}
+
+export function structureRewardPoints(kind: StructureKind, tier: Tier, points: Record<StructureKind, Record<Tier, number>>): number {
+  return points[kind][tier];
+}

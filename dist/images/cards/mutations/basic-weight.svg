@@ -1,1 +1,84 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><g id="basic-weight" fill="#70ad4c" stroke="#203321" stroke-width="7"><circle cx="40" cy="70" r="30"/><circle cx="86" cy="62" r="30"/></g></svg>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 128 128"
+   version="1.1"
+   id="svg2"
+ xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs2" />
+  <g
+     id="g2"
+     transform="matrix(0,1.537279,-1.537279,0,263.46081,-122.79332)">
+    <g
+       id="basic-zombie-normal-appearance"
+       fill="#70ad4c"
+       transform="translate(113,116)">
+      <circle
+         id="upper-hand"
+         cx="34"
+         cy="-12.65"
+         r="8.0500002" />
+      <circle
+         id="lower-hand"
+         cx="34"
+         cy="12.65"
+         r="8.0500002" />
+      <circle
+         id="body"
+         r="23"
+         cx="0"
+         cy="0" />
+    </g>
+    <g
+       id="eyes"
+       fill="#f2f0d9"
+       transform="translate(113,116)">
+      <ellipse
+         cx="8"
+         cy="-9"
+         rx="7"
+         ry="5"
+         transform="rotate(25.783,8,-9)"
+         id="ellipse1" />
+      <ellipse
+         cx="8"
+         cy="9"
+         rx="7"
+         ry="5"
+         transform="rotate(-25.783,8,9)"
+         id="ellipse2" />
+    </g>
+    <g
+       id="pupils"
+       fill="#8e241f"
+       transform="translate(113,116)">
+      <circle
+         cx="11"
+         cy="-8"
+         r="3"
+         id="circle2" />
+      <circle
+         cx="11"
+         cy="8"
+         r="3"
+         id="circle3" />
+    </g>
+    <path
+       id="brows"
+       d="m 104,109 11,5 m -9,13 11,-6"
+       fill="none"
+       stroke="#263c29"
+       stroke-width="3" />
+  </g>
+  <g
+     id="g2-1"
+     transform="matrix(1.3092244,0,0,1.3092244,-238.18281,88.088064)">
+    <path
+       id="speed-lines-8"
+       d="m 186.56325,-20.239015 h 30.55244 m -15.58283,14.6194461 -0.18877,-30.0887301"
+       stroke="#8ee9a0"
+       stroke-width="8"
+       style="stroke:#ff6b61;stroke-opacity:1" />
+  </g>
+</svg>

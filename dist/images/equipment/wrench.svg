@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-12 -36 72 72">
+  <g id="wrench">
+    <path id="handle" d="M4 27L34-3L45 8L15 38Z" fill="#b77a45" stroke="#392f24" stroke-width="4" stroke-linejoin="round"/>
+    <circle id="handle-hole" cx="10" cy="31" r="4" fill="#102b20"/>
+    <path id="jaw" d="M30-3C25-14 29-27 40-33L39-19L51-12L62-22C64-8 54 4 42 6Z" fill="#b77a45" stroke="#392f24" stroke-width="4" stroke-linejoin="round"/>
+    <path id="shine" d="M34 2L11 25" fill="none" stroke="#fff" stroke-opacity=".3" stroke-width="3" stroke-linecap="round"/>
+  </g>
+</svg>

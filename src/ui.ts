@@ -10,6 +10,19 @@ import { challengeIcon } from "./challenge-icons";
 import { audioManager, type AudioVolumeChannel } from "./audio";
 import { ASSETS } from "./assets";
 import type { ActionKind, Choice, Difficulty, EnemyKind, StructureKind, Tier } from "./types";
+import {
+  EQUIPMENT_ORDER,
+  EQUIPMENT_TIER_ORDER,
+  META_BALANCE,
+  PERMANENT_UPGRADES,
+  permanentUpgradeCost,
+  permanentUpgradePercent,
+  type EquipmentKind,
+  type EyeStyle,
+  type PermanentUpgradeId,
+} from "./meta-balance";
+import { equipmentUpgradePrice, nextEquipmentTier } from "./equipment";
+import { levelProgress, type DailyRewardResult } from "./profile";
 
 const labels: Record<StructureKind, string> = {
   wall: "Wall",
@@ -28,7 +41,7 @@ const enemyInfo: Record<EnemyKind, { title: string; text: string; tell: string }
   boss: { title: "The Last Count", text: "Smashes structures and summons at half health.", tell: "Ten health segments" },
 };
 
-type MenuPanel = "controls" | "settings" | "challenges" | "credits" | null;
+type MenuPanel = "controls" | "settings" | "challenges" | "credits" | "profile" | "upgrades" | "shop" | null;
 type TutorialOrigin = "menu";
 
 export class Ui {
@@ -46,13 +59,27 @@ export class Ui {
   private lastClockSecond = -1;
   private seedDraft = "";
   private selectedChallenges = new Set<string>();
+  private investmentOpen = false;
+  private investmentDraft = 0;
+  private profileColorDraft: string;
+  private profileEyeDraft: EyeStyle;
+  private dailyRewardVisible: boolean;
 
   constructor(
     private readonly game: Game,
     private readonly hud: HTMLElement,
     private readonly overlay: HTMLElement,
     private readonly toastLayer: HTMLElement,
+    private readonly dailyReward: DailyRewardResult = {
+      granted: false,
+      amount: 0,
+      date: "",
+    },
   ) {
+    this.profileColorDraft = game.profileManager?.profile.playerColor
+      ?? META_BALANCE.customization.colors[0];
+    this.profileEyeDraft = game.profileManager?.profile.eyeStyle ?? "round";
+    this.dailyRewardVisible = dailyReward.granted;
     overlay.addEventListener("click", (event) => this.handleOverlayClick(event));
     overlay.addEventListener("input", (event) => {
       const input = (event.target as HTMLElement).closest<HTMLInputElement>("#seed-input");
@@ -65,6 +92,13 @@ export class Ui {
         );
         const output = volume.parentElement?.querySelector<HTMLOutputElement>("output");
         if (output) output.value = `${volume.value}%`;
+      }
+      const investment = (event.target as HTMLElement).closest<HTMLInputElement>("[data-investment]");
+      if (investment) {
+        this.investmentDraft = Number(investment.value);
+        const output = investment.parentElement?.querySelector<HTMLOutputElement>("output");
+        if (output) output.value = `${this.investmentDraft} coins`;
+        this.patchInvestmentPreview();
       }
     });
     hud.addEventListener("click", (event) => this.handleHudClick(event));
@@ -129,11 +163,19 @@ export class Ui {
       this.game.rerollConfirmation,
       this.game.rerollsUsed,
       this.game.skipNightConfirmation,
+      this.investmentOpen,
+      this.investmentDraft,
+      this.dailyRewardVisible,
+      this.game.profileManager
+        ? JSON.stringify(this.game.profileManager.profile)
+        : "",
+      this.game.platform?.user?.id ?? "guest",
     ].join("|");
     if (!force && key === this.lastOverlayKey) return;
     this.lastOverlayKey = key;
     if (this.tutorialOpen) this.overlay.innerHTML = this.tutorialMarkup();
     else if (this.game.skipNightConfirmation) this.overlay.innerHTML = this.skipNightMarkup();
+    else if (this.investmentOpen) this.overlay.innerHTML = this.investmentMarkup();
     else if (this.game.phase === "menu") this.overlay.innerHTML = this.menuMarkup();
     else if (this.game.phase === "paused") this.overlay.innerHTML = this.pauseMarkup();
     else if (this.game.phase === "dawn") this.overlay.innerHTML = this.dawnMarkup();
@@ -147,6 +189,7 @@ export class Ui {
     const daySeconds = Math.round(BALANCE.dayDuration * challengeModifiers.dayDurationMultiplier);
     return `
       <section class="screen menu-screen">
+        ${this.profileChipMarkup()}
         <main class="menu-card">
           <p class="eyebrow">GMTK 2026 · COUNT DOWN</p>
           <h1>FLAG <span>FORT</span></h1>
@@ -162,6 +205,10 @@ export class Ui {
             <label class="seed-box"><span>SEED</span><input id="seed-input" maxlength="48" autocomplete="off" spellcheck="false" placeholder="Random seed" value="${this.escapeAttribute(this.seedDraft)}"></label>
             <button class="icon-button seed-random" data-action="random-seed" aria-label="Randomize seed">${icon("shuffle")}<span class="tooltip">Randomize seed</span></button>
           </div>
+      <div class="meta-actions">
+        <button data-action="upgrades"><img src="${ASSETS.ui["upgrade-node"]}" alt=""><span><b>Upgrades</b><small>Spend XP</small></span></button>
+        <button data-action="shop"><img src="${ASSETS.equipment.sword}" alt=""><span><b>Shop</b><small>Manage gear</small></span></button>
+      </div>
       <button class="primary start-button tutorial-start-button" data-action="tutorial-menu">${icon("book")}<span>Tutorial</span></button>
       <button class="primary start-button" data-action="start">${icon("play")}<span>Start run</span></button>
       <nav class="menu-actions" aria-label="Game options">
@@ -173,15 +220,44 @@ export class Ui {
           </nav>
           <footer>
           <span>${daySeconds}s DAY · ${BALANCE.nightDuration}s NIGHT · 10 NIGHTS${this.selectedChallenges.size ? ` · ${this.selectedChallenges.size} CHALLENGES` : ""}</span>
-            <span>v1.2.0</span>
+            <span>v1.3.0</span>
           ${recent ? `<span class="last-run">${recent.victory ? "Victory" : "Defeat"} · ${recent.nightsSurvived}/10${recent.challengeIds?.length ? ` · ${recent.challengeIds.length} challenges` : ""}</span>` : ""}
           </footer>
         </main>
+        ${this.dailyRewardVisible ? `<aside class="daily-reward" role="status">
+          <span class="daily-coin">+${this.dailyReward.amount}</span>
+          <div><b>Daily supply drop</b><small>Coins added for ${this.dailyReward.date} UTC</small></div>
+          <button data-action="dismiss-daily" aria-label="Dismiss daily reward">${icon("close")}</button>
+        </aside>` : ""}
         ${this.menuPanel ? this.menuPanelMarkup() : ""}
       </section>`;
   }
 
+  private profileChipMarkup(): string {
+    const manager = this.game.profileManager;
+    if (!manager) return "";
+    const profile = manager.profile;
+    const progress = levelProgress(profile.lifetimeXp);
+    const user = this.game.platform?.user;
+    const avatar = user?.profilePictureUrl
+      ? `<img src="${this.escapeAttribute(user.profilePictureUrl)}" alt="">`
+      : `<span class="guest-avatar" style="--player-color:${profile.playerColor};--body-asset:url('${META_BALANCE.assets.player.body}')">
+          <i></i><img src="${META_BALANCE.assets.player.bodyDetails}" alt=""><img src="${META_BALANCE.assets.player.eyes[profile.eyeStyle]}" alt="">
+        </span>`;
+    return `<button class="profile-chip" data-action="profile" aria-label="Open player profile">
+      ${avatar}
+      <span class="profile-chip-copy"><b>${user?.username ?? "Guest Defender"}</b>
+        <small>Level ${progress.level} · ${progress.current}/${progress.required} XP</small>
+        <i style="--profile-xp:${progress.ratio * 100}%"></i>
+      </span>
+      <strong>${profile.coins}<em>¢</em></strong>
+    </button>`;
+  }
+
   private menuPanelMarkup(): string {
+    if (this.menuPanel === "profile") return this.profileModalMarkup();
+    if (this.menuPanel === "upgrades") return this.upgradesModalMarkup();
+    if (this.menuPanel === "shop") return this.shopModalMarkup();
     if (this.menuPanel === "controls") {
       return `<div class="menu-modal"><div class="modal compact">
         <button class="modal-close" data-action="close-panel" aria-label="Close">${icon("close")}</button>
@@ -239,7 +315,161 @@ export class Ui {
       <p>Generic interface icons use Lucide Icons under the ISC License.</p>
       <p>Sound effects include CC0 audio by Kenney and royalty-free selections from the Sonniss GDC Game Audio Bundle Part 9.</p>
       <p>No generative-AI audio is used. Full source paths, packs, licenses, and modifications are recorded in the bundled audio attribution manifest.</p>
+      </div></div>`;
+  }
+
+  private profileModalMarkup(): string {
+    const manager = this.game.profileManager;
+    if (!manager) return "";
+    const profile = manager.profile;
+    const progress = levelProgress(profile.lifetimeXp);
+    const user = this.game.platform?.user;
+    const helmet = profile.equipment.helmet;
+    return `<div class="menu-modal"><div class="modal profile-modal">
+      <button class="modal-close" data-action="close-panel" aria-label="Close">${icon("close")}</button>
+      <header><p class="eyebrow">DEFENDER PROFILE</p><h2>${user?.username ?? "Guest Defender"}</h2>
+        <p>${user ? "CrazyGames progress is synced through your account." : "Guest progress is saved through CrazyGames Data."}</p>
+      </header>
+      <div class="profile-layout">
+        <section class="character-workbench">
+          <div class="character-preview" style="--player-color:${this.profileColorDraft};--body-asset:url('${META_BALANCE.assets.player.body}')">
+            <i class="preview-body"></i>
+            <img class="preview-details" src="${META_BALANCE.assets.player.bodyDetails}" alt="">
+            <img class="preview-eyes" src="${META_BALANCE.assets.player.eyes[this.profileEyeDraft]}" alt="">
+            ${helmet.equipped && helmet.tier ? `<img class="preview-helmet equipment-${helmet.tier}" src="${META_BALANCE.assets.equipment.helmet}" alt="">` : ""}
+          </div>
+          <div class="customization-group"><b>Player color</b><div class="swatch-row">
+            ${META_BALANCE.customization.colors.map((color) => `<button data-action="pick-color" data-color="${color}"
+              class="${color === this.profileColorDraft ? "selected" : ""}" style="--swatch:${color}" aria-label="Use ${color}"></button>`).join("")}
+          </div></div>
+          <div class="customization-group"><b>Eye style</b><div class="eye-style-row">
+            ${META_BALANCE.customization.eyeStyles.map((style) => `<button data-action="pick-eyes" data-eye-style="${style}"
+              class="${style === this.profileEyeDraft ? "selected" : ""}"><img src="${META_BALANCE.assets.player.eyes[style]}" alt=""><span>${style}</span></button>`).join("")}
+          </div></div>
+          <button class="primary wide" data-action="save-customization">Save appearance</button>
+        </section>
+        <section class="profile-ledger">
+          <div class="profile-level"><span>LEVEL</span><strong>${progress.level}</strong><div><i style="--profile-xp:${progress.ratio * 100}%"></i></div><small>${progress.current} / ${progress.required} XP to next level</small></div>
+          <div class="profile-stat-grid">
+            <span><b>${profile.lifetimeXp}</b>Lifetime XP</span>
+            <span><b>${profile.spendableXp}</b>Spendable XP</span>
+            <span><b>${profile.coins}</b>Coins</span>
+            <span><b>${profile.progress.highestNight}</b>Highest night</span>
+            <span><b>${profile.progress.campaignWins}</b>Campaign wins</span>
+            <span><b>${profile.progress.totalRuns}</b>Settled runs</span>
+          </div>
+          ${!user && this.game.platform?.userAccountAvailable
+            ? `<button class="secondary wide" data-action="crazygames-login">Sign in with CrazyGames</button>`
+            : ""}
+          <small class="profile-save-note">Lifetime XP determines level. Spending XP never lowers it.</small>
+        </section>
+      </div>
     </div></div>`;
+  }
+
+  private upgradesModalMarkup(): string {
+    const profile = this.game.profileManager?.profile;
+    if (!profile) return "";
+    const themes = [...new Set(PERMANENT_UPGRADES.map((upgrade) => upgrade.theme))];
+    return `<div class="menu-modal"><div class="modal progression-modal">
+      <button class="modal-close" data-action="close-panel" aria-label="Close">${icon("close")}</button>
+      <header><p class="eyebrow">PERMANENT UPGRADES</p><h2>Build the defender</h2>
+        <p>Permanent bonuses modify run bases first. Temporary cards add their normal benefits afterward.</p>
+        <strong class="currency-pill">${profile.spendableXp} XP available</strong>
+      </header>
+      <div class="upgrade-tree">${themes.map((theme) => `<section class="upgrade-theme">
+        <h3>${theme}</h3>
+        ${PERMANENT_UPGRADES.filter((upgrade) => upgrade.theme === theme).map((upgrade) => {
+          const level = profile.permanentUpgrades[upgrade.id];
+          return `<div class="upgrade-row">
+            <span class="upgrade-label"><img src="${upgrade.icon}" alt=""><span><b>${upgrade.title}</b><small>${upgrade.description}</small></span></span>
+            <div class="upgrade-path" role="group" aria-label="${upgrade.title} levels">
+              <span class="upgrade-base"><img src="${ASSETS.ui["upgrade-node"]}" alt=""><em>BASE</em></span>
+              ${Array.from({ length: META_BALANCE.permanentUpgrade.maximumLevel }, (_, index) => {
+                const nodeLevel = index + 1;
+                const purchased = nodeLevel <= level;
+                const next = nodeLevel === level + 1;
+                const cost = permanentUpgradeCost(nodeLevel);
+                return `<button data-action="buy-upgrade" data-upgrade="${upgrade.id}" data-level="${nodeLevel}"
+                  class="${purchased ? "purchased" : next ? "available" : "locked"}"
+                  ${next && profile.spendableXp >= cost ? "" : "disabled"}
+                  aria-label="${upgrade.title} level ${nodeLevel}">
+                  <b>+${nodeLevel * 10}%</b><small>${purchased ? "OWNED" : `${cost} XP`}</small>
+                </button>`;
+              }).join("")}
+            </div>
+          </div>`;
+        }).join("")}
+      </section>`).join("")}</div>
+    </div></div>`;
+  }
+
+  private shopModalMarkup(): string {
+    const profile = this.game.profileManager?.profile;
+    if (!profile) return "";
+    const copy: Record<EquipmentKind, { title: string; text: string }> = {
+      helmet: { title: "Fort Helmet", text: "Reduces incoming player damage. Diamond protection reaches 50%." },
+      wrench: { title: "Lucky Wrench", text: "Can make a completed repair free after the normal cost is verified." },
+      sword: { title: "Night Sword", text: "Replaces fists during nighttime melee with a controlled sweeping cleave." },
+    };
+    return `<div class="menu-modal"><div class="modal shop-modal">
+      <button class="modal-close" data-action="close-panel" aria-label="Close">${icon("close")}</button>
+      <header><p class="eyebrow">FORT SUPPLY SHOP</p><h2>Equipment workshop</h2>
+        <p>Unlock Wood, then improve the same item through Stone, Gold, and Diamond.</p>
+        <strong class="currency-pill coin">${profile.coins} coins</strong>
+      </header>
+      <div class="shop-grid">${EQUIPMENT_ORDER.map((kind) => {
+        const item = profile.equipment[kind];
+        const next = nextEquipmentTier(item.tier);
+        const price = equipmentUpgradePrice(item.tier);
+        return `<article class="shop-item">
+          <div class="shop-art equipment-${item.tier ?? "wood"}"><img src="${META_BALANCE.assets.equipment[kind]}" alt=""></div>
+          <p class="eyebrow">${item.tier ? `${item.tier.toUpperCase()} TIER` : "LOCKED"}</p>
+          <h3>${copy[kind].title}</h3><p>${copy[kind].text}</p>
+          <div class="tier-track">${EQUIPMENT_TIER_ORDER.map((tier) => `<i class="${item.tier && EQUIPMENT_TIER_ORDER.indexOf(tier) <= EQUIPMENT_TIER_ORDER.indexOf(item.tier) ? "owned" : ""}" title="${tier}"></i>`).join("")}</div>
+          ${next && price !== null ? `<button class="primary wide" data-action="buy-equipment" data-equipment="${kind}" ${profile.coins < price ? "disabled" : ""}>
+            ${item.tier ? `Upgrade to ${next}` : "Unlock Wood"} · ${price} coins
+          </button>` : `<button class="primary wide" disabled>Diamond maximum</button>`}
+          ${item.tier ? `<button class="secondary wide" data-action="toggle-equipment" data-equipment="${kind}">${item.equipped ? "Equipped · Unequip" : "Equip"}</button>` : ""}
+        </article>`;
+      }).join("")}</div>
+    </div></div>`;
+  }
+
+  private investmentMarkup(): string {
+    const coins = this.game.profileManager?.profile.coins ?? 0;
+    const maximum = Math.min(META_BALANCE.investment.maximum, coins);
+    this.investmentDraft = Math.min(maximum, this.investmentDraft);
+    return `<section class="screen modal-screen investment-screen"><div class="modal investment-modal">
+      <button class="modal-close" data-action="cancel-investment" aria-label="Close">${icon("close")}</button>
+      <p class="eyebrow">OPTIONAL RUN INVESTMENT</p><h2>Back your defense</h2>
+      <p>No investment is required. Coins are invested once when the run begins and settled once when it ends.</p>
+      <label class="investment-control"><span><b>Investment</b><output>${this.investmentDraft} coins</output></span>
+        <input type="range" min="0" max="${maximum}" step="1" value="${this.investmentDraft}" data-investment>
+        <small>Available ${coins} · Maximum ${maximum}</small>
+      </label>
+      <div class="investment-preview" data-investment-preview>${this.investmentPreviewMarkup(this.investmentDraft)}</div>
+      <div class="investment-table">
+        <span><b>0 nights</b>Lose 100%</span><span><b>Night 1</b>Return 20%</span>
+        <span><b>Night 5</b>Return 100%</span><span><b>Night 6</b>Return 120%</span>
+        <span><b>Night 10</b>Return 200%</span>
+      </div>
+      <div class="result-actions"><button class="ghost" data-action="cancel-investment">Back</button>
+        <button class="primary" data-action="confirm-investment">${icon("play")} Start with ${this.investmentDraft} coins</button></div>
+    </div></section>`;
+  }
+
+  private investmentPreviewMarkup(amount: number): string {
+    return `<span><small>Night 5 return</small><b>${amount} coins</b></span>
+      <span><small>Night 10 return</small><b>${amount * 2} coins</b></span>
+      <span><small>Possible profit</small><b>+${amount} coins</b></span>`;
+  }
+
+  private patchInvestmentPreview(): void {
+    const preview = this.overlay.querySelector<HTMLElement>("[data-investment-preview]");
+    if (preview) preview.innerHTML = this.investmentPreviewMarkup(this.investmentDraft);
+    const start = this.overlay.querySelector<HTMLButtonElement>("[data-action='confirm-investment']");
+    if (start) start.innerHTML = `${icon("play")} Start with ${this.investmentDraft} coins`;
   }
 
   private volumeControl(
@@ -333,11 +563,21 @@ export class Ui {
 
   private choicePair(choice: Choice, index: number): string {
     return `<button class="choice-pair" data-choice="${index}" aria-label="${choice.name} and ${choice.mutationName}">
-      <article class="benefit-card"><span class="card-art">${this.choiceIcon(choice)}</span><small>${choice.kind}</small><h3>${choice.name}</h3><p>${choice.description}</p></article>
+      <article class="benefit-card"><span class="card-art">${this.choiceIcon(choice)}</span><small>${choice.kind}</small><h3>${choice.name}</h3><p>${this.choiceDescription(choice)}</p></article>
       <span class="choice-connector"><i></i><b>AND</b><i></i></span>
       <article class="mutation-card"><span class="card-art mutation-art">${this.mutationIcon(choice)}</span><small>mutation</small><h3>${choice.mutationName}</h3><p>${choice.mutationDescription}</p></article>
       <span class="pair-select">${buildBarIcon("selected-tier")} Apply both</span>
     </button>`;
+  }
+
+  private choiceDescription(choice: Choice): string {
+    const permanent = this.game.profileManager?.profile.permanentUpgrades[
+      choice.id as PermanentUpgradeId
+    ];
+    if (choice.kind !== "upgrade" || permanent === undefined || permanent <= 0) {
+      return choice.description;
+    }
+    return `${choice.description} Permanent base: +${Math.round(permanentUpgradePercent(permanent) * 100)}%; this temporary benefit is applied afterward.`;
   }
 
   private dawnHeading(): string {
@@ -366,6 +606,43 @@ export class Ui {
     const victory = this.game.phase === "victory";
     const minutes = Math.floor(this.game.stats.elapsed / 60);
     const seconds = Math.floor(this.game.stats.elapsed % 60).toString().padStart(2, "0");
+    const settlement = this.game.lastSettlement;
+    if (settlement) {
+      const previous = levelProgress(settlement.previousLifetimeXp);
+      const next = levelProgress(settlement.newLifetimeXp);
+      const categories = [
+        ["Surviving structures", settlement.xp.structures],
+        ["Personal zombie kills", settlement.xp.personalKills],
+        ["Remaining resources", settlement.xp.resources],
+        ["Nights survived", settlement.xp.nights],
+        ["Campaign victory", settlement.xp.victory],
+      ] as const;
+      return `<section class="screen result-screen ${victory ? "won" : "lost"}"><div class="result-card reward-result-card">
+        <p class="eyebrow">${victory ? "FINAL COUNT CLEARED" : "COUNT ENDED"}</p>
+        <h2>${victory ? "Forest defended" : "Run settled"}</h2>
+        ${this.game.defeatReason ? `<p class="result-reason">${this.game.defeatReason}</p>` : ""}
+        <div class="reward-categories">${categories.map(([label, value], index) => `<div class="reward-line" style="--reveal-index:${index}">
+          <span>${label}</span><b>+${value} XP</b></div>`).join("")}</div>
+        <button class="reward-skip" data-action="reveal-rewards">Show totals now</button>
+        <section class="reward-total" style="--reveal-index:5"><span>TOTAL REWARD</span><strong>+${settlement.xp.total} XP</strong></section>
+        <div class="level-transition" style="--reveal-index:6">
+          <span><small>Before</small><b>Level ${previous.level}</b><em>${previous.current}/${previous.required} XP</em></span>
+          <i>${icon("arrow-right")}</i>
+          <span><small>After</small><b>Level ${next.level}</b><em>${next.current}/${next.required} XP</em></span>
+          ${settlement.newLevel > settlement.previousLevel ? `<strong>LEVEL UP ×${settlement.newLevel - settlement.previousLevel}</strong>` : ""}
+        </div>
+        <div class="coin-settlement" style="--reveal-index:7">
+          <span><small>Investment</small><b>${settlement.coins.investment}</b></span>
+          <span><small>Principal returned</small><b>${settlement.coins.returnedPrincipal}</b></span>
+          <span><small>Profit / loss</small><b class="${settlement.coins.profitOrLoss >= 0 ? "positive" : "negative"}">${settlement.coins.profitOrLoss >= 0 ? "+" : ""}${settlement.coins.profitOrLoss}</b></span>
+          <span><small>Coin return</small><b>${settlement.coins.totalReturn}</b></span>
+          <span><small>Final coin change</small><b class="${settlement.coins.finalCoinChange >= 0 ? "positive" : "negative"}">${settlement.coins.finalCoinChange >= 0 ? "+" : ""}${settlement.coins.finalCoinChange}</b></span>
+          <span><small>Updated balance</small><b>${settlement.newCoins}</b></span>
+        </div>
+        <div class="result-actions" style="--reveal-index:8"><button class="primary" data-action="restart-same">${icon("restart")} Same seed</button>
+          <button class="secondary" data-action="restart-new">${icon("shuffle")} New seed</button><button class="ghost" data-action="menu">Main menu</button></div>
+      </div></section>`;
+    }
     return `<section class="screen result-screen ${victory ? "won" : "lost"}"><div class="result-card">
       <p class="eyebrow">${victory ? "FINAL COUNT CLEARED" : "COUNT ENDED"}</p>
       <h2>${victory ? "Forest defended" : "Run defeated"}</h2>
@@ -633,9 +910,28 @@ export class Ui {
       case "start": {
         const input = this.overlay.querySelector<HTMLInputElement>("#seed-input");
         this.seedDraft = input?.value ?? this.seedDraft;
-        this.game.startRun(this.difficulty, this.seedDraft, [...this.selectedChallenges]);
+        if (this.game.profileManager) {
+          this.investmentDraft = 0;
+          this.investmentOpen = true;
+        } else {
+          this.game.startRun(this.difficulty, this.seedDraft, [...this.selectedChallenges]);
+        }
         break;
       }
+      case "confirm-investment": {
+        const started = this.game.startRun(
+          this.difficulty,
+          this.seedDraft,
+          [...this.selectedChallenges],
+          false,
+          { investment: this.investmentDraft },
+        );
+        if (started) this.investmentOpen = false;
+        break;
+      }
+      case "cancel-investment":
+        this.investmentOpen = false;
+        break;
       case "random-seed": {
         const input = this.overlay.querySelector<HTMLInputElement>("#seed-input");
         this.seedDraft = generateSeed();
@@ -664,7 +960,14 @@ export class Ui {
       case "settings":
       case "challenges":
       case "credits":
+      case "profile":
+      case "upgrades":
+      case "shop":
         this.menuPanel = target.dataset.action as Exclude<MenuPanel, null>;
+        if (this.menuPanel === "profile" && this.game.profileManager) {
+          this.profileColorDraft = this.game.profileManager.profile.playerColor;
+          this.profileEyeDraft = this.game.profileManager.profile.eyeStyle;
+        }
         break;
       case "close-panel":
         this.menuPanel = null;
@@ -675,6 +978,41 @@ export class Ui {
       case "audio-mute":
         audioManager.toggleMuted();
         break;
+      case "dismiss-daily":
+        this.dailyRewardVisible = false;
+        break;
+      case "pick-color":
+        if (target.dataset.color) this.profileColorDraft = target.dataset.color;
+        break;
+      case "pick-eyes":
+        if (target.dataset.eyeStyle) this.profileEyeDraft = target.dataset.eyeStyle as EyeStyle;
+        break;
+      case "save-customization":
+        this.game.profileManager?.saveCustomization(this.profileColorDraft, this.profileEyeDraft);
+        break;
+      case "crazygames-login":
+        void this.game.platform?.showAuthPrompt();
+        break;
+      case "buy-upgrade":
+        if (target.dataset.upgrade) {
+          this.game.profileManager?.buyPermanentUpgrade(
+            target.dataset.upgrade as PermanentUpgradeId,
+          );
+        }
+        break;
+      case "buy-equipment":
+        if (target.dataset.equipment) {
+          this.game.profileManager?.buyEquipment(target.dataset.equipment as EquipmentKind);
+        }
+        break;
+      case "toggle-equipment":
+        if (target.dataset.equipment) {
+          this.game.profileManager?.toggleEquipment(target.dataset.equipment as EquipmentKind);
+        }
+        break;
+      case "reveal-rewards":
+        target.closest(".reward-result-card")?.classList.add("rewards-revealed");
+        return;
       case "fullscreen":
         void this.toggleFullscreen();
         return;
@@ -703,15 +1041,23 @@ export class Ui {
         this.game.copySeed();
         break;
       case "restart-same":
-        this.game.restart(true);
+        this.seedDraft = this.game.seed;
+        this.game.returnToMenu();
+        this.investmentDraft = 0;
+        this.investmentOpen = true;
         break;
       case "restart-new":
-        this.game.restart(false);
+        this.seedDraft = "";
+        this.game.returnToMenu();
+        this.investmentDraft = 0;
+        this.investmentOpen = true;
         break;
       case "menu":
         this.game.modalLock = false;
         this.tutorialOpen = false;
-        this.game.returnToMenu();
+        if (this.game.phase === "paused" && !this.game.tutorialMode) {
+          this.game.endRunVoluntarily();
+        } else this.game.returnToMenu();
         break;
     }
     this.invalidate();

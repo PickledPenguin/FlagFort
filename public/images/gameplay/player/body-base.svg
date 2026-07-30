@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-30 -30 60 60">
+  <g id="player-body-base">
+    <circle id="head" cx="0" cy="0" r="25" fill="#d9b783"/>
+  </g>
+</svg>

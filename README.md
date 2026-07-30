@@ -1,6 +1,6 @@
-# Flag Fall
+# Flag Fort
 
-Flag Fall is a fast top-down survival and base-defense game built for the GMTK Game Jam 2026 theme, Count Down. Gather resources during the day, fortify the flag, and survive 30-second zombie attacks across ten nights. Optional deterministic challenges can modify every layer of a run.
+Flag Fort is a fast top-down survival and base-defense game built for the GMTK Game Jam 2026 theme, Count Down. Gather resources during the day, fortify the flag, and survive 30-second zombie attacks across ten nights. Optional deterministic challenges can modify every layer of a run.
 
 Game artwork uses original editable SVG assets composited by Canvas for world transforms and runtime state. The project contains no generated art or generated audio. Generic interface symbols use selected Lucide Icons paths under the ISC License. Licensed sound effects are bundled locally for reliable browser playback.
 
@@ -101,7 +101,13 @@ The tutorial is a separate nine-section interactive training forest available fr
 
 Easy, Normal, Hard, and Impossible use centralized modifiers for enemy health, damage, speed, attack rate, wave size, and flag durability. Difficulty never changes the 60-second day or 30-second standard night. Easy is approachable, while Impossible is intentionally extreme.
 
-There is no score or permanent mechanical progression. Local run records contain the difficulty, seed, nights survived, outcome, resources gathered, structures built, zombies defeated, and elapsed time.
+Persistent progression includes lifetime and spendable XP, permanent starting
+upgrades, coins, daily rewards, player customization, and tiered equipment.
+Local and CrazyGames builds share the same versioned profile rules. CrazyGames
+uses its Data module for both guests and signed-in users; an unavailable SDK
+falls back to local development storage. Run records contain difficulty, seed,
+nights survived, outcome, resources gathered, structures built, zombies
+defeated, and elapsed time.
 
 ## Seeded runs
 
@@ -137,6 +143,11 @@ npm run preview
 ```
 
 The static production build is written to `dist/`. `npm run preview` serves that output for a local production check. The build contains `index.html` at its root and uses relative asset paths, so it can run on itch.io or a normal static host.
+
+For CrazyGames SDK behavior, Progress Save submission settings, local account
+queries, profile migrations, settlement rules, balance locations, equipment and
+upgrade extension, SVG boundaries, and future multiplayer seams, see
+[docs/CRAZYGAMES_BASIC_LAUNCH.md](docs/CRAZYGAMES_BASIC_LAUNCH.md).
 
 ## Exact itch.io upload steps
 

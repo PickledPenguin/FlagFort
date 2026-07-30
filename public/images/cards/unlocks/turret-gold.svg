@@ -1,1 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><g id="turret-gold" stroke="#253027" stroke-width="8"><circle cx="51" cy="70" r="40" fill="#f6c945"/><path d="M51 70h70"/><circle cx="51" cy="70" r="17" fill="#253027"/></g></svg>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" viewBox="0 0 128 128" version="1.1" id="svg2">
+  <defs id="defs2"/>
+  <g id="turret-gold" stroke="#253027" stroke-width="8">
+    <g id="g2-9" transform="matrix(0.99992479,0,0,0.99992479,59.542617,67.938853)">
+      <circle r="42.634785" fill="#57e5ef" class="base-outline" id="circle54" style="fill:#f6c945;fill-opacity:1;stroke:#2b241d;stroke-width:4.7372" cx="1.3117917" cy="-2.6959617"/>
+      <rect x="1.3117917" y="-12.170362" width="52.109184" height="18.948793" fill="#202d28" id="rect54" style="stroke:none;stroke-width:9.4744"/>
+      <circle r="20.133093" fill="#57e5ef" id="circle55" cx="1.3117917" cy="-2.6959617" style="fill:#f6c945;fill-opacity:1;stroke:none;stroke-width:9.4744"/>
+    </g>
+  </g>
+</svg>

@@ -1,6 +1,24 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" viewBox="0 0 128 128" version="1.1" id="svg1">
+  <defs id="defs1"/>
   <g id="runner-weight">
-    <ellipse id="runner-body" cx="77" cy="67" rx="28" ry="36" fill="#a0d653" stroke="#203321" stroke-width="7"/>
-    <path id="speed-lines" d="M8.464813 43.309302h36.552445m-41.552445 24h34.296259m-26.296259 24H44.88676" stroke="#8ee9a0" stroke-width="8"/>
+    <g id="g2" transform="matrix(0,1.7241379,-1.7241379,0,204.28963,-39.644195)">
+      <g id="runner-zombie-normal-appearance" fill="#a0d653" transform="translate(52.741136,67.990626)">
+        <circle id="upper-hand" cx="31" cy="-11" r="7"/>
+        <circle id="lower-hand" cx="31" cy="11" r="7"/>
+        <circle id="body" r="20" cx="0" cy="0"/>
+      </g>
+      <g id="eyes" fill="#f2f0d9" transform="translate(52.741136,67.990626)">
+        <ellipse cx="8" cy="-9" rx="7" ry="5" transform="rotate(25.783,8,-9)" id="ellipse1"/>
+        <ellipse cx="8" cy="9" rx="7" ry="5" transform="rotate(-25.783,8,9)" id="ellipse2"/>
+      </g>
+      <g id="pupils" fill="#8e241f" transform="translate(52.741136,67.990626)">
+        <circle cx="11" cy="-8" r="3" id="circle2"/>
+        <circle cx="11" cy="8" r="3" id="circle3"/>
+      </g>
+      <path id="brows" d="m 43.741136,60.990626 11,5 m -9,13 11,-6" fill="none" stroke="#263c29" stroke-width="3"/>
+    </g>
+    <g id="g1" transform="matrix(1.3092244,0,0,1.3092244,-236.5899,90.117724)">
+      <path id="speed-lines-8" d="m 186.56325,-20.239015 h 30.55244 m -15.58283,14.6194461 -0.18877,-30.0887301" stroke="#8ee9a0" stroke-width="8" style="stroke:#ff6b61;stroke-opacity:1"/>
+    </g>
   </g>
 </svg>

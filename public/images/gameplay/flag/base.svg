@@ -1,6 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="-70 -75 140 150">
   <g id="flag-base">
-    <path id="pole" d="M-18 42V-64" fill="none" stroke="#d7c59f" stroke-width="9"/>
-    <circle id="health-disc" cx="0" cy="9" r="45" fill="#13291e"/>
+    <path id="pole" d="M-18 42V-74.472" fill="none" stroke="#d7c59f" stroke-width="9.434"/>
+    <circle id="health-disc" cx="0" cy="9" r="39.764" fill="#13291e" fill-opacity=".7"/>
   </g>
 </svg>

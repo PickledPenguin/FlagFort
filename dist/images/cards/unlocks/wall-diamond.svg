@@ -1,1 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><path id="wall-diamond" d="M12 30h104v70H12zM12 64h104M45 30v34m38 0v36" fill="#57e5ef" stroke="#253027" stroke-width="8"/></svg>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" viewBox="0 0 128 128" version="1.1" id="svg1">
+  <defs id="defs1"/>
+  <g id="g1" transform="matrix(1.5714286,0,0,1.5714286,-109.96331,-9.5685033)">
+    <circle r="33" fill="#57e5ef" class="base-outline" id="circle15" style="stroke:#2b241d;stroke-width:4" cx="110" cy="47"/>
+    <path d="m 93,30 34,34 m 0,-34 -34,34" class="wall-brace" id="path15" style="opacity:0.32;fill:none;stroke:#ffffff;stroke-width:4"/>
+  </g>
+</svg>

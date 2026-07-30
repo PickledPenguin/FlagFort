@@ -47,7 +47,13 @@ export const ASSETS = {
     boss: image("gameplay/enemies/basic/hand"),
   } satisfies Record<EnemyKind, string>,
   player: {
-    body: image("gameplay/player/body"),
+    body: image("gameplay/player/body-base"),
+    bodyDetails: image("gameplay/player/body-details"),
+    eyes: {
+      round: image("gameplay/player/eyes-round"),
+      focused: image("gameplay/player/eyes-focused"),
+      sleepy: image("gameplay/player/eyes-sleepy"),
+    },
     hands: {
       wood: image("gameplay/player/hands/wood"),
       stone: image("gameplay/player/hands/stone"),
@@ -60,6 +66,11 @@ export const ASSETS = {
       bow: image("gameplay/player/tools/bow"),
       blueprint: image("gameplay/player/tools/blueprint"),
     },
+  },
+  equipment: {
+    helmet: image("equipment/helmet"),
+    wrench: image("equipment/wrench"),
+    sword: image("equipment/sword"),
   },
   flag: {
     base: image("gameplay/flag/base"),
@@ -126,7 +137,7 @@ export const ASSETS = {
   ui: Object.fromEntries([
     "heart", "timer", "settings", "play", "book", "maximize",
     "shuffle", "restart", "close", "arrow-left", "arrow-right", "skip", "copy", "pause",
-    "info", "mouse",
+    "info", "mouse", "upgrade-node",
   ].map((name) => [name, image(`ui/${name}`)])) as Record<string, string>,
   structures: Object.fromEntries(
     (["wall", "door", "spikes", "harvester", "turret"] as StructureKind[]).map((kind) => [

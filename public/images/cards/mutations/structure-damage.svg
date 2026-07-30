@@ -1,7 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" viewBox="0 0 128 128" version="1.1" id="svg1">
+  <defs id="defs1"/>
   <g id="structure-damage" stroke="#253027" stroke-width="8">
     <circle id="structure" cx="62.580688" cy="64.746109" r="54.352085" fill="#b9783d"/>
     <path id="damage-crack" d="M62 27 53 56 75 69 49 102" fill="none"/>
-    <path id="damage-mark" d="m105.07439 3.5477033.26766 35.3543277m17.54333-17.810988-35.354325.267648" fill="none" stroke="#ff6b61"/>
+    <path id="damage" d="M 96.333047,6.3772417 102.48564,21.963823 119.71293,18.682438 106.99756,30.577461 118.4824,43.703004 102.07548,39.191098 96.333047,54.77768 90.590617,39.191098 74.183697,43.703004 85.668539,30.577461 72.953167,18.682438 90.180447,21.963823 Z" fill="#ff6b61" stroke="#392321" stroke-width="2.87121"/>
   </g>
 </svg>

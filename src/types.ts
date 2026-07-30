@@ -5,6 +5,15 @@ export type Tier = ResourceKind;
 export type StructureKind = "wall" | "door" | "spikes" | "harvester" | "turret";
 export type ActionKind = "fists" | "tool" | "recycle" | StructureKind;
 export type EnemyKind = "basic" | "runner" | "breaker" | "jumper" | "summoner" | "boss";
+export type PlayerId = string;
+export type DamageSource =
+  | "player-melee"
+  | "player-bow"
+  | "turret"
+  | "spikes"
+  | "sunlight"
+  | "boss-acid"
+  | "enemy";
 
 export interface Vec2 {
   x: number;
@@ -16,6 +25,7 @@ export interface Circle extends Vec2 {
 }
 
 export interface Player extends Circle {
+  id: PlayerId;
   health: number;
   maxHealth: number;
   angle: number;
@@ -53,6 +63,7 @@ export interface Portal extends Circle {
 
 export interface Structure extends Circle {
   id: number;
+  ownerId?: PlayerId;
   kind: StructureKind;
   tier: Tier;
   health: number;
@@ -94,6 +105,8 @@ export interface Enemy extends Circle {
   sunlightExposure: number;
   sunlightEffectCooldown: number;
   deathCounted: boolean;
+  lastDamageSource?: DamageSource | null;
+  lastHitByPlayerId?: PlayerId | null;
   stuckTime: number;
   routeCommitment: number;
   routeIncludesStructures: boolean;
@@ -108,6 +121,8 @@ export interface Enemy extends Circle {
 export interface Projectile extends Circle {
   id: number;
   owner: "player" | "turret" | "boss-acid";
+  ownerPlayerId?: PlayerId | null;
+  damageSource?: DamageSource;
   x: number;
   y: number;
   previousX: number;

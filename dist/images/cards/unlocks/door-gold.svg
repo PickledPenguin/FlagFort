@@ -1,1 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><rect id="door-gold" x="30" y="9" width="68" height="110" rx="8" fill="#f6c945" stroke="#253027" stroke-width="8"/><circle cx="80" cy="66" r="7" fill="#253027"/></svg>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" viewBox="0 0 128 128" version="1.1" id="svg1">
+  <defs id="defs1"/>
+  <g id="g1" transform="matrix(1.5277778,0,0,1.5277778,-52.121675,-28.165061)">
+    <circle r="34" fill="#f6c945" class="base-outline" id="circle30" style="stroke:#2b241d;stroke-width:4" cx="76" cy="61"/>
+    <g fill="#2b241d" id="g34" transform="translate(76,61)">
+      <circle cx="-11" cy="-11" r="5" id="circle31"/>
+      <circle cx="11" cy="-11" r="5" id="circle32"/>
+      <circle cx="-11" cy="11" r="5" id="circle33"/>
+      <circle cx="11" cy="11" r="5" id="circle34"/>
+    </g>
+  </g>
+</svg>

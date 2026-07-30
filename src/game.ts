@@ -29,6 +29,12 @@ import {
   type ResourceWallet,
 } from "./rules";
 import { distance, overlaps, segmentCircle, SpatialHash } from "./spatial";
+import { freeRepairChance, mitigatePlayerDamage, swordStats } from "./equipment";
+import { permanentUpgradePercent, type PermanentUpgradeId } from "./meta-balance";
+import { resolveCooldown, resolveEffectiveStat } from "./modifiers";
+import type { GamePlatform } from "./platform";
+import type { ProfileManager, RunSettlementResult } from "./profile";
+import { calculateXpRewards, settleCoinInvestment } from "./rewards";
 import type {
   ActionKind,
   Choice,
@@ -39,6 +45,7 @@ import type {
   Particle,
   Phase,
   Player,
+  PlayerId,
   Portal,
   Projectile,
   ResourceNode,
@@ -85,6 +92,7 @@ interface TutorialTarget {
 }
 
 const center = BALANCE.mapSize / 2;
+export const LOCAL_PLAYER_ID: PlayerId = "local-player";
 const ACTIONS: ActionKind[] = ["fists", "tool", "recycle", "wall", "spikes", "door", "harvester", "turret"];
 
 function scaleCost(cost: ResourceWallet, multiplier: number): ResourceWallet {
@@ -106,6 +114,7 @@ export class Game {
   phaseElapsed = 0;
   world: World = generateWorld("preview");
   player: Player = {
+    id: LOCAL_PLAYER_ID,
     x: center,
     y: center + 120,
     radius: BALANCE.player.radius,
@@ -151,6 +160,17 @@ export class Game {
     elapsed: 0,
     nightsSurvived: 0,
   };
+  directPlayerKills: Record<EnemyKind, number> = {
+    basic: 0,
+    runner: 0,
+    breaker: 0,
+    jumper: 0,
+    summoner: 0,
+    boss: 0,
+  };
+  runSettlementId: string | null = null;
+  runInvestment = 0;
+  lastSettlement: RunSettlementResult | null = null;
   choices: Choice[] = [];
   dawnScreen = 0;
   dawnPicked = new Set<string>();
@@ -206,7 +226,11 @@ export class Game {
   private uiDirty = true;
   private onMajorScreen: (() => void) | null = null;
 
-  constructor(readonly input: Input) {
+  constructor(
+    readonly input: Input,
+    readonly profileManager: ProfileManager | null = null,
+    readonly platform: GamePlatform | null = null,
+  ) {
     this.loadRecords();
   }
 
@@ -230,7 +254,8 @@ export class Game {
     requestedSeed: string,
     challengeIds: readonly string[] = [],
     suppressPortalAudio = false,
-  ): void {
+    runOptions: { investment?: number; settle?: boolean; settlementId?: string } = {},
+  ): boolean {
     this.tutorialMode = false;
     this.flagPresent = true;
     this.difficulty = difficulty;
@@ -238,6 +263,17 @@ export class Game {
       challengeIds.map((id) => id === "fifty-percent-days" ? "short-days" : id),
     );
     this.seed = requestedSeed.trim() || generateSeed();
+    const shouldSettle = runOptions.settle !== false && !this.tutorialMode;
+    this.runSettlementId = shouldSettle
+      ? runOptions.settlementId ?? this.createSettlementId()
+      : null;
+    this.runInvestment = 0;
+    this.lastSettlement = null;
+    if (this.runSettlementId && this.profileManager) {
+      const requestedInvestment = Math.max(0, Math.floor(runOptions.investment ?? 0));
+      if (!this.profileManager.beginRunSettlement(this.runSettlementId, requestedInvestment)) return false;
+      this.runInvestment = this.profileManager.profile.pendingRunSettlement?.investment ?? 0;
+    }
     this.rng = new SeededRng(`${this.seed}:gameplay:${difficulty}`);
     this.nextId = 1000;
     const challengeModifiers = this.getChallengeModifiers();
@@ -248,6 +284,7 @@ export class Game {
     this.phase = "day";
     this.previousPhase = "day";
     this.player = {
+      id: LOCAL_PLAYER_ID,
       x: center,
       y: center + 120,
       radius: BALANCE.player.radius,
@@ -289,6 +326,7 @@ export class Game {
     this.upgrades = createUpgrades();
     this.mutations = createMutations();
     this.stats = { resourcesGathered: 0, structuresBuilt: 0, zombiesDefeated: 0, elapsed: 0, nightsSurvived: 0 };
+    this.directPlayerKills = { basic: 0, runner: 0, breaker: 0, jumper: 0, summoner: 0, boss: 0 };
     this.choices = [];
     this.dawnScreen = 0;
     this.dawnPicked = new Set();
@@ -309,6 +347,7 @@ export class Game {
     this.syncSpatialAudio(true);
     this.notify(`Seed ${this.seed}`);
     this.markUi(true);
+    return true;
   }
 
   restart(sameSeed: boolean): void {
@@ -323,8 +362,13 @@ export class Game {
     this.markUi(true);
   }
 
+  endRunVoluntarily(): void {
+    if (this.phase !== "day" && this.phase !== "night" && this.phase !== "paused") return;
+    this.endRun(false, "Run ended by player.");
+  }
+
   startTutorial(section = 0): void {
-    this.startRun("normal", "flagfall-training", [], true);
+    this.startRun("normal", "flagfall-training", [], true, { settle: false });
     this.tutorialMode = true;
     this.tutorialSection = Math.max(0, Math.min(TUTORIAL_SECTIONS.length - 1, section));
     this.tutorialTask = 0;
@@ -465,6 +509,7 @@ export class Game {
       const maxHealth = this.structureMaxHealth(kind, tier);
       const structure: Structure = {
         id: this.nextId++,
+        ownerId: LOCAL_PLAYER_ID,
         kind,
         tier,
         x,
@@ -882,7 +927,11 @@ export class Game {
     if (this.input.keys.has("KeyS")) y += 1;
     const length = Math.hypot(x, y);
     if (length === 0) return;
-    const speed = BALANCE.player.speed * (1 + this.upgrades.moveSpeed);
+    const speed = resolveEffectiveStat({
+      base: BALANCE.player.speed,
+      permanent: this.getPermanentPercent("moveSpeed"),
+      temporary: this.upgrades.moveSpeed,
+    });
     const moveX = (x / length) * speed * dt;
     const moveY = (y / length) * speed * dt;
     const beforeX = this.player.x;
@@ -946,7 +995,14 @@ export class Game {
   }
 
   private punch(): void {
-    const interval = Math.max(0.16, BALANCE.player.punchRate - this.upgrades.punchRate);
+    const sword = this.getEquippedSword();
+    const baseMeleeInterval = Math.max(
+      0.16,
+      BALANCE.player.punchRate - this.upgrades.punchRate,
+    );
+    const interval = sword
+      ? baseMeleeInterval * sword.cooldownMultiplier
+      : baseMeleeInterval;
     if (this.player.cooldown > 0) return;
     this.player.cooldown = interval;
     const currentIndex = BALANCE.punchHands.indexOf(this.player.punchHand);
@@ -956,14 +1012,27 @@ export class Game {
       cue: "player-punch-swing",
       position: { x: this.player.x, y: this.player.y },
     });
-    const range = BALANCE.player.punchRange;
+    const range = sword?.range ?? BALANCE.player.punchRange;
     const candidates = this.enemyHash.query(this.player.x, this.player.y, range + 40)
-      .filter((enemy) => this.inPunchArc(enemy))
+      .filter((enemy) => this.inMeleeArc(enemy, range, sword?.arc ?? BALANCE.player.punchArc))
       .sort((a, b) => distance(this.player, a) - distance(this.player, b));
-    const enemy = candidates[0];
-    if (enemy) {
-      emitAudioCue({ cue: "player-punch-impact", position: { x: enemy.x, y: enemy.y } });
-      this.damageEnemy(enemy, BALANCE.player.punchDamage + this.upgrades.punchDamage, "#fff3c6");
+    const targets = candidates.slice(0, sword?.targetLimit ?? 1);
+    if (targets.length) {
+      for (const enemy of targets) {
+        emitAudioCue({ cue: "player-punch-impact", position: { x: enemy.x, y: enemy.y } });
+        const damage = resolveEffectiveStat({
+          base: BALANCE.player.punchDamage,
+          permanent: this.getPermanentPercent("punchDamage"),
+          equipment: sword ? sword.damageMultiplier - 1 : 0,
+          temporaryFlat: this.upgrades.punchDamage,
+        });
+        this.damageEnemy(enemy, damage, "#fff3c6", "player-melee", this.player.id);
+        if (sword) {
+          enemy.x += Math.cos(this.player.angle) * sword.knockback;
+          enemy.y += Math.sin(this.player.angle) * sword.knockback;
+          this.constrainToTutorialArena(enemy);
+        }
+      }
       return;
     }
     const portal = this.portals.filter((item) => this.inPunchArc(item)).sort((a, b) => distance(this.player, a) - distance(this.player, b))[0];
@@ -992,21 +1061,33 @@ export class Game {
   }
 
   private inPunchArc(target: { x: number; y: number; radius: number }): boolean {
+    return this.inMeleeArc(target, BALANCE.player.punchRange, BALANCE.player.punchArc);
+  }
+
+  private inMeleeArc(
+    target: { x: number; y: number; radius: number },
+    range: number,
+    arc: number,
+  ): boolean {
     const d = distance(this.player, target);
-    if (d > BALANCE.player.punchRange + target.radius) return false;
+    if (d > range + target.radius) return false;
     const angle = Math.atan2(target.y - this.player.y, target.x - this.player.x);
     const delta = Math.atan2(Math.sin(angle - this.player.angle), Math.cos(angle - this.player.angle));
-    return Math.abs(delta) <= BALANCE.player.punchArc;
+    return Math.abs(delta) <= arc;
   }
 
   private shootBow(): void {
-    const interval = Math.max(0.15, BALANCE.bow.rate - this.upgrades.bowRate);
+    const interval = Math.max(0.15, resolveCooldown(BALANCE.bow.rate, [
+      this.getPermanentPercent("bowRate"),
+    ]) - this.upgrades.bowRate);
     if (this.player.toolCooldown > 0) return;
     this.player.toolCooldown = interval;
     const angle = this.player.angle;
     this.projectiles.push({
       id: this.nextId++,
       owner: "player",
+      ownerPlayerId: this.player.id,
+      damageSource: "player-bow",
       x: this.player.x + Math.cos(angle) * 43,
       y: this.player.y + Math.sin(angle) * 43,
       previousX: this.player.x,
@@ -1014,7 +1095,11 @@ export class Game {
       vx: Math.cos(angle) * BALANCE.bow.speed,
       vy: Math.sin(angle) * BALANCE.bow.speed,
       radius: BALANCE.bow.radius,
-      damage: BALANCE.bow.damage + this.upgrades.bowDamage,
+      damage: resolveEffectiveStat({
+        base: BALANCE.bow.damage,
+        permanent: this.getPermanentPercent("bowDamage"),
+        temporaryFlat: this.upgrades.bowDamage,
+      }),
       rangeLeft: BALANCE.bow.range,
       lifetime: BALANCE.bow.range / BALANCE.bow.speed + 0.2,
       hitIds: new Set(),
@@ -1041,10 +1126,13 @@ export class Game {
     }
     if (preview.target === this.flag) return;
     const structure = preview.target as Structure;
-    spend(this.resources, preview.cost);
+    const wrench = this.profileManager?.profile.equipment.wrench;
+    const chance = freeRepairChance(wrench?.tier ?? null, wrench?.equipped ?? false);
+    const free = chance > 0 && this.rng.next() < chance;
+    if (!free) spend(this.resources, preview.cost);
     structure.health = structure.maxHealth;
-    this.burst(structure.x, structure.y, "#74f3a5", 16, "FULL REPAIR");
-    this.floatWallet(structure.x, structure.y + 30, preview.cost, "-");
+    this.burst(structure.x, structure.y, "#74f3a5", 16, free ? "FREE REPAIR" : "FULL REPAIR");
+    if (!free) this.floatWallet(structure.x, structure.y + 30, preview.cost, "-");
     emitAudioCue({ cue: "structure-repair", position: { x: structure.x, y: structure.y } });
     this.recordTutorialEvent(`repaired-${structure.kind}`);
   }
@@ -1261,7 +1349,11 @@ export class Game {
       const structure = preview.upgrading;
       const ratio = structure.health / structure.maxHealth;
       structure.tier = preview.tier;
-      structure.maxHealth = this.structureMaxHealth(kind, preview.tier);
+      structure.maxHealth = this.structureMaxHealth(
+        kind,
+        preview.tier,
+        structure.ownerId ?? this.player.id,
+      );
       structure.health = structure.maxHealth * ratio;
       this.burst(structure.x, structure.y, BALANCE.tierColors[preview.tier], 12, "UPGRADE");
       emitAudioCue({ cue: "structure-upgrade", position: { x: structure.x, y: structure.y } });
@@ -1270,6 +1362,7 @@ export class Game {
       const maxHealth = this.structureMaxHealth(kind, preview.tier);
       this.structures.push({
         id: this.nextId++,
+        ownerId: this.player.id,
         kind,
         tier: preview.tier,
         x: preview.x,
@@ -1310,17 +1403,26 @@ export class Game {
 
   private updateTurret(structure: Structure): void {
     const tierIndex = BALANCE.tierIndex[structure.tier];
-    const range = this.getTurretRange(structure.tier);
+    const ownerId = structure.ownerId ?? this.player.id;
+    const range = this.getTurretRange(structure.tier, ownerId);
     const target = this.enemyHash.query(structure.x, structure.y, range)
       .filter((enemy) => distance(structure, enemy) <= range)
       .sort((a, b) => distance(structure, a) - distance(structure, b))[0];
     if (!target) return;
     structure.angle = Math.atan2(target.y - structure.y, target.x - structure.x);
     if (structure.cooldown > 0) return;
-    structure.cooldown = Math.max(0.16, (BALANCE.structure.turretRate[tierIndex] ?? 1) * (1 - Math.min(0.7, this.upgrades.turretRate)));
+    structure.cooldown = Math.max(
+      0.16,
+      resolveCooldown(
+        BALANCE.structure.turretRate[tierIndex] ?? 1,
+        [this.getPermanentPercent("turretRate", ownerId)],
+      ) * (1 - Math.min(0.7, this.upgrades.turretRate)),
+    );
     this.projectiles.push({
       id: this.nextId++,
       owner: "turret",
+      ownerPlayerId: ownerId,
+      damageSource: "turret",
       x: structure.x + Math.cos(structure.angle) * 30,
       y: structure.y + Math.sin(structure.angle) * 30,
       previousX: structure.x,
@@ -1328,7 +1430,11 @@ export class Game {
       vx: Math.cos(structure.angle) * BALANCE.bow.speed,
       vy: Math.sin(structure.angle) * BALANCE.bow.speed,
       radius: 5,
-      damage: (BALANCE.structure.turretDamage[tierIndex] ?? 8) * (1 + this.upgrades.turretDamage),
+      damage: resolveEffectiveStat({
+        base: BALANCE.structure.turretDamage[tierIndex] ?? 8,
+        permanent: this.getPermanentPercent("turretDamage", ownerId),
+        temporary: this.upgrades.turretDamage,
+      }),
       rangeLeft: range,
       lifetime: range / BALANCE.bow.speed + 0.2,
       hitIds: new Set(),
@@ -1340,7 +1446,14 @@ export class Game {
 
   private updateHarvester(structure: Structure, dt: number): void {
     const tierIndex = BALANCE.tierIndex[structure.tier];
-    const speed = (BALANCE.structure.harvesterSpeed[tierIndex] ?? 0.8) * (1 + this.upgrades.harvesterSpeed);
+    const speed = resolveEffectiveStat({
+      base: BALANCE.structure.harvesterSpeed[tierIndex] ?? 0.8,
+      permanent: this.getPermanentPercent(
+        "harvesterSpeed",
+        structure.ownerId ?? this.player.id,
+      ),
+      temporary: this.upgrades.harvesterSpeed,
+    });
     structure.lastArmAngle = structure.angle;
     const unwrappedAngle = structure.angle + speed * dt;
     structure.angle = unwrappedAngle % BALANCE.harvester.revolutionRadians;
@@ -1483,6 +1596,8 @@ export class Game {
       sunlightExposure: 0,
       sunlightEffectCooldown: 0,
       deathCounted: false,
+      lastDamageSource: null,
+      lastHitByPlayerId: null,
       stuckTime: 0,
       routeCommitment: 0,
       routeIncludesStructures: false,
@@ -1581,6 +1696,10 @@ export class Game {
       if (!enemy.deathCounted) {
         enemy.deathCounted = true;
         this.stats.zombiesDefeated += 1;
+        if (enemy.lastHitByPlayerId === this.player.id
+          && (enemy.lastDamageSource === "player-melee" || enemy.lastDamageSource === "player-bow")) {
+          this.directPlayerKills[enemy.kind] += 1;
+        }
         emitAudioCue({
           cue: enemy.kind === "boss" ? "boss-death" : "zombie-death",
           position: { x: enemy.x, y: enemy.y },
@@ -1617,6 +1736,8 @@ export class Game {
       BALANCE.sunlight.maximumDamage,
       BALANCE.sunlight.startingDamage + BALANCE.sunlight.damageEscalation * enemy.sunlightExposure,
     );
+    enemy.lastDamageSource = "sunlight";
+    enemy.lastHitByPlayerId = null;
     enemy.health -= damagePerSecond * dt;
     if (enemy.sunlightEffectCooldown <= 0) {
       enemy.sunlightEffectCooldown = BALANCE.sunlight.effectInterval;
@@ -1760,7 +1881,8 @@ export class Game {
     enemy.attackWindup = 0;
     enemy.cooldown = enemy.attackRate;
     const isStructure = "kind" in target && "tier" in target;
-    const damage = isStructure ? enemy.structureDamage : enemy.damage;
+    const rawDamage = isStructure ? enemy.structureDamage : enemy.damage;
+    const damage = target === this.player ? this.mitigateIncomingDamage(rawDamage) : rawDamage;
     const playerWasFull = target === this.player && this.player.health >= this.player.maxHealth;
     target.health -= damage;
     if (enemy.kind === "breaker") {
@@ -1798,7 +1920,13 @@ export class Game {
     else target.flash = 0.22;
     if (isStructure && target.kind === "spikes") {
       const index = BALANCE.tierIndex[target.tier];
-      this.damageEnemy(enemy, BALANCE.structure.spikeRetaliation[index] ?? 4, "#e5e5e5");
+      this.damageEnemy(
+        enemy,
+        BALANCE.structure.spikeRetaliation[index] ?? 4,
+        "#e5e5e5",
+        "spikes",
+        target.ownerId ?? this.player.id,
+      );
     }
     this.shake = Math.max(this.shake, enemy.kind === "boss" ? 10 : 3);
     this.burst(target.x, target.y, "#ff695f", enemy.kind === "boss" ? 14 : 6, `-${Math.round(damage)}`);
@@ -1992,6 +2120,8 @@ export class Game {
     this.projectiles.push({
       id: this.nextId++,
       owner: "boss-acid",
+      ownerPlayerId: null,
+      damageSource: "boss-acid",
       x: enemy.x + Math.cos(angle) * (enemy.radius + 10),
       y: enemy.y + Math.sin(angle) * (enemy.radius + 10),
       previousX: enemy.x,
@@ -2039,10 +2169,11 @@ export class Game {
           && segmentCircle(projectile.previousX, projectile.previousY, projectile.x, projectile.y, this.player)) {
           const wasFull = this.player.health >= this.player.maxHealth;
           projectile.hitIds.add("player");
-          this.player.health -= projectile.damage;
+          const damage = this.mitigateIncomingDamage(projectile.damage);
+          this.player.health -= damage;
           this.player.hurtFlash = 0.25;
           emitAudioCue({ cue: "player-hurt", position: { x: this.player.x, y: this.player.y } });
-          this.burst(this.player.x, this.player.y, "#b8ff3d", 12, `-${projectile.damage}`);
+          this.burst(this.player.x, this.player.y, "#b8ff3d", 12, `-${Math.round(damage)}`);
           if (wasFull && !this.playerDamageWarned) {
             this.playerDamageWarned = true;
             const disabled = this.getChallengeModifiers().disablesPlayerHealing;
@@ -2068,7 +2199,13 @@ export class Game {
       let hit = false;
       for (const enemy of this.enemyHash.query(projectile.x, projectile.y, Math.hypot(dx, dy) + 60)) {
         if (!segmentCircle(projectile.previousX, projectile.previousY, projectile.x, projectile.y, enemy)) continue;
-        this.damageEnemy(enemy, projectile.damage, projectile.color);
+        this.damageEnemy(
+          enemy,
+          projectile.damage,
+          projectile.color,
+          projectile.damageSource ?? (projectile.owner === "player" ? "player-bow" : "turret"),
+          projectile.ownerPlayerId ?? (projectile.owner === "player" ? this.player.id : null),
+        );
         this.emitArrowImpact(projectile);
         hit = true;
         break;
@@ -2098,8 +2235,16 @@ export class Game {
     });
   }
 
-  private damageEnemy(enemy: Enemy, amount: number, color: string): void {
+  private damageEnemy(
+    enemy: Enemy,
+    amount: number,
+    color: string,
+    source: import("./types").DamageSource,
+    ownerPlayerId: PlayerId | null,
+  ): void {
     const wasAlive = enemy.health > 0;
+    enemy.lastDamageSource = source;
+    enemy.lastHitByPlayerId = ownerPlayerId;
     enemy.health -= amount;
     enemy.flash = 0.18;
     // No hurt sound, too distracting, not necessary
@@ -2115,6 +2260,10 @@ export class Game {
       if (!enemy.deathCounted) {
         this.stats.zombiesDefeated += 1;
         enemy.deathCounted = true;
+        if (ownerPlayerId === this.player.id
+          && (source === "player-melee" || source === "player-bow")) {
+          this.directPlayerKills[enemy.kind] += 1;
+        }
       }
       this.burst(enemy.x, enemy.y, "#8fc75d", enemy.kind === "boss" ? 40 : 14, enemy.kind === "boss" ? "BOSS DOWN" : undefined);
       if (enemy.kind === "boss" && this.timer <= 0) this.completeBossNight();
@@ -2209,6 +2358,7 @@ export class Game {
     this.phaseElapsed = 0;
     this.phaseTransitionImpact = 0.55;
     this.stats.nightsSurvived = this.night;
+    this.platform?.reportProgress(Math.min(90, this.night * 10));
     if (
       !this.hasChallenge("permanent-player-damage")
       && !this.getChallengeModifiers().disablesDawnPlayerHealing
@@ -2340,11 +2490,19 @@ export class Game {
       BALANCE.tierIndex[tier] > BALANCE.tierIndex[best] ? tier : best, "wood" as Tier);
   }
 
-  private structureMaxHealth(kind: StructureKind, tier: Tier): number {
+  private structureMaxHealth(
+    kind: StructureKind,
+    tier: Tier,
+    ownerId: PlayerId = this.player.id,
+  ): number {
     const base = BALANCE.structure.health[kind][BALANCE.tierIndex[tier]] ?? 100;
-    return base
-      * (1 + this.upgrades.structureDurability)
-      * this.getChallengeModifiers().structureHealthMultiplier;
+    return resolveEffectiveStat({
+      base,
+      permanent: this.getPermanentPercent("structureHealth", ownerId)
+        + (kind === "wall" ? this.getPermanentPercent("wallHealth", ownerId) : 0),
+      challenge: this.getChallengeModifiers().structureHealthMultiplier - 1,
+      temporary: this.upgrades.structureDurability,
+    });
   }
 
   private rebuildSpatial(): void {
@@ -2420,6 +2578,27 @@ export class Game {
     }
     this.defeatReason = reason;
     if (victory) this.stats.nightsSurvived = 10;
+    this.recalculateStructureScore();
+    if (this.runSettlementId && this.profileManager) {
+      const xp = calculateXpRewards({
+        survivingStructurePoints: this.structureScore,
+        directPlayerKills: this.directPlayerKills,
+        remainingResources: this.resources,
+        nightsSurvived: this.stats.nightsSurvived,
+        victory,
+      });
+      const coins = settleCoinInvestment(this.runInvestment, this.stats.nightsSurvived);
+      this.lastSettlement = this.profileManager.settleRun(
+        this.runSettlementId,
+        xp,
+        coins,
+        {
+          nightsSurvived: this.stats.nightsSurvived,
+          victory,
+          structureScore: this.structureScore,
+        },
+      );
+    }
     const record: RunRecord = {
       ...this.stats,
       seed: this.seed,
@@ -2430,11 +2609,19 @@ export class Game {
     };
     this.records.unshift(record);
     this.records = this.records.slice(0, 10);
-    browserStorage()?.setItem("countdown-forest-records", JSON.stringify(this.records));
+    if (this.profileManager) this.profileManager.saveRunRecords(this.records);
+    else browserStorage()?.setItem("countdown-forest-records", JSON.stringify(this.records));
+    this.platform?.reportProgress(victory ? 100 : Math.min(90, this.stats.nightsSurvived * 10));
+    if (victory) this.platform?.happytime();
+    this.platform?.clearGameContext();
     this.markUi(true);
   }
 
   private loadRecords(): void {
+    if (this.profileManager) {
+      this.records = [...this.profileManager.profile.recentRuns];
+      return;
+    }
     try {
       const saved = browserStorage()?.getItem("countdown-forest-records");
       if (saved) this.records = JSON.parse(saved) as RunRecord[];
@@ -2466,9 +2653,31 @@ export class Game {
     return scaleCost(cumulativeCost(kind, tier, this.upgrades.costReduction), multiplier);
   }
 
-  getTurretRange(tier: Tier): number {
-    return (BALANCE.structure.turretRange[BALANCE.tierIndex[tier]] ?? 300)
-      * (1 + this.upgrades.turretRange);
+  getTurretRange(tier: Tier, ownerId: PlayerId = this.player.id): number {
+    return resolveEffectiveStat({
+      base: BALANCE.structure.turretRange[BALANCE.tierIndex[tier]] ?? 300,
+      permanent: this.getPermanentPercent("turretRange", ownerId),
+      temporary: this.upgrades.turretRange,
+    });
+  }
+
+  getPermanentPercent(id: PermanentUpgradeId, ownerId: PlayerId = this.player.id): number {
+    if (!this.profileManager || ownerId !== LOCAL_PLAYER_ID) return 0;
+    return permanentUpgradePercent(this.profileManager.profile.permanentUpgrades[id]);
+  }
+
+  getEquippedSword() {
+    if (this.phase !== "night") return null;
+    const item = this.profileManager?.profile.equipment.sword;
+    return swordStats(item?.tier ?? null, item?.equipped ?? false);
+  }
+
+  isSwordActive(): boolean {
+    return Boolean(
+      this.getEquippedSword()
+      && this.getSelectedAction() === "fists"
+      && this.player.cooldown > 0,
+    );
   }
 
   getCapacity(kind: "turret" | "harvester"): { current: number; maximum: number } {
@@ -2504,6 +2713,21 @@ export class Game {
     return Math.round(
       BALANCE.dayDuration * this.getChallengeModifiers().dayDurationMultiplier,
     );
+  }
+
+  private mitigateIncomingDamage(damage: number): number {
+    const helmet = this.profileManager?.profile.equipment.helmet;
+    return mitigatePlayerDamage(damage, helmet?.tier ?? null, helmet?.equipped ?? false);
+  }
+
+  private createSettlementId(): string {
+    const values = new Uint32Array(2);
+    if (typeof crypto !== "undefined") crypto.getRandomValues(values);
+    else {
+      values[0] = Date.now() >>> 0;
+      values[1] = Math.floor(performance.now() * 1000) >>> 0;
+    }
+    return `${Date.now().toString(36)}-${values[0]?.toString(36)}-${values[1]?.toString(36)}`;
   }
 
   private recalculateStructureScore(): void {
