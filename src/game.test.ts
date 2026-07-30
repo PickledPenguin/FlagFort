@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { BALANCE } from "./config";
-import { generateChoiceOfferings } from "./choices";
+import { generateChoiceOfferings, mutationText } from "./choices";
 import { Game } from "./game";
 import type { Input } from "./input";
 import { NavigationGrid, pathIntersectsObstacle } from "./pathfinding";
@@ -140,6 +140,14 @@ describe("seeded generation", () => {
     const a = generateChoiceOfferings("choice-seed", 3, 1, unlocks, upgrades, mutations);
     const b = generateChoiceOfferings("choice-seed", 3, 1, unlocks, upgrades, mutations);
     expect(a).toEqual(b);
+  });
+
+  it("names the exact mutation target and stat", () => {
+    expect(mutationText("basicWeight", 0)).toBe("Basic zombie spawn weight +12.");
+    expect(mutationText("waveSize", 3)).toBe("Each portal wave size +6 zombies.");
+    expect(mutationText("health", 0.12)).toBe("All zombies health +24%.");
+    expect(mutationText("damage", 0)).toBe("All zombies player damage +10%.");
+    expect(mutationText("structureDamage", 0)).toBe("All zombies structure damage +12%.");
   });
 });
 

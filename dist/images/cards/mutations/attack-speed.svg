@@ -1,1 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><g id="attack-speed" fill="none" stroke="#ff8a61" stroke-width="10"><path d="m15 108 93-93M81 13h34v34M4 32h47M1 57h39M8 82h27"/></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <g id="attack-speed" fill="none" stroke="#ff8a61" stroke-width="10">
+    <path id="speed-arrow-and-lines" d="M15 108 114.27065 13.506988M81 13h34v34M10 22h47M10.493012 45H48M10.597205 68h27"/>
+  </g>
+</svg>

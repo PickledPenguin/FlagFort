@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-42 -42 84 84">
+  <circle id="context-hover-fill" r="38" fill="#60231f" fill-opacity=".34"/>
+  <circle id="context-hover-ring" r="38" fill="none" stroke="#ffbd52" stroke-width="5"/>
+</svg>

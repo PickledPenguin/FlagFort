@@ -37,12 +37,13 @@ function privateGame(game: Game): {
 }
 
 describe("challenge configuration", () => {
-  it("defines exactly 12 concise accessible-card challenges with Lucide icons", () => {
+  it("defines exactly 12 concise accessible-card challenges with shared SVG icons", () => {
     expect(CHALLENGES).toHaveLength(12);
     expect(new Set(CHALLENGES.map((challenge) => challenge.id)).size).toBe(12);
     for (const challenge of CHALLENGES) {
       expect(challenge.description).not.toContain("\n");
       expect(challengeIcon(challenge.icon)).toContain('class="challenge-icon"');
+      expect(challengeIcon(challenge.icon)).toContain(`./images/challenges/${challenge.icon}.svg`);
       expect(challenge.nightDuration).toBe(BALANCE.nightDuration);
     }
   });

@@ -1,6 +1,13 @@
 import type { EnemyKind, ResourceKind, StructureKind, Tier } from "./types";
 
-const image = (path: string): string => `./images/${path}.svg`;
+export const svgAsset = (path: string): string => `./images/${path}.svg`;
+export const cardAsset = (
+  category: "unlocks" | "upgrades" | "mutations",
+  name: string,
+): string => svgAsset(`cards/${category}/${name}`);
+export const tutorialAsset = (name: string): string => svgAsset(`tutorial/${name}`);
+
+const image = svgAsset;
 
 export const ASSETS = {
   resources: {
@@ -23,6 +30,93 @@ export const ASSETS = {
     summoner: image("enemies/summoner-zombie"),
     boss: image("enemies/countdown-boss"),
   } satisfies Record<EnemyKind, string>,
+  enemyBodies: {
+    basic: image("gameplay/enemies/basic/body"),
+    runner: image("gameplay/enemies/runner/body"),
+    breaker: image("gameplay/enemies/breaker/body"),
+    jumper: image("gameplay/enemies/jumper/body"),
+    summoner: image("gameplay/enemies/summoner/body"),
+    boss: image("enemies/countdown-boss"),
+  } satisfies Record<EnemyKind, string>,
+  enemyHands: {
+    basic: image("gameplay/enemies/basic/hand"),
+    runner: image("gameplay/enemies/runner/hand"),
+    breaker: image("gameplay/enemies/breaker/hand"),
+    jumper: image("gameplay/enemies/jumper/hand"),
+    summoner: image("gameplay/enemies/summoner/hand"),
+    boss: image("gameplay/enemies/basic/hand"),
+  } satisfies Record<EnemyKind, string>,
+  player: {
+    body: image("gameplay/player/body"),
+    hands: {
+      wood: image("gameplay/player/hands/wood"),
+      stone: image("gameplay/player/hands/stone"),
+      gold: image("gameplay/player/hands/gold"),
+      diamond: image("gameplay/player/hands/diamond"),
+    } satisfies Record<Tier, string>,
+    tools: {
+      repair: image("gameplay/player/tools/repair-wrench"),
+      recycle: image("gameplay/player/tools/recycle-mallet"),
+      bow: image("gameplay/player/tools/bow"),
+      blueprint: image("gameplay/player/tools/blueprint"),
+    },
+  },
+  flag: {
+    base: image("gameplay/flag/base"),
+    cloth: image("gameplay/flag/cloth"),
+    healingAura: image("gameplay/flag/healing-aura"),
+    protectionBoundary: image("gameplay/flag/protection-boundary"),
+  },
+  portal: {
+    outer: image("gameplay/portal/outer-ring"),
+    inner: image("gameplay/portal/inner-arc"),
+    noBuildZone: image("gameplay/portal/no-build-zone"),
+  },
+  tutorial: {
+    arenaBoundary: image("gameplay/tutorial/arena-boundary"),
+    arenaFade: image("gameplay/tutorial/arena-fade"),
+  },
+  projectiles: {
+    arrow: image("gameplay/projectiles/arrow"),
+    acid: image("gameplay/projectiles/acid"),
+  },
+  cursors: {
+    ringAllowed: image("gameplay/cursors/ring-allowed"),
+    ringBlocked: image("gameplay/cursors/ring-blocked"),
+    ringContext: image("gameplay/cursors/ring-context"),
+  },
+  previews: {
+    placement: {
+      allowed: image("gameplay/previews/placement-allowed"),
+      blocked: image("gameplay/previews/placement-blocked"),
+    },
+    turretRange: {
+      current: image("gameplay/previews/turret-range-current"),
+      upgraded: image("gameplay/previews/turret-range-upgraded"),
+    },
+    harvesterRange: {
+      allowed: image("gameplay/previews/harvester-range-allowed"),
+      blocked: image("gameplay/previews/harvester-range-blocked"),
+    },
+    resourceTarget: {
+      supported: image("gameplay/previews/resource-supported"),
+      unsupported: image("gameplay/previews/resource-unsupported"),
+    },
+  },
+  challenges: {
+    timer: image("challenges/timer"),
+    sprout: image("challenges/sprout"),
+    hammer: image("challenges/hammer"),
+    "wrench-off": image("challenges/wrench-off"),
+    "shield-half": image("challenges/shield-half"),
+    flag: image("challenges/flag"),
+    "heart-off": image("challenges/heart-off"),
+    orbit: image("challenges/orbit"),
+    users: image("challenges/users"),
+    skull: image("challenges/skull"),
+    gauge: image("challenges/gauge"),
+    dumbbell: image("challenges/dumbbell"),
+  },
   cracks: [
     image("structures/crack-small"),
     image("structures/crack-25"),
@@ -32,16 +126,27 @@ export const ASSETS = {
   ui: Object.fromEntries([
     "heart", "timer", "settings", "play", "book", "maximize",
     "shuffle", "restart", "close", "arrow-left", "arrow-right", "skip", "copy", "pause",
+    "info", "mouse",
   ].map((name) => [name, image(`ui/${name}`)])) as Record<string, string>,
   structures: Object.fromEntries(
     (["wall", "door", "spikes", "harvester", "turret"] as StructureKind[]).map((kind) => [
       kind,
       Object.fromEntries((["wood", "stone", "gold", "diamond"] as Tier[]).map((tier) => [
         tier,
-        image(`structures/${kind}`),
+        image(`structures/${kind}/${tier}`),
       ])),
     ]),
   ) as Record<StructureKind, Record<Tier, string>>,
+  structureParts: {
+    turretBarrels: Object.fromEntries((["wood", "stone", "gold", "diamond"] as Tier[]).map((tier) => [
+      tier,
+      image(`structures/turret/barrel-${tier}`),
+    ])) as Record<Tier, string>,
+    harvesterArms: Object.fromEntries((["wood", "stone", "gold", "diamond"] as Tier[]).map((tier) => [
+      tier,
+      image(`structures/harvester/arm-${tier}`),
+    ])) as Record<Tier, string>,
+  },
 } as const;
 
 export function allAssetPaths(value: unknown = ASSETS): string[] {

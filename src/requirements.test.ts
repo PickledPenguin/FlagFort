@@ -81,11 +81,23 @@ describe("tutorial production parity", () => {
 });
 
 describe("shared render and transition architecture", () => {
-  it("uses the production zombie body renderer in gameplay and a generic modal threat symbol", () => {
-    expect(rendererSource).toContain("drawZombieBody(ctx");
-    expect(uiSource).toContain('class="zombie-art threat-symbol"');
-    expect(uiSource).not.toContain("zombiePortraitMarkup(this.game.enemyWarning)");
-    expect(uiSource).not.toContain("drawZombieBody(ctx");
+  it("uses editable zombie SVG parts in gameplay and exact portraits in threat warnings", () => {
+    expect(rendererSource).toContain("ASSETS.enemyBodies[enemy.kind]");
+    expect(rendererSource).toContain("ASSETS.enemyHands[enemy.kind]");
+    expect(rendererSource).not.toContain("drawZombieBody(ctx");
+    expect(uiSource).toContain('data-zombie-portrait="${this.game.enemyWarning}"');
+    expect(uiSource).toContain("ASSETS.enemies[this.game.enemyWarning]");
+    expect(uiSource).not.toContain('class="zombie-art threat-symbol"');
+  });
+
+  it("reuses production action SVGs for visible contextual cursors", () => {
+    expect(rendererSource).toContain('BUILD_BAR_ICON_PATHS["repair-wrench"]');
+    expect(rendererSource).toContain('BUILD_BAR_ICON_PATHS["recycle-mallet"]');
+    expect(rendererSource.indexOf("this.drawPlayer(game)"))
+      .toBeLessThan(rendererSource.indexOf("if (game.toolPreview) this.drawToolPreview(game)"));
+    expect(stylesSource).toMatch(
+      /\.tool\[data-action-kind="tool"\][\s\S]*?\.build-bar-icon\s*\{[\s\S]*?width:\s*40px;[\s\S]*?height:\s*40px;/,
+    );
   });
 
   it("contains card-only transitions and no page-level transition shell", () => {

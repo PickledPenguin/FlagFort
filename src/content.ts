@@ -1,4 +1,4 @@
-import { ASSETS } from "./assets";
+import { ASSETS, cardAsset, tutorialAsset } from "./assets";
 import type { Mutations, StructureKind, Tier, Upgrades } from "./types";
 
 export interface TutorialDefinition {
@@ -14,7 +14,7 @@ const tutorial = (id: string, title: string, instructions: string, order: number
   id,
   title,
   instructions,
-  illustration: `./images/tutorial/${id}.svg`,
+  illustration: tutorialAsset(id),
   controls,
   order,
 });
@@ -164,7 +164,7 @@ export const UNLOCK_CARDS: readonly CardDefinition[] = [
     description: `Unlock ${tier} harvesting and increase resource yield per hit.`,
     effect: `Unlock the ${tier} glove tier in sequence.`,
     value: () => "Permanent for this run",
-    illustration: `./images/cards/unlocks/gloves-${tier}.svg`,
+    illustration: cardAsset("unlocks", `gloves-${tier}`),
     prerequisites: index === 0 ? ["gloves:wood"] : [`gloves:${(["stone", "gold"] as Tier[])[index - 1]}`],
     maxLevel: 1,
     weight: 10,
@@ -179,7 +179,7 @@ export const UNLOCK_CARDS: readonly CardDefinition[] = [
       description: `Unlock the ${tier} ${structureNames[kind].toLowerCase()} variant.`,
       effect: `Adds the ${tier} tier to the ${kind} build variants.`,
       value: () => "Permanent for this run",
-      illustration: `./images/cards/unlocks/${kind}-${tier}.svg`,
+      illustration: cardAsset("unlocks", `${kind}-${tier}`),
       prerequisites: [`${kind}:${index === 0 ? "stone" : "gold"}`],
       maxLevel: 1,
       weight: 10,
@@ -215,7 +215,7 @@ export const UPGRADE_CARDS: readonly CardDefinition[] = (Object.keys(upgradeMeta
   description: upgradeMeta[id][1],
   effect: upgradeMeta[id][1],
   value: (current) => `Current accumulated value: ${Math.round(current * 100) / 100}`,
-  illustration: `./images/cards/upgrades/${id.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)}.svg`,
+  illustration: cardAsset("upgrades", id.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)),
   prerequisites: [],
   maxLevel: id.endsWith("Capacity") ? 21 : null,
   weight: 10,
@@ -233,7 +233,7 @@ export const MUTATION_CARDS: readonly CardDefinition[] = ([
   description: `Increase the horde's ${id.replace(/[A-Z]/g, (letter) => ` ${letter.toLowerCase()}`)}.`,
   effect: `Stacks the ${id} mutation.`,
   value: (current) => `Current accumulated value: ${Math.round(current * 100) / 100}`,
-  illustration: `./images/cards/mutations/${id.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)}.svg`,
+  illustration: cardAsset("mutations", id.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)),
   prerequisites: [],
   maxLevel: null,
   weight: 10,

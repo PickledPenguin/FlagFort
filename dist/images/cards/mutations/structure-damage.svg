@@ -1,1 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><g id="structure-damage" stroke="#253027" stroke-width="8"><rect x="14" y="27" width="100" height="75" fill="#b9783d"/><path d="m62 27-9 29 22 13-26 33m45-93 25 25m0-25L94 34" stroke="#ff6b61"/></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <g id="structure-damage" stroke="#253027" stroke-width="8">
+    <circle id="structure" cx="62.580688" cy="64.746109" r="54.352085" fill="#b9783d"/>
+    <path id="damage-crack" d="M62 27 53 56 75 69 49 102" fill="none"/>
+    <path id="damage-mark" d="m105.07439 3.5477033.26766 35.3543277m17.54333-17.810988-35.354325.267648" fill="none" stroke="#ff6b61"/>
+  </g>
+</svg>

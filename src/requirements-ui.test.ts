@@ -91,7 +91,7 @@ describe("production controls and challenge accessibility", () => {
     expect(hud.querySelector<HTMLButtonElement>('[aria-label="Repair"]')?.disabled).toBe(true);
   });
 
-  it("renders every zombie introduction with the generic threat symbol", () => {
+  it("renders every zombie introduction with its exact SVG portrait", () => {
     const { game, overlay, ui } = harness();
     const kinds: EnemyKind[] = [
       "basic",
@@ -106,8 +106,8 @@ describe("production controls and challenge accessibility", () => {
     for (const kind of kinds) {
       game.enemyWarning = kind;
       ui.render(true);
-      expect(overlay.querySelector(".threat-symbol")?.textContent).toBe("☠");
-      expect(overlay.querySelector("[data-zombie-portrait]")).toBeNull();
+      const portrait = overlay.querySelector<HTMLImageElement>(`[data-zombie-portrait="${kind}"]`);
+      expect(portrait?.src).toContain(`/images/enemies/${kind === "boss" ? "countdown-boss" : `${kind}-zombie`}.svg`);
     }
   });
 });

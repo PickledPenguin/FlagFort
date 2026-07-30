@@ -49,7 +49,7 @@ if (import.meta.env.DEV) {
         description: "Move faster.",
         mutationId: "health",
         mutationName: "Thick Skulls",
-        mutationDescription: "Zombies gain health.",
+        mutationDescription: "All zombies health +12%.",
         kind: "upgrade",
       },
       {
@@ -58,7 +58,7 @@ if (import.meta.env.DEV) {
         description: "Punch harder.",
         mutationId: "damage",
         mutationName: "Vicious Claws",
-        mutationDescription: "Zombies deal more damage.",
+        mutationDescription: "All zombies player damage +10%.",
         kind: "upgrade",
       },
       {
@@ -67,7 +67,7 @@ if (import.meta.env.DEV) {
         description: "Arrows deal more damage.",
         mutationId: "speed",
         mutationName: "Restless Dead",
-        mutationDescription: "Zombies move faster.",
+        mutationDescription: "All zombies speed +6%.",
         kind: "upgrade",
       },
     ] satisfies Choice[];

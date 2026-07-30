@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-22 -22 44 44">
+  <defs>
+    <radialGradient id="acid-glow" cx="38%" cy="38%" r="62%">
+      <stop offset="0" stop-color="#efff8f"/>
+      <stop offset=".45" stop-color="#b8ff3d"/>
+      <stop offset="1" stop-color="#3b901e" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <circle id="acid-projectile" r="22" fill="url(#acid-glow)"/>
+</svg>

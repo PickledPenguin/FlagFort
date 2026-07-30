@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-40 -40 80 80">
+  <g id="breaker-zombie-body">
+    <circle id="body" cx="0" cy="0" r="29" fill="#4f7e3d"/>
+    <path id="helmet" d="M-25.62-7A22.62 22.62 0 0 1 19.62-7Z" fill="#4c5051"/>
+    <g id="eyes" fill="#f2f0d9">
+      <ellipse cx="8" cy="-9" rx="7" ry="5" transform="rotate(25.783 8 -9)"/>
+      <ellipse cx="8" cy="9" rx="7" ry="5" transform="rotate(-25.783 8 9)"/>
+    </g>
+    <g id="pupils" fill="#8e241f">
+      <circle cx="11" cy="-8" r="3"/>
+      <circle cx="11" cy="8" r="3"/>
+    </g>
+    <path id="brows" d="M-9-7 2-2M-7 11 4 5" fill="none" stroke="#263c29" stroke-width="3"/>
+  </g>
+</svg>

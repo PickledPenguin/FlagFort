@@ -1,10 +1,10 @@
 import { BALANCE } from "./config";
-import { ASSETS } from "./assets";
+import { allAssetPaths, ASSETS } from "./assets";
+import { BUILD_BAR_ICON_PATHS } from "./build-bar-icons";
 import type { Game } from "./game";
 import { affordability, type ResourceWallet } from "./rules";
 import { costLayoutRows } from "./cost-layout";
 import type { Enemy, Player, ResourceNode, Structure } from "./types";
-import { drawZombieBody } from "./zombie-visual";
 
 const resourceColors = {
   wood: "#315f37",
@@ -14,22 +14,31 @@ const resourceColors = {
 };
 
 const center = BALANCE.mapSize / 2;
+const structureSpriteSize = {
+  wall: 84,
+  door: 86,
+  spikes: 92,
+  harvester: 96,
+  turret: 90,
+} as const;
+const harvesterArmSpriteWidth = {
+  wood: 120,
+  stone: 130,
+  gold: 142,
+  diamond: 156,
+} as const;
 
 export class Renderer {
   private readonly ctx: CanvasRenderingContext2D;
   private readonly images = new Map<string, HTMLImageElement>();
+  private readonly tintedSprites = new Map<string, HTMLCanvasElement>();
   private time = 0;
 
   constructor(private readonly canvas: HTMLCanvasElement) {
     const ctx = canvas.getContext("2d");
     if (!ctx) throw new Error("Canvas 2D is unavailable");
     this.ctx = ctx;
-    const spritePaths = [
-      ...Object.values(ASSETS.resourceStates).flatMap((states) => Object.values(states)),
-      ...Object.values(ASSETS.resources),
-      ...ASSETS.cracks,
-      ASSETS.enemies.boss,
-    ];
+    const spritePaths = [...new Set([...allAssetPaths(), ...Object.values(BUILD_BAR_ICON_PATHS)])];
     for (const path of spritePaths) {
       const image = new Image();
       image.src = path;
@@ -37,6 +46,63 @@ export class Renderer {
     }
     this.resize();
     window.addEventListener("resize", () => this.resize());
+  }
+
+  private drawSprite(
+    path: string,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    flash = false,
+  ): boolean {
+    const sprite = this.images.get(path);
+    if (!sprite?.complete || sprite.naturalWidth <= 0) return false;
+    const ctx = this.ctx;
+    ctx.save();
+    if (flash) ctx.filter = "brightness(0) invert(1)";
+    ctx.drawImage(sprite, x, y, width, height);
+    ctx.restore();
+    return true;
+  }
+
+  private drawTintedSprite(
+    path: string,
+    color: string,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+  ): boolean {
+    const sprite = this.images.get(path);
+    if (!sprite?.complete || sprite.naturalWidth <= 0) return false;
+    const key = `${path}:${color}`;
+    let tinted = this.tintedSprites.get(key);
+    if (!tinted) {
+      tinted = document.createElement("canvas");
+      tinted.width = 96;
+      tinted.height = 96;
+      const tintContext = tinted.getContext("2d");
+      if (!tintContext) return false;
+      tintContext.drawImage(sprite, 0, 0, 96, 96);
+      tintContext.globalCompositeOperation = "source-in";
+      tintContext.fillStyle = color;
+      tintContext.fillRect(0, 0, 96, 96);
+      this.tintedSprites.set(key, tinted);
+    }
+    this.ctx.drawImage(tinted, x, y, width, height);
+    return true;
+  }
+
+  private drawCenteredOverlay(
+    path: string,
+    x: number,
+    y: number,
+    radius: number,
+    viewBoxSize: number,
+  ): boolean {
+    const size = radius * viewBoxSize / 50;
+    return this.drawSprite(path, x - size / 2, y - size / 2, size, size);
   }
 
   private resize(): void {
@@ -77,34 +143,18 @@ export class Renderer {
   }
 
   private drawTutorialArenaFade(): void {
-    const ctx = this.ctx;
     const radius = BALANCE.tutorialArena.radius;
-    const gradient = ctx.createRadialGradient(center, center, 0, center, center, radius);
-    gradient.addColorStop(0, "rgba(0, 0, 0, 0)");
-    gradient.addColorStop(BALANCE.tutorialArena.fadeStart, "rgba(0, 0, 0, 0)");
-    gradient.addColorStop(0.92, "rgba(0, 0, 0, 0.46)");
-    gradient.addColorStop(1, "rgba(0, 0, 0, 0.94)");
-    ctx.fillStyle = gradient;
-    ctx.beginPath();
-    ctx.arc(center, center, radius, 0, Math.PI * 2);
-    ctx.fill();
+    this.drawCenteredOverlay(ASSETS.tutorial.arenaFade, center, center, radius, 100);
   }
 
   private drawTutorialArenaBoundary(): void {
-    const ctx = this.ctx;
-    ctx.save();
-    ctx.strokeStyle = "rgba(156, 222, 164, 0.52)";
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.arc(
+    this.drawCenteredOverlay(
+      ASSETS.tutorial.arenaBoundary,
       BALANCE.logicalWidth / 2,
       BALANCE.logicalHeight / 2,
       BALANCE.tutorialArena.radius - BALANCE.tutorialArena.boundaryInset,
-      0,
-      Math.PI * 2,
+      103,
     );
-    ctx.stroke();
-    ctx.restore();
   }
 
   private visible(game: Game, x: number, y: number, radius: number): boolean {
@@ -133,15 +183,13 @@ export class Renderer {
       ctx.fill();
     }
     if (game.hasActiveFlag()) {
-      ctx.strokeStyle = "#87d897";
-      ctx.globalAlpha = 0.26;
-      ctx.lineWidth = 4;
-      ctx.setLineDash([12, 12]);
-      ctx.beginPath();
-      ctx.arc(game.flag.x, game.flag.y, BALANCE.flagProtectedRadius, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.globalAlpha = 1;
+      this.drawCenteredOverlay(
+        ASSETS.flag.protectionBoundary,
+        game.flag.x,
+        game.flag.y,
+        BALANCE.flagProtectedRadius,
+        104,
+      );
     }
     if (game.tutorialMode) this.drawTutorialMarkers(game);
 
@@ -154,32 +202,23 @@ export class Renderer {
       if (!this.visible(game, portal.x, portal.y, portal.radius + 60)) continue;
       const selectedAction = game.getSelectedAction();
       if (!["fists", "tool", "recycle"].includes(selectedAction)) {
-        ctx.save();
-        ctx.strokeStyle = "rgba(183,145,255,.42)";
-        ctx.fillStyle = "rgba(117,73,184,.08)";
-        ctx.lineWidth = 4;
-        ctx.setLineDash([12, 10]);
-        ctx.beginPath();
-        ctx.arc(portal.x, portal.y, BALANCE.portal.noBuildRadius, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-        ctx.setLineDash([]);
-        ctx.restore();
+        this.drawCenteredOverlay(
+          ASSETS.portal.noBuildZone,
+          portal.x,
+          portal.y,
+          BALANCE.portal.noBuildRadius,
+          104,
+        );
       }
       const pulse = 1 + Math.sin(this.time * 4 + portal.id) * 0.08;
       ctx.save();
       ctx.translate(portal.x, portal.y);
       ctx.scale(pulse, pulse);
-      ctx.strokeStyle = portal.flash > 0 ? "#ffffff" : "#a682ff";
-      ctx.lineWidth = 9;
-      ctx.beginPath();
-      ctx.arc(0, 0, portal.radius, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.strokeStyle = "#4e328b";
-      ctx.lineWidth = 5;
-      ctx.beginPath();
-      ctx.arc(0, 0, portal.radius - 14, this.time * 1.8, this.time * 1.8 + Math.PI * 1.45);
-      ctx.stroke();
+      this.drawSprite(ASSETS.portal.outer, -56, -56, 112, 112, portal.flash > 0);
+      ctx.save();
+      ctx.rotate(this.time * 1.8);
+      this.drawSprite(ASSETS.portal.inner, -42, -42, 84, 84);
+      ctx.restore();
       ctx.fillStyle = "#d9cbff";
       ctx.textAlign = "center";
       ctx.font = "800 20px system-ui";
@@ -194,33 +233,23 @@ export class Renderer {
       if (this.visible(game, structure.x, structure.y, structure.radius + 140)) this.drawStructure(structure, game.player);
     }
     if (game.buildPreview) this.drawBuildPreview(game);
-    if (game.toolPreview) this.drawToolPreview(game);
     for (const projectile of game.projectiles) {
       if (projectile.owner === "boss-acid") {
-        const gradient = ctx.createRadialGradient(
-          projectile.x - projectile.radius * 0.25,
-          projectile.y - projectile.radius * 0.25,
-          1,
-          projectile.x,
-          projectile.y,
-          projectile.radius * 1.7,
+        const size = projectile.radius * 3.4;
+        this.drawSprite(
+          ASSETS.projectiles.acid,
+          projectile.x - size / 2,
+          projectile.y - size / 2,
+          size,
+          size,
         );
-        gradient.addColorStop(0, "#efff8f");
-        gradient.addColorStop(0.45, "#b8ff3d");
-        gradient.addColorStop(1, "rgba(59,144,30,0)");
-        ctx.fillStyle = gradient;
-        ctx.beginPath();
-        ctx.arc(projectile.x, projectile.y, projectile.radius * 1.7, 0, Math.PI * 2);
-        ctx.fill();
         continue;
       }
-      ctx.strokeStyle = projectile.color;
-      ctx.lineWidth = 4;
-      ctx.beginPath();
-      ctx.moveTo(projectile.x, projectile.y);
-      const len = Math.hypot(projectile.vx, projectile.vy) || 1;
-      ctx.lineTo(projectile.x - (projectile.vx / len) * 18, projectile.y - (projectile.vy / len) * 18);
-      ctx.stroke();
+      ctx.save();
+      ctx.translate(projectile.x, projectile.y);
+      ctx.rotate(Math.atan2(projectile.vy, projectile.vx));
+      this.drawTintedSprite(ASSETS.projectiles.arrow, projectile.color, -20, -4, 24, 8);
+      ctx.restore();
     }
     for (const enemy of game.enemies) {
       if (this.visible(game, enemy.x, enemy.y, enemy.radius + 40)) this.drawEnemy(enemy);
@@ -229,6 +258,7 @@ export class Renderer {
     if ((game.phase === "day" || game.phase === "night") && game.player.health < game.player.maxHealth) {
       this.healthBar(game.player.x, game.player.y + game.player.radius + 15, 64, game.player.health / game.player.maxHealth, "#ff695f");
     }
+    if (game.toolPreview) this.drawToolPreview(game);
     for (const particle of game.particles) {
       if (!this.visible(game, particle.x, particle.y, 40)) continue;
       ctx.globalAlpha = Math.max(0, particle.life / particle.maxLife);
@@ -261,58 +291,25 @@ export class Renderer {
   }
 
   private drawResource(node: ResourceNode): void {
-    const ctx = this.ctx;
     const depleted = node.health <= 0;
     const sprite = this.images.get(ASSETS.resourceStates[node.kind][depleted ? "depleted" : "active"]);
     if (sprite?.complete && sprite.naturalWidth > 0) {
+      const ctx = this.ctx;
       ctx.save();
       ctx.translate(node.x, node.y);
       if (node.hitFlash > 0) ctx.globalAlpha = 0.6;
       const size = node.radius * 2.55;
       ctx.drawImage(sprite, -size / 2, -size / 2, size, size);
       ctx.restore();
-      if (node.health > 0 && node.health < node.maxHealth) {
-        this.healthBar(node.x, node.y - node.radius - 10, node.radius * 1.5, node.health / node.maxHealth, resourceColors[node.kind]);
-      }
-      return;
     }
-    const depletedColors = { wood: "#76502d", stone: "#505a5d", gold: "#737c76", diamond: "#737c76" };
-    const color = depleted ? depletedColors[node.kind] : resourceColors[node.kind];
-    ctx.save();
-    ctx.translate(node.x, node.y);
-    ctx.fillStyle = node.hitFlash > 0 ? "#ffffff" : "#102b20";
-    ctx.beginPath();
-    ctx.arc(3, 5, node.radius + 5, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.arc(0, 0, node.radius, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = depleted ? "#59615d" : "rgba(255,255,255,.25)";
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.arc(-node.radius * 0.2, -node.radius * 0.2, node.radius * 0.62, Math.PI, Math.PI * 1.75);
-    ctx.stroke();
-    if (node.kind === "wood") {
-      ctx.fillStyle = depleted ? "#6a6f6b" : "#193b22";
-      ctx.beginPath();
-      ctx.arc(-13, -8, node.radius * 0.55, 0, Math.PI * 2);
-      ctx.arc(15, -5, node.radius * 0.48, 0, Math.PI * 2);
-      ctx.fill();
-    } else if (node.kind === "diamond") {
-      ctx.strokeStyle = "#b8fbff";
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo(-11, 0);
-      ctx.lineTo(0, -14);
-      ctx.lineTo(12, 0);
-      ctx.lineTo(0, 16);
-      ctx.closePath();
-      ctx.stroke();
-    }
-    ctx.restore();
     if (node.health > 0 && node.health < node.maxHealth) {
-      this.healthBar(node.x, node.y - node.radius - 10, node.radius * 1.5, node.health / node.maxHealth, color);
+      this.healthBar(
+        node.x,
+        node.y - node.radius - 10,
+        node.radius * 1.5,
+        node.health / node.maxHealth,
+        resourceColors[node.kind],
+      );
     }
   }
 
@@ -365,30 +362,15 @@ export class Renderer {
     ctx.save();
     ctx.translate(flag.x, flag.y);
     ctx.scale(pulse, pulse);
-    ctx.fillStyle = "rgba(116,243,165,.08)";
-    ctx.beginPath();
-    ctx.arc(0, 0, BALANCE.flagProtectedRadius, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = "rgba(116,243,165,.2)";
-    ctx.lineWidth = 3;
-    ctx.stroke();
-    ctx.strokeStyle = "#d7c59f";
-    ctx.lineWidth = 9;
-    ctx.beginPath();
-    ctx.moveTo(-18, 42);
-    ctx.lineTo(-18, -64);
-    ctx.stroke();
-    ctx.fillStyle = flag.hurtFlash > 0 ? "#ffffff" : "#e95f4b";
-    ctx.beginPath();
-    ctx.moveTo(-13, -59);
-    ctx.lineTo(54, -45);
-    ctx.lineTo(-13, -17);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = "#13291e";
-    ctx.beginPath();
-    ctx.arc(0, 9, flag.radius, 0, Math.PI * 2);
-    ctx.fill();
+    this.drawCenteredOverlay(
+      ASSETS.flag.healingAura,
+      0,
+      0,
+      BALANCE.flagProtectedRadius,
+      103,
+    );
+    this.drawSprite(ASSETS.flag.base, -70, -75, 140, 150);
+    this.drawSprite(ASSETS.flag.cloth, -18, -64, 77, 52, flag.hurtFlash > 0);
     ctx.fillStyle = "#f8f1d3";
     ctx.font = "950 34px system-ui";
     ctx.textAlign = "center";
@@ -401,7 +383,6 @@ export class Renderer {
 
   private drawStructure(structure: Structure, player: Player): void {
     const ctx = this.ctx;
-    const color = BALANCE.tierColors[structure.tier];
     ctx.save();
     ctx.translate(structure.x, structure.y);
     if (structure.kind === "door") {
@@ -409,79 +390,35 @@ export class Renderer {
         (BALANCE.ui.doorFadeRadius - Math.hypot(player.x - structure.x, player.y - structure.y)) / 30));
       ctx.globalAlpha = 1 - proximity * (1 - BALANCE.ui.doorFadedOpacity);
     }
-    ctx.fillStyle = structure.flash > 0 ? "#ffffff" : "#0d2a1d";
-    ctx.beginPath();
-    ctx.arc(3, 5, structure.radius + 4, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = color;
-    ctx.strokeStyle = "#2b241d";
-    ctx.lineWidth = 4;
-    if (structure.kind === "wall") {
-      ctx.beginPath();
-      ctx.arc(0, 0, structure.radius, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-      ctx.strokeStyle = "rgba(255,255,255,.32)";
-      ctx.beginPath();
-      ctx.moveTo(-17, -17);
-      ctx.lineTo(17, 17);
-      ctx.moveTo(17, -17);
-      ctx.lineTo(-17, 17);
-      ctx.stroke();
-    } else if (structure.kind === "door") {
-      ctx.beginPath();
-      ctx.arc(0, 0, structure.radius, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-      ctx.fillStyle = "#2b241d";
-      for (const [x, y] of [[-11, -11], [11, -11], [-11, 11], [11, 11]] as const) {
-        ctx.beginPath();
-        ctx.arc(x, y, 5, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    } else if (structure.kind === "spikes") {
-      ctx.beginPath();
-      for (let i = 0; i < 12; i += 1) {
-        const a = (i / 12) * Math.PI * 2;
-        const r = i % 2 === 0 ? structure.radius + 8 : structure.radius - 8;
-        const x = Math.cos(a) * r;
-        const y = Math.sin(a) * r;
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      }
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-    } else if (structure.kind === "turret") {
-      ctx.beginPath();
-      ctx.arc(0, 0, structure.radius, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
+    const size = structureSpriteSize[structure.kind];
+    this.drawSprite(
+      ASSETS.structures[structure.kind][structure.tier],
+      -size / 2,
+      -size / 2,
+      size,
+      size,
+      structure.flash > 0,
+    );
+    if (structure.kind === "turret") {
       ctx.rotate(structure.angle);
-      ctx.fillStyle = "#202d28";
-      ctx.fillRect(0, -8, 44, 16);
-      ctx.fillStyle = color;
-      ctx.beginPath();
-      ctx.arc(0, 0, 17, 0, Math.PI * 2);
-      ctx.fill();
-    } else {
-      ctx.beginPath();
-      ctx.arc(0, 0, structure.radius, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-      const index = BALANCE.tierIndex[structure.tier];
-      const arm = BALANCE.structure.harvesterArm[index] ?? 98;
+      this.drawSprite(
+        ASSETS.structureParts.turretBarrels[structure.tier],
+        -20,
+        -20,
+        70,
+        40,
+        structure.flash > 0,
+      );
+    } else if (structure.kind === "harvester") {
       ctx.rotate(structure.angle);
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 9;
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.lineTo(arm, 0);
-      ctx.stroke();
-      ctx.fillStyle = "#eff7e9";
-      ctx.beginPath();
-      ctx.arc(arm, 0, 12, 0, Math.PI * 2);
-      ctx.fill();
+      this.drawSprite(
+        ASSETS.structureParts.harvesterArms[structure.tier],
+        -5,
+        -15,
+        harvesterArmSpriteWidth[structure.tier],
+        30,
+        structure.flash > 0,
+      );
     }
     this.drawStructureCracks(structure);
     ctx.restore();
@@ -492,42 +429,36 @@ export class Renderer {
     if (!preview) return;
     const ctx = this.ctx;
     ctx.save();
-    ctx.globalAlpha = 0.55;
     const buildable = preview.valid && preview.affordable;
-    ctx.fillStyle = buildable ? "#74f3a5" : "#ff6259";
-    ctx.strokeStyle = buildable ? "#d5ffe3" : "#ffd1cd";
-    ctx.lineWidth = 4;
-    ctx.setLineDash([7, 6]);
     if (preview.kind === "turret") {
-      const previewStyle = BALANCE.ui.turretRangePreview;
       const upgradedRange = game.getTurretRange(preview.tier);
       if (preview.upgrading) {
         const currentRange = game.getTurretRange(preview.upgrading.tier);
         if (Math.abs(currentRange - upgradedRange) > 0.5) {
-          ctx.strokeStyle = previewStyle.currentStroke;
-          ctx.lineWidth = previewStyle.lineWidth;
-          ctx.setLineDash([...previewStyle.dash]);
-          ctx.beginPath();
-          ctx.arc(preview.upgrading.x, preview.upgrading.y, currentRange, 0, Math.PI * 2);
-          ctx.stroke();
+          this.drawCenteredOverlay(
+            ASSETS.previews.turretRange.current,
+            preview.upgrading.x,
+            preview.upgrading.y,
+            currentRange,
+            103,
+          );
         }
       }
-      ctx.fillStyle = previewStyle.fill;
-      ctx.strokeStyle = previewStyle.upgradedStroke;
-      ctx.lineWidth = previewStyle.lineWidth;
-      ctx.setLineDash([...previewStyle.dash]);
-      ctx.beginPath();
-      ctx.arc(preview.x, preview.y, upgradedRange, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
+      this.drawCenteredOverlay(
+        ASSETS.previews.turretRange.upgraded,
+        preview.x,
+        preview.y,
+        upgradedRange,
+        103,
+      );
     }
-    ctx.setLineDash([7, 6]);
-    ctx.beginPath();
-    ctx.arc(preview.x, preview.y, BALANCE.structure.radius[preview.kind], 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.globalAlpha = 1;
+    this.drawCenteredOverlay(
+      buildable ? ASSETS.previews.placement.allowed : ASSETS.previews.placement.blocked,
+      preview.x,
+      preview.y,
+      BALANCE.structure.radius[preview.kind],
+      104,
+    );
     ctx.fillStyle = preview.valid ? "#d5ffe3" : "#ffd1cd";
     ctx.font = "800 12px system-ui";
     ctx.textAlign = "center";
@@ -541,25 +472,25 @@ export class Renderer {
     }
     if (preview.kind === "harvester") {
       const arm = BALANCE.structure.harvesterArm[BALANCE.tierIndex[preview.tier]] ?? 98;
-      ctx.strokeStyle = buildable ? "rgba(116,243,165,.9)" : "rgba(255,98,89,.9)";
-      ctx.fillStyle = buildable ? "rgba(116,243,165,.08)" : "rgba(255,98,89,.08)";
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.arc(preview.x, preview.y, arm, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.beginPath();
-      ctx.moveTo(preview.x, preview.y);
-      ctx.lineTo(preview.x + arm, preview.y);
-      ctx.stroke();
+      this.drawCenteredOverlay(
+        buildable ? ASSETS.previews.harvesterRange.allowed : ASSETS.previews.harvesterRange.blocked,
+        preview.x,
+        preview.y,
+        arm,
+        103,
+      );
       for (const node of game.world.resources) {
         if (node.destroyed || Math.hypot(preview.x - node.x, preview.y - node.y) > arm + node.radius) continue;
         const supported = BALANCE.harvest[preview.tier][node.kind] > 0;
-        ctx.strokeStyle = supported ? "#8dffad" : "#d5c56e";
-        ctx.beginPath();
-        ctx.arc(node.x, node.y, node.radius + 5, 0, Math.PI * 2);
-        ctx.stroke();
+        this.drawCenteredOverlay(
+          supported
+            ? ASSETS.previews.resourceTarget.supported
+            : ASSETS.previews.resourceTarget.unsupported,
+          node.x,
+          node.y,
+          node.radius + 5,
+          103,
+        );
       }
     }
     this.drawWorldCost(game, preview.x, preview.y + BALANCE.structure.radius[preview.kind] + 28, preview.cost);
@@ -574,35 +505,14 @@ export class Renderer {
     const color = active ? "#74f3a5" : preview.valid ? "#ffbd52" : "#ff6259";
     ctx.save();
     ctx.translate(preview.x, preview.y);
-    ctx.fillStyle = active ? "rgba(40,112,65,.36)" : "rgba(96,35,31,.34)";
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 5;
-    ctx.beginPath();
-    ctx.arc(0, 0, 38, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-    ctx.strokeStyle = "#14251c";
-    ctx.fillStyle = color;
-    ctx.lineCap = "round";
-    if (preview.action === "repair") {
-      ctx.lineWidth = 8;
-      ctx.beginPath();
-      ctx.moveTo(-15, 15);
-      ctx.lineTo(13, -13);
-      ctx.stroke();
-      ctx.lineWidth = 5;
-      ctx.beginPath();
-      ctx.arc(13, -13, 9, Math.PI * 0.1, Math.PI * 1.35);
-      ctx.stroke();
-    } else {
-      ctx.lineWidth = 8;
-      ctx.beginPath();
-      ctx.moveTo(-8, 17);
-      ctx.lineTo(5, -8);
-      ctx.stroke();
-      ctx.fillRect(-8, -19, 30, 15);
-      ctx.strokeRect(-8, -19, 30, 15);
-    }
+    const ring = active
+      ? ASSETS.cursors.ringAllowed
+      : preview.valid ? ASSETS.cursors.ringContext : ASSETS.cursors.ringBlocked;
+    this.drawSprite(ring, -42, -42, 84, 84);
+    const toolIcon = preview.action === "repair"
+      ? BUILD_BAR_ICON_PATHS["repair-wrench"]
+      : BUILD_BAR_ICON_PATHS["recycle-mallet"];
+    this.drawTintedSprite(toolIcon, color, -25, -25, 50, 50);
     ctx.fillStyle = "#f7f3db";
     ctx.font = "900 12px Trebuchet MS, sans-serif";
     ctx.textAlign = "center";
@@ -669,16 +579,9 @@ export class Renderer {
       ctx.fill();
       ctx.rotate(-enemy.acidAimAngle);
     }
-    const bossSprite = enemy.kind === "boss" ? this.images.get(ASSETS.enemies.boss) : null;
-    if (bossSprite?.complete && bossSprite.naturalWidth > 0) {
-      drawZombieBody(ctx, {
-        kind: enemy.kind,
-        radius: enemy.radius,
-        angle: 0,
-        flash: enemy.flash,
-        attackWindup: enemy.attackWindup,
-        bossImage: bossSprite,
-      });
+    if (enemy.kind === "boss") {
+      const size = enemy.radius * 2.65;
+      this.drawSprite(ASSETS.enemyBodies.boss, -size / 2, -size / 2, size, size, enemy.flash > 0);
       ctx.restore();
       this.healthBar(enemy.x, enemy.y - enemy.radius - 12, 160, enemy.health / enemy.maxHealth, "#85cd5d");
       const segments = Math.max(0, Math.ceil((enemy.health / enemy.maxHealth) * 10));
@@ -694,13 +597,26 @@ export class Renderer {
       }
       return;
     }
-    drawZombieBody(ctx, {
-      kind: enemy.kind,
-      radius: enemy.radius,
-      angle,
-      flash: enemy.flash,
-      attackWindup: enemy.attackWindup,
-    });
+    ctx.rotate(angle);
+    const handReach = enemy.radius + 11 + enemy.attackWindup * 10;
+    const handDiameter = enemy.radius * 0.7;
+    this.drawSprite(
+      ASSETS.enemyHands[enemy.kind],
+      handReach - handDiameter / 2,
+      -enemy.radius * 0.55 - handDiameter / 2,
+      handDiameter,
+      handDiameter,
+      enemy.flash > 0,
+    );
+    this.drawSprite(
+      ASSETS.enemyHands[enemy.kind],
+      handReach - handDiameter / 2,
+      enemy.radius * 0.55 - handDiameter / 2,
+      handDiameter,
+      handDiameter,
+      enemy.flash > 0,
+    );
+    this.drawSprite(ASSETS.enemyBodies[enemy.kind], -40, -40, 80, 80, enemy.flash > 0);
     ctx.restore();
     this.healthBar(
       enemy.x,
@@ -721,82 +637,25 @@ export class Renderer {
     ctx.rotate(angle);
     const action = game.getSelectedAction();
     const gloveTier = game.getBestGlove();
-    const gloveColor = BALANCE.tierColors[gloveTier];
-    ctx.fillStyle = player.hurtFlash > 0 ? "#ffffff" : gloveColor;
-    ctx.strokeStyle = "#2c2923";
-    ctx.lineWidth = 3;
     const punchInterval = Math.max(0.16, BALANCE.player.punchRate - game.upgrades.punchRate);
     const punchReturn = punching ? Math.sin(Math.min(1, player.cooldown / punchInterval) * Math.PI / 2) * 18 : 0;
     const rightReach = player.radius + 13 + (punching && player.punchHand === "right" ? punchReturn : 0);
     const leftReach = player.radius + 13 + (punching && player.punchHand === "left" ? punchReturn : 0);
-    ctx.beginPath();
-    ctx.arc(rightReach, -player.radius * 0.65, 9, 0, Math.PI * 2);
-    ctx.arc(leftReach, player.radius * 0.65, 9, 0, Math.PI * 2);
-    ctx.fill();
-    //ctx.stroke();
+    const handSprite = ASSETS.player.hands[gloveTier];
+    this.drawSprite(handSprite, rightReach - 10.5, -player.radius * 0.65 - 10.5, 21, 21, player.hurtFlash > 0);
+    this.drawSprite(handSprite, leftReach - 10.5, player.radius * 0.65 - 10.5, 21, 21, player.hurtFlash > 0);
     if (action === "tool") {
       if (game.phase === "night") {
-        ctx.strokeStyle = "#dfbd72";
-        ctx.lineWidth = 5;
-        ctx.beginPath();
-        ctx.arc(36, 0, 24, -Math.PI / 2, Math.PI / 2);
-        ctx.stroke();
-        ctx.strokeStyle = "#f7eed2";
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(36, -24);
-        ctx.lineTo(36, 24);
-        ctx.stroke();
+        this.drawSprite(ASSETS.player.tools.bow, 8, -30, 58, 60);
       } else {
-        ctx.strokeStyle = "#dce7e2";
-        ctx.lineWidth = 7;
-        ctx.lineCap = "round";
-        ctx.beginPath();
-        ctx.moveTo(20, 11);
-        ctx.lineTo(47, -10);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(49, -12, 8, 0.15, Math.PI * 1.45);
-        ctx.stroke();
+        this.drawSprite(ASSETS.player.tools.repair, 15, -25, 45, 45);
       }
     } else if (action === "recycle") {
-      ctx.strokeStyle = "#9a6b3a";
-      ctx.lineWidth = 7;
-      ctx.beginPath();
-      ctx.moveTo(22, 12);
-      ctx.lineTo(42, -10);
-      ctx.stroke();
-      ctx.fillStyle = "#d5a45d";
-      ctx.strokeStyle = "#3b2a1b";
-      ctx.lineWidth = 3;
-      ctx.fillRect(34, -20, 27, 16);
-      ctx.strokeRect(34, -20, 27, 16);
+      this.drawSprite(ASSETS.player.tools.recycle, 15, -25, 50, 50);
     } else if (!["fists", "tool", "recycle"].includes(action)) {
-      ctx.strokeStyle = "rgba(187,232,255,.9)";
-      ctx.fillStyle = "rgba(81,154,184,.28)";
-      ctx.lineWidth = 3;
-      ctx.setLineDash([4, 3]);
-      ctx.fillRect(23, -18, 34, 36);
-      ctx.strokeRect(23, -18, 34, 36);
-      ctx.setLineDash([]);
+      this.drawSprite(ASSETS.player.tools.blueprint, 20, -22, 45, 44);
     }
-    ctx.fillStyle = player.hurtFlash > 0 ? "#ffffff" : "#d9b783";
-    ctx.strokeStyle = "#392f24";
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.arc(0, 0, player.radius, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = "#fffdf1";
-    ctx.beginPath();
-    ctx.ellipse(10, -9, 7, 8, 0, 0, Math.PI * 2);
-    ctx.ellipse(10, 9, 7, 8, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = "#1d2821";
-    ctx.beginPath();
-    ctx.arc(13, -9, 3.5, 0, Math.PI * 2);
-    ctx.arc(13, 9, 3.5, 0, Math.PI * 2);
-    ctx.fill();
+    this.drawSprite(ASSETS.player.body, -30, -30, 60, 60, player.hurtFlash > 0);
     ctx.restore();
   }
 

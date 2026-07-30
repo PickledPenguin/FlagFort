@@ -36,10 +36,24 @@ function availableMutationKeys(night: number): Array<keyof Mutations> {
   return keys;
 }
 
-function mutationText(key: keyof Mutations, current: number): string {
+export function mutationText(key: keyof Mutations, current: number): string {
   const next = current + BALANCE.mutations[key].amount;
-  if (key.endsWith("Weight") || key === "waveSize") return `Accumulated bonus becomes +${Math.round(next)}`;
-  return `All affected zombies reach +${Math.round(next * 100)}%`;
+  const amount = Math.round(next);
+  if (key === "basicWeight") return `Basic zombie spawn weight +${amount}.`;
+  if (key === "runnerWeight") return `Runner zombie spawn weight +${amount}.`;
+  if (key === "breakerWeight") return `Breaker zombie spawn weight +${amount}.`;
+  if (key === "jumperWeight") return `Jumper zombie spawn weight +${amount}.`;
+  if (key === "summonerWeight") return `Summoner zombie spawn weight +${amount}.`;
+  if (key === "waveSize") return `Each portal wave size +${amount} zombies.`;
+  const percent = Math.round(next * 100);
+  const stat: Record<"health" | "damage" | "speed" | "attackSpeed" | "structureDamage", string> = {
+    health: "health",
+    damage: "player damage",
+    speed: "speed",
+    attackSpeed: "attack speed",
+    structureDamage: "structure damage",
+  };
+  return `All zombies ${stat[key]} +${percent}%.`;
 }
 
 function upgradeText(key: keyof Upgrades, current: number): string {

@@ -2,7 +2,7 @@
 
 Flag Fall is a fast top-down survival and base-defense game built for the GMTK Game Jam 2026 theme, Count Down. Gather resources during the day, fortify the flag, and survive 30-second zombie attacks across ten nights. Optional deterministic challenges can modify every layer of a run.
 
-Game visuals use original editable SVG assets plus lightweight procedural Canvas effects. The project contains no generated art or generated audio. Generic interface symbols use selected Lucide Icons paths under the ISC License. Licensed sound effects are bundled locally for reliable browser playback.
+Game artwork uses original editable SVG assets composited by Canvas for world transforms and runtime state. The project contains no generated art or generated audio. Generic interface symbols use selected Lucide Icons paths under the ISC License. Licensed sound effects are bundled locally for reliable browser playback.
 
 ## Feature goals
 
@@ -26,7 +26,8 @@ All editable vectors live under `public/images/` and are served by the same rela
 - `images/resources`: the canonical wood log, stone, gold, and diamond UI icons.
 - `images/world`: active and depleted resource-node states.
 - `images/enemies`: complete enemy sprites, including the unique countdown boss.
-- `images/structures`: complete wall, door, spikes, harvester, and turret objects.
+- `images/gameplay`: independently animated enemy, player, flag, portal, projectile, and cursor parts.
+- `images/structures`: per-tier wall, door, spikes, harvester, and turret assets, with moving arms and barrels split out.
 - `images/tutorial`: one illustration for each Field Guide stage.
 - `images/cards/unlocks`: unlock-card illustrations.
 - `images/cards/upgrades`: repeatable-upgrade illustrations.
@@ -159,13 +160,13 @@ src/
   game.ts         Run state, phase transitions, and gameplay systems
   input.ts        Keyboard and logical pointer coordinate conversion
   pathfinding.ts  Controlled grid pathfinding around natural obstacles
-  renderer.ts     Canvas world, entity, feedback, and minimap rendering
+  renderer.ts     Canvas compositing, SVG transforms, feedback, and minimap rendering
   rng.ts          Seed hashing and deterministic random generation
   rules.ts        Costs, refunds, repairs, stacking, and prerequisites
   spatial.ts      Spatial hash and reliable collision helpers
   storage.ts      Safe browser-local preference and run-record access
   types.ts        Shared game data types
-  ui-icons.ts     Procedural game symbols and Lucide-derived UI paths
+  ui-icons.ts     Shared SVG markup for game and Lucide-derived UI symbols
   ui.ts           Menus, HUD, toolbar, choices, warnings, and records
   world.ts        Seeded forest and resource generation
   game.test.ts    Deterministic and rules-heavy automated tests
@@ -180,11 +181,11 @@ All important values are in `src/config.ts` under `BALANCE`. This includes phase
 
 Keep the standard day fixed at 60 seconds and the standard night fixed at 30 seconds.
 
-## Replacing placeholder visuals
+## Editing gameplay visuals
 
-Procedural visuals are isolated in `src/renderer.ts`. Replace individual `drawResource`, `drawStructure`, `drawEnemy`, `drawFlag`, and `drawPlayer` methods with manually created sprite rendering while preserving the entity positions, radii, health feedback, tier colors, and logical Canvas coordinate system.
+Reusable gameplay artwork is registered in `src/assets.ts` and stored under `public/images/gameplay` and `public/images/structures`. Canvas is the compositor only: it positions, rotates, scales, tints, hides, and swaps SVG parts without recreating entity artwork from drawing primitives.
 
-Place manually created image assets in `public/assets/` and load them once during startup. Do not change collision rules to match decorative sprite bounds.
+Keep independently moving parts separate, preserve each SVG viewBox and transparent background, and run `npm run visual:validate` after an asset change. Do not change collision rules to match decorative sprite bounds.
 
 ## Audio
 

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-51.5 -51.5 103 103">
+  <g id="harvester-range-blocked" fill="none" stroke="#ff6259" stroke-opacity=".9" stroke-width="3" vector-effect="non-scaling-stroke">
+    <circle id="reach-area" r="50" fill="#ff6259" fill-opacity=".08"/>
+    <path id="arm-direction" d="M0 0H50"/>
+  </g>
+</svg>

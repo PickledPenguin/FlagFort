@@ -168,7 +168,7 @@ export class Ui {
             <button data-action="controls">${gameSymbol("fists")}<span>Controls</span></button>
             <button data-action="challenges">${icon("settings")}<span>Challenges${this.selectedChallenges.size ? ` (${this.selectedChallenges.size})` : ""}</span></button>
             <button data-action="settings">${icon("settings")}<span>Settings</span></button>
-            <button data-action="credits"><span class="info-symbol">i</span><span>Credits</span></button>
+            <button data-action="credits">${icon("info", "info-symbol")}<span>Credits</span></button>
             <button data-action="fullscreen">${icon("maximize")}<span>Fullscreen</span></button>
           </nav>
           <footer>
@@ -187,7 +187,7 @@ export class Ui {
         <button class="modal-close" data-action="close-panel" aria-label="Close">${icon("close")}</button>
         <p class="eyebrow">CONTROLS</p><h2>Quick field guide</h2>
         <div class="control-list">
-          <span><kbd>WASD</kbd><b>Move</b></span><span><span class="mouse-glyph"></span><b>Aim and act</b></span>
+          <span><kbd>WASD</kbd><b>Move</b></span><span>${icon("mouse", "mouse-glyph")}<b>Aim and act</b></span>
           <span><kbd>1-8</kbd><b>Select action</b></span><span><kbd>ESC</kbd><b>Pause</b></span>
         </div>
         <button class="secondary wide" data-action="tutorial-menu">${icon("book")} Full tutorial</button>
@@ -235,7 +235,7 @@ export class Ui {
     return `<div class="menu-modal"><div class="modal compact">
       <button class="modal-close" data-action="close-panel" aria-label="Close">${icon("close")}</button>
       <p class="eyebrow">CREDITS</p><h2>Made from shapes</h2>
-      <p>Game design, code, and procedural Canvas artwork are original.</p>
+      <p>Game design, code, and editable SVG artwork are original.</p>
       <p>Generic interface icons use Lucide Icons under the ISC License.</p>
       <p>Sound effects include CC0 audio by Kenney and royalty-free selections from the Sonniss GDC Game Audio Bundle Part 9.</p>
       <p>No generative-AI audio is used. Full source paths, packs, licenses, and modifications are recorded in the bundled audio attribution manifest.</p>
@@ -306,7 +306,7 @@ export class Ui {
       const info = enemyInfo[this.game.enemyWarning];
       return `<section class="screen modal-screen danger-screen"><div class="modal warning-card">
         <p class="eyebrow">NEW THREAT · NIGHT ${this.game.night + 1}</p>
-        <span class="zombie-art threat-symbol" aria-hidden="true">☠</span><h2>${info.title}</h2>
+        <img class="threat-symbol" data-zombie-portrait="${this.game.enemyWarning}" src="${ASSETS.enemies[this.game.enemyWarning]}" alt="" aria-hidden="true"><h2>${info.title}</h2>
         <p>${info.text}</p><span class="tell">${info.tell}</span>
         <button class="primary wide" data-action="dismiss-warning">${icon("play")} Begin day ${this.game.night + 1}</button>
       </div></section>`;
@@ -347,21 +347,19 @@ export class Ui {
   }
 
   private choiceIcon(choice: Choice): string {
-    const definition = CARD_DEFINITIONS.find((card) => card.category !== "mutation" && card.id === choice.id);
-    if (definition) return `<img src="${definition.illustration}" alt="">`;
-    if (choice.id.startsWith("gloves:")) return gameSymbol("fists", choice.id.split(":")[1] as Tier, true);
-    const [category, tier] = choice.id.split(":");
-    if (STRUCTURE_ORDER.includes(category as StructureKind)) return gameSymbol(category as StructureKind, tier as Tier, true);
-    if (choice.id.includes("repair")) return gameSymbol("tool", "wood", true);
-    if (choice.id.includes("health") || choice.id.includes("flag")) return icon("heart");
-    if (choice.id.includes("turret")) return gameSymbol("turret", "gold", true);
-    if (choice.id.includes("harvester")) return gameSymbol("harvester", "gold", true);
-    return buildBarIcon("upgrade-arrow", { className: "upgrade-arrow" });
+    const definition = CARD_DEFINITIONS.find(
+      (card) => card.category !== "mutation" && card.id === choice.id,
+    );
+    if (!definition) throw new Error(`Missing benefit card illustration: ${choice.id}`);
+    return `<img src="${definition.illustration}" alt="">`;
   }
 
   private mutationIcon(choice: Choice): string {
-    const definition = CARD_DEFINITIONS.find((card) => card.category === "mutation" && card.id === choice.mutationId);
-    return definition ? `<img src="${definition.illustration}" alt="">` : `<span class="zombie-art small">☠</span>`;
+    const definition = CARD_DEFINITIONS.find(
+      (card) => card.category === "mutation" && card.id === choice.mutationId,
+    );
+    if (!definition) throw new Error(`Missing mutation card illustration: ${choice.mutationId}`);
+    return `<img src="${definition.illustration}" alt="">`;
   }
 
   private resultMarkup(): string {
