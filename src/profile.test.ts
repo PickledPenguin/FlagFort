@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { META_BALANCE } from "./meta-balance";
 import {
   ProfileManager,
+  canAffordAnyEquipment,
+  canAffordAnyPermanentUpgrade,
   createDefaultProfile,
   crazyGamesCalendarDate,
   derivePlayerLevel,
@@ -107,9 +109,7 @@ describe("versioned profile persistence", () => {
     expect(manager.profile.coins).toBe(0);
 
     const xp = calculateXpRewards({
-      survivingStructurePoints: 10,
       directPlayerKills: { basic: 1, runner: 0, breaker: 0, jumper: 0, summoner: 0, boss: 0 },
-      remainingResources: { wood: 0, stone: 0, gold: 0, diamond: 0 },
       nightsSurvived: 10,
       victory: true,
     });
@@ -143,5 +143,25 @@ describe("versioned profile persistence", () => {
     expect(manager.profile.lifetimeXp).toBe(5000);
     expect(manager.profile.playerLevel).toBe(level);
     expect(manager.profile.spendableXp).toBe(4000);
+  });
+
+  it("reports only affordable valid next progression purchases", () => {
+    const profile = createDefaultProfile();
+    profile.spendableXp = 999;
+    profile.coins = 99;
+    expect(canAffordAnyPermanentUpgrade(profile)).toBe(false);
+    expect(canAffordAnyEquipment(profile)).toBe(false);
+
+    profile.spendableXp = 1000;
+    profile.coins = 100;
+    expect(canAffordAnyPermanentUpgrade(profile)).toBe(true);
+    expect(canAffordAnyEquipment(profile)).toBe(true);
+
+    for (const id of Object.keys(profile.permanentUpgrades) as Array<keyof typeof profile.permanentUpgrades>) {
+      profile.permanentUpgrades[id] = META_BALANCE.permanentUpgrade.maximumLevel;
+    }
+    for (const item of Object.values(profile.equipment)) item.tier = "diamond";
+    expect(canAffordAnyPermanentUpgrade(profile)).toBe(false);
+    expect(canAffordAnyEquipment(profile)).toBe(false);
   });
 });

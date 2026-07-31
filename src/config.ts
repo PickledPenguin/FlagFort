@@ -83,7 +83,7 @@ export const BALANCE = {
       currentStroke: "rgba(207, 246, 225, .72)",
       upgradedStroke: "rgba(116, 243, 165, .9)",
       fill: "rgba(116, 243, 165, .055)",
-      lineWidth: 3,
+      lineWidth: 8,
       dash: [10, 8],
     },
     costLayout: {
@@ -144,15 +144,15 @@ export const BALANCE = {
   structure: {
     startingCapacity: { turret: 3, harvester: 3 },
     maximumCapacity: { turret: 24, harvester: 24 },
-    radius: { wall: 33, door: 34, spikes: 34, harvester: 39, turret: 36 } satisfies Record<StructureKind, number>,
+    radius: { wall: 34, door: 34, spikes: 34, harvester: 39, turret: 36 } satisfies Record<StructureKind, number>,
     health: {
       wall: [150, 260, 400, 580],
       door: [125, 215, 340, 500],
-      spikes: [80, 140, 220, 330],
+      spikes: [60, 105, 165, 248],
       harvester: [50, 90, 140, 200],
       turret: [110, 190, 300, 450],
     } satisfies Record<StructureKind, number[]>,
-    spikeRetaliation: [4, 7, 11, 17],
+    spikeRetaliation: [4, 7, 11, 18],
     turretDamage: [8, 13, 20, 30],
     turretRange: [330, 370, 420, 480],
     turretRate: [1.25, 1.05, 0.82, 0.62],
@@ -186,7 +186,7 @@ export const BALANCE = {
   },
   jumper: {
     jumpRange: 180,
-    jumpCooldown: 4.5,
+    jumpCooldown: 2.5,
     jumpDuration: 0.55,
     telegraphDuration: 0.22,
     arcHeight: 36,
@@ -214,7 +214,7 @@ export const BALANCE = {
   waveBase: 8,
   waveGrowth: 4,
   /**
-   * Canonical fort value used by both adaptive difficulty and surviving-structure XP.
+   * Canonical fort value used by adaptive difficulty.
    *
    * Values are normalized to a Wood wall worth 10. Tier growth combines the
    * cumulative resource cost at 1/2/4/8 resource exchange weights with the

@@ -5,7 +5,10 @@ import { beforeEach, describe, expect, it } from "vitest";
 import manifest from "../public/audio/audio-attribution.json";
 import {
   AUDIO_CONCURRENCY_LIMITS,
+  AUDIO_SPATIAL_BALANCE,
   AudioManager,
+  calculateDistanceAttenuation,
+  calculateSpatialStereo,
   emitAudioCue,
   selectAudiblePortals,
   SOUND_CONFIG,
@@ -38,7 +41,7 @@ describe("audio asset coverage", () => {
     expect(AUDIO_CONCURRENCY_LIMITS["structure-impacts"]).toBe(4);
     expect(AUDIO_CONCURRENCY_LIMITS.turrets).toBe(5);
     expect(AUDIO_CONCURRENCY_LIMITS["ui-hover"]).toBe(1);
-    expect(SOUND_CONFIG["portal-ambient"].spatial).toBe(true);
+    expect(SOUND_CONFIG["portal-ambient"].positioning).toBe("spatial");
     expect(SOUND_CONFIG["flag-damaged"].volume)
       .toBeGreaterThan(SOUND_CONFIG["zombie-attack"].volume);
   });
@@ -56,6 +59,78 @@ describe("audio asset coverage", () => {
     };
     expect(selectAudiblePortals(state).map((portal) => portal.id)).toEqual([2, 3]);
     expect(selectAudiblePortals({ ...state, active: false })).toEqual([]);
+  });
+
+  it("centers player-originated actions and keeps world impacts spatial", () => {
+    for (const cue of [
+      "player-footstep-grass",
+      "player-punch-swing",
+      "player-hurt",
+      "player-heal",
+      "player-death",
+      "bow-fire",
+      "structure-repair",
+      "structure-recycle",
+    ] as const) {
+      expect(SOUND_CONFIG[cue].positioning).toBe("centered");
+    }
+    for (const cue of [
+      "player-punch-impact",
+      "arrow-impact",
+      "resource-depleted",
+      "turret-fire",
+      "portal-ambient",
+      "zombie-death",
+      "boss-acid-spit",
+    ] as const) {
+      expect(SOUND_CONFIG[cue].positioning).toBe("spatial");
+    }
+  });
+
+  it("calibrates continuous equal-power stereo separation by distance", () => {
+    const nearby = calculateSpatialStereo({
+      horizontalDirection: 1,
+      sourceDistance: 0,
+      maximumAudibleDistance: AUDIO_SPATIAL_BALANCE.maximumAudibleDistance,
+      positioning: "spatial",
+    });
+    expect(nearby.rightGain / (nearby.leftGain + nearby.rightGain)).toBeCloseTo(0.6, 5);
+    expect(nearby.pan).not.toBeCloseTo(0.2);
+
+    const distant = calculateSpatialStereo({
+      horizontalDirection: -1,
+      sourceDistance: AUDIO_SPATIAL_BALANCE.maximumAudibleDistance * 0.8,
+      maximumAudibleDistance: AUDIO_SPATIAL_BALANCE.maximumAudibleDistance,
+      positioning: "spatial",
+    });
+    expect(distant.pan).toBe(-1);
+    expect(distant.leftGain).toBeCloseTo(1);
+    expect(distant.rightGain).toBeCloseTo(0);
+
+    const centered = calculateSpatialStereo({
+      horizontalDirection: 1,
+      sourceDistance: 1000,
+      maximumAudibleDistance: AUDIO_SPATIAL_BALANCE.maximumAudibleDistance,
+      positioning: "centered",
+    });
+    expect(centered.pan).toBe(0);
+    expect(centered.leftGain).toBeCloseTo(centered.rightGain);
+
+    const justLeft = calculateSpatialStereo({
+      horizontalDirection: -0.01,
+      sourceDistance: 500,
+      maximumAudibleDistance: AUDIO_SPATIAL_BALANCE.maximumAudibleDistance,
+      positioning: "spatial",
+    });
+    const justRight = calculateSpatialStereo({
+      horizontalDirection: 0.01,
+      sourceDistance: 500,
+      maximumAudibleDistance: AUDIO_SPATIAL_BALANCE.maximumAudibleDistance,
+      positioning: "spatial",
+    });
+    expect(Math.abs(justRight.pan - justLeft.pan)).toBeLessThan(0.02);
+    expect(calculateDistanceAttenuation(100)).toBe(1);
+    expect(calculateDistanceAttenuation(1000)).toBeLessThan(calculateDistanceAttenuation(500));
   });
 });
 

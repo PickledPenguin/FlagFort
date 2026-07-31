@@ -56,6 +56,7 @@ export const SOUND_IDS = [
 
 export type SoundId = typeof SOUND_IDS[number];
 type SoundBus = "effects" | "ambience";
+export type SoundPositioning = "centered" | "spatial";
 type ConcurrencyGroup =
   | "ui-hover"
   | "zombie-voices"
@@ -68,16 +69,16 @@ type ConcurrencyGroup =
 interface SoundConfig {
   bus: SoundBus;
   volume: number;
+  positioning: SoundPositioning;
   cooldown?: number;
   concurrencyGroup?: ConcurrencyGroup;
-  spatial?: boolean;
   variation?: { pitch: number; volume: number };
 }
 
 const effect = (
   volume: number,
-  options: Omit<SoundConfig, "bus" | "volume"> = {},
-): SoundConfig => ({ bus: "effects", volume, ...options });
+  options: Partial<Omit<SoundConfig, "bus" | "volume">> = {},
+): SoundConfig => ({ bus: "effects", volume, positioning: "centered", ...options });
 
 export const SOUND_CONFIG: Record<SoundId, SoundConfig> = {
   "ui-hover": effect(0.18, { cooldown: 0.055, concurrencyGroup: "ui-hover" }),
@@ -97,109 +98,109 @@ export const SOUND_CONFIG: Record<SoundId, SoundConfig> = {
   "wave-cleared": effect(0.72),
   "player-footstep-grass": effect(0.27, {
     cooldown: 0.18,
-    spatial: true,
+    positioning: "centered",
     variation: { pitch: 0.035, volume: 0.08 },
   }),
   "player-punch-swing": effect(0.15, {
     cooldown: 0.07,
-    spatial: false,
+    positioning: "centered",
     variation: { pitch: 0.025, volume: 0.06 },
   }),
   "player-punch-impact": effect(0.62, {
     cooldown: 0.055,
-    spatial: true,
+    positioning: "spatial",
     variation: { pitch: 0.025, volume: 0.06 },
   }),
-  "player-hurt": effect(0.92, { cooldown: 0.09, spatial: true }),
-  "player-heal": effect(0.55, { cooldown: 0.8, spatial: true }),
-  "player-death": effect(1, { spatial: true }),
-  "bow-fire": effect(0.56, { cooldown: 0.08, spatial: true }),
-  "arrow-impact": effect(0.5, { cooldown: 0.04, spatial: true }),
+  "player-hurt": effect(0.92, { cooldown: 0.09, positioning: "centered" }),
+  "player-heal": effect(0.55, { cooldown: 0.8, positioning: "centered" }),
+  "player-death": effect(1, { positioning: "centered" }),
+  "bow-fire": effect(0.56, { cooldown: 0.08, positioning: "centered" }),
+  "arrow-impact": effect(0.5, { cooldown: 0.04, positioning: "spatial" }),
   "wood-hit": effect(0.48, {
     cooldown: 0.045,
     concurrencyGroup: "resource-impacts",
-    spatial: true,
+    positioning: "spatial",
     variation: { pitch: 0.035, volume: 0.08 },
   }),
   "stone-hit": effect(0.5, {
     cooldown: 0.045,
     concurrencyGroup: "resource-impacts",
-    spatial: true,
+    positioning: "spatial",
     variation: { pitch: 0.035, volume: 0.08 },
   }),
   "gold-hit": effect(0.48, {
     cooldown: 0.045,
     concurrencyGroup: "resource-impacts",
-    spatial: true,
+    positioning: "spatial",
     variation: { pitch: 0.035, volume: 0.08 },
   }),
   "diamond-hit": effect(0.48, {
     cooldown: 0.045,
     concurrencyGroup: "resource-impacts",
-    spatial: true,
+    positioning: "spatial",
     variation: { pitch: 0.035, volume: 0.08 },
   }),
   "resource-collected": effect(0.3, {
     cooldown: 0.055,
     concurrencyGroup: "resource-impacts",
-    spatial: true,
+    positioning: "spatial",
     variation: { pitch: 0.025, volume: 0.05 },
   }),
-  "resource-depleted": effect(0.58, { cooldown: 0.08, spatial: true }),
-  "structure-place": effect(0.82, { spatial: false }),
-  "structure-upgrade": effect(0.82, { spatial: false }),
-  "structure-repair": effect(0.52, { spatial: false }),
-  "structure-recycle": effect(0.56, { spatial: false }),
+  "resource-depleted": effect(0.58, { cooldown: 0.08, positioning: "spatial" }),
+  "structure-place": effect(0.82, { positioning: "centered" }),
+  "structure-upgrade": effect(0.82, { positioning: "centered" }),
+  "structure-repair": effect(0.52, { positioning: "centered" }),
+  "structure-recycle": effect(0.56, { positioning: "centered" }),
   "structure-damaged": effect(0.55, {
     cooldown: 0.13,
     concurrencyGroup: "structure-impacts",
-    spatial: true,
+    positioning: "spatial",
   }),
-  "structure-destroyed": effect(0.78, { cooldown: 0.09, spatial: true }),
+  "structure-destroyed": effect(0.78, { cooldown: 0.09, positioning: "spatial" }),
   "turret-fire": effect(0.42, {
     cooldown: 0.035,
     concurrencyGroup: "turrets",
-    spatial: true,
+    positioning: "spatial",
     variation: { pitch: 0.025, volume: 0.05 },
   }),
   "harvester-swing": effect(0.32, {
     cooldown: 0.2,
     concurrencyGroup: "harvesters",
-    spatial: true,
+    positioning: "spatial",
     variation: { pitch: 0.025, volume: 0.06 },
   }),
-  "portal-ambient": { bus: "ambience", volume: 0.3, spatial: true },
-  "portal-spawn": effect(0.66, { cooldown: 0.12, spatial: true }),
-  "portal-destroyed": effect(0.78, { cooldown: 0.08, spatial: true }),
+  "portal-ambient": { bus: "ambience", volume: 0.3, positioning: "spatial" },
+  "portal-spawn": effect(0.66, { cooldown: 0.12, positioning: "spatial" }),
+  "portal-destroyed": effect(0.78, { cooldown: 0.08, positioning: "spatial" }),
   "zombie-attack": effect(0.5, {
     cooldown: 0.035,
     concurrencyGroup: "zombie-attacks",
-    spatial: true,
+    positioning: "spatial",
     variation: { pitch: 0.04, volume: 0.08 },
   }),
   "zombie-hurt": effect(0.44, {
     cooldown: 0.055,
     concurrencyGroup: "zombie-voices",
-    spatial: true,
+    positioning: "spatial",
     variation: { pitch: 0.05, volume: 0.08 },
   }),
   "zombie-death": effect(0.52, {
     cooldown: 0.045,
     concurrencyGroup: "zombie-voices",
-    spatial: true,
+    positioning: "spatial",
     variation: { pitch: 0.25, volume: 0.08 },
   }),
   "breaker-smash": effect(0.78, {
     cooldown: 0.1,
     concurrencyGroup: "zombie-attacks",
-    spatial: true,
+    positioning: "spatial",
   }),
-  "jumper-jump": effect(0.62, { cooldown: 0.08, spatial: true }),
-  "summoner-cast": effect(0.7, { cooldown: 0.12, spatial: true }),
+  "jumper-jump": effect(0.62, { cooldown: 0.08, positioning: "spatial" }),
+  "summoner-cast": effect(0.7, { cooldown: 0.12, positioning: "spatial" }),
   "flag-damaged": effect(1.18, { cooldown: 0.45 }),
-  "boss-roar": effect(1.02, { spatial: true }),
-  "boss-acid-spit": effect(0.9, { cooldown: 0.12, spatial: true }),
-  "boss-death": effect(1.08, { spatial: true }),
+  "boss-roar": effect(1.02, { positioning: "spatial" }),
+  "boss-acid-spit": effect(0.9, { cooldown: 0.12, positioning: "spatial" }),
+  "boss-death": effect(1.08, { positioning: "spatial" }),
 };
 
 export const AUDIO_CONCURRENCY_LIMITS: Record<ConcurrencyGroup, number> = {
@@ -236,6 +237,75 @@ export interface AudioSettings {
 
 export type AudioVolumeChannel = Exclude<keyof AudioSettings, "muted">;
 
+export const AUDIO_SPATIAL_BALANCE = {
+  maximumAudibleDistance: 1250,
+  referenceDistance: 130,
+  rolloffFactor: 1.35,
+  nearbySourceShare: 0.6,
+  fullSeparationDistanceRatio: 0.8,
+  smoothingTimeConstant: 0.025,
+} as const;
+
+export interface SpatialStereoInput {
+  horizontalDirection: number;
+  sourceDistance: number;
+  maximumAudibleDistance: number;
+  positioning: SoundPositioning;
+}
+
+export interface SpatialStereoResult {
+  pan: number;
+  leftGain: number;
+  rightGain: number;
+}
+
+const clamp = (value: number, minimum: number, maximum: number): number =>
+  Math.max(minimum, Math.min(maximum, Number.isFinite(value) ? value : minimum));
+
+/**
+ * Converts desired speaker share to the calibrated StereoPanner equal-power pan.
+ * A 60/40 share is therefore not treated as a raw pan value of 0.2.
+ */
+export function calculateSpatialStereo(input: SpatialStereoInput): SpatialStereoResult {
+  const direction = clamp(input.horizontalDirection, -1, 1);
+  const maximum = Math.max(0, Number.isFinite(input.maximumAudibleDistance)
+    ? input.maximumAudibleDistance
+    : 0);
+  if (input.positioning === "centered" || maximum === 0 || direction === 0) {
+    return { pan: 0, leftGain: Math.SQRT1_2, rightGain: Math.SQRT1_2 };
+  }
+  const normalizedDistance = clamp(input.sourceDistance / maximum, 0, 1);
+  const separationProgress = clamp(
+    normalizedDistance / AUDIO_SPATIAL_BALANCE.fullSeparationDistanceRatio,
+    0,
+    1,
+  );
+  const sourceShare = AUDIO_SPATIAL_BALANCE.nearbySourceShare
+    + (1 - AUDIO_SPATIAL_BALANCE.nearbySourceShare) * separationProgress;
+  const panMagnitude = sourceShare >= 1
+    ? 1
+    : 4 * Math.atan(sourceShare / (1 - sourceShare)) / Math.PI - 1;
+  const pan = clamp(Math.sign(direction) * Math.abs(direction) * panMagnitude, -1, 1);
+  const angle = (pan + 1) * Math.PI / 4;
+  return {
+    pan,
+    leftGain: Math.cos(angle),
+    rightGain: Math.sin(angle),
+  };
+}
+
+export function calculateDistanceAttenuation(sourceDistance: number): number {
+  const distance = clamp(
+    sourceDistance,
+    AUDIO_SPATIAL_BALANCE.referenceDistance,
+    AUDIO_SPATIAL_BALANCE.maximumAudibleDistance,
+  );
+  const denominator = AUDIO_SPATIAL_BALANCE.referenceDistance
+    + AUDIO_SPATIAL_BALANCE.rolloffFactor
+      * (distance - AUDIO_SPATIAL_BALANCE.referenceDistance);
+  return clamp(AUDIO_SPATIAL_BALANCE.referenceDistance / denominator, 0, 1);
+}
+
 export function selectAudiblePortals(
   state: AudioSpatialStateDetail,
 ): Array<Vec2 & { id: number }> {
@@ -245,7 +315,7 @@ export function selectAudiblePortals(
       portal,
       distance: Math.hypot(portal.x - state.listener.x, portal.y - state.listener.y),
     }))
-    .filter((entry) => entry.distance <= 1250)
+    .filter((entry) => entry.distance <= AUDIO_SPATIAL_BALANCE.maximumAudibleDistance)
     .sort((a, b) => a.distance - b.distance)
     .slice(0, 2)
     .map((entry) => entry.portal);
@@ -258,8 +328,9 @@ interface ActivePlayback {
 
 interface ActiveLoop {
   source: AudioBufferSourceNode;
-  panner: PannerNode;
+  panner: StereoPannerNode;
   gain: GainNode;
+  distanceGain: GainNode;
 }
 
 const AUDIO_SETTINGS_KEY = "flagfall-audio-settings";
@@ -403,7 +474,6 @@ export class AudioManager {
   private readonly onSpatialState = (event: CustomEvent<AudioSpatialStateDetail>): void => {
     this.latestSpatialState = event.detail;
     this.listener = event.detail.listener;
-    this.updateAudioListener();
     if (!event.detail.active) {
       this.stopAllLoops();
       this.updateDebug();
@@ -437,7 +507,6 @@ export class AudioManager {
         this.ambienceGain.connect(this.masterGain);
         this.masterGain.connect(this.context.destination);
         this.applySettings();
-        this.updateAudioListener();
         this.updateDebug();
         for (const id of SOUND_IDS) void this.getBuffer(id);
       } catch {
@@ -505,9 +574,10 @@ export class AudioManager {
     source.connect(gain);
     const bus = config.bus === "ambience" ? this.ambienceGain : this.effectsGain;
     if (!bus) return;
-    if (config.spatial && detail.position) {
-      const panner = this.createPanner(detail.position);
-      gain.connect(panner);
+    if (config.positioning === "spatial" && detail.position) {
+      const { panner, distanceGain } = this.createSpatialNodes(detail.position);
+      gain.connect(distanceGain);
+      distanceGain.connect(panner);
       panner.connect(bus);
     } else {
       gain.connect(bus);
@@ -536,18 +606,49 @@ export class AudioManager {
     if (active?.size === 0) this.activeByGroup.delete(playback.group);
   }
 
-  private createPanner(position: Vec2): PannerNode {
+  private createSpatialNodes(position: Vec2): {
+    panner: StereoPannerNode;
+    distanceGain: GainNode;
+  } {
     if (!this.context) throw new Error("Audio context is unavailable");
-    const panner = this.context.createPanner();
-    panner.panningModel = "equalpower";
-    panner.distanceModel = "inverse";
-    panner.refDistance = 130;
-    panner.maxDistance = 1250;
-    panner.rolloffFactor = 1.35;
-    panner.positionX.value = position.x;
-    panner.positionY.value = position.y;
-    panner.positionZ.value = 0;
-    return panner;
+    const panner = this.context.createStereoPanner();
+    const distanceGain = this.context.createGain();
+    this.updateSpatialNodes(panner, distanceGain, position, false);
+    return { panner, distanceGain };
+  }
+
+  private updateSpatialNodes(
+    panner: StereoPannerNode,
+    distanceGain: GainNode,
+    position: Vec2,
+    smooth: boolean,
+  ): void {
+    if (!this.context) return;
+    const horizontal = position.x - this.listener.x;
+    const vertical = position.y - this.listener.y;
+    const sourceDistance = Math.hypot(horizontal, vertical);
+    const stereo = calculateSpatialStereo({
+      horizontalDirection: sourceDistance > 0 ? horizontal / sourceDistance : 0,
+      sourceDistance,
+      maximumAudibleDistance: AUDIO_SPATIAL_BALANCE.maximumAudibleDistance,
+      positioning: "spatial",
+    });
+    const attenuation = calculateDistanceAttenuation(sourceDistance);
+    if (smooth) {
+      panner.pan.setTargetAtTime(
+        stereo.pan,
+        this.context.currentTime,
+        AUDIO_SPATIAL_BALANCE.smoothingTimeConstant,
+      );
+      distanceGain.gain.setTargetAtTime(
+        attenuation,
+        this.context.currentTime,
+        AUDIO_SPATIAL_BALANCE.smoothingTimeConstant,
+      );
+    } else {
+      panner.pan.value = stereo.pan;
+      distanceGain.gain.value = attenuation;
+    }
   }
 
   private syncPortalAmbience(state: AudioSpatialStateDetail): void {
@@ -567,8 +668,7 @@ export class AudioManager {
       const key = `portal:${portal.id}`;
       const current = this.loops.get(key);
       if (current) {
-        current.panner.positionX.value = portal.x;
-        current.panner.positionY.value = portal.y;
+        this.updateSpatialNodes(current.panner, current.distanceGain, portal, true);
       } else {
         void this.startPortalLoop(key, portal);
       }
@@ -587,14 +687,15 @@ export class AudioManager {
     if (!desiredKeys.includes(key)) return;
     const source = context.createBufferSource();
     const gain = context.createGain();
-    const panner = this.createPanner(position);
+    const { panner, distanceGain } = this.createSpatialNodes(position);
     source.buffer = buffer;
     source.loop = true;
     gain.gain.value = SOUND_CONFIG["portal-ambient"].volume;
     source.connect(gain);
-    gain.connect(panner);
+    gain.connect(distanceGain);
+    distanceGain.connect(panner);
     panner.connect(this.ambienceGain);
-    const loop: ActiveLoop = { source, panner, gain };
+    const loop: ActiveLoop = { source, panner, gain, distanceGain };
     this.loops.set(key, loop);
     source.addEventListener("ended", () => {
       if (this.loops.get(key) === loop) this.loops.delete(key);
@@ -602,20 +703,6 @@ export class AudioManager {
     source.start();
     this.lastPlayed = "portal-ambient";
     this.updateDebug();
-  }
-
-  private updateAudioListener(): void {
-    if (!this.context) return;
-    const listener = this.context.listener;
-    listener.positionX.value = this.listener.x;
-    listener.positionY.value = this.listener.y;
-    listener.positionZ.value = 0;
-    listener.forwardX.value = 0;
-    listener.forwardY.value = 0;
-    listener.forwardZ.value = -1;
-    listener.upX.value = 0;
-    listener.upY.value = 1;
-    listener.upZ.value = 0;
   }
 
   private applySettings(): void {

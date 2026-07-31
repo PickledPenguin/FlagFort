@@ -74,6 +74,48 @@ export interface RunSettlementProgress {
   structureScore: number;
 }
 
+export interface PermanentUpgradePurchase {
+  level: number;
+  cost: number;
+}
+
+export interface EquipmentPurchase {
+  tier: EquipmentTier;
+  cost: number;
+}
+
+export function nextPermanentUpgradePurchase(
+  profile: PlayerProfile,
+  id: PermanentUpgradeId,
+): PermanentUpgradePurchase | null {
+  const level = profile.permanentUpgrades[id] + 1;
+  if (level > META_BALANCE.permanentUpgrade.maximumLevel) return null;
+  return { level, cost: permanentUpgradeCost(level) };
+}
+
+export function canAffordAnyPermanentUpgrade(profile: PlayerProfile): boolean {
+  return PERMANENT_UPGRADES.some(({ id }) => {
+    const purchase = nextPermanentUpgradePurchase(profile, id);
+    return purchase !== null && purchase.cost <= profile.spendableXp;
+  });
+}
+
+export function nextEquipmentPurchase(
+  profile: PlayerProfile,
+  kind: EquipmentKind,
+): EquipmentPurchase | null {
+  const tier = nextEquipmentTier(profile.equipment[kind].tier);
+  const cost = equipmentUpgradePrice(profile.equipment[kind].tier);
+  return tier && cost !== null ? { tier, cost } : null;
+}
+
+export function canAffordAnyEquipment(profile: PlayerProfile): boolean {
+  return EQUIPMENT_ORDER.some((kind) => {
+    const purchase = nextEquipmentPurchase(profile, kind);
+    return purchase !== null && purchase.cost <= profile.coins;
+  });
+}
+
 function createPermanentUpgrades(): Record<PermanentUpgradeId, number> {
   return Object.fromEntries(
     PERMANENT_UPGRADES.map(({ id }) => [id, 0]),
@@ -395,11 +437,9 @@ export class ProfileManager {
   }
 
   buyPermanentUpgrade(id: PermanentUpgradeId): boolean {
-    const level = this.profile.permanentUpgrades[id];
-    if (level >= META_BALANCE.permanentUpgrade.maximumLevel) return false;
-    const cost = permanentUpgradeCost(level + 1);
-    if (this.profile.spendableXp < cost) return false;
-    this.profile.spendableXp -= cost;
+    const purchase = nextPermanentUpgradePurchase(this.profile, id);
+    if (!purchase || this.profile.spendableXp < purchase.cost) return false;
+    this.profile.spendableXp -= purchase.cost;
     this.profile.permanentUpgrades[id] += 1;
     this.commit();
     return true;
@@ -407,11 +447,10 @@ export class ProfileManager {
 
   buyEquipment(kind: EquipmentKind): boolean {
     const item = this.profile.equipment[kind];
-    const price = equipmentUpgradePrice(item.tier);
-    const next = nextEquipmentTier(item.tier);
-    if (price === null || !next || this.profile.coins < price) return false;
-    this.profile.coins -= price;
-    item.tier = next;
+    const purchase = nextEquipmentPurchase(this.profile, kind);
+    if (!purchase || this.profile.coins < purchase.cost) return false;
+    this.profile.coins -= purchase.cost;
+    item.tier = purchase.tier;
     item.equipped = true;
     this.commit();
     return true;

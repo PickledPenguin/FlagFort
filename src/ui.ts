@@ -21,8 +21,20 @@ import {
   type EyeStyle,
   type PermanentUpgradeId,
 } from "./meta-balance";
-import { equipmentUpgradePrice, nextEquipmentTier, recyclingRate } from "./equipment";
-import { levelProgress, type DailyRewardResult } from "./profile";
+import {
+  effectiveEquipmentStats,
+  equipmentStatDefinitions,
+  equipmentUpgradePrice,
+  nextEquipmentTier,
+  type EquipmentState,
+  type EquipmentStatDefinition,
+} from "./equipment";
+import {
+  canAffordAnyEquipment,
+  canAffordAnyPermanentUpgrade,
+  levelProgress,
+  type DailyRewardResult,
+} from "./profile";
 
 const labels: Record<StructureKind, string> = {
   wall: "Wall",
@@ -103,7 +115,11 @@ export class Ui {
       }
       const investment = (event.target as HTMLElement).closest<HTMLInputElement>("[data-investment]");
       if (investment) {
-        this.investmentDraft = Number(investment.value);
+        const minimum = Number(investment.min) || 0;
+        const maximum = Number(investment.max) || 0;
+        this.investmentDraft = Math.max(minimum, Math.min(maximum, Math.round(Number(investment.value))));
+        investment.value = `${this.investmentDraft}`;
+        investment.setAttribute("aria-valuenow", `${this.investmentDraft}`);
         const output = investment.parentElement?.querySelector<HTMLOutputElement>("output");
         if (output) output.innerHTML = coinAmount(this.investmentDraft);
         this.patchInvestmentPreview();
@@ -226,12 +242,15 @@ export class Ui {
     const recent = this.game.records[0];
     const challengeModifiers = resolveChallengeModifiers(this.selectedChallenges);
     const daySeconds = Math.round(BALANCE.dayDuration * challengeModifiers.dayDurationMultiplier);
+    const profile = this.game.profileManager?.profile;
+    const upgradeAvailable = profile ? canAffordAnyPermanentUpgrade(profile) : false;
+    const equipmentAvailable = profile ? canAffordAnyEquipment(profile) : false;
     return `
       <section class="screen menu-screen">
         ${this.profileChipMarkup()}
         <nav class="meta-actions" aria-label="Progression and equipment">
-          <button data-action="upgrades"><img src="${ASSETS.ui["upgrade-node"]}" alt="" aria-hidden="true"><span><b>Upgrades</b><small>Spend XP</small></span></button>
-          <button data-action="shop"><img src="${META_BALANCE.assets.equipment.sword.wood}" alt="" aria-hidden="true"><span><b>Shop</b><small>Manage gear</small></span></button>
+          <button class="progression-action" data-action="upgrades" aria-label="Upgrades. Spend XP${upgradeAvailable ? ". Upgrade available" : ""}"><img src="${ASSETS.ui["upgrade-node"]}" alt="" aria-hidden="true"><span><b>Upgrades</b><small>Spend XP</small></span>${this.purchaseBadgeMarkup(upgradeAvailable)}</button>
+          <button data-action="shop" aria-label="Shop. Manage gear${equipmentAvailable ? ". Purchase available" : ""}"><img src="${META_BALANCE.assets.equipment.sword.wood}" alt="" aria-hidden="true"><span><b>Shop</b><small>Manage gear</small></span>${this.purchaseBadgeMarkup(equipmentAvailable)}</button>
         </nav>
         <main class="menu-card">
           <h1>FLAG <span>FORT</span></h1>
@@ -406,7 +425,7 @@ export class Ui {
           </div>
           <div class="profile-currencies">
             <span>${icon("trophy")}<b>${profile.lifetimeXp}</b><small>Lifetime XP</small></span>
-            <span>${icon("upgrade-node")}<b>${profile.spendableXp}</b><small>Spendable XP</small></span>
+            <span class="progression-currency">${icon("upgrade-node")}<b>${profile.spendableXp}</b><small>Spendable XP</small></span>
             <span>${coinAmount(profile.coins)}<small>Balance</small></span>
           </div>
           <div class="profile-progression">
@@ -470,6 +489,72 @@ export class Ui {
     </div></div>`;
   }
 
+  private purchaseBadgeMarkup(available: boolean): string {
+    return available
+      ? '<i class="purchase-badge" aria-hidden="true">!</i>'
+      : "";
+  }
+
+  private equipmentEffectMarkup(kind: EquipmentKind, item: EquipmentState): string {
+    const stats = equipmentStatDefinitions(kind);
+    const meleeBonus = kind === "sword"
+      ? permanentUpgradePercent(this.game.profileManager?.profile.permanentUpgrades.punchDamage ?? 0)
+      : 0;
+    const effective = effectiveEquipmentStats(kind, item.tier, item.equipped, meleeBonus);
+    const currentTier = item.tier && item.equipped ? item.tier : null;
+    const currentLabel = currentTier ? `${currentTier} equipped` : "unequipped base";
+    const currentStats = stats.map((stat) => `
+      <span><small>${stat.label}</small><b>${this.formatEquipmentValue(effective[stat.id] ?? stat.unequipped, stat)}</b></span>`).join("");
+    const baseStatus = currentTier ? "UNEQUIPPED BASE" : "CURRENT · UNEQUIPPED BASE";
+    const base = this.equipmentTierStatMarkup("Base", baseStatus, stats, null);
+    const ownedIndex = item.tier ? EQUIPMENT_TIER_ORDER.indexOf(item.tier) : -1;
+    const next = nextEquipmentTier(item.tier);
+    const tiers = EQUIPMENT_TIER_ORDER.map((tier, index) => {
+      const status = tier === currentTier
+        ? "CURRENT · EQUIPPED"
+        : index <= ownedIndex
+          ? "OWNED"
+          : tier === next
+            ? "NEXT"
+            : "LOCKED";
+      return this.equipmentTierStatMarkup(tier, status, stats, tier);
+    }).join("");
+    const permanentNote = kind === "sword" && meleeBonus > 0
+      ? `<small class="equipment-effect-note">Current damage includes the owned +${Math.round(meleeBonus * 100)}% permanent melee bonus.</small>`
+      : "";
+    return `<section class="equipment-effect" aria-label="${currentLabel} equipment statistics">
+      <header><span>CONFIGURED STATS</span><strong>Current: ${currentLabel}</strong></header>
+      <div class="equipment-current-stats"><em>CURRENT EFFECTIVE</em>${currentStats}</div>
+      <div class="equipment-tier-stats">${base}${tiers}</div>
+      ${permanentNote}
+    </section>`;
+  }
+
+  private equipmentTierStatMarkup(
+    label: string,
+    status: string,
+    stats: readonly EquipmentStatDefinition[],
+    tier: Tier | null,
+  ): string {
+    const values = stats.map((stat) => {
+      const value = tier ? stat.tiers[tier] : stat.unequipped;
+      return `<span><small>${stat.label}</small><b>${this.formatEquipmentValue(value, stat)}</b></span>`;
+    }).join("");
+    return `<div class="equipment-tier-stat" data-tier-state="${status.toLowerCase().replaceAll(" · ", "-")}">
+      <header><strong>${label}</strong><em>${status}</em></header><div>${values}</div>
+    </div>`;
+  }
+
+  private formatEquipmentValue(value: number, stat: EquipmentStatDefinition): string {
+    const compact = (number: number): string => `${Number(number.toFixed(2))}`;
+    if (stat.unit === "percent") return `${compact(value * 100)}%`;
+    if (stat.unit === "damage") return compact(value);
+    if (stat.unit === "seconds") return `${compact(value)}s`;
+    if (stat.unit === "pixels") return `${compact(value)} px`;
+    if (stat.unit === "radians") return `${compact(value)} rad`;
+    return compact(value);
+  }
+
   private shopModalMarkup(): string {
     const profile = this.game.profileManager?.profile;
     if (!profile) return "";
@@ -490,15 +575,11 @@ export class Ui {
         const next = nextEquipmentTier(item.tier);
         const price = equipmentUpgradePrice(item.tier);
         const shownTier = item.tier ?? "wood";
-        const activeRecyclingRate = Math.round(recyclingRate(item.tier, item.equipped) * 100);
         return `<article class="shop-item">
           <div class="shop-art"><img src="${META_BALANCE.assets.equipment[kind][shownTier]}" alt=""></div>
           <p class="eyebrow">${item.tier ? `${item.tier.toUpperCase()} TIER` : "LOCKED"}</p>
           <h3>${copy[kind].title}</h3><p>${copy[kind].text}</p>
-          ${kind === "mallet" ? `<div class="equipment-effect" aria-label="Active recycling return ${activeRecyclingRate} percent">
-            <span>ACTIVE RETURN</span><strong>${activeRecyclingRate}%</strong>
-            <small>Base 25% · Wood 35% · Stone 45% · Gold 60% · Diamond 75%</small>
-          </div>` : ""}
+          ${this.equipmentEffectMarkup(kind, item)}
           <div class="tier-track">${EQUIPMENT_TIER_ORDER.map((tier) => `<i class="${item.tier && EQUIPMENT_TIER_ORDER.indexOf(tier) <= EQUIPMENT_TIER_ORDER.indexOf(item.tier) ? "owned" : ""}" title="${tier}"></i>`).join("")}</div>
           ${next && price !== null ? `<button class="primary wide" data-action="buy-equipment" data-equipment="${kind}" ${profile.coins < price ? "disabled" : ""}>
             ${item.tier ? `Upgrade to ${next}` : "Unlock Wood"} · ${coinAmount(price)}
@@ -518,7 +599,8 @@ export class Ui {
       <p class="eyebrow">OPTIONAL RUN INVESTMENT</p><h2 id="investment-title">Back your defense</h2>
       <p>No investment is required. Your <em class="coin-symbol" aria-label="Coins">¢</em> stake is deducted once and settled once.</p>
       <label class="investment-control"><span><b>Investment</b><output>${coinAmount(this.investmentDraft)}</output></span>
-        <input type="range" min="0" max="${maximum}" step="1" value="${this.investmentDraft}" data-investment>
+        <input type="range" min="0" max="${maximum}" step="1" value="${this.investmentDraft}" data-investment
+          aria-label="Run investment in whole coins" aria-valuemin="0" aria-valuemax="${maximum}" aria-valuenow="${this.investmentDraft}">
         <small>Available ${coinAmount(coins)} · Maximum ${coinAmount(maximum)}</small>
       </label>
       <div class="investment-preview" data-investment-preview>${this.investmentPreviewMarkup(this.investmentDraft)}</div>
@@ -714,12 +796,10 @@ export class Ui {
           ? { className: "negative", label: "LOSS", sign: "-" }
           : { className: "neutral", label: "BREAK EVEN", sign: "=" };
       const categories = [
-        ["Surviving structures", settlement.xp.structures],
-        ["Personal zombie kills", settlement.xp.personalKills],
-        ["Remaining resources", settlement.xp.resources],
-        ["Nights survived", settlement.xp.nights],
-        ["Difficulty bonus", settlement.xp.difficulty],
-        ["Campaign victory", settlement.xp.victory],
+        ["Nights Survived", settlement.xp.nights],
+        ["Personal Kills", settlement.xp.personalKills],
+        ["Difficulty Bonus", settlement.xp.difficulty],
+        ...(settlement.xp.victory > 0 ? [["Victory Bonus", settlement.xp.victory] as const] : []),
       ] as const;
       return `<section class="screen result-screen ${victory ? "won" : "lost"}"><div class="result-card reward-result-card" role="region" aria-labelledby="result-title" tabindex="-1">
         <p class="eyebrow">${victory ? "FINAL COUNT CLEARED" : "COUNT ENDED"}</p>

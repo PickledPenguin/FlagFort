@@ -2647,9 +2647,7 @@ export class Game {
     this.recalculateStructureScore();
     if (this.runSettlementId && this.profileManager) {
       const xp = calculateXpRewards({
-        survivingStructurePoints: this.structureScore,
         directPlayerKills: this.directPlayerKills,
-        remainingResources: this.resources,
         nightsSurvived: this.stats.nightsSurvived,
         victory,
         effectiveDifficultyMultiplier: this.adaptiveState.multiplier,

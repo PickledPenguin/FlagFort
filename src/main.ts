@@ -122,13 +122,11 @@ async function bootstrap(): Promise<void> {
       game.lastSettlement = {
         id: "reward-preview",
         xp: {
-          structures: 262,
           personalKills: 84,
-          resources: 12,
-          nights: 312,
-          victory: game.phase === "victory" ? 500 : 0,
-          difficulty: 125,
-          total: game.phase === "victory" ? 1295 : 483,
+          nights: game.stats.nightsSurvived === 10 ? 700 : game.stats.nightsSurvived === 5 ? 175 : 0,
+          victory: game.phase === "victory" ? 300 : 0,
+          difficulty: 75,
+          total: game.stats.nightsSurvived === 10 ? 1159 : game.stats.nightsSurvived === 5 ? 634 : 159,
         },
         coins: {
           investment: 100,

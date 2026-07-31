@@ -1,1 +1,52 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><g id="bow-damage" fill="none" stroke="#f6d98a" stroke-width="9"><path d="M22 10c72 37 72 71 0 108m0-108 45 54-45 54M67 64h55m-18-16 18 16-18 16"/></g></svg>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 128 128"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="bow-damage.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="2.1062551"
+     inkscape:cx="10.445079"
+     inkscape:cy="63.620025"
+     inkscape:window-width="1517"
+     inkscape:window-height="655"
+     inkscape:window-x="225"
+     inkscape:window-y="398"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="bow-damage" />
+  <g
+     id="bow-damage"
+     fill="none"
+     stroke="#f6d98a"
+     stroke-width="9">
+    <path
+       d="m 22,12 c 72,37 72,71 0,108 M 22,12 22.128026,66 22,120 M 18.854106,66 h 91.608224"
+       id="path1"
+       sodipodi:nodetypes="ccccccc" />
+    <path
+       d="m 94.160026,49.978687 18.000004,16 -18.000004,16"
+       id="path1-2"
+       style="stroke:#ff6b61;stroke-opacity:1" />
+    <path
+       id="speed-lines-8"
+       d="M 76.352746,23.496356 H 116.35275 M 95.951325,42.636491 95.704182,3.2435923"
+       stroke="#8ee9a0"
+       stroke-width="10.4738"
+       style="fill:#ff6b61;fill-opacity:1;stroke:#8ee9a0;stroke-opacity:1" />
+  </g>
+</svg>

@@ -8,6 +8,9 @@
   --line: rgba(238, 246, 218, 0.28);
   --green: #78f29f;
   --green-dark: #1d6b3c;
+  --progression-accent: var(--green);
+  --progression-surface: rgba(10, 38, 23, .8);
+  --progression-surface-strong: rgba(23, 60, 40, .92);
   --red: #ff695f;
   --gold: #f7ca4b;
   --purple: #a884ff;
@@ -2663,6 +2666,28 @@ img.icon {
   animation: none !important;
 }
 
+.dawn-panel .choice-viewport::after {
+  content: "";
+  position: absolute;
+  z-index: 5;
+  inset: 0;
+  width: 46%;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(90deg, transparent, rgba(3, 12, 8, .78) 48%, transparent);
+  transform: translate3d(220%, 0, 0);
+}
+
+.dawn-panel .choice-viewport:has(.choice-track.transitioning)::after {
+  animation: choice-shadow-right-to-left var(--card-transition-duration, 520ms) ease-in-out;
+}
+
+@keyframes choice-shadow-right-to-left {
+  0% { opacity: 0; transform: translate3d(220%, 0, 0); }
+  18%, 82% { opacity: 1; }
+  100% { opacity: 0; transform: translate3d(-220%, 0, 0); }
+}
+
 .reroll-shared-cost {
   display: grid;
   place-items: center;
@@ -3301,6 +3326,37 @@ img.icon {
   box-shadow: 0 2px 0 #0a2115;
 }
 
+.meta-actions .progression-action {
+  border-color: color-mix(in srgb, var(--progression-accent) 58%, transparent);
+  background: linear-gradient(var(--progression-surface-strong), var(--progression-surface));
+}
+
+.purchase-badge {
+  position: absolute;
+  z-index: 2;
+  top: -10px;
+  right: -9px;
+  width: 25px;
+  height: 25px;
+  display: grid;
+  place-items: center;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  color: #fff;
+  background: var(--red);
+  box-shadow: 0 3px 0 rgba(44, 5, 5, .5);
+  font: 900 16px/1 system-ui;
+  pointer-events: none;
+  animation: purchase-available-pop 1.5s ease-in-out infinite;
+}
+
+@keyframes purchase-available-pop {
+  0%, 72%, 100% { transform: translateY(0) rotate(0); }
+  78% { transform: translateY(-5px) rotate(-7deg); }
+  84% { transform: translateY(-2px) rotate(6deg); }
+  90% { transform: translateY(-4px) rotate(-4deg); }
+}
+
 .meta-actions img {
   width: 34px;
   height: 34px;
@@ -3527,6 +3583,16 @@ img.icon {
   background: rgba(24, 56, 39, .62);
 }
 
+.profile-currencies > .progression-currency {
+  border-color: color-mix(in srgb, var(--progression-accent) 42%, transparent);
+  background: var(--progression-surface);
+}
+
+.profile-currencies > .progression-currency .icon,
+.profile-currencies > .progression-currency b {
+  color: var(--progression-accent);
+}
+
 .profile-currencies .icon {
   grid-row: span 2;
   color: var(--green);
@@ -3748,7 +3814,7 @@ img.icon {
 
 .shop-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
   margin-top: 18px;
 }
@@ -3775,13 +3841,13 @@ img.icon {
 }
 
 .shop-item > p:not(.eyebrow) {
-  min-height: 56px;
+  min-height: 34px;
   color: var(--muted);
   font-size: 11px;
 }
 
 .shop-art {
-  height: 160px;
+  height: 112px;
   display: grid;
   place-items: center;
   border: 2px solid rgba(255, 255, 255, .13);
@@ -3790,35 +3856,126 @@ img.icon {
 }
 
 .shop-art img {
-  width: 120px;
-  height: 120px;
+  width: 94px;
+  height: 94px;
   object-fit: contain;
 }
 
 .equipment-effect {
   display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 3px 8px;
-  padding: 8px 10px;
+  gap: 7px;
+  padding: 9px;
   border: 1px solid rgba(247, 202, 75, .42);
   border-radius: 9px;
   background: rgba(57, 43, 10, .55);
 }
 
-.equipment-effect span {
+.equipment-effect > header,
+.equipment-tier-stat > header {
+  min-width: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.equipment-effect > header span {
   color: var(--gold);
   font-size: 9px;
   font-weight: 900;
 }
 
-.equipment-effect strong {
+.equipment-effect > header strong {
   color: var(--gold);
+  font-size: 10px;
+  text-transform: capitalize;
 }
 
-.equipment-effect small {
+.equipment-current-stats,
+.equipment-tier-stat > div {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(64px, 1fr));
+  gap: 4px;
+}
+
+.equipment-current-stats {
+  padding: 6px;
+  border: 1px solid rgba(247, 202, 75, .34);
+  border-radius: 7px;
+  background: rgba(4, 19, 11, .54);
+}
+
+.equipment-current-stats > em {
   grid-column: 1 / -1;
+  color: var(--gold);
+  font-size: 7px;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.equipment-current-stats span,
+.equipment-tier-stat span {
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+}
+
+.equipment-current-stats small,
+.equipment-tier-stat small,
+.equipment-effect-note {
   color: var(--muted);
-  font-size: 8px;
+  font-size: 7px;
+}
+
+.equipment-current-stats b,
+.equipment-tier-stat b {
+  color: var(--ink);
+  font-size: 10px;
+}
+
+.equipment-tier-stats {
+  display: grid;
+  gap: 3px;
+}
+
+.equipment-tier-stat {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  align-items: center;
+  gap: 7px;
+  padding: 5px 6px;
+  border-radius: 6px;
+  background: rgba(4, 19, 11, .34);
+}
+
+.equipment-tier-stat > header {
+  display: grid;
+  gap: 1px;
+}
+
+.equipment-tier-stat > header strong {
+  text-transform: capitalize;
+}
+
+.equipment-tier-stat > header em {
+  color: var(--muted);
+  font-size: 6px;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.equipment-tier-stat[data-tier-state*="current"] {
+  outline: 1px solid var(--gold);
+}
+
+.equipment-tier-stat[data-tier-state="owned"] > header em {
+  color: var(--progression-accent);
+}
+
+.equipment-tier-stat[data-tier-state="next"] > header em {
+  color: var(--gold);
 }
 
 .tier-track {
@@ -3867,7 +4024,10 @@ img.icon {
 
 .investment-control input {
   width: 100%;
+  min-height: 30px;
   accent-color: var(--gold);
+  cursor: pointer;
+  touch-action: none;
 }
 
 .investment-control small {
@@ -4361,6 +4521,11 @@ img.icon {
 .reduce-motion .reward-summary > .result-actions {
   opacity: 1;
   transform: none;
+  animation: none;
+}
+
+.reduce-motion .purchase-badge,
+.reduce-motion .dawn-panel .choice-viewport::after {
   animation: none;
 }
 

@@ -4,7 +4,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { BALANCE, STRUCTURE_ORDER, TIER_ORDER } from "./config";
-import { recyclingRate } from "./equipment";
+import { effectiveEquipmentStats, equipmentStatDefinitions, recyclingRate } from "./equipment";
 import { Game, LOCAL_PLAYER_ID } from "./game";
 import { Input } from "./input";
 import {
@@ -15,8 +15,6 @@ import {
 import { ProfileManager, migrateProfile } from "./profile";
 import {
   calculateDifficultyXp,
-  calculateResourceXp,
-  calculateStructureXp,
   calculateXpRewards,
   settleCoinInvestment,
 } from "./rewards";
@@ -125,12 +123,6 @@ describe("canonical structure value", () => {
     expect(game.structureScore).toBe(0);
   });
 
-  it("keeps raw-resource XP below equivalent useful surviving structures", () => {
-    expect(calculateResourceXp({ wood: 10, stone: 0, gold: 0, diamond: 0 }))
-      .toBeLessThan(calculateStructureXp(structurePointValue("wall", "wood")));
-    expect(calculateResourceXp({ wood: 32, stone: 0, gold: 0, diamond: 0 }))
-      .toBeLessThan(calculateStructureXp(structurePointValue("turret", "wood")));
-  });
 });
 
 describe("additive adaptive difficulty and rewards", () => {
@@ -160,14 +152,12 @@ describe("additive adaptive difficulty and rewards", () => {
   it("awards difficulty XP at reduced, base, intermediate, and maximum boundaries", () => {
     expect(calculateDifficultyXp(0.5)).toBe(0);
     expect(calculateDifficultyXp(1)).toBe(0);
-    expect(calculateDifficultyXp(1.375)).toBe(125);
+    expect(calculateDifficultyXp(1.375)).toBe(75);
     expect(calculateDifficultyXp(BALANCE.adaptive.effective.maximumMultiplier)).toBe(
       META_BALANCE.rewards.campaignVictoryBonus / 2,
     );
     const breakdown = calculateXpRewards({
-      survivingStructurePoints: 0,
       directPlayerKills: { basic: 0, runner: 0, breaker: 0, jumper: 0, summoner: 0, boss: 0 },
-      remainingResources: { wood: 0, stone: 0, gold: 0, diamond: 0 },
       nightsSurvived: 0,
       victory: false,
       effectiveDifficultyMultiplier: 1.375,
@@ -191,9 +181,7 @@ describe("profile migration and settlement safety", () => {
     manager.profile.coins = 10;
     expect(manager.beginRunSettlement("night-total", 0)).toBe(true);
     const xp = calculateXpRewards({
-      survivingStructurePoints: 0,
       directPlayerKills: { basic: 0, runner: 0, breaker: 0, jumper: 0, summoner: 0, boss: 0 },
-      remainingResources: { wood: 0, stone: 0, gold: 0, diamond: 0 },
       nightsSurvived: 12,
       victory: false,
     });
@@ -247,6 +235,24 @@ describe("campaign and Endless transition", () => {
 });
 
 describe("Mallet recycling and editable assets", () => {
+  it("derives every shop stat tier from gameplay balance", () => {
+    const helmet = equipmentStatDefinitions("helmet")[0]!;
+    expect(helmet.unequipped).toBe(0);
+    expect(helmet.tiers).toEqual(META_BALANCE.equipment.helmetMitigation);
+    const wrench = equipmentStatDefinitions("wrench")[0]!;
+    expect(wrench.tiers).toEqual(META_BALANCE.equipment.wrenchFreeRepairChance);
+    const mallet = equipmentStatDefinitions("mallet")[0]!;
+    expect(mallet.unequipped).toBe(META_BALANCE.equipment.recyclingRate.unequipped);
+    expect(mallet.tiers.diamond).toBe(META_BALANCE.equipment.recyclingRate.diamond);
+    const sword = equipmentStatDefinitions("sword");
+    expect(sword.map((stat) => stat.id)).toEqual([
+      "damage", "attack-interval", "sweep-range", "sweep-arc", "target-limit", "knockback",
+    ]);
+    expect(effectiveEquipmentStats("sword", "wood", true, 0.2).damage).toBe(
+      BALANCE.player.punchDamage * 1.3,
+    );
+  });
+
   it("uses every configured mallet rate with floor rounding and never over-refunds", () => {
     const invested = { wood: 11, stone: 7, gold: 5, diamond: 3 };
     expect(recyclingRate(null)).toBe(0.25);
@@ -292,6 +298,54 @@ describe("Mallet recycling and editable assets", () => {
 });
 
 describe("currency and reward presentation", () => {
+  it("announces affordable valid purchases on both main-menu actions", () => {
+    const { game, manager } = gameWithProfile();
+    manager.profile.spendableXp = 1000;
+    manager.profile.coins = 100;
+    const ui = new Ui(
+      game,
+      document.querySelector("#hud")!,
+      document.querySelector("#overlay")!,
+      document.querySelector("#toast")!,
+    );
+    game.returnToMenu();
+    ui.render(true);
+    expect(document.querySelectorAll(".purchase-badge")).toHaveLength(2);
+    expect(document.querySelector('[data-action="upgrades"]')?.getAttribute("aria-label"))
+      .toContain("Upgrade available");
+    expect(document.querySelector('[data-action="shop"]')?.getAttribute("aria-label"))
+      .toContain("Purchase available");
+
+    for (const id of Object.keys(manager.profile.permanentUpgrades) as Array<keyof typeof manager.profile.permanentUpgrades>) {
+      manager.profile.permanentUpgrades[id] = META_BALANCE.permanentUpgrade.maximumLevel;
+    }
+    for (const item of Object.values(manager.profile.equipment)) item.tier = "diamond";
+    ui.render(true);
+    expect(document.querySelectorAll(".purchase-badge")).toHaveLength(0);
+  });
+
+  it("shows shared exact configured and effective stats for every equipment type", () => {
+    const { game, manager } = gameWithProfile();
+    manager.profile.equipment.sword = { tier: "wood", equipped: true };
+    manager.profile.permanentUpgrades.punchDamage = 2;
+    const overlay = document.querySelector<HTMLElement>("#overlay")!;
+    const ui = new Ui(game, document.querySelector("#hud")!, overlay, document.querySelector("#toast")!);
+    game.returnToMenu();
+    ui.render(true);
+    overlay.querySelector<HTMLElement>('[data-action="shop"]')
+      ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(overlay.querySelectorAll(".equipment-effect")).toHaveLength(EQUIPMENT_ORDER.length);
+    const text = overlay.querySelector(".shop-modal")?.textContent ?? "";
+    expect(text).toContain("Damage reduction");
+    expect(text).toContain("Free-repair chance");
+    expect(text).toContain("Recycling return");
+    expect(text).toContain("Attack interval");
+    expect(text).toContain("Sweep range");
+    expect(text).toContain("CURRENT · EQUIPPED");
+    expect(text).toContain("NEXT");
+    expect(text).toContain("Current damage includes the owned +20% permanent melee bonus.");
+  });
+
   it("renders visible cent symbols with descriptive accessible labels", () => {
     const { game } = gameWithProfile();
     const ui = new Ui(
@@ -349,6 +403,52 @@ describe("currency and reward presentation", () => {
     expect(document.activeElement).toBe(overlay.querySelector('[data-action="start"]'));
   });
 
+  it("updates the native whole-coin investment range continuously and accessibly", () => {
+    const { game, manager } = gameWithProfile();
+    manager.profile.coins = 80;
+    const overlay = document.querySelector<HTMLElement>("#overlay")!;
+    const ui = new Ui(game, document.querySelector("#hud")!, overlay, document.querySelector("#toast")!);
+    game.returnToMenu();
+    ui.render(true);
+    overlay.querySelector<HTMLElement>('[data-action="start"]')
+      ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    const range = overlay.querySelector<HTMLInputElement>("[data-investment]")!;
+    expect(range.type).toBe("range");
+    expect(range.getAttribute("aria-label")).toBe("Run investment in whole coins");
+    expect(range.max).toBe("80");
+    range.value = "47";
+    range.dispatchEvent(new InputEvent("input", { bubbles: true }));
+    expect(range.getAttribute("aria-valuenow")).toBe("47");
+    expect(overlay.querySelector(".investment-control output")?.textContent).toContain("47¢");
+    expect(overlay.querySelector('[data-action="confirm-investment"]')?.textContent).toContain("47¢");
+  });
+
+  it("omits obsolete structure and resource XP rows from reward summaries", () => {
+    const { game } = gameWithProfile();
+    game.phase = "victory";
+    game.lastSettlement = {
+      id: "valid-reward-categories",
+      xp: { personalKills: 12, nights: 700, victory: 300, difficulty: 150, total: 1162 },
+      coins: settleCoinInvestment(0, 10),
+      previousLifetimeXp: 0,
+      newLifetimeXp: 1162,
+      previousSpendableXp: 0,
+      newSpendableXp: 1162,
+      previousCoins: 0,
+      newCoins: 0,
+      previousLevel: 1,
+      newLevel: 3,
+    };
+    const ui = new Ui(game, document.querySelector("#hud")!, document.querySelector("#overlay")!, document.querySelector("#toast")!);
+    const markup = (ui as unknown as { resultMarkup(): string }).resultMarkup();
+    expect(markup).toContain("Nights Survived");
+    expect(markup).toContain("Personal Kills");
+    expect(markup).toContain("Difficulty Bonus");
+    expect(markup).toContain("Victory Bonus");
+    expect(markup).not.toContain("Surviving structures");
+    expect(markup).not.toContain("Remaining resources");
+  });
+
   it("distinguishes loss, break-even, and profit without color alone", () => {
     expect(settleCoinInvestment(100, 0).profitOrLoss).toBeLessThan(0);
     expect(settleCoinInvestment(100, 5).profitOrLoss).toBe(0);
@@ -366,9 +466,7 @@ describe("currency and reward presentation", () => {
       game.lastSettlement = {
         id: `outcome-${nights}`,
         xp: {
-          structures: 0,
           personalKills: 0,
-          resources: 0,
           nights: 0,
           victory: 0,
           difficulty: 0,

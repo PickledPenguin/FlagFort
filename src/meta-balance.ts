@@ -1,5 +1,5 @@
 import { cardAsset, EQUIPMENT_ASSETS, svgAsset } from "./assets";
-import type { EnemyKind, ResourceKind, StructureKind, Tier } from "./types";
+import type { EnemyKind, StructureKind, Tier } from "./types";
 
 export type PermanentUpgradeId =
   | "bowDamage"
@@ -56,12 +56,11 @@ export const META_BALANCE = {
   investment: {
     maximum: 100,
     returnPercentByNightsSurvived: [0, 20, 40, 60, 80, 100, 120, 140, 160, 180, 200],
-    endlessReturnPercentByNightsSurvived: [200, 205, 210, 215, 220, 225],
-    endlessCapPercent: 225,
+    endlessReturnPercentByNightsSurvived: [200, 220, 240, 260, 280, 300],
+    endlessCapPercent: 300,
     rounding: "nearest" as const,
   },
   rewards: {
-    structurePointXp: 1,
     enemyKillXp: {
       basic: 1,
       runner: 2,
@@ -70,15 +69,8 @@ export const META_BALANCE = {
       summoner: 8,
       boss: 80,
     } satisfies Record<EnemyKind, number>,
-    resourceWeights: {
-      wood: 1,
-      stone: 2,
-      gold: 4,
-      diamond: 8,
-    } satisfies Record<ResourceKind, number>,
-    resourceLogScale: 3,
-    nightXp: [0, 15, 18, 22, 26, 30, 34, 38, 41, 43, 45],
-    campaignVictoryBonus: 500,
+    cumulativeNightXp: [0, 7, 28, 63, 112, 175, 252, 343, 448, 567, 700],
+    campaignVictoryBonus: 300,
     difficultyBonus: {
       curve: "linear" as const,
       normalBaseMultiplier: 1,
@@ -97,7 +89,7 @@ export const META_BALANCE = {
       diamond: 0.75,
     } satisfies Record<Tier | "unequipped", number>,
     sword: {
-      wood: { damageMultiplier: 1.1, cooldownMultiplier: 2, range: 88, arc: 1.15, targetLimit: 2, knockback: 14 },
+      wood: { damageMultiplier: 1.15, cooldownMultiplier: 2, range: 88, arc: 1.15, targetLimit: 2, knockback: 14 },
       stone: { damageMultiplier: 1.35, cooldownMultiplier: 1.6, range: 94, arc: 1.3, targetLimit: 3, knockback: 18 },
       gold: { damageMultiplier: 1.65, cooldownMultiplier: 1.25, range: 101, arc: 1.45, targetLimit: 4, knockback: 23 },
       diamond: { damageMultiplier: 2, cooldownMultiplier: 1, range: 108, arc: 1.6, targetLimit: 5, knockback: 30 },

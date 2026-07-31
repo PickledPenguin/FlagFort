@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  calculateDifficultyXp,
   calculateNightXp,
   calculatePersonalKillXp,
-  calculateResourceXp,
   calculateXpRewards,
   investmentReturnPercent,
   settleCoinInvestment,
@@ -17,38 +17,30 @@ describe("end-of-run XP balance", () => {
       .toBeGreaterThan(calculatePersonalKillXp({ ...base, basic: 20 }));
   });
 
-  it("uses a logarithmic remaining-resource reward with diminishing returns", () => {
-    const empty = { wood: 0, stone: 0, gold: 0, diamond: 0 };
-    const firstHundred = calculateResourceXp({ ...empty, wood: 100 });
-    const secondHundredGain = calculateResourceXp({ ...empty, wood: 200 }) - firstHundred;
-    expect(calculateResourceXp(empty)).toBe(0);
-    expect(firstHundred).toBeGreaterThan(0);
-    expect(secondHundredGain).toBeLessThan(firstHundred);
-    expect(calculateResourceXp({ ...empty, diamond: 10 }))
-      .toBeGreaterThan(calculateResourceXp({ ...empty, wood: 10 }));
+  it("uses the configured cumulative quadratic campaign curve", () => {
+    expect(Array.from({ length: 11 }, (_, night) => calculateNightXp(night))).toEqual([
+      0, 7, 28, 63, 112, 175, 252, 343, 448, 567, 700,
+    ]);
+    expect(calculateNightXp(-1)).toBe(0);
   });
 
-  it("increases night value and makes Night 10 worth three times Night 1", () => {
-    const nightOne = calculateNightXp(1);
-    const nightNine = calculateNightXp(9);
-    const nightTenIncrement = calculateNightXp(10) - nightNine;
-    expect(nightTenIncrement).toBe(nightOne * 3);
-    expect(calculateNightXp(10)).toBeGreaterThan(calculateNightXp(9));
-  });
-
-  it("adds the campaign bonus only for victory", () => {
+  it("awards at least 1000 XP for Night 10 victory before engagement bonuses", () => {
     const input = {
-      survivingStructurePoints: 50,
-      directPlayerKills: { basic: 5, runner: 1, breaker: 0, jumper: 0, summoner: 0, boss: 0 },
-      remainingResources: { wood: 10, stone: 2, gold: 0, diamond: 0 },
-      nightsSurvived: 5,
+      directPlayerKills: { basic: 0, runner: 0, breaker: 0, jumper: 0, summoner: 0, boss: 0 },
+      nightsSurvived: 10,
       victory: false,
     };
     const defeat = calculateXpRewards(input);
     const victory = calculateXpRewards({ ...input, victory: true });
-    expect(defeat.total).toBe(defeat.structures + defeat.personalKills + defeat.resources + defeat.nights);
-    expect(victory.victory).toBeGreaterThan(0);
+    expect(defeat.total).toBe(700);
+    expect(victory.victory).toBe(300);
+    expect(victory.total).toBe(1000);
     expect(victory.total).toBe(defeat.total + victory.victory);
+  });
+
+  it("derives the 150 XP difficulty cap from the victory bonus", () => {
+    expect(calculateDifficultyXp(Infinity)).toBe(0);
+    expect(calculateDifficultyXp(10)).toBe(150);
   });
 });
 
