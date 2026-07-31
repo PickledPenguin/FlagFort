@@ -198,6 +198,8 @@ export class Ui {
     this.decorateMenuPanel();
     if (this.game.phase === "paused" && !this.runExitConfirmation) {
       this.focusDialog(".pause-card");
+    } else if (this.game.enemyWarning) {
+      this.focusDialog(".warning-card");
     }
   }
 
@@ -623,9 +625,9 @@ export class Ui {
   private dawnMarkup(): string {
     if (this.game.enemyWarning) {
       const info = enemyInfo[this.game.enemyWarning];
-      return `<section class="screen modal-screen danger-screen"><div class="modal warning-card">
+      return `<section class="screen modal-screen danger-screen"><div class="modal warning-card" role="dialog" aria-modal="true" aria-labelledby="threat-warning-title">
         <p class="eyebrow">NEW THREAT · NIGHT ${this.game.night + 1}</p>
-        <img class="threat-symbol" data-zombie-portrait="${this.game.enemyWarning}" src="${ASSETS.enemies[this.game.enemyWarning]}" alt="" aria-hidden="true"><h2>${info.title}</h2>
+        <img class="threat-symbol" data-zombie-portrait="${this.game.enemyWarning}" src="${ASSETS.enemies[this.game.enemyWarning]}" alt="" aria-hidden="true"><h2 id="threat-warning-title">${info.title}</h2>
         <p>${info.text}</p><span class="tell">${info.tell}</span>
         <button class="primary wide" data-action="dismiss-warning">${icon("play")} Begin day ${this.game.night + 1}</button>
       </div></section>`;
@@ -1346,6 +1348,10 @@ export class Ui {
   }
 
   private handleKeydown(event: KeyboardEvent): void {
+    if (this.game.enemyWarning && event.code === "Tab") {
+      this.trapDialogFocus(event, ".warning-card");
+      return;
+    }
     if (this.game.rerollConfirmation && event.code === "Tab") {
       this.trapDialogFocus(event, ".reroll-card");
       return;

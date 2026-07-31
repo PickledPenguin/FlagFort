@@ -248,6 +248,26 @@ describe("event-driven HUD interaction", () => {
     expect(toast.innerHTML).toBe("");
   });
 
+  it("contains keyboard focus in the new threat warning", () => {
+    const { game, overlay, ui } = createHarness();
+    game.phase = "dawn";
+    game.enemyWarning = "runner";
+    ui.render(true);
+
+    const dialog = overlay.querySelector<HTMLElement>('[role="dialog"]')!;
+    const begin = dialog?.querySelector<HTMLElement>('[data-action="dismiss-warning"]')!;
+    expect(dialog).not.toBeNull();
+    expect(dialog.getAttribute("aria-modal")).toBe("true");
+    expect(dialog.getAttribute("aria-labelledby")).toBe("threat-warning-title");
+    expect(document.activeElement).toBe(begin);
+
+    window.dispatchEvent(new KeyboardEvent("keydown", { code: "Tab" }));
+    expect(document.activeElement).toBe(begin);
+
+    window.dispatchEvent(new KeyboardEvent("keydown", { code: "Tab", shiftKey: true }));
+    expect(document.activeElement).toBe(begin);
+  });
+
   it("contains keyboard focus in the reroll dialog and restores it when canceled", () => {
     const { game, overlay, ui } = createHarness();
     game.phase = "dawn";
