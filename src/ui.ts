@@ -200,6 +200,8 @@ export class Ui {
       this.focusDialog(".pause-card");
     } else if (this.game.enemyWarning) {
       this.focusDialog(".warning-card");
+    } else if (this.game.phase === "dawn") {
+      this.overlay.querySelector<HTMLElement>(".dawn-panel")?.focus();
     } else if (this.game.phase === "victory" || this.game.phase === "defeat") {
       this.overlay.querySelector<HTMLElement>(".result-card")?.focus();
     }
@@ -645,8 +647,8 @@ export class Ui {
         <div class="reroll-actions"><button class="ghost" data-action="cancel-reroll">Keep cards</button><button class="primary" data-action="confirm-reroll">Confirm reroll</button></div>
       </div></section>`;
     }
-    return `<section class="screen dawn-screen"><div class="dawn-panel">
-      <header><p class="eyebrow">DAWN ${this.game.night} · COUNT FROZEN</p><h2>${heading}</h2><span>Each benefit empowers the horde.</span>
+    return `<section class="screen dawn-screen"><div class="dawn-panel" role="region" aria-labelledby="dawn-title" tabindex="-1">
+      <header><p class="eyebrow">DAWN ${this.game.night} · COUNT FROZEN</p><h2 id="dawn-title">${heading}</h2><span>Each benefit empowers the horde.</span>
       </header>
         <div class="choice-viewport"><div class="choice-track" style="--card-transition-duration:${BALANCE.ui.cardTransitionDuration}ms;--card-transition-easing:${BALANCE.ui.cardTransitionEasing}"><div class="choice-set choice-pairs">${this.game.choices.map((choice, index) => this.choicePair(choice, index)).join("")}</div></div></div>
       <div class="reroll-dock"><p>Rerolls remaining <strong>${BALANCE.reroll.limit - this.game.rerollsUsed}/${BALANCE.reroll.limit}</strong></p>

@@ -248,6 +248,30 @@ describe("event-driven HUD interaction", () => {
     expect(toast.innerHTML).toBe("");
   });
 
+  it("moves focus to a named dawn choice region", () => {
+    const { game, overlay, ui } = createHarness();
+    game.phase = "dawn";
+    game.choices = [
+      {
+        id: "moveSpeed",
+        name: "Fleet Feet",
+        description: "Move faster",
+        mutationId: "health",
+        mutationName: "Thick Skulls",
+        mutationDescription: "More enemy health",
+        kind: "upgrade",
+      },
+    ];
+    ui.render(true);
+
+    const dawn = overlay.querySelector<HTMLElement>(".dawn-panel")!;
+    expect(dawn.getAttribute("role")).toBe("region");
+    expect(dawn.getAttribute("aria-labelledby")).toBe("dawn-title");
+    expect(dawn.querySelector("h2")?.id).toBe("dawn-title");
+    expect(dawn.tabIndex).toBe(-1);
+    expect(document.activeElement).toBe(dawn);
+  });
+
   it("contains keyboard focus in the new threat warning", () => {
     const { game, overlay, ui } = createHarness();
     game.phase = "dawn";
