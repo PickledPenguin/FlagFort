@@ -195,6 +195,20 @@ export class Ui {
     else if (this.game.phase === "dawn") this.overlay.innerHTML = this.dawnMarkup();
     else if (this.game.phase === "victory" || this.game.phase === "defeat") this.overlay.innerHTML = this.resultMarkup();
     else this.overlay.innerHTML = "";
+    this.decorateMenuPanel();
+  }
+
+  private decorateMenuPanel(): void {
+    if (!this.menuPanel) return;
+    const dialog = this.overlay.querySelector<HTMLElement>(".menu-modal");
+    if (!dialog) return;
+    const title = dialog.querySelector<HTMLElement>("h2");
+    dialog.setAttribute("role", "dialog");
+    dialog.setAttribute("aria-modal", "true");
+    if (title) {
+      title.id = "menu-panel-title";
+      dialog.setAttribute("aria-labelledby", title.id);
+    }
   }
 
   private menuMarkup(): string {
@@ -967,6 +981,8 @@ export class Ui {
   private handleOverlayClick(event: Event): void {
     const target = (event.target as HTMLElement).closest<HTMLElement>("[data-action],[data-difficulty],[data-choice],[data-challenge]");
     if (!target) return;
+    const action = target.dataset.action;
+    const panelBeforeAction = this.menuPanel;
     const difficulty = target.dataset.difficulty as Difficulty | undefined;
     if (difficulty) {
       audioManager.play("ui-click");
@@ -991,8 +1007,8 @@ export class Ui {
       this.selectChoice(target, Number(target.dataset.choice));
       return;
     }
-    this.playUiActivation(target.dataset.action);
-    switch (target.dataset.action) {
+    this.playUiActivation(action);
+    switch (action) {
       case "start": {
         const input = this.overlay.querySelector<HTMLInputElement>("#seed-input");
         this.seedDraft = input?.value ?? this.seedDraft;
@@ -1170,6 +1186,19 @@ export class Ui {
     }
     this.invalidate();
     this.render(true);
+    if (action === "close-panel" && panelBeforeAction) {
+      this.focusMenuPanelTrigger(panelBeforeAction);
+    } else if (
+      action === "controls"
+      || action === "settings"
+      || action === "challenges"
+      || action === "credits"
+      || action === "profile"
+      || action === "upgrades"
+      || action === "shop"
+    ) {
+      this.focusMenuPanel();
+    }
   }
 
   private handleHudClick(event: Event): void {
@@ -1285,12 +1314,18 @@ export class Ui {
   }
 
   private handleKeydown(event: KeyboardEvent): void {
+    if (this.menuPanel && event.code === "Tab") {
+      this.trapMenuPanelFocus(event);
+      return;
+    }
     if (this.menuPanel && event.code === "Escape") {
+      const panel = this.menuPanel;
       this.menuPanel = null;
       this.game.input.escapePressed = false;
       event.preventDefault();
       this.invalidate();
       this.render(true);
+      this.focusMenuPanelTrigger(panel);
       return;
     }
     if (this.runExitConfirmation && event.code === "Escape") {
@@ -1318,6 +1353,38 @@ export class Ui {
       this.invalidate();
       this.render(true);
       return;
+    }
+  }
+
+  private menuPanelFocusables(): HTMLElement[] {
+    return [...this.overlay.querySelectorAll<HTMLElement>(
+      ".menu-modal button:not(:disabled),.menu-modal input:not(:disabled)",
+    )].filter((element) => element.tabIndex >= 0);
+  }
+
+  private focusMenuPanel(): void {
+    this.menuPanelFocusables()[0]?.focus();
+  }
+
+  private focusMenuPanelTrigger(panel: Exclude<MenuPanel, null>): void {
+    this.overlay.querySelector<HTMLElement>(`[data-action="${panel}"]`)?.focus();
+  }
+
+  private trapMenuPanelFocus(event: KeyboardEvent): void {
+    const focusable = this.menuPanelFocusables();
+    const first = focusable.at(0);
+    const last = focusable.at(-1);
+    if (!first || !last) return;
+    const active = document.activeElement;
+    if (!this.overlay.querySelector(".menu-modal")?.contains(active)) {
+      first.focus();
+      event.preventDefault();
+    } else if (event.shiftKey && active === first) {
+      last.focus();
+      event.preventDefault();
+    } else if (!event.shiftKey && active === last) {
+      first.focus();
+      event.preventDefault();
     }
   }
 

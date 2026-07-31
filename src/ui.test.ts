@@ -171,6 +171,33 @@ describe("event-driven HUD interaction", () => {
     expect(game.phase).toBe("menu");
   });
 
+  it("keeps keyboard focus inside menu panels and restores it when closed", () => {
+    const { game, overlay, ui } = createHarness();
+    game.returnToMenu();
+    ui.render(true);
+    click(overlay.querySelector('[data-action="settings"]')!);
+
+    const dialog = overlay.querySelector<HTMLElement>('[role="dialog"]')!;
+    const close = dialog.querySelector<HTMLElement>('[data-action="close-panel"]')!;
+    const last = dialog.querySelectorAll<HTMLElement>("button,input").item(
+      dialog.querySelectorAll("button,input").length - 1,
+    );
+    expect(dialog.getAttribute("aria-modal")).toBe("true");
+    expect(dialog.getAttribute("aria-labelledby")).toBe("menu-panel-title");
+    expect(document.activeElement).toBe(close);
+
+    last.focus();
+    window.dispatchEvent(new KeyboardEvent("keydown", { code: "Tab" }));
+    expect(document.activeElement).toBe(close);
+
+    close.focus();
+    window.dispatchEvent(new KeyboardEvent("keydown", { code: "Tab", shiftKey: true }));
+    expect(document.activeElement).toBe(last);
+
+    click(close);
+    expect(document.activeElement).toBe(overlay.querySelector('[data-action="settings"]'));
+  });
+
   it("keeps the mute toggle icon consistent with its announced state", () => {
     const { game, overlay, ui } = createHarness();
     game.returnToMenu();
