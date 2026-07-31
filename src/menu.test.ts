@@ -23,4 +23,16 @@ describe("main menu presentation", () => {
       /img\.icon\.mouse-glyph\s*\{[\s\S]*filter:\s*none/,
     );
   });
+
+  it("uses the full portrait viewport and reserves space for menu chrome", () => {
+    expect(stylesSource).toContain(
+      "@media (orientation: portrait) and (max-width: 680px)",
+    );
+    expect(stylesSource).toMatch(
+      /#overlay:has\(> \.menu-screen\)\s*\{[\s\S]*width:\s*100vw;[\s\S]*height:\s*100vh;/,
+    );
+    expect(stylesSource).toMatch(
+      /\.menu-screen:has\(> \.daily-reward\)\s*\{[\s\S]*padding-top:\s*226px;/,
+    );
+  });
 });
