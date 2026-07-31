@@ -471,6 +471,21 @@ describe("event-driven HUD interaction", () => {
     expect(overlay.textContent).toContain("Run ended by player.");
   });
 
+  it("moves focus to a named result region when a run ends", () => {
+    const { game, overlay, ui } = createHarness();
+    game.phase = "defeat";
+    game.defeatReason = "The flag fell.";
+    ui.render(true);
+
+    const result = overlay.querySelector<HTMLElement>(".result-card")!;
+    const title = result.querySelector<HTMLElement>("h2")!;
+    expect(result.getAttribute("role")).toBe("region");
+    expect(result.getAttribute("aria-labelledby")).toBe("result-title");
+    expect(result.tabIndex).toBe(-1);
+    expect(title.id).toBe("result-title");
+    expect(document.activeElement).toBe(result);
+  });
+
   it("uses Escape to cancel ending an active run without resuming gameplay", () => {
     const { game, overlay, ui } = createHarness();
     game.togglePause();

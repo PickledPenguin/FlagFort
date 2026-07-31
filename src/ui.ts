@@ -200,6 +200,8 @@ export class Ui {
       this.focusDialog(".pause-card");
     } else if (this.game.enemyWarning) {
       this.focusDialog(".warning-card");
+    } else if (this.game.phase === "victory" || this.game.phase === "defeat") {
+      this.overlay.querySelector<HTMLElement>(".result-card")?.focus();
     }
   }
 
@@ -715,9 +717,9 @@ export class Ui {
         ["Difficulty bonus", settlement.xp.difficulty],
         ["Campaign victory", settlement.xp.victory],
       ] as const;
-      return `<section class="screen result-screen ${victory ? "won" : "lost"}"><div class="result-card reward-result-card">
+      return `<section class="screen result-screen ${victory ? "won" : "lost"}"><div class="result-card reward-result-card" role="region" aria-labelledby="result-title" tabindex="-1">
         <p class="eyebrow">${victory ? "FINAL COUNT CLEARED" : "COUNT ENDED"}</p>
-        <h2>${victory ? "Forest defended" : "Run settled"}</h2>
+        <h2 id="result-title">${victory ? "Forest defended" : "Run settled"}</h2>
         ${this.game.defeatReason ? `<p class="result-reason">${this.game.defeatReason}</p>` : ""}
         <div class="reward-body"><div class="reward-list"><div class="reward-categories">${categories.map(([label, value], index) => `<div class="reward-line" style="--reveal-index:${index}">
           <span>${label}</span><b>+${value} XP</b></div>`).join("")}</div>
@@ -744,9 +746,9 @@ export class Ui {
         </div></div>
       </div></section>`;
     }
-    return `<section class="screen result-screen ${victory ? "won" : "lost"}"><div class="result-card">
+    return `<section class="screen result-screen ${victory ? "won" : "lost"}"><div class="result-card" role="region" aria-labelledby="result-title" tabindex="-1">
       <p class="eyebrow">${victory ? "FINAL COUNT CLEARED" : "COUNT ENDED"}</p>
-      <h2>${victory ? "Forest defended" : "Run defeated"}</h2>
+      <h2 id="result-title">${victory ? "Forest defended" : "Run defeated"}</h2>
       ${this.game.defeatReason ? `<p class="result-reason">${this.game.defeatReason}</p>` : ""}
       <div class="night-result"><strong>${this.game.stats.nightsSurvived}</strong><span>NIGHTS</span></div>
       <div class="record-grid">
