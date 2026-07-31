@@ -474,10 +474,10 @@ export class Ui {
     const profile = this.game.profileManager?.profile;
     if (!profile) return "";
     const copy: Record<EquipmentKind, { title: string; text: string }> = {
-      helmet: { title: "Fort Helmet", text: "Reduces incoming player damage. Diamond protection reaches 50%." },
-      wrench: { title: "Lucky Wrench", text: "Can make a completed repair free after the normal cost is verified." },
-      sword: { title: "Night Sword", text: "Replaces fists during nighttime melee with a controlled sweeping cleave." },
-      mallet: { title: "Salvage Mallet", text: "Raises the exact per-resource return from recycling owned structures." },
+      helmet: { title: "Helmet", text: "Reduces player damage." },
+      wrench: { title: "Lucky Wrench", text: "Grants a chance for a structure repair to be free." },
+      sword: { title: "Sword", text: "Replaces fists during nighttime with a sweeping cleave." },
+      mallet: { title: "Salvage Mallet", text: "Increases return from recycling owned structures." },
     };
     return `<div class="menu-modal"><div class="modal shop-modal">
       <button class="modal-close" data-action="close-panel" aria-label="Close">${icon("close")}</button>
