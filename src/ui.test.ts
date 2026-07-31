@@ -282,6 +282,47 @@ describe("event-driven HUD interaction", () => {
     expect(game.phase).toBe("day");
   });
 
+  it("confirms ending an active run before showing settlement results", () => {
+    const { game, overlay, ui } = createHarness();
+    game.togglePause();
+    ui.render(true);
+
+    expect(overlay.querySelector('[data-action="menu"]')).toBeNull();
+    expect(overlay.querySelector('[data-action="request-run-exit"]')?.textContent)
+      .toContain("End run");
+
+    click(overlay.querySelector('[data-action="request-run-exit"]')!);
+    expect(game.phase).toBe("paused");
+    expect(game.modalLock).toBe(true);
+    expect(overlay.querySelector('[role="dialog"][aria-modal="true"]')).not.toBeNull();
+    expect(overlay.textContent).toContain("cannot be resumed");
+
+    click(overlay.querySelector('[data-action="cancel-run-exit"]')!);
+    expect(game.phase).toBe("paused");
+    expect(game.modalLock).toBe(false);
+    expect(overlay.textContent).toContain("Paused");
+
+    click(overlay.querySelector('[data-action="request-run-exit"]')!);
+    click(overlay.querySelector('[data-action="confirm-run-exit"]')!);
+    expect(game.phase).toBe("defeat");
+    expect(overlay.textContent).toContain("Run ended by player.");
+  });
+
+  it("uses Escape to cancel ending an active run without resuming gameplay", () => {
+    const { game, overlay, ui } = createHarness();
+    game.togglePause();
+    ui.render(true);
+    click(overlay.querySelector('[data-action="request-run-exit"]')!);
+
+    window.dispatchEvent(new KeyboardEvent("keydown", { code: "Escape" }));
+    game.update(BALANCE.fixedStep);
+
+    expect(game.phase).toBe("paused");
+    expect(game.modalLock).toBe(false);
+    expect(overlay.textContent).toContain("Paused");
+    expect(overlay.textContent).not.toContain("End this run?");
+  });
+
   it("offers only replay, next, and exit navigation in tutorial sections", () => {
     const { game, overlay, ui } = createHarness();
     game.returnToMenu();

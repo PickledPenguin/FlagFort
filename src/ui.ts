@@ -55,6 +55,7 @@ export class Ui {
   private openTierPanel: StructureKind | null = null;
   private tutorialOpen = false;
   private tutorialExitConfirmation = false;
+  private runExitConfirmation = false;
   private tutorialOrigin: TutorialOrigin = "menu";
   private menuPanel: MenuPanel = null;
   private lastOverlayKey = "";
@@ -159,6 +160,7 @@ export class Ui {
       this.difficulty,
       this.tutorialOpen,
       this.tutorialExitConfirmation,
+      this.runExitConfirmation,
       this.game.tutorialSection,
       this.game.tutorialTask,
       this.game.tutorialSectionComplete,
@@ -185,7 +187,11 @@ export class Ui {
     else if (this.game.skipNightConfirmation) this.overlay.innerHTML = this.skipNightMarkup();
     else if (this.investmentOpen) this.overlay.innerHTML = this.investmentMarkup();
     else if (this.game.phase === "menu") this.overlay.innerHTML = this.menuMarkup();
-    else if (this.game.phase === "paused") this.overlay.innerHTML = this.pauseMarkup();
+    else if (this.game.phase === "paused") {
+      this.overlay.innerHTML = this.runExitConfirmation
+        ? this.runExitConfirmationMarkup()
+        : this.pauseMarkup();
+    }
     else if (this.game.phase === "dawn") this.overlay.innerHTML = this.dawnMarkup();
     else if (this.game.phase === "victory" || this.game.phase === "defeat") this.overlay.innerHTML = this.resultMarkup();
     else this.overlay.innerHTML = "";
@@ -538,7 +544,19 @@ export class Ui {
     return `<section class="screen modal-screen"><div class="modal pause-card">
       <p class="eyebrow">COUNT FROZEN</p><h2>Paused</h2>
       <button class="primary wide" data-action="resume">${icon("play")} Resume</button>
-      <button class="ghost wide" data-action="menu">Main menu</button>
+      <button class="ghost wide" data-action="request-run-exit">End run</button>
+    </div></section>`;
+  }
+
+  private runExitConfirmationMarkup(): string {
+    return `<section class="screen modal-screen run-exit-screen"><div class="modal compact" role="dialog" aria-modal="true" aria-labelledby="run-exit-title">
+      <p class="eyebrow">ABANDON DEFENSE</p>
+      <h2 id="run-exit-title">End this run?</h2>
+      <p>Your progress will be settled now, and this run cannot be resumed.</p>
+      <div class="reroll-actions">
+        <button class="ghost" data-action="cancel-run-exit">Keep playing</button>
+        <button class="primary" data-action="confirm-run-exit">End run</button>
+      </div>
     </div></section>`;
   }
 
@@ -1012,6 +1030,19 @@ export class Ui {
       case "pause":
         this.game.togglePause();
         break;
+      case "request-run-exit":
+        this.runExitConfirmation = true;
+        this.game.modalLock = true;
+        break;
+      case "cancel-run-exit":
+        this.runExitConfirmation = false;
+        this.game.modalLock = false;
+        break;
+      case "confirm-run-exit":
+        this.runExitConfirmation = false;
+        this.game.modalLock = false;
+        this.game.endRunVoluntarily();
+        break;
       case "tutorial-menu":
         this.openTutorial("menu");
         break;
@@ -1254,6 +1285,15 @@ export class Ui {
   }
 
   private handleKeydown(event: KeyboardEvent): void {
+    if (this.runExitConfirmation && event.code === "Escape") {
+      this.runExitConfirmation = false;
+      this.game.modalLock = false;
+      this.game.input.escapePressed = false;
+      event.preventDefault();
+      this.invalidate();
+      this.render(true);
+      return;
+    }
     if (this.game.skipNightConfirmation && event.code === "Escape") {
       this.game.cancelSkipNight();
       this.game.input.escapePressed = false;
@@ -1280,6 +1320,7 @@ export class Ui {
       "confirm-reroll",
       "confirm-skip-night",
       "confirm-tutorial-exit",
+      "confirm-run-exit",
       "dismiss-warning",
       "restart-same",
       "restart-new",
@@ -1290,6 +1331,7 @@ export class Ui {
       "cancel-reroll",
       "cancel-skip-night",
       "cancel-tutorial-exit",
+      "cancel-run-exit",
       "menu",
       "tutorial-exit",
     ]);
