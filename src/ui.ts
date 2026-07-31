@@ -21,7 +21,7 @@ import {
   type EyeStyle,
   type PermanentUpgradeId,
 } from "./meta-balance";
-import { equipmentUpgradePrice, nextEquipmentTier } from "./equipment";
+import { equipmentUpgradePrice, nextEquipmentTier, recyclingRate } from "./equipment";
 import { levelProgress, type DailyRewardResult } from "./profile";
 
 const labels: Record<StructureKind, string> = {
@@ -31,6 +31,12 @@ const labels: Record<StructureKind, string> = {
   harvester: "Harvester",
   turret: "Turret",
 };
+
+function coinAmount(value: number, prefix = ""): string {
+  const signedValue = `${prefix}${value}`;
+  const spokenPrefix = prefix === "+" ? "plus " : prefix === "-" ? "minus " : "";
+  return `<span class="coin-amount" aria-label="${spokenPrefix}${Math.abs(value)} Coins" title="Coins"><span aria-hidden="true">${signedValue}<em>¢</em></span></span>`;
+}
 
 const enemyInfo: Record<EnemyKind, { title: string; text: string; tell: string }> = {
   basic: { title: "Basic Zombie", text: "A steady attacker focused on the flag.", tell: "Green body" },
@@ -97,7 +103,7 @@ export class Ui {
       if (investment) {
         this.investmentDraft = Number(investment.value);
         const output = investment.parentElement?.querySelector<HTMLOutputElement>("output");
-        if (output) output.value = `${this.investmentDraft} coins`;
+        if (output) output.innerHTML = coinAmount(this.investmentDraft);
         this.patchInvestmentPreview();
       }
     });
@@ -190,8 +196,11 @@ export class Ui {
     return `
       <section class="screen menu-screen">
         ${this.profileChipMarkup()}
+        <nav class="meta-actions" aria-label="Progression and equipment">
+          <button data-action="upgrades"><img src="${ASSETS.ui["upgrade-node"]}" alt="" aria-hidden="true"><span><b>Upgrades</b><small>Spend XP</small></span></button>
+          <button data-action="shop"><img src="${META_BALANCE.assets.equipment.sword.wood}" alt="" aria-hidden="true"><span><b>Shop</b><small>Manage gear</small></span></button>
+        </nav>
         <main class="menu-card">
-          <p class="eyebrow">GMTK 2026 · COUNT DOWN</p>
           <h1>FLAG <span>FORT</span></h1>
           <p class="menu-copy">Build by day. Hold through ten nights.</p>
           <div class="difficulty-picker" role="group" aria-label="Difficulty">
@@ -205,28 +214,24 @@ export class Ui {
             <label class="seed-box"><span>SEED</span><input id="seed-input" maxlength="48" autocomplete="off" spellcheck="false" placeholder="Random seed" value="${this.escapeAttribute(this.seedDraft)}"></label>
             <button class="icon-button seed-random" data-action="random-seed" aria-label="Randomize seed">${icon("shuffle")}<span class="tooltip">Randomize seed</span></button>
           </div>
-      <div class="meta-actions">
-        <button data-action="upgrades"><img src="${ASSETS.ui["upgrade-node"]}" alt=""><span><b>Upgrades</b><small>Spend XP</small></span></button>
-        <button data-action="shop"><img src="${ASSETS.equipment.sword}" alt=""><span><b>Shop</b><small>Manage gear</small></span></button>
-      </div>
       <button class="primary start-button tutorial-start-button" data-action="tutorial-menu">${icon("book")}<span>Tutorial</span></button>
       <button class="primary start-button" data-action="start">${icon("play")}<span>Start run</span></button>
       <nav class="menu-actions" aria-label="Game options">
-            <button data-action="controls">${gameSymbol("fists")}<span>Controls</span></button>
-            <button data-action="challenges">${icon("settings")}<span>Challenges${this.selectedChallenges.size ? ` (${this.selectedChallenges.size})` : ""}</span></button>
-            <button data-action="settings">${icon("settings")}<span>Settings</span></button>
+            <button data-action="controls">${icon("gamepad-2")}<span>Controls</span><span class="tooltip">Controls</span></button>
+            <button data-action="challenges">${icon("trophy")}<span>Challenges${this.selectedChallenges.size ? ` (${this.selectedChallenges.size})` : ""}</span><span class="tooltip">Challenges</span></button>
+            <button data-action="settings">${icon("sliders-horizontal")}<span>Settings</span><span class="tooltip">Settings</span></button>
             <button data-action="credits">${icon("info", "info-symbol")}<span>Credits</span></button>
             <button data-action="fullscreen">${icon("maximize")}<span>Fullscreen</span></button>
           </nav>
           <footer>
           <span>${daySeconds}s DAY · ${BALANCE.nightDuration}s NIGHT · 10 NIGHTS${this.selectedChallenges.size ? ` · ${this.selectedChallenges.size} CHALLENGES` : ""}</span>
             <span>v1.3.0</span>
-          ${recent ? `<span class="last-run">${recent.victory ? "Victory" : "Defeat"} · ${recent.nightsSurvived}/10${recent.challengeIds?.length ? ` · ${recent.challengeIds.length} challenges` : ""}</span>` : ""}
+          ${recent ? `<span class="last-run">${recent.victory ? "Victory" : "Defeat"} · ${recent.mode === "endless" ? `${recent.nightsSurvived} Endless nights` : `${recent.nightsSurvived}/10`}${recent.challengeIds?.length ? ` · ${recent.challengeIds.length} challenges` : ""}</span>` : ""}
           </footer>
         </main>
         ${this.dailyRewardVisible ? `<aside class="daily-reward" role="status">
-          <span class="daily-coin">+${this.dailyReward.amount}</span>
-          <div><b>Daily supply drop</b><small>Coins added for ${this.dailyReward.date} UTC</small></div>
+          <span class="daily-coin">${coinAmount(this.dailyReward.amount, "+")}</span>
+          <div><b>Daily supply drop</b><small><em aria-hidden="true">¢</em><span class="sr-only">Coins</span> added for ${this.dailyReward.date} UTC</small></div>
           <button data-action="dismiss-daily" aria-label="Dismiss daily reward">${icon("close")}</button>
         </aside>` : ""}
         ${this.menuPanel ? this.menuPanelMarkup() : ""}
@@ -250,7 +255,7 @@ export class Ui {
         <small>Level ${progress.level} · ${progress.current}/${progress.required} XP</small>
         <i style="--profile-xp:${progress.ratio * 100}%"></i>
       </span>
-      <strong>${profile.coins}<em>¢</em></strong>
+      <strong>${coinAmount(profile.coins)}</strong>
     </button>`;
   }
 
@@ -325,6 +330,17 @@ export class Ui {
     const progress = levelProgress(profile.lifetimeXp);
     const user = this.game.platform?.user;
     const helmet = profile.equipment.helmet;
+    const upgradeLevels = PERMANENT_UPGRADES.reduce(
+      (total, upgrade) => total + profile.permanentUpgrades[upgrade.id],
+      0,
+    );
+    const upgradeMaximum = PERMANENT_UPGRADES.length
+      * META_BALANCE.permanentUpgrade.maximumLevel;
+    const equipmentLevels = EQUIPMENT_ORDER.reduce((total, kind) => {
+      const tier = profile.equipment[kind].tier;
+      return total + (tier ? EQUIPMENT_TIER_ORDER.indexOf(tier) + 1 : 0);
+    }, 0);
+    const equipmentMaximum = EQUIPMENT_ORDER.length * EQUIPMENT_TIER_ORDER.length;
     return `<div class="menu-modal"><div class="modal profile-modal">
       <button class="modal-close" data-action="close-panel" aria-label="Close">${icon("close")}</button>
       <header><p class="eyebrow">DEFENDER PROFILE</p><h2>${user?.username ?? "Guest Defender"}</h2>
@@ -336,7 +352,7 @@ export class Ui {
             <i class="preview-body"></i>
             <img class="preview-details" src="${META_BALANCE.assets.player.bodyDetails}" alt="">
             <img class="preview-eyes" src="${META_BALANCE.assets.player.eyes[this.profileEyeDraft]}" alt="">
-            ${helmet.equipped && helmet.tier ? `<img class="preview-helmet equipment-${helmet.tier}" src="${META_BALANCE.assets.equipment.helmet}" alt="">` : ""}
+            ${helmet.equipped && helmet.tier ? `<img class="preview-helmet" src="${META_BALANCE.assets.equipment.helmet[helmet.tier]}" alt="">` : ""}
           </div>
           <div class="customization-group"><b>Player color</b><div class="swatch-row">
             ${META_BALANCE.customization.colors.map((color) => `<button data-action="pick-color" data-color="${color}"
@@ -349,14 +365,31 @@ export class Ui {
           <button class="primary wide" data-action="save-customization">Save appearance</button>
         </section>
         <section class="profile-ledger">
-          <div class="profile-level"><span>LEVEL</span><strong>${progress.level}</strong><div><i style="--profile-xp:${progress.ratio * 100}%"></i></div><small>${progress.current} / ${progress.required} XP to next level</small></div>
+          <div class="profile-level-banner">
+            <span class="level-medallion"><small>LEVEL</small><strong>${progress.level}</strong></span>
+            <span class="level-journey"><b>${progress.current} / ${progress.required} XP</b><small>to next level</small>
+              <i class="profile-progress-track"><em style="--profile-xp:${progress.ratio * 100}%"></em></i>
+            </span>
+          </div>
+          <div class="profile-currencies">
+            <span>${icon("trophy")}<b>${profile.lifetimeXp}</b><small>Lifetime XP</small></span>
+            <span>${icon("upgrade-node")}<b>${profile.spendableXp}</b><small>Spendable XP</small></span>
+            <span>${coinAmount(profile.coins)}<small>Balance</small></span>
+          </div>
+          <div class="profile-progression">
+            <article><header><span>${icon("upgrade-node")} Permanent upgrades</span><b>${upgradeLevels}/${upgradeMaximum}</b></header>
+              <i><em style="--progress:${upgradeMaximum ? upgradeLevels / upgradeMaximum * 100 : 0}%"></em></i>
+              <small>${Math.round(upgradeLevels / Math.max(1, upgradeMaximum) * 100)}% of upgrade levels owned</small>
+            </article>
+            <article><header><span>${icon("settings")} Equipment collection</span><b>${equipmentLevels}/${equipmentMaximum}</b></header>
+              <i><em style="--progress:${equipmentMaximum ? equipmentLevels / equipmentMaximum * 100 : 0}%"></em></i>
+              <small>${EQUIPMENT_ORDER.filter((kind) => profile.equipment[kind].tier).length} of ${EQUIPMENT_ORDER.length} equipment types unlocked</small>
+            </article>
+          </div>
           <div class="profile-stat-grid">
-            <span><b>${profile.lifetimeXp}</b>Lifetime XP</span>
-            <span><b>${profile.spendableXp}</b>Spendable XP</span>
-            <span><b>${profile.coins}</b>Coins</span>
-            <span><b>${profile.progress.highestNight}</b>Highest night</span>
-            <span><b>${profile.progress.campaignWins}</b>Campaign wins</span>
-            <span><b>${profile.progress.totalRuns}</b>Settled runs</span>
+            <span>${icon("timer")}<b>${profile.progress.totalNightsSurvived}</b><small>Total nights survived</small></span>
+            <span>${icon("trophy")}<b>${profile.progress.campaignWins}</b><small>Campaign victories</small></span>
+            <span>${icon("restart")}<b>${profile.progress.totalRuns}</b><small>Settled runs</small></span>
           </div>
           ${!user && this.game.platform?.userAccountAvailable
             ? `<button class="secondary wide" data-action="crazygames-login">Sign in with CrazyGames</button>`
@@ -411,24 +444,31 @@ export class Ui {
       helmet: { title: "Fort Helmet", text: "Reduces incoming player damage. Diamond protection reaches 50%." },
       wrench: { title: "Lucky Wrench", text: "Can make a completed repair free after the normal cost is verified." },
       sword: { title: "Night Sword", text: "Replaces fists during nighttime melee with a controlled sweeping cleave." },
+      mallet: { title: "Salvage Mallet", text: "Raises the exact per-resource return from recycling owned structures." },
     };
     return `<div class="menu-modal"><div class="modal shop-modal">
       <button class="modal-close" data-action="close-panel" aria-label="Close">${icon("close")}</button>
       <header><p class="eyebrow">FORT SUPPLY SHOP</p><h2>Equipment workshop</h2>
         <p>Unlock Wood, then improve the same item through Stone, Gold, and Diamond.</p>
-        <strong class="currency-pill coin">${profile.coins} coins</strong>
+        <strong class="currency-pill coin">${coinAmount(profile.coins)}</strong>
       </header>
       <div class="shop-grid">${EQUIPMENT_ORDER.map((kind) => {
         const item = profile.equipment[kind];
         const next = nextEquipmentTier(item.tier);
         const price = equipmentUpgradePrice(item.tier);
+        const shownTier = item.tier ?? "wood";
+        const activeRecyclingRate = Math.round(recyclingRate(item.tier, item.equipped) * 100);
         return `<article class="shop-item">
-          <div class="shop-art equipment-${item.tier ?? "wood"}"><img src="${META_BALANCE.assets.equipment[kind]}" alt=""></div>
+          <div class="shop-art"><img src="${META_BALANCE.assets.equipment[kind][shownTier]}" alt=""></div>
           <p class="eyebrow">${item.tier ? `${item.tier.toUpperCase()} TIER` : "LOCKED"}</p>
           <h3>${copy[kind].title}</h3><p>${copy[kind].text}</p>
+          ${kind === "mallet" ? `<div class="equipment-effect" aria-label="Active recycling return ${activeRecyclingRate} percent">
+            <span>ACTIVE RETURN</span><strong>${activeRecyclingRate}%</strong>
+            <small>Base 25% · Wood 35% · Stone 45% · Gold 60% · Diamond 75%</small>
+          </div>` : ""}
           <div class="tier-track">${EQUIPMENT_TIER_ORDER.map((tier) => `<i class="${item.tier && EQUIPMENT_TIER_ORDER.indexOf(tier) <= EQUIPMENT_TIER_ORDER.indexOf(item.tier) ? "owned" : ""}" title="${tier}"></i>`).join("")}</div>
           ${next && price !== null ? `<button class="primary wide" data-action="buy-equipment" data-equipment="${kind}" ${profile.coins < price ? "disabled" : ""}>
-            ${item.tier ? `Upgrade to ${next}` : "Unlock Wood"} · ${price} coins
+            ${item.tier ? `Upgrade to ${next}` : "Unlock Wood"} · ${coinAmount(price)}
           </button>` : `<button class="primary wide" disabled>Diamond maximum</button>`}
           ${item.tier ? `<button class="secondary wide" data-action="toggle-equipment" data-equipment="${kind}">${item.equipped ? "Equipped · Unequip" : "Equip"}</button>` : ""}
         </article>`;
@@ -443,10 +483,10 @@ export class Ui {
     return `<section class="screen modal-screen investment-screen"><div class="modal investment-modal">
       <button class="modal-close" data-action="cancel-investment" aria-label="Close">${icon("close")}</button>
       <p class="eyebrow">OPTIONAL RUN INVESTMENT</p><h2>Back your defense</h2>
-      <p>No investment is required. Coins are invested once when the run begins and settled once when it ends.</p>
-      <label class="investment-control"><span><b>Investment</b><output>${this.investmentDraft} coins</output></span>
+      <p>No investment is required. Your <em class="coin-symbol" aria-label="Coins">¢</em> stake is deducted once and settled once.</p>
+      <label class="investment-control"><span><b>Investment</b><output>${coinAmount(this.investmentDraft)}</output></span>
         <input type="range" min="0" max="${maximum}" step="1" value="${this.investmentDraft}" data-investment>
-        <small>Available ${coins} · Maximum ${maximum}</small>
+        <small>Available ${coinAmount(coins)} · Maximum ${coinAmount(maximum)}</small>
       </label>
       <div class="investment-preview" data-investment-preview>${this.investmentPreviewMarkup(this.investmentDraft)}</div>
       <div class="investment-table">
@@ -455,21 +495,21 @@ export class Ui {
         <span><b>Night 10</b>Return 200%</span>
       </div>
       <div class="result-actions"><button class="ghost" data-action="cancel-investment">Back</button>
-        <button class="primary" data-action="confirm-investment">${icon("play")} Start with ${this.investmentDraft} coins</button></div>
+        <button class="primary" data-action="confirm-investment">${icon("play")} Start with ${coinAmount(this.investmentDraft)}</button></div>
     </div></section>`;
   }
 
   private investmentPreviewMarkup(amount: number): string {
-    return `<span><small>Night 5 return</small><b>${amount} coins</b></span>
-      <span><small>Night 10 return</small><b>${amount * 2} coins</b></span>
-      <span><small>Possible profit</small><b>+${amount} coins</b></span>`;
+    return `<span><small>Night 5 return</small><b>${coinAmount(amount)}</b></span>
+      <span><small>Night 10 return</small><b>${coinAmount(amount * 2)}</b></span>
+      <span><small>Possible profit</small><b>${coinAmount(amount, "+")}</b></span>`;
   }
 
   private patchInvestmentPreview(): void {
     const preview = this.overlay.querySelector<HTMLElement>("[data-investment-preview]");
     if (preview) preview.innerHTML = this.investmentPreviewMarkup(this.investmentDraft);
     const start = this.overlay.querySelector<HTMLButtonElement>("[data-action='confirm-investment']");
-    if (start) start.innerHTML = `${icon("play")} Start with ${this.investmentDraft} coins`;
+    if (start) start.innerHTML = `${icon("play")} Start with ${coinAmount(this.investmentDraft)}`;
   }
 
   private volumeControl(
@@ -610,37 +650,47 @@ export class Ui {
     if (settlement) {
       const previous = levelProgress(settlement.previousLifetimeXp);
       const next = levelProgress(settlement.newLifetimeXp);
+      const profitOrLoss = settlement.coins.profitOrLoss;
+      const investmentOutcome = profitOrLoss > 0
+        ? { className: "positive", label: "PROFIT", sign: "+" }
+        : profitOrLoss < 0
+          ? { className: "negative", label: "LOSS", sign: "-" }
+          : { className: "neutral", label: "BREAK EVEN", sign: "=" };
       const categories = [
         ["Surviving structures", settlement.xp.structures],
         ["Personal zombie kills", settlement.xp.personalKills],
         ["Remaining resources", settlement.xp.resources],
         ["Nights survived", settlement.xp.nights],
+        ["Difficulty bonus", settlement.xp.difficulty],
         ["Campaign victory", settlement.xp.victory],
       ] as const;
       return `<section class="screen result-screen ${victory ? "won" : "lost"}"><div class="result-card reward-result-card">
         <p class="eyebrow">${victory ? "FINAL COUNT CLEARED" : "COUNT ENDED"}</p>
         <h2>${victory ? "Forest defended" : "Run settled"}</h2>
         ${this.game.defeatReason ? `<p class="result-reason">${this.game.defeatReason}</p>` : ""}
-        <div class="reward-categories">${categories.map(([label, value], index) => `<div class="reward-line" style="--reveal-index:${index}">
+        <div class="reward-body"><div class="reward-list"><div class="reward-categories">${categories.map(([label, value], index) => `<div class="reward-line" style="--reveal-index:${index}">
           <span>${label}</span><b>+${value} XP</b></div>`).join("")}</div>
         <button class="reward-skip" data-action="reveal-rewards">Show totals now</button>
-        <section class="reward-total" style="--reveal-index:5"><span>TOTAL REWARD</span><strong>+${settlement.xp.total} XP</strong></section>
-        <div class="level-transition" style="--reveal-index:6">
+        </div><div class="reward-summary">
+        <section class="reward-total" style="--reveal-index:6"><span>TOTAL REWARD</span><strong>+${settlement.xp.total} XP</strong></section>
+        <div class="level-transition" style="--reveal-index:7">
           <span><small>Before</small><b>Level ${previous.level}</b><em>${previous.current}/${previous.required} XP</em></span>
           <i>${icon("arrow-right")}</i>
           <span><small>After</small><b>Level ${next.level}</b><em>${next.current}/${next.required} XP</em></span>
           ${settlement.newLevel > settlement.previousLevel ? `<strong>LEVEL UP ×${settlement.newLevel - settlement.previousLevel}</strong>` : ""}
         </div>
-        <div class="coin-settlement" style="--reveal-index:7">
-          <span><small>Investment</small><b>${settlement.coins.investment}</b></span>
-          <span><small>Principal returned</small><b>${settlement.coins.returnedPrincipal}</b></span>
-          <span><small>Profit / loss</small><b class="${settlement.coins.profitOrLoss >= 0 ? "positive" : "negative"}">${settlement.coins.profitOrLoss >= 0 ? "+" : ""}${settlement.coins.profitOrLoss}</b></span>
-          <span><small>Coin return</small><b>${settlement.coins.totalReturn}</b></span>
-          <span><small>Final coin change</small><b class="${settlement.coins.finalCoinChange >= 0 ? "positive" : "negative"}">${settlement.coins.finalCoinChange >= 0 ? "+" : ""}${settlement.coins.finalCoinChange}</b></span>
-          <span><small>Updated balance</small><b>${settlement.newCoins}</b></span>
+        <div class="coin-settlement ${investmentOutcome.className}" style="--reveal-index:8" aria-label="Investment outcome">
+          <span><small>Invested</small><b>${coinAmount(settlement.coins.investment)}</b></span>
+          <i class="settlement-arrow" aria-hidden="true">${icon("arrow-right")}</i>
+          <span><small>Returned</small><b>${coinAmount(settlement.coins.totalReturn)}</b></span>
+          <strong class="settlement-outcome"><small>${investmentOutcome.label}</small><b>${investmentOutcome.sign}${coinAmount(Math.abs(profitOrLoss))}</b></strong>
+          <span><small>Balance</small><b>${coinAmount(settlement.newCoins)}</b></span>
+          <button class="settlement-help" aria-label="Investment rules" title="The return is based on completed nights. Investment is deducted once at run start and settled once at run end.">${icon("info")}</button>
         </div>
-        <div class="result-actions" style="--reveal-index:8"><button class="primary" data-action="restart-same">${icon("restart")} Same seed</button>
+        <div class="result-actions" style="--reveal-index:9">${victory && this.game.runMode === "campaign" ? `<button class="primary endless-continue" data-action="continue-endless">${icon("arrow-right")} Continue Endless</button>` : ""}
+          <button class="${victory ? "secondary" : "primary"}" data-action="restart-same">${icon("restart")} Same seed</button>
           <button class="secondary" data-action="restart-new">${icon("shuffle")} New seed</button><button class="ghost" data-action="menu">Main menu</button></div>
+        </div></div>
       </div></section>`;
     }
     return `<section class="screen result-screen ${victory ? "won" : "lost"}"><div class="result-card">
@@ -795,6 +845,8 @@ export class Ui {
     this.setText("[data-adaptive-actual]", `${liveThreat.actual}`);
     this.setText("[data-adaptive-expected]", `${liveThreat.expected}`);
     this.setText("[data-adaptive-difference]", `${liveThreat.difference}`);
+    this.setText("[data-adaptive-structure]", liveThreat.structureMultiplier.toFixed(3));
+    this.setText("[data-adaptive-level]", liveThreat.levelMultiplier.toFixed(3));
     this.setText("[data-adaptive-raw]", liveThreat.rawMultiplier.toFixed(3));
     this.setText("[data-adaptive-clamped]", liveThreat.multiplier.toFixed(3));
     for (const kind of ["turret", "harvester"] as const) {
@@ -858,6 +910,8 @@ export class Ui {
       <span>Actual <b data-adaptive-actual>${threat.actual}</b></span>
       <span>Expected <b data-adaptive-expected>${threat.expected}</b></span>
       <span>Difference <b data-adaptive-difference>${threat.difference}</b></span>
+      <span>Structure <b data-adaptive-structure>${threat.structureMultiplier.toFixed(3)}</b></span>
+      <span>Level ${threat.playerLevel} <b data-adaptive-level>${threat.levelMultiplier.toFixed(3)}</b></span>
       <span>Raw <b data-adaptive-raw>${threat.rawMultiplier.toFixed(3)}</b></span>
       <span>Clamped <b data-adaptive-clamped>${threat.multiplier.toFixed(3)}</b></span>
     </aside>`;
@@ -1052,6 +1106,9 @@ export class Ui {
         this.investmentDraft = 0;
         this.investmentOpen = true;
         break;
+      case "continue-endless":
+        this.game.continueIntoEndless();
+        break;
       case "menu":
         this.game.modalLock = false;
         this.tutorialOpen = false;
@@ -1201,6 +1258,7 @@ export class Ui {
       "dismiss-warning",
       "restart-same",
       "restart-new",
+      "continue-endless",
     ]);
     const cancelActions = new Set([
       "close-panel",

@@ -641,6 +641,8 @@ export class Renderer {
     const player = game.player;
     const angle = player.angle;
     const punching = player.cooldown > 0 && game.getSelectedAction() === "fists";
+    const profile = game.profileManager?.profile;
+    const equipment = profile?.equipment;
     ctx.save();
     ctx.translate(player.x, player.y);
     ctx.rotate(angle);
@@ -657,20 +659,36 @@ export class Renderer {
       if (game.phase === "night") {
         this.drawSprite(ASSETS.player.tools.bow, 8, -30, 58, 60);
       } else {
-        this.drawSprite(ASSETS.player.tools.repair, 15, -25, 45, 45);
+        const wrench = equipment?.wrench;
+        const wrenchAsset = wrench?.equipped && wrench.tier
+          ? META_BALANCE.assets.equipment.wrench[wrench.tier]
+          : ASSETS.player.tools.repair;
+        this.drawSprite(wrenchAsset, 15, -25, 45, 45);
       }
     } else if (action === "recycle") {
-      this.drawSprite(ASSETS.player.tools.recycle, 15, -25, 50, 50);
+      const mallet = equipment?.mallet;
+      const malletAsset = mallet?.equipped && mallet.tier
+        ? META_BALANCE.assets.equipment.mallet[mallet.tier]
+        : ASSETS.player.tools.recycle;
+      this.drawSprite(malletAsset, 15, -25, 50, 50);
+    } else if (action === "fists" && game.phase === "night") {
+      const sword = equipment?.sword;
+      if (sword?.equipped && sword.tier) {
+        this.drawSprite(META_BALANCE.assets.equipment.sword[sword.tier], 9, -37, 61, 68);
+      }
     } else if (!["fists", "tool", "recycle"].includes(action)) {
       this.drawSprite(ASSETS.player.tools.blueprint, 20, -22, 45, 44);
     }
-    const profile = game.profileManager?.profile;
     const playerColor = profile?.playerColor ?? META_BALANCE.customization.colors[0];
     const eyeStyle = profile?.eyeStyle ?? "round";
     const flashing = player.hurtFlash > 0;
     this.drawTintedSprite(ASSETS.player.body, playerColor, -30, -30, 60, 60, flashing);
     this.drawSprite(ASSETS.player.bodyDetails, -30, -30, 60, 60, flashing);
     this.drawSprite(ASSETS.player.eyes[eyeStyle], -30, -30, 60, 60, flashing);
+    const helmet = equipment?.helmet;
+    if (helmet?.equipped && helmet.tier) {
+      this.drawSprite(META_BALANCE.assets.equipment.helmet[helmet.tier], -30, -37, 60, 55, flashing);
+    }
     ctx.restore();
   }
 

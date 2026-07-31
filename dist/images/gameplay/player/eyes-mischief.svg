@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-30 -30 60 60">
+  <g id="eyes-mischief">
+    <path id="mischief-upper-eye" d="M1-13Q9-18 16-10Q9-5 1-9Z" fill="#fff8d6" stroke="#24342b" stroke-width="2" stroke-linejoin="round"/>
+    <path id="mischief-lower-eye" d="M1 8Q9 2 16 10Q9 16 1 12Z" fill="#fff8d6" stroke="#24342b" stroke-width="2" stroke-linejoin="round"/>
+    <circle id="upper-pupil" cx="11" cy="-10" r="2.5" fill="#24342b"/>
+    <circle id="lower-pupil" cx="11" cy="10" r="2.5" fill="#24342b"/>
+  </g>
+</svg>

@@ -199,7 +199,6 @@ export const BALANCE = {
     revolutionRadians: Math.PI * 2,
   },
   recycling: {
-    refundFraction: 0.5,
     rounding: "floor" as const,
   },
   nightMilestones: [
@@ -214,22 +213,46 @@ export const BALANCE = {
   baseWeights: { basic: 70, runner: 18, breaker: 12, jumper: 10, summoner: 7 },
   waveBase: 8,
   waveGrowth: 4,
-  structurePoints: {
-    wall: { wood: 2, stone: 4, gold: 8, diamond: 14 },
-    door: { wood: 2, stone: 4, gold: 8, diamond: 14 },
-    spikes: { wood: 3, stone: 6, gold: 12, diamond: 20 },
-    harvester: { wood: 7, stone: 13, gold: 24, diamond: 40 },
-    turret: { wood: 15, stone: 30, gold: 60, diamond: 120 },
+  /**
+   * Canonical fort value used by both adaptive difficulty and surviving-structure XP.
+   *
+   * Values are normalized to a Wood wall worth 10. Tier growth combines the
+   * cumulative resource cost at 1/2/4/8 resource exchange weights with the
+   * structure's existing health, retaliation, harvesting, or turret-DPS ratios.
+   * This preserves the former danger ordering while making material investment
+   * and real combat/economic output visible in one configurable table.
+   */
+  structureValues: {
+    wall: { wood: 10, stone: 20, gold: 34, diamond: 51 },
+    door: { wood: 10, stone: 20, gold: 35, diamond: 52 },
+    spikes: { wood: 13, stone: 26, gold: 45, diamond: 68 },
+    harvester: { wood: 26, stone: 51, gold: 84, diamond: 123 },
+    turret: { wood: 36, stone: 79, gold: 149, diamond: 262 },
   } satisfies Record<StructureKind, Record<Tier, number>>,
   adaptive: {
-    expectedByNight: [36, 76, 130, 200, 290, 400, 540, 710, 910, 580],
-    endlessGrowthPerNight: 82,
+    expectedByNight: [126, 266, 455, 700, 1015, 1400, 1890, 2485, 3185, 2030],
+    endlessGrowthPerNight: 287,
     endlessGrowthExponent: 0.82,
-    safeExpectedMinimum: 18,
-    sensitivity: 0.72,
-    deadZone: 0.05,
-    minimumMultiplier: 0.5,
-    maximumMultiplier: 1.5,
+    safeExpectedMinimum: 63,
+    structure: {
+      curve: "dead-zone-linear" as const,
+      sensitivity: 0.72,
+      deadZone: 0.05,
+      minimumMultiplier: 0.5,
+      maximumMultiplier: 1.5,
+    },
+    level: {
+      curve: "linear" as const,
+      baselineLevel: 1,
+      deltaPerLevel: 0.015,
+      minimumMultiplier: 1,
+      maximumMultiplier: 1.35,
+    },
+    effective: {
+      baseMultiplier: 1,
+      minimumMultiplier: 0.5,
+      maximumMultiplier: 1.75,
+    },
     healthInfluence: 0.16,
     damageInfluence: 0.1,
     specialWeightInfluence: 0.35,

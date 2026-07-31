@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-14 -48 88 96">
+  <g id="sword-diamond">
+    <g id="sword-blade-group" transform="rotate(8.365 23.829 2.005)">
+      <path id="sword-blade" d="m15 11 33-53 14-5-4 16-32 49z" fill="#57e5ef" stroke="#123d45" stroke-width="4" stroke-linejoin="round"/>
+      <path id="sword-blade-highlight" d="m26 6 26-41" fill="none" stroke="#fff" stroke-opacity=".86" stroke-width="3" stroke-linecap="round"/>
+    </g>
+    <path id="sword-grip" d="M10.015 22.044-3.104 36.908" fill="none" stroke="#1eabb8" stroke-width="10" stroke-linecap="round"/>
+    <circle id="sword-pommel" cx="-5.049" cy="39.451" r="6" fill="#c8fbff" stroke="#123d45" stroke-width="3"/>
+    <path id="sword-guard" d="m7.019 3.199 22.411 19.969-5.542 7.021L1.477 10.22Z" fill="#c8fbff" stroke="#123d45" stroke-width="4" stroke-linejoin="round"/>
+  </g>
+</svg>

@@ -8,6 +8,7 @@ import { Input } from "./input";
 import { musicContextForState, musicManager } from "./music";
 import { platform } from "./platform";
 import { ProfileManager } from "./profile";
+import type { RunSettlementResult } from "./profile";
 import { Renderer } from "./renderer";
 import type { Choice, EnemyKind } from "./types";
 import { Ui } from "./ui";
@@ -110,6 +111,42 @@ async function bootstrap(): Promise<void> {
       game.startRun("normal", "flagfall-toast-preview", [], true, { settle: false });
       game.toast = "A long gameplay message remains below the timer and Skip Night controls.";
       game.toastTime = 600;
+    } else if (preview.has("rewardPreview")) {
+      const outcome = preview.get("rewardPreview");
+      const profitOrLoss = outcome === "loss" ? -100 : outcome === "break-even" ? 0 : 100;
+      const totalReturn = 100 + profitOrLoss;
+      game.startRun("normal", "flagfall-reward-preview", [], true, { settle: false });
+      game.phase = outcome === "loss" ? "defeat" : "victory";
+      game.night = game.phase === "victory" ? 10 : 1;
+      game.stats.nightsSurvived = outcome === "loss" ? 0 : outcome === "break-even" ? 5 : 10;
+      game.lastSettlement = {
+        id: "reward-preview",
+        xp: {
+          structures: 262,
+          personalKills: 84,
+          resources: 12,
+          nights: 312,
+          victory: game.phase === "victory" ? 500 : 0,
+          difficulty: 125,
+          total: game.phase === "victory" ? 1295 : 483,
+        },
+        coins: {
+          investment: 100,
+          returnedPrincipal: Math.min(100, totalReturn),
+          profitOrLoss,
+          totalReturn,
+          finalCoinChange: profitOrLoss,
+          returnPercent: totalReturn,
+        },
+        previousLifetimeXp: 2390,
+        newLifetimeXp: game.phase === "victory" ? 3685 : 2873,
+        previousSpendableXp: 390,
+        newSpendableXp: game.phase === "victory" ? 1685 : 873,
+        previousCoins: 15,
+        newCoins: Math.max(0, 15 + totalReturn),
+        previousLevel: 5,
+        newLevel: game.phase === "victory" ? 7 : 6,
+      } satisfies RunSettlementResult;
     }
   }
 
@@ -118,7 +155,7 @@ async function bootstrap(): Promise<void> {
     100,
     profileManager.profile.progress.campaignWins > 0
       ? 100
-      : profileManager.profile.progress.highestNight * 10,
+      : profileManager.profile.progress.totalNightsSurvived * 10,
   ));
 
   function syncMusic(): void {

@@ -60,3 +60,8 @@ export function isRepairFree(
 export function swordStats(tier: EquipmentTier | null, equipped = true) {
   return tier && equipped ? META_BALANCE.equipment.sword[tier] : null;
 }
+
+export function recyclingRate(tier: EquipmentTier | null, equipped = true): number {
+  if (!tier || !equipped) return META_BALANCE.equipment.recyclingRate.unequipped;
+  return META_BALANCE.equipment.recyclingRate[tier];
+}

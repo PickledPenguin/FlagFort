@@ -1,4 +1,5 @@
 export type Difficulty = "easy" | "normal" | "hard" | "impossible";
+export type RunMode = "campaign" | "endless";
 export type Phase = "menu" | "day" | "night" | "dawn" | "paused" | "victory" | "defeat";
 export type ResourceKind = "wood" | "stone" | "gold" | "diamond";
 export type Tier = ResourceKind;
@@ -64,6 +65,7 @@ export interface Portal extends Circle {
 export interface Structure extends Circle {
   id: number;
   ownerId?: PlayerId;
+  investedResources?: Record<ResourceKind, number>;
   kind: StructureKind;
   tier: Tier;
   health: number;
@@ -172,6 +174,7 @@ export interface RunStats {
 export interface RunRecord extends RunStats {
   seed: string;
   difficulty: Difficulty;
+  mode?: RunMode;
   challengeIds: string[];
   victory: boolean;
   date: string;

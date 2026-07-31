@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="15 -25 50 50">
+  <g id="mallet-stone">
+    <path id="mallet-handle" d="M20.663 20.17 41.44-1.097" fill="none" stroke="#7e898f" stroke-width="7"/>
+    <rect id="mallet-head" x="14.844" y="-46.608" width="27" height="16" fill="#aeb7bc" stroke="#31393d" stroke-width="3" transform="rotate(45)"/>
+  </g>
+</svg>

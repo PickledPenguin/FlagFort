@@ -1,4 +1,5 @@
 import { META_BALANCE } from "./meta-balance";
+import { BALANCE } from "./config";
 import type { EnemyKind, ResourceKind } from "./types";
 
 export interface RunRewardInput {
@@ -7,6 +8,7 @@ export interface RunRewardInput {
   remainingResources: Record<ResourceKind, number>;
   nightsSurvived: number;
   victory: boolean;
+  effectiveDifficultyMultiplier?: number;
 }
 
 export interface XpRewardBreakdown {
@@ -15,6 +17,7 @@ export interface XpRewardBreakdown {
   resources: number;
   nights: number;
   victory: number;
+  difficulty: number;
   total: number;
 }
 
@@ -54,19 +57,38 @@ export function calculateNightXp(nightsSurvived: number): number {
   return total;
 }
 
+/**
+ * Linear reward from the normal adaptive baseline to the centralized safe cap.
+ * Reduced and baseline multipliers grant zero; the safe cap grants half of the
+ * configured campaign victory bonus.
+ */
+export function calculateDifficultyXp(effectiveMultiplier: number): number {
+  const base = META_BALANCE.rewards.difficultyBonus.normalBaseMultiplier;
+  const maximum = BALANCE.adaptive.effective.maximumMultiplier;
+  if (!Number.isFinite(effectiveMultiplier) || effectiveMultiplier <= base || maximum <= base) {
+    return 0;
+  }
+  const progress = Math.max(0, Math.min(1, (effectiveMultiplier - base) / (maximum - base)));
+  const maximumBonus = META_BALANCE.rewards.campaignVictoryBonus
+    * META_BALANCE.rewards.difficultyBonus.maximumVictoryFraction;
+  return Math.round(maximumBonus * progress);
+}
+
 export function calculateXpRewards(input: RunRewardInput): XpRewardBreakdown {
   const structures = calculateStructureXp(input.survivingStructurePoints);
   const personalKills = calculatePersonalKillXp(input.directPlayerKills);
   const resources = calculateResourceXp(input.remainingResources);
   const nights = calculateNightXp(input.nightsSurvived);
   const victory = input.victory ? META_BALANCE.rewards.campaignVictoryBonus : 0;
+  const difficulty = calculateDifficultyXp(input.effectiveDifficultyMultiplier ?? 1);
   return {
     structures,
     personalKills,
     resources,
     nights,
     victory,
-    total: structures + personalKills + resources + nights + victory,
+    difficulty,
+    total: structures + personalKills + resources + nights + victory + difficulty,
   };
 }
 

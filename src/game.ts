@@ -29,7 +29,12 @@ import {
   type ResourceWallet,
 } from "./rules";
 import { distance, overlaps, segmentCircle, SpatialHash } from "./spatial";
-import { freeRepairChance, mitigatePlayerDamage, swordStats } from "./equipment";
+import {
+  freeRepairChance,
+  mitigatePlayerDamage,
+  recyclingRate,
+  swordStats,
+} from "./equipment";
 import { permanentUpgradePercent, type PermanentUpgradeId } from "./meta-balance";
 import { resolveCooldown, resolveEffectiveStat } from "./modifiers";
 import type { GamePlatform } from "./platform";
@@ -50,6 +55,7 @@ import type {
   Projectile,
   ResourceNode,
   RunRecord,
+  RunMode,
   RunStats,
   Structure,
   StructureKind,
@@ -108,6 +114,8 @@ export class Game {
   phase: Phase = "menu";
   previousPhase: Phase = "day";
   difficulty: Difficulty = "normal";
+  runMode: RunMode = "campaign";
+  runStartNight = 1;
   seed = "";
   night = 1;
   timer: number = BALANCE.dayDuration;
@@ -259,6 +267,8 @@ export class Game {
     this.tutorialMode = false;
     this.flagPresent = true;
     this.difficulty = difficulty;
+    this.runMode = "campaign";
+    this.runStartNight = 1;
     this.activeChallenges = new Set(
       challengeIds.map((id) => id === "fifty-percent-days" ? "short-days" : id),
     );
@@ -335,7 +345,11 @@ export class Game {
     this.rerollConfirmation = false;
     this.skipNightConfirmation = false;
     this.structureScore = 0;
-    this.adaptiveState = adaptiveDifficulty(0, 1);
+    this.adaptiveState = adaptiveDifficulty(
+      0,
+      1,
+      this.profileManager?.profile.playerLevel ?? 1,
+    );
     this.playerDamageWarned = false;
     this.flagWarningCooldown = 0;
     this.footstepCooldown = 0;
@@ -352,6 +366,40 @@ export class Game {
 
   restart(sameSeed: boolean): void {
     this.startRun(this.difficulty, sameSeed ? this.seed : "", [...this.activeChallenges]);
+  }
+
+  continueIntoEndless(): boolean {
+    if (this.phase !== "victory" || this.night !== 10 || this.runMode !== "campaign") {
+      return false;
+    }
+    this.runMode = "endless";
+    this.runStartNight = 11;
+    this.stats = {
+      resourcesGathered: 0,
+      structuresBuilt: 0,
+      zombiesDefeated: 0,
+      elapsed: 0,
+      nightsSurvived: 0,
+    };
+    this.directPlayerKills = {
+      basic: 0,
+      runner: 0,
+      breaker: 0,
+      jumper: 0,
+      summoner: 0,
+      boss: 0,
+    };
+    this.lastSettlement = null;
+    this.runInvestment = 0;
+    this.runSettlementId = this.profileManager ? this.createSettlementId() : null;
+    if (this.runSettlementId && this.profileManager
+      && !this.profileManager.beginRunSettlement(this.runSettlementId, 0)) {
+      this.runSettlementId = null;
+      return false;
+    }
+    this.phase = "night";
+    this.beginDawn();
+    return true;
   }
 
   returnToMenu(): void {
@@ -510,6 +558,10 @@ export class Game {
       const structure: Structure = {
         id: this.nextId++,
         ownerId: LOCAL_PLAYER_ID,
+        investedResources: scaleCost(
+          cumulativeCost(kind, tier, this.upgrades.costReduction),
+          this.getChallengeModifiers().constructionCostMultiplier,
+        ),
         kind,
         tier,
         x,
@@ -1144,6 +1196,10 @@ export class Game {
       return;
     }
     const structure = preview.target as Structure;
+    if (!this.isOwnedByPlayer(structure, this.player.id)) {
+      emitAudioCue({ cue: "ui-invalid" });
+      return;
+    }
     addWallet(this.resources, preview.refund);
     this.structures = this.structures.filter((item) => item !== structure);
     this.recalculateStructureScore();
@@ -1185,7 +1241,9 @@ export class Game {
     const y = this.player.y + Math.sin(angle) * clampedDistance;
     const inReach = pointerDistance <= BALANCE.player.buildReach;
     let structure = inReach
-      ? this.structures.filter((item) => distance(mouse, item) <= item.radius + 20)
+      ? this.structures.filter((item) =>
+        this.isOwnedByPlayer(item, this.player.id)
+        && distance(mouse, item) <= item.radius + 20)
         .sort((a, b) => distance(mouse, a) - distance(mouse, b))[0] ?? null
       : null;
     if (this.tutorialMode && structure) {
@@ -1195,14 +1253,13 @@ export class Game {
     if (action === "recycle") {
       const refund = structure
         ? dismantleRefund(
-          structure.kind,
-          structure.tier,
-          this.upgrades.costReduction,
+          this.structureInvestment(structure),
+          this.getRecyclingRate(),
           structure.health,
           structure.maxHealth,
-          this.getChallengeModifiers().constructionCostMultiplier,
         )
         : emptyWallet();
+      const recyclingPercent = Math.round(this.getRecyclingRate() * 100);
       this.toolPreview = {
         x,
         y,
@@ -1213,7 +1270,9 @@ export class Game {
         cost: emptyWallet(),
         refund,
         restoreAmount: 0,
-        reason: structure ? "Recycle for 50%" : inReach ? "Structure required" : "Out of reach",
+        reason: structure
+          ? `Recycle at ${recyclingPercent}% value`
+          : inReach ? "Owned structure required" : "Out of reach",
       };
       return;
     }
@@ -1347,6 +1406,9 @@ export class Game {
     spend(this.resources, cost);
     if (preview.upgrading) {
       const structure = preview.upgrading;
+      const investedResources = this.structureInvestment(structure);
+      addWallet(investedResources, cost);
+      structure.investedResources = investedResources;
       const ratio = structure.health / structure.maxHealth;
       structure.tier = preview.tier;
       structure.maxHealth = this.structureMaxHealth(
@@ -1363,6 +1425,7 @@ export class Game {
       this.structures.push({
         id: this.nextId++,
         ownerId: this.player.id,
+        investedResources: { ...cost },
         kind,
         tier: preview.tier,
         x: preview.x,
@@ -2323,7 +2386,11 @@ export class Game {
     const difficulty = BALANCE.difficulty[this.difficulty];
     const challengeModifiers = this.getChallengeModifiers();
     this.recalculateStructureScore();
-    this.adaptiveState = adaptiveDifficulty(this.structureScore, this.night);
+    this.adaptiveState = adaptiveDifficulty(
+      this.structureScore,
+      this.night,
+      this.profileManager?.profile.playerLevel ?? 1,
+    );
     const total = Math.round(
       (BALANCE.waveBase + (this.night - 1) * BALANCE.waveGrowth + this.mutations.waveSize)
         * difficulty.spawnCount
@@ -2357,7 +2424,7 @@ export class Game {
     this.nightWaveScheduled = false;
     this.phaseElapsed = 0;
     this.phaseTransitionImpact = 0.55;
-    this.stats.nightsSurvived = this.night;
+    this.stats.nightsSurvived = Math.max(0, this.night - this.runStartNight + 1);
     this.platform?.reportProgress(Math.min(90, this.night * 10));
     if (
       !this.hasChallenge("permanent-player-damage")
@@ -2498,8 +2565,7 @@ export class Game {
     const base = BALANCE.structure.health[kind][BALANCE.tierIndex[tier]] ?? 100;
     return resolveEffectiveStat({
       base,
-      permanent: this.getPermanentPercent("structureHealth", ownerId)
-        + (kind === "wall" ? this.getPermanentPercent("wallHealth", ownerId) : 0),
+      permanent: this.getPermanentPercent("structureHealth", ownerId),
       challenge: this.getChallengeModifiers().structureHealthMultiplier - 1,
       temporary: this.upgrades.structureDurability,
     });
@@ -2586,6 +2652,7 @@ export class Game {
         remainingResources: this.resources,
         nightsSurvived: this.stats.nightsSurvived,
         victory,
+        effectiveDifficultyMultiplier: this.adaptiveState.multiplier,
       });
       const coins = settleCoinInvestment(this.runInvestment, this.stats.nightsSurvived);
       this.lastSettlement = this.profileManager.settleRun(
@@ -2603,6 +2670,7 @@ export class Game {
       ...this.stats,
       seed: this.seed,
       difficulty: this.difficulty,
+      mode: this.runMode,
       challengeIds: [...this.activeChallenges],
       victory,
       date: new Date().toISOString(),
@@ -2732,12 +2800,37 @@ export class Game {
 
   private recalculateStructureScore(): void {
     this.structureScore = this.structures
-      .filter((structure) => structure.health > 0)
+      .filter((structure) =>
+        structure.health > 0
+        && this.isOwnedByPlayer(structure, this.player.id))
       .reduce((total, structure) => total + structurePointValue(structure.kind, structure.tier), 0);
   }
 
   getAdaptiveThreat(): AdaptiveDifficulty {
-    return this.phase === "day" ? adaptiveDifficulty(this.structureScore, this.night) : this.adaptiveState;
+    return this.phase === "day"
+      ? adaptiveDifficulty(
+        this.structureScore,
+        this.night,
+        this.profileManager?.profile.playerLevel ?? 1,
+      )
+      : this.adaptiveState;
+  }
+
+  getRecyclingRate(): number {
+    const item = this.profileManager?.profile.equipment.mallet;
+    return recyclingRate(item?.tier ?? null, item?.equipped ?? false);
+  }
+
+  private isOwnedByPlayer(structure: Structure, playerId: PlayerId): boolean {
+    return (structure.ownerId ?? LOCAL_PLAYER_ID) === playerId;
+  }
+
+  private structureInvestment(structure: Structure): ResourceWallet {
+    if (structure.investedResources) return { ...structure.investedResources };
+    return scaleCost(
+      cumulativeCost(structure.kind, structure.tier, this.upgrades.costReduction),
+      this.getChallengeModifiers().constructionCostMultiplier,
+    );
   }
 
   private isCapacityReached(kind: StructureKind): boolean {
@@ -2748,6 +2841,10 @@ export class Game {
 
   private completeBossNight(): void {
     if (this.phase !== "night") return;
+    if (this.runMode === "endless") {
+      this.beginDawn();
+      return;
+    }
     this.phase = "day";
     this.phaseElapsed = 0;
     this.igniteOrdinaryZombies();

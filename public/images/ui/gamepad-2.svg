@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <g id="gamepad-controls">
+    <path d="M6 11h4"/>
+    <path d="M8 9v4"/>
+    <path d="M15 12h.01"/>
+    <path d="M18 10h.01"/>
+    <path d="M17.32 5H6.68a4 4 0 0 0-3.98 3.59l-.7 7A3 3 0 0 0 5 19h1c1 0 1.5-.5 2-1l1-1h6l1 1c.5.5 1 1 2 1h1a3 3 0 0 0 3-3.41l-.7-7A4 4 0 0 0 17.32 5Z"/>
+  </g>
+</svg>

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-12 -36 72 72">
+  <g id="wrench-stone">
+    <path id="wrench-handle" d="m-8.801 24.183 30-30 9.411 9.41-30 30Z" fill="#aeb7bc" stroke="#31393d" stroke-width="4" stroke-linejoin="round"/>
+    <circle id="wrench-handle-hole" cx="-2.801" cy="28.183" r="4" fill="#102b20"/>
+    <path id="wrench-jaw" d="M22.052-7.235C17.854-20.674 28.887-31.215 42.283-32.222L34.66-16.92l5.916 6.003 14.157-9.508C55.68-4.229 45.447 4.935 32.548 3.48Z" fill="#aeb7bc" stroke="#31393d" stroke-width="4" stroke-linejoin="round"/>
+    <path id="wrench-shine" d="m21.199-.817-23 23" fill="none" stroke="#fff" stroke-opacity=".4" stroke-width="3" stroke-linecap="round"/>
+  </g>
+</svg>

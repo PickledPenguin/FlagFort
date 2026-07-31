@@ -209,12 +209,12 @@ describe("foundational refactor", () => {
   });
 
   it("uses centralized structure points and a clamped expected progression curve", () => {
-    expect(structurePointValue("wall", "wood")).toBe(2);
-    expect(structurePointValue("turret", "diamond")).toBe(120);
-    expect(expectedStructurePoints(10)).toBe(580);
-    expect(expectedStructurePoints(15)).toBeGreaterThan(580);
-    expect(adaptiveDifficulty(0, 10).multiplier).toBe(BALANCE.adaptive.minimumMultiplier);
-    expect(adaptiveDifficulty(10_000, 1).multiplier).toBe(BALANCE.adaptive.maximumMultiplier);
+    expect(structurePointValue("wall", "wood")).toBe(10);
+    expect(structurePointValue("turret", "diamond")).toBe(262);
+    expect(expectedStructurePoints(10)).toBe(2030);
+    expect(expectedStructurePoints(15)).toBeGreaterThan(2030);
+    expect(adaptiveDifficulty(0, 10).multiplier).toBe(BALANCE.adaptive.effective.minimumMultiplier);
+    expect(adaptiveDifficulty(10_000, 1).multiplier).toBe(BALANCE.adaptive.structure.maximumMultiplier);
   });
 
   it("renders a centered numeric clock without a spinning hand", () => {

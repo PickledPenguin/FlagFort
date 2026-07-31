@@ -1,4 +1,4 @@
-import { cardAsset, svgAsset } from "./assets";
+import { cardAsset, EQUIPMENT_ASSETS, svgAsset } from "./assets";
 import type { EnemyKind, ResourceKind, StructureKind, Tier } from "./types";
 
 export type PermanentUpgradeId =
@@ -11,12 +11,11 @@ export type PermanentUpgradeId =
   | "turretRange"
   | "harvesterSpeed"
   | "harvestRate"
-  | "wallHealth"
   | "structureHealth";
 
-export type EquipmentKind = "helmet" | "wrench" | "sword";
+export type EquipmentKind = "helmet" | "wrench" | "sword" | "mallet";
 export type EquipmentTier = Tier;
-export type EyeStyle = "round" | "focused" | "sleepy";
+export type EyeStyle = "round" | "focused" | "sleepy" | "sparkle" | "mischief";
 
 export interface PermanentUpgradeDefinition {
   id: PermanentUpgradeId;
@@ -36,12 +35,11 @@ export const PERMANENT_UPGRADES: readonly PermanentUpgradeDefinition[] = [
   { id: "turretRate", title: "Turret Fire Rate", theme: "Structures", description: "Increase owned turret fire rate.", icon: cardAsset("upgrades", "turret-rate") },
   { id: "turretRange", title: "Turret Range", theme: "Structures", description: "Increase owned turret range.", icon: cardAsset("upgrades", "turret-range") },
   { id: "harvesterSpeed", title: "Harvester Speed", theme: "Structures", description: "Increase owned harvester rotation speed.", icon: cardAsset("upgrades", "harvester-speed") },
-  { id: "wallHealth", title: "Wall Health", theme: "Durability", description: "Increase owned wall durability.", icon: cardAsset("upgrades", "structure-durability") },
-  { id: "structureHealth", title: "Structure Health", theme: "Durability", description: "Increase all owned structure durability.", icon: cardAsset("upgrades", "structure-durability") },
+  { id: "structureHealth", title: "Structure Health", theme: "Durability", description: "Increase every owned player-built structure's durability.", icon: cardAsset("upgrades", "structure-durability") },
 ] as const;
 
 export const META_BALANCE = {
-  profileSchemaVersion: 2,
+  profileSchemaVersion: 3,
   profileStorageKey: "flagfort-profile-v2",
   legacyRecordsKey: "countdown-forest-records",
   dailyRewardCoins: 10,
@@ -65,12 +63,12 @@ export const META_BALANCE = {
   rewards: {
     structurePointXp: 1,
     enemyKillXp: {
-      basic: 2,
-      runner: 3,
-      breaker: 6,
-      jumper: 7,
-      summoner: 10,
-      boss: 100,
+      basic: 1,
+      runner: 2,
+      breaker: 4,
+      jumper: 5,
+      summoner: 8,
+      boss: 80,
     } satisfies Record<EnemyKind, number>,
     resourceWeights: {
       wood: 1,
@@ -78,14 +76,26 @@ export const META_BALANCE = {
       gold: 4,
       diamond: 8,
     } satisfies Record<ResourceKind, number>,
-    resourceLogScale: 12,
-    nightXp: [0, 20, 24, 29, 34, 40, 45, 49, 53, 57, 60],
+    resourceLogScale: 3,
+    nightXp: [0, 15, 18, 22, 26, 30, 34, 38, 41, 43, 45],
     campaignVictoryBonus: 500,
+    difficultyBonus: {
+      curve: "linear" as const,
+      normalBaseMultiplier: 1,
+      maximumVictoryFraction: 0.5,
+    },
   },
   equipment: {
     tierPrices: { wood: 100, stone: 250, gold: 500, diamond: 900 } satisfies Record<Tier, number>,
     helmetMitigation: { wood: 0.1, stone: 0.22, gold: 0.35, diamond: 0.5 } satisfies Record<Tier, number>,
     wrenchFreeRepairChance: { wood: 0.1, stone: 0.22, gold: 0.35, diamond: 0.5 } satisfies Record<Tier, number>,
+    recyclingRate: {
+      unequipped: 0.25,
+      wood: 0.35,
+      stone: 0.45,
+      gold: 0.6,
+      diamond: 0.75,
+    } satisfies Record<Tier | "unequipped", number>,
     sword: {
       wood: { damageMultiplier: 1.1, cooldownMultiplier: 2, range: 88, arc: 1.15, targetLimit: 2, knockback: 14 },
       stone: { damageMultiplier: 1.35, cooldownMultiplier: 1.6, range: 94, arc: 1.3, targetLimit: 3, knockback: 18 },
@@ -102,14 +112,10 @@ export const META_BALANCE = {
   },
   customization: {
     colors: ["#d9b783", "#f1c7a5", "#a96f4d", "#6f4938", "#d7a6c8", "#8fc7ba"],
-    eyeStyles: ["round", "focused", "sleepy"] as readonly EyeStyle[],
+    eyeStyles: ["round", "focused", "sleepy", "sparkle", "mischief"] as readonly EyeStyle[],
   },
   assets: {
-    equipment: {
-      helmet: svgAsset("equipment/helmet"),
-      wrench: svgAsset("equipment/wrench"),
-      sword: svgAsset("equipment/sword"),
-    } satisfies Record<EquipmentKind, string>,
+    equipment: EQUIPMENT_ASSETS satisfies Record<EquipmentKind, Record<Tier, string>>,
     player: {
       body: svgAsset("gameplay/player/body-base"),
       bodyDetails: svgAsset("gameplay/player/body-details"),
@@ -117,12 +123,14 @@ export const META_BALANCE = {
         round: svgAsset("gameplay/player/eyes-round"),
         focused: svgAsset("gameplay/player/eyes-focused"),
         sleepy: svgAsset("gameplay/player/eyes-sleepy"),
+        sparkle: svgAsset("gameplay/player/eyes-sparkle"),
+        mischief: svgAsset("gameplay/player/eyes-mischief"),
       } satisfies Record<EyeStyle, string>,
     },
   },
 } as const;
 
-export const EQUIPMENT_ORDER: readonly EquipmentKind[] = ["helmet", "wrench", "sword"];
+export const EQUIPMENT_ORDER: readonly EquipmentKind[] = ["helmet", "wrench", "sword", "mallet"];
 export const EQUIPMENT_TIER_ORDER: readonly EquipmentTier[] = ["wood", "stone", "gold", "diamond"];
 
 export function permanentUpgradeCost(levelToBuy: number): number {

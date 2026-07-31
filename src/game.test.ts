@@ -161,8 +161,11 @@ describe("structure economy", () => {
     expect(upgradeCost("turret", "stone", "diamond")).toEqual({ wood: 0, stone: 0, gold: 16, diamond: 10 });
   });
 
-  it("returns a consistently rounded fifty-percent dismantle refund", () => {
-    expect(dismantleRefund("spikes", "diamond")).toEqual({ wood: 7, stone: 4, gold: 3, diamond: 2 });
+  it("returns a consistently rounded refund from actual invested resources", () => {
+    expect(dismantleRefund(
+      { wood: 14, stone: 9, gold: 7, diamond: 4 },
+      0.25,
+    )).toEqual({ wood: 3, stone: 2, gold: 1, diamond: 1 });
   });
 
   it("clamps structure cost reduction at sixty percent", () => {
@@ -224,7 +227,7 @@ describe("structure economy", () => {
     input.pressed = true;
     game.update(0.02);
     expect(game.structures).toHaveLength(0);
-    expect(game.resources).toEqual({ wood: 2, stone: 0, gold: 0, diamond: 0 });
+    expect(game.resources).toEqual({ wood: 1, stone: 0, gold: 0, diamond: 0 });
   });
 });
 

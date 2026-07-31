@@ -48,6 +48,40 @@ describe("versioned profile persistence", () => {
     expect(profile.completedSettlementIds).toEqual(["a"]);
   });
 
+  it("infers total nights from the separate legacy run history", () => {
+    const store = new TestStore();
+    store.setItem(META_BALANCE.legacyRecordsKey, JSON.stringify([
+      {
+        seed: "legacy-one",
+        difficulty: "normal",
+        challengeIds: [],
+        victory: true,
+        date: "2026-07-28T12:00:00.000Z",
+        resourcesGathered: 10,
+        structuresBuilt: 2,
+        zombiesDefeated: 20,
+        elapsed: 900,
+        nightsSurvived: 10,
+      },
+      {
+        seed: "legacy-two",
+        difficulty: "hard",
+        challengeIds: [],
+        victory: false,
+        date: "2026-07-29T12:00:00.000Z",
+        resourcesGathered: 4,
+        structuresBuilt: 1,
+        zombiesDefeated: 8,
+        elapsed: 360,
+        nightsSurvived: 4,
+      },
+    ]));
+
+    const manager = new ProfileManager(store);
+
+    expect(manager.profile.progress.totalNightsSurvived).toBe(14);
+  });
+
   it("grants one UTC calendar-day reward across reloads", () => {
     const store = new TestStore();
     const first = new ProfileManager(store);
@@ -93,6 +127,7 @@ describe("versioned profile persistence", () => {
     })).toBeNull();
     expect(manager.profile.coins).toBe(200);
     expect(manager.profile.progress.totalRuns).toBe(1);
+    expect(manager.profile.progress.totalNightsSurvived).toBe(10);
   });
 
   it("keeps lifetime XP when permanent upgrades spend XP", () => {

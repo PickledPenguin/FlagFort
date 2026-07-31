@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-32 -28 64 56">
+  <g id="helmet-stone">
+    <path id="helmet-shell" d="M-24 3C-24-14-14-24 0-24S24-14 24 3V10H-24Z" fill="#aeb7bc" stroke="#31393d" stroke-width="4" stroke-linejoin="round"/>
+    <path id="helmet-ridge" d="M0-22.196V8" fill="none" stroke="#fff" stroke-opacity=".38" stroke-width="4"/>
+    <path id="helmet-brim" d="M-28 8H28V16H-28Z" fill="#7e898f" stroke="#31393d" stroke-width="4" stroke-linejoin="round"/>
+  </g>
+</svg>

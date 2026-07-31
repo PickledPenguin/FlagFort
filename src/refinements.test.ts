@@ -269,9 +269,9 @@ describe("night, economy, and tutorial refinements", () => {
     (game as unknown as { harvestNode: (n: typeof node, tier: "wood", scale: number) => void })
       .harvestNode(node, "wood", 1);
     expect(game.particles.some((particle) => particle.resource === "wood" && particle.text?.startsWith("+"))).toBe(true);
-    expect(dismantleRefund("wall", "wood", 0, 150, 150).wood).toBe(5);
-    expect(dismantleRefund("wall", "wood", 0, 75, 150).wood).toBe(2);
-    expect(dismantleRefund("wall", "wood", 0, 0, 150)).toEqual(emptyWallet());
+    expect(dismantleRefund({ wood: 10, stone: 0, gold: 0, diamond: 0 }, 0.25, 150, 150).wood).toBe(2);
+    expect(dismantleRefund({ wood: 10, stone: 0, gold: 0, diamond: 0 }, 0.25, 75, 150).wood).toBe(1);
+    expect(dismantleRefund({ wood: 10, stone: 0, gold: 0, diamond: 0 }, 0.25, 0, 150)).toEqual(emptyWallet());
   });
 
   it("gates tutorial actions, auto-completes events, and isolates run records", () => {

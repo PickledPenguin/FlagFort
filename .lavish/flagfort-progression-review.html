@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FlagFort Progression Refinement Review</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --forest-950: #06130d;
+      --forest-900: #081d13;
+      --forest-800: #102b20;
+      --forest-700: #173c28;
+      --forest-600: #315f40;
+      --mint: #74f3a5;
+      --mint-soft: #baffce;
+      --cream: #fff7dc;
+      --gold: #f6c945;
+      --diamond: #57e5ef;
+      --stone: #aeb7bc;
+      --wood: #b77a45;
+      --danger: #ff8177;
+      --muted: #a9b9ae;
+      --line: rgba(186, 255, 206, .26);
+      --shadow: #020b07;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { background: var(--forest-950); }
+
+    body {
+      margin: 0;
+      min-width: 0;
+      color: var(--cream);
+      background:
+        radial-gradient(circle at 12% 4%, rgba(116, 243, 165, .12), transparent 28rem),
+        radial-gradient(circle at 88% 14%, rgba(87, 229, 239, .07), transparent 24rem),
+        linear-gradient(180deg, var(--forest-800), var(--forest-950) 70%);
+      font: 500 15px/1.55 "Trebuchet MS", Arial, sans-serif;
+    }
+
+    main {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 40px 0 72px;
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+
+    h1, h2, .metric strong, .score-table strong {
+      font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+      letter-spacing: .025em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      max-width: 850px;
+      margin-bottom: 12px;
+      padding-block: .08em;
+      font-size: clamp(42px, 7vw, 86px);
+      line-height: 1.16;
+    }
+
+    h1 span { color: var(--mint); }
+
+    h2 {
+      margin-bottom: 18px;
+      padding-block: .08em;
+      font-size: clamp(25px, 4vw, 38px);
+      line-height: 1.28;
+    }
+
+    h3 { margin-bottom: 5px; font-size: 17px; }
+
+    .eyebrow {
+      margin-bottom: 10px;
+      color: var(--mint);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+    }
+
+    .lede {
+      max-width: 760px;
+      color: #d2ded6;
+      font-size: 18px;
+    }
+
+    .hero,
+    .panel,
+    .shot,
+    .metric,
+    .flow-card {
+      min-width: 0;
+      border: 2px solid var(--line);
+      border-radius: 18px;
+      background: rgba(8, 29, 19, .88);
+      box-shadow: 0 8px 0 rgba(2, 11, 7, .7);
+    }
+
+    .hero {
+      position: relative;
+      isolation: isolate;
+      padding: clamp(24px, 5vw, 54px);
+    }
+
+    .hero > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero::after {
+      position: absolute;
+      right: 18px;
+      bottom: 18px;
+      z-index: 0;
+      width: 220px;
+      height: 220px;
+      border: 46px solid rgba(116, 243, 165, .045);
+      border-radius: 50%;
+      content: "";
+    }
+
+    .status-row,
+    .metrics,
+    .gallery,
+    .flow,
+    .split,
+    .check-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+      gap: 14px;
+    }
+
+    .status-row { margin-top: 26px; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      padding: 9px 12px;
+      border: 1px solid rgba(116, 243, 165, .4);
+      border-radius: 999px;
+      color: var(--mint-soft);
+      background: rgba(49, 95, 64, .45);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .badge::before {
+      width: 9px;
+      height: 9px;
+      flex: 0 0 auto;
+      border-radius: 50%;
+      background: var(--mint);
+      box-shadow: 0 0 12px rgba(116, 243, 165, .7);
+      content: "";
+    }
+
+    section { margin-top: 42px; }
+
+    .metrics { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+    .metric { padding: 18px; }
+
+    .metric strong {
+      display: block;
+      color: var(--mint);
+      font-size: 34px;
+      line-height: 1.16;
+    }
+
+    .metric span {
+      display: block;
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+    }
+
+    .gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+    .shot { overflow: hidden; }
+
+    .shot img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+      background: var(--forest-950);
+    }
+
+    .shot figcaption {
+      padding: 14px 16px 16px;
+      color: var(--muted);
+    }
+
+    .shot figcaption strong {
+      display: block;
+      margin-bottom: 2px;
+      color: var(--cream);
+    }
+
+    .panel { padding: clamp(18px, 3vw, 30px); }
+
+    .table-wrap {
+      max-width: 100%;
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+    }
+
+    table {
+      width: 100%;
+      min-width: 650px;
+      border-collapse: collapse;
+      background: rgba(6, 19, 13, .45);
+    }
+
+    th, td {
+      padding: 13px 15px;
+      border-bottom: 1px solid rgba(186, 255, 206, .12);
+      text-align: right;
+    }
+
+    th:first-child, td:first-child { text-align: left; }
+
+    th {
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: .11em;
+      text-transform: uppercase;
+    }
+
+    tbody tr:last-child td { border-bottom: 0; }
+    tbody tr:hover { background: rgba(116, 243, 165, .055); }
+    .wood { color: #e1a66f; }
+    .stone { color: var(--stone); }
+    .gold { color: var(--gold); }
+    .diamond { color: var(--diamond); }
+    .peak { color: var(--diamond); font-weight: 900; }
+
+    .flow { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+
+    .flow-card {
+      position: relative;
+      padding: 16px;
+    }
+
+    .flow-card small {
+      display: block;
+      color: var(--muted);
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .flow-card b {
+      display: block;
+      margin-top: 5px;
+      color: var(--mint);
+      font-size: 17px;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+
+    .formula {
+      margin: 16px 0 0;
+      padding: 14px 16px;
+      border-left: 4px solid var(--gold);
+      color: #e7eee9;
+      background: rgba(246, 201, 69, .07);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      overflow-wrap: anywhere;
+    }
+
+    .split { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+    .check-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+    .check {
+      position: relative;
+      padding: 12px 12px 12px 38px;
+      border: 1px solid rgba(186, 255, 206, .16);
+      border-radius: 11px;
+      color: #d5e0d9;
+      background: rgba(6, 19, 13, .38);
+    }
+
+    .check::before {
+      position: absolute;
+      top: 13px;
+      left: 13px;
+      width: 16px;
+      height: 16px;
+      display: grid;
+      place-content: center;
+      border-radius: 50%;
+      color: var(--forest-950);
+      background: var(--mint);
+      content: "✓";
+      font-size: 11px;
+      font-weight: 950;
+    }
+
+    .path-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 0;
+      list-style: none;
+    }
+
+    code {
+      display: inline-block;
+      padding: 5px 8px;
+      border: 1px solid rgba(87, 229, 239, .22);
+      border-radius: 8px;
+      color: #a7f3f7;
+      background: rgba(87, 229, 239, .055);
+      font-size: 12px;
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+    }
+
+    .note {
+      margin-bottom: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    footer {
+      margin-top: 42px;
+      padding-top: 22px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      text-align: center;
+    }
+
+    @media (max-width: 820px) {
+      main { width: min(100% - 20px, 1180px); padding-top: 18px; }
+      .metrics, .gallery, .split, .check-grid { grid-template-columns: 1fr; }
+      .flow { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="hero">
+      <p class="eyebrow">FlagFort implementation review</p>
+      <h1>Progression with a <span>single source of truth</span></h1>
+      <p class="lede">Fort value, adaptive difficulty, end-of-run XP, equipment, recycling, profile history, and the main menu now share centralized typed configuration while preserving deterministic wave scheduling and existing CrazyGames persistence.</p>
+      <div class="status-row" aria-label="Implementation status">
+        <span class="badge">Source and production build ready</span>
+        <span class="badge">Save migrations covered</span>
+        <span class="badge">Responsive UI inspected at 800 × 450</span>
+      </div>
+    </header>
+
+    <section class="metrics" aria-label="Verification summary">
+      <article class="metric"><strong>180</strong><span>Automated tests passing</span></article>
+      <article class="metric"><strong>222</strong><span>Editable SVGs validated</span></article>
+      <article class="metric"><strong>1.75×</strong><span>Final adaptive safety cap</span></article>
+      <article class="metric"><strong>75%</strong><span>Diamond Mallet return</span></article>
+    </section>
+
+    <section>
+      <p class="eyebrow">Real UI at CrazyGames scale</p>
+      <h2>What players see</h2>
+      <div class="gallery">
+        <figure class="shot">
+          <img src="flagfort-menu.jpg" alt="FlagFort main menu at 800 by 450 with Upgrades and Shop in the top-right">
+          <figcaption><strong>Main menu hierarchy</strong>Start Run remains dominant. Raised progression actions sit clear of the profile, title, and center controls.</figcaption>
+        </figure>
+        <figure class="shot">
+          <img src="flagfort-profile.jpg" alt="Redesigned FlagFort profile with level, XP, balance, progression bars, and eye customization">
+          <figcaption><strong>Progression profile</strong>Exact XP and account totals are paired with compact bars and a thematic customization preview.</figcaption>
+        </figure>
+        <figure class="shot">
+          <img src="flagfort-shop-mallet.jpg" alt="FlagFort shop showing Sword and Salvage Mallet with a 25 percent active return">
+          <figcaption><strong>Data-driven Mallet</strong>The recycle return is explicit, tier progression is visible, and the effect does not depend on color alone.</figcaption>
+        </figure>
+        <figure class="shot">
+          <img src="flagfort-reward.jpg" alt="FlagFort reward screen showing a Difficulty Bonus row and compact profitable investment flow">
+          <figcaption><strong>Readable settlement</strong>Difficulty XP has its own row. Investment, return, outcome, and final balance fit in one scan.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="panel score-table">
+      <p class="eyebrow">Canonical structure score</p>
+      <h2>One table drives threat and XP</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Structure</th><th class="wood">Wood</th><th class="stone">Stone</th><th class="gold">Gold</th><th class="diamond">Diamond</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Wall</strong></td><td>10</td><td>20</td><td>34</td><td>51</td></tr>
+            <tr><td><strong>Door</strong></td><td>10</td><td>20</td><td>35</td><td>52</td></tr>
+            <tr><td><strong>Spikes</strong></td><td>13</td><td>26</td><td>45</td><td>68</td></tr>
+            <tr><td><strong>Harvester</strong></td><td>26</td><td>51</td><td>84</td><td>123</td></tr>
+            <tr><td><strong>Turret</strong></td><td>36</td><td>79</td><td>149</td><td class="peak">262</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">Scores retain the prior adaptive danger ordering, normalize Wood walls and doors to 10, and incorporate cumulative weighted resource cost plus combat or economic output. Only surviving local-player structures contribute.</p>
+    </section>
+
+    <section class="panel">
+      <p class="eyebrow">Additive auto-balance</p>
+      <h2>Independent inputs, one safe result</h2>
+      <div class="flow">
+        <article class="flow-card"><small>Base</small><b>1.00×</b></article>
+        <article class="flow-card"><small>Structure delta</small><b>0.50× to 1.50×</b></article>
+        <article class="flow-card"><small>Level delta</small><b>1.00× to 1.35×</b></article>
+        <article class="flow-card"><small>Other deltas</small><b>Finite additive inputs</b></article>
+        <article class="flow-card"><small>Final clamp</small><b>0.50× to 1.75×</b></article>
+      </div>
+      <p class="formula">effective = base + (structure multiplier - base) + (level multiplier - base) + other deltas</p>
+    </section>
+
+    <section class="split">
+      <article class="panel">
+        <p class="eyebrow">Difficulty reward</p>
+        <h2>Documented boundaries</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Effective difficulty</th><th>Difficulty XP</th></tr></thead>
+            <tbody>
+              <tr><td>Reduced, 0.50×</td><td>0 XP</td></tr>
+              <tr><td>Normal base, 1.00×</td><td>0 XP</td></tr>
+              <tr><td>Intermediate, 1.375×</td><td>125 XP</td></tr>
+              <tr><td>Maximum, 1.75×</td><td>250 XP</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="note">The maximum remains derived as 50 percent of the campaign victory bonus, so it tracks future balance changes.</p>
+      </article>
+      <article class="panel">
+        <p class="eyebrow">Salvage Mallet</p>
+        <h2>Exact per-resource returns</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Equipped tier</th><th>Recycle rate</th></tr></thead>
+            <tbody>
+              <tr><td>None</td><td>25%</td></tr>
+              <tr><td class="wood">Wood</td><td>35%</td></tr>
+              <tr><td class="stone">Stone</td><td>45%</td></tr>
+              <tr><td class="gold">Gold</td><td>60%</td></tr>
+              <tr><td class="diamond">Diamond</td><td>75%</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="note">Each resource is floored independently from actual construction and upgrade spend, reduced by damage, and capped at the amount invested.</p>
+      </article>
+    </section>
+
+    <section class="panel">
+      <p class="eyebrow">Persistence and compatibility</p>
+      <h2>Migration paths stay one-way and safe</h2>
+      <div class="check-grid">
+        <div class="check">Wall Health merges into Structure Health using the larger saved level, never an additive double bonus.</div>
+        <div class="check">Total Nights Survived aggregates settled campaign and Endless nights with settlement ID duplicate protection.</div>
+        <div class="check">Legacy run history contributes a safe minimum total when older profile data lacks the new account statistic.</div>
+        <div class="check">Mallet inventory and new eye selections default safely for existing profiles and use the current storage key.</div>
+        <div class="check">CrazyGames account loading, daily rewards, progress reporting, happytime, and local fallback remain in place.</div>
+        <div class="check">Campaign settlement can continue the surviving fort into independently settled Endless progression.</div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <p class="eyebrow">Implementation footprint</p>
+      <h2>Extended systems, no parallel replacements</h2>
+      <ul class="path-list" aria-label="Primary changed files">
+        <li><code>src/config.ts</code></li>
+        <li><code>src/meta-balance.ts</code></li>
+        <li><code>src/rules.ts</code></li>
+        <li><code>src/rewards.ts</code></li>
+        <li><code>src/equipment.ts</code></li>
+        <li><code>src/profile.ts</code></li>
+        <li><code>src/game.ts</code></li>
+        <li><code>src/ui.ts</code></li>
+        <li><code>src/renderer.ts</code></li>
+        <li><code>src/styles.css</code></li>
+        <li><code>public/images/equipment/</code></li>
+        <li><code>src/progression-refinement.test.ts</code></li>
+      </ul>
+      <p class="note">Production assets under <code>dist/</code> were regenerated from the verified source so the static CrazyGames-ready package matches the implementation.</p>
+    </section>
+
+    <section class="panel">
+      <p class="eyebrow">Verification</p>
+      <h2>Final gate</h2>
+      <div class="check-grid">
+        <div class="check"><code>npm test</code>: 17 files and 180 tests passed.</div>
+        <div class="check"><code>npm run build</code>: TypeScript and Vite production build passed.</div>
+        <div class="check"><code>npm run visual:validate</code>: all 222 editable SVGs passed.</div>
+        <div class="check"><code>git diff --check</code>: no whitespace errors.</div>
+        <div class="check">Menu, profile, shop, and reward surfaces inspected at 800 × 450.</div>
+        <div class="check">Campaign-to-Endless continuation exercised through Dawn 10 and Day 11.</div>
+      </div>
+    </section>
+
+    <footer>FlagFort progression refinement - ready for review</footer>
+  </main>
+</body>
+</html>

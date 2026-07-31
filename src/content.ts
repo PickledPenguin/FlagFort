@@ -29,7 +29,7 @@ export const TUTORIAL_STAGES: readonly TutorialDefinition[] = [
   tutorial("build-upgrade", "Build and upgrade", "Place a structure or build a stronger matching tier over it.", 7),
   tutorial("doors", "Player-only doors", "You always pass through doors. Zombies treat them as defensive walls.", 8),
   tutorial("repair", "Repair structures by day", "The wrench repairs player-built structures only. The flag can never be repaired.", 9, ["2"]),
-  tutorial("recycle", "Recycle by day", "Recycle a structure to regain 50 percent of its invested resources.", 10, ["3"]),
+  tutorial("recycle", "Recycle by day", "Recycle a structure to regain 25 percent of invested resources, or more with an equipped Salvage Mallet.", 10, ["3"]),
   tutorial("portal-zones", "Portal safety zones", "Build outside the large purple portal restriction rings.", 11),
   tutorial("prepare-night", "Prepare for night", "Gather and fortify before the day reaches zero, or deliberately skip the remaining day with no reward.", 12),
   tutorial("fight-night", "Fight at night", "Slot 2 becomes the bow. Scheduled portal waves arrive in the first 15 seconds of the 30-second night.", 13, ["2"]),
@@ -127,7 +127,7 @@ export const TUTORIAL_SECTIONS: readonly TutorialSectionDefinition[] = [
   {
     id: "recycling",
     title: "Recycling",
-    summary: "Recycle only by day. Full health returns 50 percent of cumulative cost; damage reduces the refund.",
+    summary: "Recycle only by day. Full health returns the active Salvage Mallet percentage of actual invested resources; damage reduces the refund.",
     tasks: [
       { id: "wall", instructions: "Select Recycle or press 3. Recycle the highlighted Wooden wall.", allowedSlots: [3], completionEvent: "recycled-wall", highlight: "wood-wall" },
       { id: "turret", instructions: "Recycle the highlighted Stone turret and review the exact icon refund.", allowedSlots: [3], completionEvent: "recycled-turret", highlight: "stone-turret" },

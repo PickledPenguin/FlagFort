@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-30 -30 60 60">
+  <g id="eyes-sparkle">
+    <path id="left-sparkle" d="M7-15 9-9l6 2-6 2-2 6-2-6-6-2 6-2Z" fill="#fff8d6" stroke="#24342b" stroke-width="1.5" stroke-linejoin="round"/>
+    <path id="right-sparkle" d="M7 4 9 10l6 2-6 2-2 6-2-6-6-2 6-2Z" fill="#fff8d6" stroke="#24342b" stroke-width="1.5" stroke-linejoin="round"/>
+    <circle id="left-pupil" cx="8" cy="-7" r="2" fill="#24342b"/>
+    <circle id="right-pupil" cx="8" cy="12" r="2" fill="#24342b"/>
+  </g>
+</svg>

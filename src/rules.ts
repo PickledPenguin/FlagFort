@@ -35,30 +35,24 @@ export function upgradeCost(kind: StructureKind, from: Tier, to: Tier, reduction
 }
 
 export function dismantleRefund(
-  kind: StructureKind,
-  tier: Tier,
-  reduction = 0,
+  investedResources: ResourceWallet,
+  refundFraction: number,
   health = 1,
   maxHealth = 1,
-  constructionCostMultiplier = 1,
 ): ResourceWallet {
-  const baseCost = cumulativeCost(kind, tier, reduction);
-  const cost: ResourceWallet = {
-    wood: Math.ceil(baseCost.wood * constructionCostMultiplier),
-    stone: Math.ceil(baseCost.stone * constructionCostMultiplier),
-    gold: Math.ceil(baseCost.gold * constructionCostMultiplier),
-    diamond: Math.ceil(baseCost.diamond * constructionCostMultiplier),
-  };
+  const safeFraction = Math.max(0, Math.min(1, refundFraction));
   const healthFraction = maxHealth <= 0 ? 0 : Math.max(0, Math.min(1, health / maxHealth));
   const refund = (value: number): number => {
-    const raw = value * BALANCE.recycling.refundFraction * healthFraction;
-    return BALANCE.recycling.rounding === "floor" ? Math.floor(raw) : Math.round(raw);
+    const spent = Math.max(0, Math.floor(value));
+    const raw = spent * safeFraction * healthFraction;
+    const rounded = BALANCE.recycling.rounding === "floor" ? Math.floor(raw) : Math.round(raw);
+    return Math.min(spent, Math.max(0, rounded));
   };
   return {
-    wood: refund(cost.wood),
-    stone: refund(cost.stone),
-    gold: refund(cost.gold),
-    diamond: refund(cost.diamond),
+    wood: refund(investedResources.wood),
+    stone: refund(investedResources.stone),
+    gold: refund(investedResources.gold),
+    diamond: refund(investedResources.diamond),
   };
 }
 
@@ -122,7 +116,7 @@ export function rerollCost(wallet: ResourceWallet): ResourceWallet {
 }
 
 export function structurePointValue(kind: StructureKind, tier: Tier): number {
-  return BALANCE.structurePoints[kind][tier];
+  return BALANCE.structureValues[kind][tier];
 }
 
 export function expectedStructurePoints(night: number): number {
@@ -142,21 +136,64 @@ export interface AdaptiveDifficulty {
   expected: number;
   difference: number;
   relativeDifference: number;
+  baseMultiplier: number;
+  structureRawMultiplier: number;
+  structureMultiplier: number;
+  structureDelta: number;
+  playerLevel: number;
+  levelRawMultiplier: number;
+  levelMultiplier: number;
+  levelDelta: number;
+  otherDelta: number;
   rawMultiplier: number;
   multiplier: number;
   indicator: "Low fortification" | "Expected fortification" | "Advanced fortification" | "Horde adapting";
 }
 
-export function adaptiveDifficulty(actual: number, night: number): AdaptiveDifficulty {
+function clamp(value: number, minimum: number, maximum: number): number {
+  return Math.max(minimum, Math.min(maximum, value));
+}
+
+export function adaptiveDifficulty(
+  actual: number,
+  night: number,
+  playerLevel = 1,
+  otherAdditiveDeltas: readonly number[] = [],
+): AdaptiveDifficulty {
   const expected = expectedStructurePoints(night);
   const difference = actual - expected;
   const relativeDifference = difference / Math.max(expected, BALANCE.adaptive.safeExpectedMinimum);
-  const outsideDeadZone = Math.max(0, Math.abs(relativeDifference) - BALANCE.adaptive.deadZone);
+  const outsideDeadZone = Math.max(
+    0,
+    Math.abs(relativeDifference) - BALANCE.adaptive.structure.deadZone,
+  );
   const signed = Math.sign(relativeDifference) * outsideDeadZone;
-  const rawMultiplier = 1 + signed * BALANCE.adaptive.sensitivity;
-  const multiplier = Math.max(
-    BALANCE.adaptive.minimumMultiplier,
-    Math.min(BALANCE.adaptive.maximumMultiplier, rawMultiplier),
+  const structureRawMultiplier = 1 + signed * BALANCE.adaptive.structure.sensitivity;
+  const structureMultiplier = clamp(
+    structureRawMultiplier,
+    BALANCE.adaptive.structure.minimumMultiplier,
+    BALANCE.adaptive.structure.maximumMultiplier,
+  );
+  const safePlayerLevel = Math.max(1, Math.floor(playerLevel));
+  const levelRawMultiplier = 1
+    + Math.max(0, safePlayerLevel - BALANCE.adaptive.level.baselineLevel)
+      * BALANCE.adaptive.level.deltaPerLevel;
+  const levelMultiplier = clamp(
+    levelRawMultiplier,
+    BALANCE.adaptive.level.minimumMultiplier,
+    BALANCE.adaptive.level.maximumMultiplier,
+  );
+  const baseMultiplier = BALANCE.adaptive.effective.baseMultiplier;
+  const structureDelta = structureMultiplier - baseMultiplier;
+  const levelDelta = levelMultiplier - baseMultiplier;
+  const otherDelta = otherAdditiveDeltas
+    .filter((value) => Number.isFinite(value))
+    .reduce((total, value) => total + value, 0);
+  const rawMultiplier = baseMultiplier + structureDelta + levelDelta + otherDelta;
+  const multiplier = clamp(
+    rawMultiplier,
+    BALANCE.adaptive.effective.minimumMultiplier,
+    BALANCE.adaptive.effective.maximumMultiplier,
   );
   const indicator = multiplier < 0.88
     ? "Low fortification"
@@ -165,7 +202,24 @@ export function adaptiveDifficulty(actual: number, night: number): AdaptiveDiffi
       : multiplier > 1.08
         ? "Advanced fortification"
         : "Expected fortification";
-  return { actual, expected, difference, relativeDifference, rawMultiplier, multiplier, indicator };
+  return {
+    actual,
+    expected,
+    difference,
+    relativeDifference,
+    baseMultiplier,
+    structureRawMultiplier,
+    structureMultiplier,
+    structureDelta,
+    playerLevel: safePlayerLevel,
+    levelRawMultiplier,
+    levelMultiplier,
+    levelDelta,
+    otherDelta,
+    rawMultiplier,
+    multiplier,
+    indicator,
+  };
 }
 
 /** Legacy economy helper retained for saved-test compatibility. The flag is never a valid repair target. */

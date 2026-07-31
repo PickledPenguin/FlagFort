@@ -25,7 +25,7 @@ export interface PendingRunSettlement {
 }
 
 export interface ProfileProgress {
-  highestNight: number;
+  totalNightsSurvived: number;
   campaignWins: number;
   totalRuns: number;
   bestStructureScore: number;
@@ -93,7 +93,7 @@ export function createDefaultProfile(): PlayerProfile {
     playerColor: META_BALANCE.customization.colors[0],
     eyeStyle: "round",
     progress: {
-      highestNight: 0,
+      totalNightsSurvived: 0,
       campaignWins: 0,
       totalRuns: 0,
       bestStructureScore: 0,
@@ -175,6 +175,13 @@ export function migrateProfile(raw: unknown): PlayerProfile {
       finiteNonNegative(permanentSource[definition.id]),
     );
   }
+  permanentUpgrades.structureHealth = Math.min(
+    META_BALANCE.permanentUpgrade.maximumLevel,
+    Math.max(
+      permanentUpgrades.structureHealth,
+      finiteNonNegative(permanentSource.wallHealth),
+    ),
+  );
 
   const equipment = createEquipmentInventory();
   for (const kind of EQUIPMENT_ORDER) {
@@ -207,6 +214,21 @@ export function migrateProfile(raw: unknown): PlayerProfile {
     && META_BALANCE.customization.eyeStyles.includes(source.eyeStyle as EyeStyle)
     ? source.eyeStyle as EyeStyle
     : defaults.eyeStyle;
+  const recentRuns = Array.isArray(source.recentRuns)
+    ? source.recentRuns.filter((record): record is RunRecord =>
+      Boolean(record && typeof record === "object"
+        && typeof (record as RunRecord).seed === "string"
+        && typeof (record as RunRecord).date === "string")).slice(0, 10)
+    : [];
+  const knownRecentNights = recentRuns.reduce(
+    (total, record) => total + finiteNonNegative(record.nightsSurvived),
+    0,
+  );
+  const migratedTotalNights = Math.max(
+    finiteNonNegative(progressSource.totalNightsSurvived),
+    knownRecentNights,
+    finiteNonNegative(progressSource.highestNight),
+  );
 
   return {
     schemaVersion: META_BALANCE.profileSchemaVersion,
@@ -223,7 +245,7 @@ export function migrateProfile(raw: unknown): PlayerProfile {
     playerColor,
     eyeStyle,
     progress: {
-      highestNight: finiteNonNegative(progressSource.highestNight),
+      totalNightsSurvived: migratedTotalNights,
       campaignWins: finiteNonNegative(progressSource.campaignWins),
       totalRuns: finiteNonNegative(progressSource.totalRuns),
       bestStructureScore: finiteNonNegative(progressSource.bestStructureScore),
@@ -234,12 +256,7 @@ export function migrateProfile(raw: unknown): PlayerProfile {
         .filter((id): id is string => typeof id === "string")
         .map((id) => id.slice(0, 96)))].slice(-100)
       : [],
-    recentRuns: Array.isArray(source.recentRuns)
-      ? source.recentRuns.filter((record): record is RunRecord =>
-        Boolean(record && typeof record === "object"
-          && typeof (record as RunRecord).seed === "string"
-          && typeof (record as RunRecord).date === "string")).slice(0, 10)
-      : [],
+    recentRuns,
   };
 }
 
@@ -263,7 +280,17 @@ export class ProfileManager {
         const legacy = storage.getItem(META_BALANCE.legacyRecordsKey);
         if (legacy) {
           const records = JSON.parse(legacy) as unknown;
-          if (Array.isArray(records)) this.profile.recentRuns = records.slice(0, 10) as RunRecord[];
+          if (Array.isArray(records)) {
+            this.profile.recentRuns = records.slice(0, 10) as RunRecord[];
+            const knownLegacyNights = this.profile.recentRuns.reduce(
+              (total, record) => total + finiteNonNegative(record.nightsSurvived),
+              0,
+            );
+            this.profile.progress.totalNightsSurvived = Math.max(
+              this.profile.progress.totalNightsSurvived,
+              knownLegacyNights,
+            );
+          }
         }
       } catch {
         // A corrupt legacy record list must not affect the profile.
@@ -338,9 +365,9 @@ export class ProfileManager {
     this.profile.spendableXp += xp.total;
     this.profile.coins += coins.totalReturn;
     this.profile.playerLevel = derivePlayerLevel(this.profile.lifetimeXp);
-    this.profile.progress.highestNight = Math.max(
-      this.profile.progress.highestNight,
-      progress.nightsSurvived,
+    this.profile.progress.totalNightsSurvived += Math.max(
+      0,
+      Math.floor(progress.nightsSurvived),
     );
     this.profile.progress.campaignWins += progress.victory ? 1 : 0;
     this.profile.progress.totalRuns += 1;

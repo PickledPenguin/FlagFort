@@ -9,6 +9,33 @@ export const tutorialAsset = (name: string): string => svgAsset(`tutorial/${name
 
 const image = svgAsset;
 
+export const EQUIPMENT_ASSETS = {
+  helmet: {
+    wood: image("equipment/helmet-wood"),
+    stone: image("equipment/helmet-stone"),
+    gold: image("equipment/helmet-gold"),
+    diamond: image("equipment/helmet-diamond"),
+  },
+  wrench: {
+    wood: image("equipment/wrench-wood"),
+    stone: image("equipment/wrench-stone"),
+    gold: image("equipment/wrench-gold"),
+    diamond: image("equipment/wrench-diamond"),
+  },
+  sword: {
+    wood: image("equipment/sword-wood"),
+    stone: image("equipment/sword-stone"),
+    gold: image("equipment/sword-gold"),
+    diamond: image("equipment/sword-diamond"),
+  },
+  mallet: {
+    wood: image("equipment/mallet-wood"),
+    stone: image("equipment/mallet-stone"),
+    gold: image("equipment/mallet-gold"),
+    diamond: image("equipment/mallet-diamond"),
+  },
+} as const;
+
 export const ASSETS = {
   resources: {
     wood: image("resources/wood-log"),
@@ -53,6 +80,8 @@ export const ASSETS = {
       round: image("gameplay/player/eyes-round"),
       focused: image("gameplay/player/eyes-focused"),
       sleepy: image("gameplay/player/eyes-sleepy"),
+      sparkle: image("gameplay/player/eyes-sparkle"),
+      mischief: image("gameplay/player/eyes-mischief"),
     },
     hands: {
       wood: image("gameplay/player/hands/wood"),
@@ -67,11 +96,7 @@ export const ASSETS = {
       blueprint: image("gameplay/player/tools/blueprint"),
     },
   },
-  equipment: {
-    helmet: image("equipment/helmet"),
-    wrench: image("equipment/wrench"),
-    sword: image("equipment/sword"),
-  },
+  equipment: EQUIPMENT_ASSETS,
   flag: {
     base: image("gameplay/flag/base"),
     cloth: image("gameplay/flag/cloth"),
@@ -137,7 +162,7 @@ export const ASSETS = {
   ui: Object.fromEntries([
     "heart", "timer", "settings", "play", "book", "maximize",
     "shuffle", "restart", "close", "arrow-left", "arrow-right", "skip", "copy", "pause",
-    "info", "mouse", "upgrade-node",
+    "info", "mouse", "upgrade-node", "gamepad-2", "trophy", "sliders-horizontal",
   ].map((name) => [name, image(`ui/${name}`)])) as Record<string, string>,
   structures: Object.fromEntries(
     (["wall", "door", "spikes", "harvester", "turret"] as StructureKind[]).map((kind) => [
