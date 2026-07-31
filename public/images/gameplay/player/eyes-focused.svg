@@ -3,32 +3,10 @@
    viewBox="-30 -30 60 60"
    version="1.1"
    id="svg2"
-   sodipodi:docname="eyes-focused.svg"
-   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
   <defs
      id="defs2" />
-  <sodipodi:namedview
-     id="namedview2"
-     pagecolor="#ffffff"
-     bordercolor="#000000"
-     borderopacity="0.25"
-     inkscape:showpageshadow="2"
-     inkscape:pageopacity="0.0"
-     inkscape:pagecheckerboard="0"
-     inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="4.3943476"
-     inkscape:cx="19.001683"
-     inkscape:cy="38.117148"
-     inkscape:window-width="1594"
-     inkscape:window-height="840"
-     inkscape:window-x="0"
-     inkscape:window-y="33"
-     inkscape:window-maximized="0"
-     inkscape:current-layer="eyes-focused" />
   <g
      id="eyes-focused">
     <g
@@ -39,8 +17,7 @@
         <path
            id="lower-eye-9-8"
            d="m 33.5,18.5 c 5.333333,2.666667 10,1.333333 14,-4 -3.333333,-4.6666667 -7.666667,-6 -13,-4 z"
-           fill="#fffdf1"
-           sodipodi:nodetypes="cccc" />
+           fill="#fffdf1" />
         <g
            id="pupils-8-2"
            fill="#1d2821"
@@ -57,8 +34,7 @@
            fill="none"
            stroke="#392f24"
            stroke-width="3"
-           stroke-linecap="round"
-           sodipodi:nodetypes="cc" />
+           stroke-linecap="round" />
       </g>
     </g>
     <g
@@ -83,8 +59,7 @@
          fill="none"
          stroke="#392f24"
          stroke-width="3"
-         stroke-linecap="round"
-         sodipodi:nodetypes="cc" />
+         stroke-linecap="round" />
     </g>
   </g>
 </svg>

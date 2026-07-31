@@ -3,32 +3,10 @@
    viewBox="-30 -30 60 60"
    version="1.1"
    id="svg2"
-   sodipodi:docname="eyes-sleepy.svg"
-   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
   <defs
      id="defs2" />
-  <sodipodi:namedview
-     id="namedview2"
-     pagecolor="#ffffff"
-     bordercolor="#000000"
-     borderopacity="0.25"
-     inkscape:showpageshadow="2"
-     inkscape:pageopacity="0.0"
-     inkscape:pagecheckerboard="0"
-     inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="7.0063384"
-     inkscape:cx="19.054175"
-     inkscape:cy="37.822895"
-     inkscape:window-width="1618"
-     inkscape:window-height="781"
-     inkscape:window-x="0"
-     inkscape:window-y="33"
-     inkscape:window-maximized="0"
-     inkscape:current-layer="eyes-sleepy" />
   <g
      id="eyes-sleepy">
     <g
@@ -42,8 +20,7 @@
           <path
              id="eye-whites-9"
              d="m 34.575543,12.813688 c 4.666667,3.333333 9.333333,2.666667 14,-2 -4.666667,-3.9999997 -9.333333,-4.3333329 -14,-0.9999996 z"
-             fill="#fffdf1"
-             sodipodi:nodetypes="cccc" />
+             fill="#fffdf1" />
           <g
              id="pupils-3"
              fill="#1d2821"
@@ -60,8 +37,7 @@
              fill="none"
              stroke="#392f24"
              stroke-width="2.5"
-             stroke-linecap="round"
-             sodipodi:nodetypes="cc" />
+             stroke-linecap="round" />
         </g>
       </g>
       <g
@@ -72,8 +48,7 @@
           <path
              id="eye-whites-9-3"
              d="m 34.575543,12.813688 c 4.666667,3.333333 9.333333,2.666667 14,-2 -4.666667,-3.9999997 -9.333333,-4.3333329 -14,-0.9999996 z"
-             fill="#fffdf1"
-             sodipodi:nodetypes="cccc" />
+             fill="#fffdf1" />
           <g
              id="pupils-3-9"
              fill="#1d2821"
@@ -90,8 +65,7 @@
              fill="none"
              stroke="#392f24"
              stroke-width="2.5"
-             stroke-linecap="round"
-             sodipodi:nodetypes="cc" />
+             stroke-linecap="round" />
         </g>
       </g>
     </g>

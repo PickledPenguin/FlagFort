@@ -54,6 +54,7 @@ export class Ui {
   private difficulty: Difficulty = "normal";
   private openTierPanel: StructureKind | null = null;
   private tutorialOpen = false;
+  private tutorialExitConfirmation = false;
   private tutorialOrigin: TutorialOrigin = "menu";
   private menuPanel: MenuPanel = null;
   private lastOverlayKey = "";
@@ -157,6 +158,7 @@ export class Ui {
       this.game.phase,
       this.difficulty,
       this.tutorialOpen,
+      this.tutorialExitConfirmation,
       this.game.tutorialSection,
       this.game.tutorialTask,
       this.game.tutorialSectionComplete,
@@ -568,7 +570,19 @@ export class Ui {
           <button class="primary" data-action="tutorial-next-section">${finalSection ? "Back to Main Menu" : `Next Section ${icon("arrow-right")}`}</button>
         </footer>` : `<small>Complete the highlighted action to continue.</small>`}
       </div>
-    </section>`;
+    </section>${this.tutorialExitConfirmation ? this.tutorialExitConfirmationMarkup() : ""}`;
+  }
+
+  private tutorialExitConfirmationMarkup(): string {
+    return `<section class="screen modal-screen tutorial-exit-screen"><div class="modal compact">
+      <p class="eyebrow">LEAVE TRAINING</p>
+      <h2>Exit Tutorial?</h2>
+      <p>Your current training section progress will be lost.</p>
+      <div class="reroll-actions">
+        <button class="ghost" data-action="cancel-tutorial-exit">Keep Training</button>
+        <button class="primary" data-action="confirm-tutorial-exit">Exit Tutorial</button>
+      </div>
+    </div></section>`;
   }
 
   private dawnMarkup(): string {
@@ -1008,6 +1022,12 @@ export class Ui {
         if (!this.game.advanceTutorialSection()) this.finishTutorial(true);
         break;
       case "tutorial-exit":
+        this.requestTutorialExit();
+        break;
+      case "cancel-tutorial-exit":
+        this.cancelTutorialExit();
+        break;
+      case "confirm-tutorial-exit":
         this.finishTutorial(false);
         break;
       case "controls":
@@ -1236,16 +1256,20 @@ export class Ui {
   private handleKeydown(event: KeyboardEvent): void {
     if (this.game.skipNightConfirmation && event.code === "Escape") {
       this.game.cancelSkipNight();
+      this.game.input.escapePressed = false;
       event.preventDefault();
       this.invalidate();
       this.render(true);
       return;
     }
-    if (this.tutorialOpen) {
-      if (event.code === "Escape") {
-        this.finishTutorial(false);
-        event.preventDefault();
-      }
+    if (this.tutorialOpen && event.code === "Escape") {
+      this.game.input.escapePressed = false;
+      if (this.tutorialExitConfirmation) this.cancelTutorialExit();
+      else this.requestTutorialExit();
+      event.preventDefault();
+      this.invalidate();
+      this.render(true);
+      return;
     }
   }
 
@@ -1255,6 +1279,7 @@ export class Ui {
       "start",
       "confirm-reroll",
       "confirm-skip-night",
+      "confirm-tutorial-exit",
       "dismiss-warning",
       "restart-same",
       "restart-new",
@@ -1264,6 +1289,7 @@ export class Ui {
       "close-panel",
       "cancel-reroll",
       "cancel-skip-night",
+      "cancel-tutorial-exit",
       "menu",
       "tutorial-exit",
     ]);
@@ -1274,13 +1300,28 @@ export class Ui {
 
   private openTutorial(origin: TutorialOrigin): void {
     this.tutorialOrigin = origin;
+    this.tutorialExitConfirmation = false;
     this.game.startTutorial();
     this.tutorialOpen = true;
     this.invalidate();
   }
 
+  private requestTutorialExit(): void {
+    this.tutorialExitConfirmation = true;
+    this.game.modalLock = true;
+    this.game.input.releasePointer();
+    this.game.input.escapePressed = false;
+  }
+
+  private cancelTutorialExit(): void {
+    this.tutorialExitConfirmation = false;
+    this.game.modalLock = false;
+    this.game.input.escapePressed = false;
+  }
+
   private finishTutorial(remember: boolean): void {
     if (remember) this.writePreference(BALANCE.ui.tutorialPreferenceKey, true);
+    this.tutorialExitConfirmation = false;
     this.tutorialOpen = false;
     this.game.modalLock = false;
     this.game.returnToMenu();

@@ -270,6 +270,18 @@ describe("event-driven HUD interaction", () => {
     vi.useRealTimers();
   });
 
+  it("does not also pause when Escape cancels the Skip Night confirmation", () => {
+    const { game, hud } = createHarness();
+    click(hud.querySelector('[data-action="skip-night"]')!);
+
+    window.dispatchEvent(new KeyboardEvent("keydown", { code: "Escape" }));
+    game.update(BALANCE.fixedStep);
+
+    expect(game.skipNightConfirmation).toBe(false);
+    expect(game.modalLock).toBe(false);
+    expect(game.phase).toBe("day");
+  });
+
   it("offers only replay, next, and exit navigation in tutorial sections", () => {
     const { game, overlay, ui } = createHarness();
     game.returnToMenu();
@@ -289,6 +301,50 @@ describe("event-driven HUD interaction", () => {
     ui.render(true);
     expect(overlay.querySelector('[data-action="tutorial-next-section"]')?.textContent)
       .toContain("Back to Main Menu");
+  });
+
+  it("confirms tutorial exit before discarding section progress", () => {
+    const { game, overlay, ui } = createHarness();
+    game.returnToMenu();
+    ui.render(true);
+    click(overlay.querySelector('[data-action="tutorial-menu"]')!);
+
+    click(overlay.querySelector('[data-action="tutorial-exit"]')!);
+    expect(game.phase).toBe("day");
+    expect(game.tutorialMode).toBe(true);
+    expect(game.modalLock).toBe(true);
+    expect(overlay.textContent).toContain("Exit Tutorial?");
+
+    click(overlay.querySelector('[data-action="cancel-tutorial-exit"]')!);
+    expect(game.phase).toBe("day");
+    expect(game.tutorialMode).toBe(true);
+    expect(game.modalLock).toBe(false);
+    expect(overlay.textContent).not.toContain("Exit Tutorial?");
+
+    click(overlay.querySelector('[data-action="tutorial-exit"]')!);
+    click(overlay.querySelector('[data-action="confirm-tutorial-exit"]')!);
+    expect(game.phase).toBe("menu");
+    expect(game.tutorialMode).toBe(false);
+  });
+
+  it("uses Escape to open and close the tutorial exit confirmation", () => {
+    const { game, overlay, ui } = createHarness();
+    game.returnToMenu();
+    ui.render(true);
+    click(overlay.querySelector('[data-action="tutorial-menu"]')!);
+
+    window.dispatchEvent(new KeyboardEvent("keydown", { code: "Escape" }));
+    game.update(BALANCE.fixedStep);
+    expect(game.phase).toBe("day");
+    expect(game.modalLock).toBe(true);
+    expect(overlay.textContent).toContain("Exit Tutorial?");
+
+    window.dispatchEvent(new KeyboardEvent("keydown", { code: "Escape" }));
+    game.update(BALANCE.fixedStep);
+    expect(game.phase).toBe("day");
+    expect(game.tutorialMode).toBe(true);
+    expect(game.modalLock).toBe(false);
+    expect(overlay.textContent).not.toContain("Exit Tutorial?");
   });
 
   it("keeps pointer coordinates accurate when the canvas is responsively scaled", () => {
