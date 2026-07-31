@@ -641,8 +641,14 @@ button:focus-visible > .tooltip,
   inset: 0;
   display: grid;
   place-items: center;
+  padding: 9px;
   background: rgba(3, 12, 8, 0.7);
   backdrop-filter: blur(6px);
+}
+
+.menu-modal > .modal {
+  max-height: 100%;
+  overflow-y: auto;
 }
 
 /* Modals and results */

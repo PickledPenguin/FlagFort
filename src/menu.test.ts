@@ -47,4 +47,13 @@ describe("main menu presentation", () => {
       /\.investment-modal \.result-actions\s*\{[\s\S]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/,
     );
   });
+
+  it("keeps menu panel actions reachable in short landscape viewports", () => {
+    expect(stylesSource).toMatch(
+      /\.menu-modal\s*\{[\s\S]*padding:\s*9px;/,
+    );
+    expect(stylesSource).toMatch(
+      /\.menu-modal > \.modal\s*\{[\s\S]*max-height:\s*100%;[\s\S]*overflow-y:\s*auto;/,
+    );
+  });
 });
