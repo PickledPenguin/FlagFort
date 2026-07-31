@@ -287,7 +287,7 @@ export class Ui {
           ${this.volumeControl("music", "Music", audio.music)}
           ${this.volumeControl("countdown", "Final countdown", audio.countdown)}
           <button class="setting-toggle ${audio.muted ? "active" : ""}" data-action="audio-mute" aria-pressed="${audio.muted}">
-            <span>${audio.muted ? icon("close") : buildBarIcon("selected-tier")}<b>Mute all audio</b></span><em>${audio.muted ? "ON" : "OFF"}</em>
+            <span>${audio.muted ? buildBarIcon("selected-tier") : icon("close")}<b>Mute all audio</b></span><em>${audio.muted ? "ON" : "OFF"}</em>
           </button>
         </div>
         <button class="setting-toggle ${reduced ? "active" : ""}" data-action="reduce-motion" aria-pressed="${reduced}">

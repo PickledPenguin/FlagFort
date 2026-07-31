@@ -157,6 +157,29 @@ describe("event-driven HUD interaction", () => {
     expect(overlay.querySelector<HTMLInputElement>("#seed-input")?.value).toBe('persistent-"seed"');
   });
 
+  it("keeps the mute toggle icon consistent with its announced state", () => {
+    const { game, overlay, ui } = createHarness();
+    game.returnToMenu();
+    audioManager.setMuted(false);
+    ui.render(true);
+    click(overlay.querySelector('[data-action="settings"]')!);
+
+    const mute = overlay.querySelector<HTMLElement>('[data-action="audio-mute"]')!;
+    expect(mute.getAttribute("aria-pressed")).toBe("false");
+    expect(mute.querySelector("em")?.textContent).toBe("OFF");
+    expect(mute.querySelector<HTMLImageElement>("img")?.getAttribute("src"))
+      .toBe("./images/ui/close.svg");
+
+    click(mute);
+    const activeMute = overlay.querySelector<HTMLElement>('[data-action="audio-mute"]')!;
+    expect(activeMute.getAttribute("aria-pressed")).toBe("true");
+    expect(activeMute.querySelector("em")?.textContent).toBe("ON");
+    expect(activeMute.querySelector<SVGUseElement>("use")?.getAttribute("href"))
+      .toBe("./images/ui/build-bar/indicators/selected-tier.svg#icon");
+
+    audioManager.setMuted(false);
+  });
+
   it("plays hover audio once on interactive entry, not for movement within the control", () => {
     const { game, overlay, ui } = createHarness();
     game.returnToMenu();
