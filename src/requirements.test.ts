@@ -24,9 +24,10 @@ function input(): Input {
 }
 
 describe("browser and HUD requirements", () => {
-  it("uses Flag Fall for every browser-title surface", () => {
-    expect(indexSource).toContain("<title>Flag Fall</title>");
-    expect(indexSource).toContain('aria-label="Flag Fall game world"');
+  it("uses Flag Fort for every browser-title surface", () => {
+    expect(indexSource).toContain("<title>Flag Fort</title>");
+    expect(indexSource).toContain('aria-label="Flag Fort game world"');
+    expect(indexSource).not.toContain("Flag Fall");
     expect(indexSource).not.toContain("<title>Countdown Forest</title>");
   });
 
