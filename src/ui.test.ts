@@ -157,6 +157,20 @@ describe("event-driven HUD interaction", () => {
     expect(overlay.querySelector<HTMLInputElement>("#seed-input")?.value).toBe('persistent-"seed"');
   });
 
+  it("uses Escape to close an open menu panel", () => {
+    const { game, overlay, ui } = createHarness();
+    game.returnToMenu();
+    ui.render(true);
+    click(overlay.querySelector('[data-action="settings"]')!);
+    expect(overlay.querySelector(".menu-modal")).not.toBeNull();
+
+    window.dispatchEvent(new KeyboardEvent("keydown", { code: "Escape" }));
+    game.update(BALANCE.fixedStep);
+
+    expect(overlay.querySelector(".menu-modal")).toBeNull();
+    expect(game.phase).toBe("menu");
+  });
+
   it("keeps the mute toggle icon consistent with its announced state", () => {
     const { game, overlay, ui } = createHarness();
     game.returnToMenu();

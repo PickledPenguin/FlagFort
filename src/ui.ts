@@ -1285,6 +1285,14 @@ export class Ui {
   }
 
   private handleKeydown(event: KeyboardEvent): void {
+    if (this.menuPanel && event.code === "Escape") {
+      this.menuPanel = null;
+      this.game.input.escapePressed = false;
+      event.preventDefault();
+      this.invalidate();
+      this.render(true);
+      return;
+    }
     if (this.runExitConfirmation && event.code === "Escape") {
       this.runExitConfirmation = false;
       this.game.modalLock = false;
