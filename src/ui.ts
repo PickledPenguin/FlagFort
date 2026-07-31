@@ -606,9 +606,9 @@ export class Ui {
   }
 
   private tutorialExitConfirmationMarkup(): string {
-    return `<section class="screen modal-screen tutorial-exit-screen"><div class="modal compact">
+    return `<section class="screen modal-screen tutorial-exit-screen"><div class="modal compact tutorial-exit-modal" role="dialog" aria-modal="true" aria-labelledby="tutorial-exit-title">
       <p class="eyebrow">LEAVE TRAINING</p>
-      <h2>Exit Tutorial?</h2>
+      <h2 id="tutorial-exit-title">Exit Tutorial?</h2>
       <p>Your current training section progress will be lost.</p>
       <div class="reroll-actions">
         <button class="ghost" data-action="cancel-tutorial-exit">Keep Training</button>
@@ -1206,6 +1206,10 @@ export class Ui {
       this.focusDialog(".run-exit-modal");
     } else if (action === "cancel-run-exit") {
       this.overlay.querySelector<HTMLElement>('[data-action="request-run-exit"]')?.focus();
+    } else if (this.tutorialExitConfirmation && action === "tutorial-exit") {
+      this.focusDialog(".tutorial-exit-modal");
+    } else if (action === "cancel-tutorial-exit") {
+      this.overlay.querySelector<HTMLElement>('[data-action="tutorial-exit"]')?.focus();
     } else if (action === "close-panel" && panelBeforeAction) {
       this.focusMenuPanelTrigger(panelBeforeAction);
     } else if (
@@ -1353,6 +1357,10 @@ export class Ui {
       this.trapDialogFocus(event, ".investment-modal");
       return;
     }
+    if (this.tutorialExitConfirmation && event.code === "Tab") {
+      this.trapDialogFocus(event, ".tutorial-exit-modal");
+      return;
+    }
     if (this.investmentOpen && event.code === "Escape") {
       this.investmentOpen = false;
       this.game.input.escapePressed = false;
@@ -1406,11 +1414,17 @@ export class Ui {
     }
     if (this.tutorialOpen && event.code === "Escape") {
       this.game.input.escapePressed = false;
-      if (this.tutorialExitConfirmation) this.cancelTutorialExit();
+      const confirmationWasOpen = this.tutorialExitConfirmation;
+      if (confirmationWasOpen) this.cancelTutorialExit();
       else this.requestTutorialExit();
       event.preventDefault();
       this.invalidate();
       this.render(true);
+      if (confirmationWasOpen) {
+        this.overlay.querySelector<HTMLElement>('[data-action="tutorial-exit"]')?.focus();
+      } else {
+        this.focusDialog(".tutorial-exit-modal");
+      }
       return;
     }
   }

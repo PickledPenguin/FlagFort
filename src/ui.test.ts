@@ -510,6 +510,36 @@ describe("event-driven HUD interaction", () => {
     expect(game.tutorialMode).toBe(false);
   });
 
+  it("contains keyboard focus in the tutorial exit dialog and restores it when canceled", () => {
+    const { game, overlay, ui } = createHarness();
+    game.returnToMenu();
+    ui.render(true);
+    click(overlay.querySelector('[data-action="tutorial-menu"]')!);
+
+    const trigger = overlay.querySelector<HTMLElement>('[data-action="tutorial-exit"]')!;
+    click(trigger);
+
+    const dialog = overlay.querySelector<HTMLElement>('[role="dialog"]')!;
+    const cancel = dialog.querySelector<HTMLElement>('[data-action="cancel-tutorial-exit"]')!;
+    const confirm = dialog.querySelector<HTMLElement>('[data-action="confirm-tutorial-exit"]')!;
+    expect(dialog.getAttribute("aria-modal")).toBe("true");
+    expect(dialog.getAttribute("aria-labelledby")).toBe("tutorial-exit-title");
+    expect(document.activeElement).toBe(cancel);
+
+    confirm.focus();
+    window.dispatchEvent(new KeyboardEvent("keydown", { code: "Tab" }));
+    expect(document.activeElement).toBe(cancel);
+
+    cancel.focus();
+    window.dispatchEvent(new KeyboardEvent("keydown", { code: "Tab", shiftKey: true }));
+    expect(document.activeElement).toBe(confirm);
+
+    click(cancel);
+    expect(document.activeElement).toBe(
+      overlay.querySelector('[data-action="tutorial-exit"]'),
+    );
+  });
+
   it("uses Escape to open and close the tutorial exit confirmation", () => {
     const { game, overlay, ui } = createHarness();
     game.returnToMenu();
@@ -521,6 +551,9 @@ describe("event-driven HUD interaction", () => {
     expect(game.phase).toBe("day");
     expect(game.modalLock).toBe(true);
     expect(overlay.textContent).toContain("Exit Tutorial?");
+    expect(document.activeElement).toBe(
+      overlay.querySelector('[data-action="cancel-tutorial-exit"]'),
+    );
 
     window.dispatchEvent(new KeyboardEvent("keydown", { code: "Escape" }));
     game.update(BALANCE.fixedStep);
@@ -528,6 +561,9 @@ describe("event-driven HUD interaction", () => {
     expect(game.tutorialMode).toBe(true);
     expect(game.modalLock).toBe(false);
     expect(overlay.textContent).not.toContain("Exit Tutorial?");
+    expect(document.activeElement).toBe(
+      overlay.querySelector('[data-action="tutorial-exit"]'),
+    );
   });
 
   it("keeps pointer coordinates accurate when the canvas is responsively scaled", () => {
