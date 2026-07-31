@@ -52,6 +52,16 @@ All source paths are absolute in `public/audio/audio-attribution.json`. This tab
 | breaker-smash.ogg | GORESplt_Gore Designed Transient Heavy Impact Smash 01_ESM_HALG.wav | Epic Stock Media / Halloween Game - Haunted House and Horror Audio Scare Kit | Sonniss GDC Game Audio Bundle Part 9 royalty-free license |
 | jumper-jump.ogg | AEROJet_Blast Off Clean_344 Audio_Air Designed.wav | 344 Audio / Air Designed | Sonniss GDC Game Audio Bundle Part 9 royalty-free license |
 | summoner-cast.ogg | MAGAngl_Magic Light Spell Enchantment Potion Effect Tonal Bright 03_ESM_FG2.wav | Epic Stock Media / Fantasy Game 2 - Sound Kit for Enchanted Realms | Sonniss GDC Game Audio Bundle Part 9 royalty-free license |
+| gremlin-sabotage.ogg | impactMetal_heavy_003.ogg | Kenney / Impact Sounds | CC0 1.0 |
+| splitter-split.ogg | impactGlass_heavy_004.ogg | Kenney / Impact Sounds | CC0 1.0 |
+| popper-burst.ogg | impactSoft_heavy_004.ogg | Kenney / Impact Sounds | CC0 1.0 |
+| archer-bow-fire.ogg | knifeSlice.ogg | Kenney / RPG Audio | CC0 1.0 |
+| archer-arrow-impact.ogg | impactTin_medium_004.ogg | Kenney / Impact Sounds | CC0 1.0 |
+| acidslinger-fire.ogg | WOODImpt_Hit Blood Spill Splat Wood Impact Light Hit Squelch Small Thump 03_ESM_TDG.wav | Epic Stock Media / Tower Defense Game | Sonniss GDC Game Audio Bundle Part 9 royalty-free license |
+| acidslinger-impact.ogg | WATRMisc_Water, Liquid Impact, Bubble, Sci Fi, Hit 04_344 Audio_Elemental Palette Designed Vol 1.wav | 344 Audio / Elemental Palette Designed Vol. 1 | Sonniss GDC Game Audio Bundle Part 9 royalty-free license |
+| rammer-charge.ogg | CREAHmn_Designed Orc Male Attack Long Heavy Hit Charged Up 03_ESM_HC4.wav | Epic Stock Media / Humanoid Creatures Vol 4 | Sonniss GDC Game Audio Bundle Part 9 royalty-free license |
+| rammer-rush.ogg | WINDDsgn_Wind, Rush, Whoosh, Long x5 01_344 Audio_Elemental Palette Designed Vol 1.wav | 344 Audio / Elemental Palette Designed Vol. 1 | Sonniss GDC Game Audio Bundle Part 9 royalty-free license |
+| rammer-impact.ogg | impactPlate_heavy_004.ogg | Kenney / Impact Sounds | CC0 1.0 |
 | flag-damaged.ogg | Interface Deny Low Fat Dark.wav | Cinematic Sound Design / System & UI Feedback Elements | Sonniss GDC Game Audio Bundle Part 9 royalty-free license |
 | boss-roar.ogg | ANMLRept_Large Herbivore Roar 01_344 Audio_Dinosaurs Vol 2.wav | 344 Audio / Dinosaurs Vol. 2 | Sonniss GDC Game Audio Bundle Part 9 royalty-free license |
 | boss-acid-spit.ogg | OBJMisc_Spray Bottle, Spray 1_344 Audio_Barbershop Vol 1.wav | 344 Audio / Barbershop Vol. 1 | Sonniss GDC Game Audio Bundle Part 9 royalty-free license |

@@ -1,4 +1,9 @@
 import type { Difficulty, EnemyKind, ResourceKind, StructureKind, Tier } from "./types";
+import { ENEMY_REGISTRY } from "./enemy-registry";
+
+const ENEMY_BASE_STATS = Object.fromEntries(
+  Object.values(ENEMY_REGISTRY).map((entry) => [entry.id, entry.base]),
+) as Record<EnemyKind, (typeof ENEMY_REGISTRY)[EnemyKind]["base"]>;
 
 export const BALANCE = {
   logicalWidth: 1280,
@@ -163,14 +168,7 @@ export const BALANCE = {
     interval: 0.22,
     healthPerHit: 8,
   },
-  enemy: {
-    basic: { health: 42, speed: 115, damage: 7, structureDamage: 8, attackRate: 1.15, radius: 23 },
-    runner: { health: 28, speed: 180, damage: 5, structureDamage: 5, attackRate: 0.72, radius: 20 },
-    breaker: { health: 100, speed: 76, damage: 8, structureDamage: 18, attackRate: 1.45, radius: 29 },
-    jumper: { health: 48, speed: 128, damage: 8, structureDamage: 7, attackRate: 1.1, radius: 22 },
-    summoner: { health: 78, speed: 90, damage: 6, structureDamage: 8, attackRate: 1.3, radius: 26 },
-    boss: { health: 1200, speed: 54, damage: 18, structureDamage: 34, attackRate: 1.8, radius: 66 },
-  } satisfies Record<EnemyKind, { health: number; speed: number; damage: number; structureDamage: number; attackRate: number; radius: number }>,
+  enemy: ENEMY_BASE_STATS,
   boss: {
     obstacleAttackRange: 18,
     obstaclePathWidth: 0.55,
@@ -204,13 +202,18 @@ export const BALANCE = {
   nightMilestones: [
     { night: 1, enemy: "basic", label: "Basic zombie" },
     { night: 2, enemy: "runner", label: "Runner" },
-    { night: 3, enemy: "breaker", label: "Breaker" },
-    { night: 5, enemy: "jumper", label: "Jumper" },
-    { night: 7, enemy: "summoner", label: "Summoner" },
+    { night: 3, enemy: "breaker", label: "Tier 3 threat" },
+    { night: 5, enemy: "jumper", label: "Tier 5 threat" },
+    { night: 7, enemy: "summoner", label: "Tier 7 threat" },
     { night: 10, enemy: "boss", label: "Boss" },
   ] as const,
-  introductionNight: { basic: 1, runner: 2, breaker: 3, jumper: 5, summoner: 7, boss: 10 } satisfies Record<EnemyKind, number>,
-  baseWeights: { basic: 70, runner: 18, breaker: 12, jumper: 10, summoner: 7 },
+  introductionNight: Object.fromEntries(Object.values(ENEMY_REGISTRY).map((entry) => [entry.id, entry.introductionNight])) as Record<EnemyKind, number>,
+  baseWeights: Object.fromEntries(Object.values(ENEMY_REGISTRY).map((entry) => [entry.id, entry.spawnWeight])) as Record<EnemyKind, number>,
+  waveSafety: {
+    maximumActiveEnemies: 90,
+    maximumActiveChildren: 18,
+    firstIntroductionShare: 0.28,
+  },
   waveBase: 8,
   waveGrowth: 4,
   /**

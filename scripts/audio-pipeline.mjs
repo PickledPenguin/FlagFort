@@ -391,6 +391,83 @@ export const selections = [
     events: ["A summoner successfully summons zombies"],
   },
   {
+    id: "gremlin-sabotage",
+    source: source("kenney_impact-sounds/Audio/impactMetal_heavy_003.ogg"),
+    ...KENNEY_CC0,
+    pack: "Impact Sounds",
+    events: ["A Gremlin sabotages a harvester or blocking structure"],
+  },
+  {
+    id: "splitter-split",
+    source: source("kenney_impact-sounds/Audio/impactGlass_heavy_004.ogg"),
+    ...KENNEY_CC0,
+    pack: "Impact Sounds",
+    events: ["A Splitter divides after combat death"],
+  },
+  {
+    id: "popper-burst",
+    source: source("kenney_impact-sounds/Audio/impactSoft_heavy_004.ogg"),
+    ...KENNEY_CC0,
+    pack: "Impact Sounds",
+    events: ["A Popper releases its acid burst"],
+  },
+  {
+    id: "archer-bow-fire",
+    source: source("kenney_rpg-audio/Audio/knifeSlice.ogg"),
+    ...KENNEY_CC0,
+    pack: "RPG Audio",
+    events: ["An Archer releases a charged arrow"],
+  },
+  {
+    id: "archer-arrow-impact",
+    source: source("kenney_impact-sounds/Audio/impactTin_medium_004.ogg"),
+    ...KENNEY_CC0,
+    pack: "Impact Sounds",
+    events: ["An Archer arrow hits its intended target"],
+  },
+  {
+    id: "acidslinger-fire",
+    source: source("Sonniss.com-GDC2026-GameAudioBundle2of5/Epic Stock Media - Tower Defense Game/WOODImpt_Hit Blood Spill Splat Wood Impact Light Hit Squelch Small Thump 03_ESM_TDG.wav"),
+    creator: "Epic Stock Media",
+    pack: "Tower Defense Game",
+    ...SONNISS_ROYALTY_FREE,
+    events: ["An Acidslinger launches a piercing acid shot"],
+  },
+  {
+    id: "acidslinger-impact",
+    source: source("Sonniss.com-GDC2026-GameAudioBundle1of5/344 Audio - Elemental Palette Designed Vol. 1/WATRMisc_Water, Liquid Impact, Bubble, Sci Fi, Hit 04_344 Audio_Elemental Palette Designed Vol 1.wav"),
+    creator: "344 Audio",
+    pack: "Elemental Palette Designed Vol. 1",
+    ...SONNISS_ROYALTY_FREE,
+    maxDuration: 2,
+    events: ["An Acidslinger projectile hits one or more targets"],
+  },
+  {
+    id: "rammer-charge",
+    source: source("Sonniss.com-GDC2026-GameAudioBundle2of5/Epic Stock Media - Humanoid Creatures Vol 4 - Monstrous and Undead Creature Vocalization Sound Sets/CREAHmn_Designed Orc Male Attack Long Heavy Hit Charged Up 03_ESM_HC4.wav"),
+    creator: "Epic Stock Media",
+    pack: "Humanoid Creatures Vol 4",
+    ...SONNISS_ROYALTY_FREE,
+    maxDuration: 2.5,
+    events: ["A Rammer finishes loading its charge"],
+  },
+  {
+    id: "rammer-rush",
+    source: source("Sonniss.com-GDC2026-GameAudioBundle1of5/344 Audio - Elemental Palette Designed Vol. 1/WINDDsgn_Wind, Rush, Whoosh, Long x5 01_344 Audio_Elemental Palette Designed Vol 1.wav"),
+    creator: "344 Audio",
+    pack: "Elemental Palette Designed Vol. 1",
+    ...SONNISS_ROYALTY_FREE,
+    maxDuration: 1.5,
+    events: ["A Rammer rushes forward"],
+  },
+  {
+    id: "rammer-impact",
+    source: source("kenney_impact-sounds/Audio/impactPlate_heavy_004.ogg"),
+    ...KENNEY_CC0,
+    pack: "Impact Sounds",
+    events: ["A Rammer collides with a defensive structure"],
+  },
+  {
     id: "flag-damaged",
     source: source("Sonniss.com-GDC2026-GameAudioBundle2of5/Cinematic Sound Design - System & UI Feedback Elements/Interface Deny Low Fat Dark.wav"),
     creator: "Cinematic Sound Design",
@@ -538,7 +615,6 @@ function build(selection) {
 }
 
 function main() {
-  if (selections.length !== 52) throw new Error(`Expected 52 selections, found ${selections.length}`);
   const destinations = new Set(selections.map((item) => item.id));
   if (destinations.size !== selections.length) throw new Error("Canonical destinations must be unique");
   const sourceHashesBefore = new Map(selections.map((item) => [item.source, sha256(item.source)]));
@@ -551,7 +627,7 @@ function main() {
   const manifest = {
     generatedAt: new Date().toISOString(),
     sourceFoldersSearched: [sourceRoot],
-    canonicalSoundCount: 52,
+    canonicalSoundCount: selections.length,
     assignedSoundCount: entries.length,
     missingSounds: [],
     licenses: {

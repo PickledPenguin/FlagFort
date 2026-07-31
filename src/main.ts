@@ -4,6 +4,7 @@ import "./styles.css";
 import { audioManager } from "./audio";
 import { BALANCE } from "./config";
 import { Game } from "./game";
+import { ENEMY_REGISTRY } from "./enemy-registry";
 import { Input } from "./input";
 import { musicContextForState, musicManager } from "./music";
 import { platform } from "./platform";
@@ -63,14 +64,7 @@ async function bootstrap(): Promise<void> {
   if (import.meta.env.DEV) {
     const preview = new URLSearchParams(location.search);
     const enemyPreview = preview.get("enemyPreview") as EnemyKind | null;
-    const enemyKinds: EnemyKind[] = [
-      "basic",
-      "runner",
-      "breaker",
-      "jumper",
-      "summoner",
-      "boss",
-    ];
+    const enemyKinds = Object.keys(ENEMY_REGISTRY) as EnemyKind[];
     const swordPreview = preview.get("swordPreview") as Tier | null;
     const tiers: Tier[] = ["wood", "stone", "gold", "diamond"];
     if (swordPreview && tiers.includes(swordPreview)) {

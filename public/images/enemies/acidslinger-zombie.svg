@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="-62 -46 124 92"
+   role="img"
+   aria-labelledby="acid-title acid-desc"
+   version="1.1"
+   id="svg6"
+   sodipodi:docname="acidslinger-zombie.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs6" />
+  <sodipodi:namedview
+     id="namedview6"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="4.0215034"
+     inkscape:cx="27.725949"
+     inkscape:cy="31.704561"
+     inkscape:window-width="1606"
+     inkscape:window-height="744"
+     inkscape:window-x="0"
+     inkscape:window-y="33"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="acid-tank" />
+  <title
+     id="acid-title">Acidslinger zombie</title>
+  <desc
+     id="acid-desc">A zombie equipped with a green acid tank and short nozzle.</desc>
+  <metadata
+     id="editor-metadata">FlagFort editable enemy artwork; tank, hose, nozzle, and anatomy are separate groups.</metadata>
+  <g
+     id="acidslinger-body"
+     fill="#547f45"
+     stroke="#263c29"
+     stroke-width="2">
+    <circle
+       r="25"
+       id="circle1" />
+    <circle
+       cx="35"
+       cy="-13"
+       r="8"
+       id="circle2" />
+    <circle
+       cx="35"
+       cy="13"
+       r="8"
+       id="circle3" />
+  </g>
+  <g
+     id="acid-tank"
+     stroke="#263c29"
+     stroke-width="3">
+    <rect
+       x="-34"
+       y="-21"
+       width="19"
+       height="42"
+       rx="8"
+       fill="#77d83d"
+       id="rect3" />
+    <path
+       d="M -14.861302,10.683219 C 7.8365709,24.019871 12.788156,21.49796 29.57891,6.694763"
+       fill="none"
+       id="path3"
+       sodipodi:nodetypes="cc" />
+    <path
+       id="nozzle"
+       d="m 28.429822,-7.4993156 h 24 l 7,6.99999998 -7,7.00000002 h -24 z"
+       fill="#59635e" />
+    <circle
+       cx="51.953953"
+       cy="-0.42310899"
+       r="5"
+       fill="#9af04a"
+       id="circle4" />
+    <path
+       d="m -23.336244,-20.048824 v -8 h 7 v 10.442481"
+       style="fill:#263c29;fill-opacity:1"
+       id="path1" />
+  </g>
+  <g
+     id="eyes"
+     fill="#f2f0d9">
+    <ellipse
+       cx="8"
+       cy="-9"
+       rx="7"
+       ry="5"
+       id="ellipse4" />
+    <ellipse
+       cx="8"
+       cy="9"
+       rx="7"
+       ry="5"
+       id="ellipse5" />
+  </g>
+  <g
+     fill="#8e241f"
+     id="g6">
+    <circle
+       cx="11"
+       cy="-8"
+       r="3"
+       id="circle5" />
+    <circle
+       cx="11"
+       cy="8"
+       r="3"
+       id="circle6" />
+  </g>
+</svg>

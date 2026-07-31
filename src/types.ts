@@ -5,7 +5,20 @@ export type ResourceKind = "wood" | "stone" | "gold" | "diamond";
 export type Tier = ResourceKind;
 export type StructureKind = "wall" | "door" | "spikes" | "harvester" | "turret";
 export type ActionKind = "fists" | "tool" | "recycle" | StructureKind;
-export type EnemyKind = "basic" | "runner" | "breaker" | "jumper" | "summoner" | "boss";
+export type RosterTier = 1 | 2 | 3 | 5 | 7;
+export type RosterEnemyKind =
+  | "basic"
+  | "runner"
+  | "breaker"
+  | "gremlin"
+  | "splitter"
+  | "jumper"
+  | "popper"
+  | "archer"
+  | "summoner"
+  | "acidslinger"
+  | "rammer";
+export type EnemyKind = RosterEnemyKind | "splitter-child" | "boss";
 export type PlayerId = string;
 export type DamageSource =
   | "player-melee"
@@ -14,6 +27,10 @@ export type DamageSource =
   | "spikes"
   | "sunlight"
   | "boss-acid"
+  | "enemy-arrow"
+  | "enemy-acid"
+  | "popper-burst"
+  | "rammer-charge"
   | "enemy";
 
 export interface Vec2 {
@@ -118,11 +135,21 @@ export interface Enemy extends Circle {
   jumpStartY: number;
   jumpEndX: number;
   jumpEndY: number;
+  angle?: number;
+  child?: boolean;
+  deathResolved?: boolean;
+  deathReason?: "combat" | "sunlight" | "dawn" | "forced" | null;
+  chargeProgress?: number;
+  chargeTargetId?: number | null;
+  charging?: boolean;
+  chargeDistanceLeft?: number;
+  chargeDamageLeft?: number;
+  chargeHitIds?: Set<number>;
 }
 
 export interface Projectile extends Circle {
   id: number;
-  owner: "player" | "turret" | "boss-acid";
+  owner: "player" | "turret" | "boss-acid" | "enemy-arrow" | "enemy-acid";
   ownerPlayerId?: PlayerId | null;
   damageSource?: DamageSource;
   x: number;
@@ -134,7 +161,8 @@ export interface Projectile extends Circle {
   damage: number;
   rangeLeft: number;
   lifetime: number;
-  hitIds: Set<number | "player">;
+  hitIds: Set<number | "player" | "flag">;
+  intendedTargetId?: number | "player" | "flag";
   color: string;
 }
 

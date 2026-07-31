@@ -1,4 +1,5 @@
 import type { EnemyKind, ResourceKind, StructureKind, Tier } from "./types";
+import { ENEMY_REGISTRY } from "./enemy-registry";
 
 export const svgAsset = (path: string): string => `./images/${path}.svg`;
 export const cardAsset = (
@@ -49,30 +50,9 @@ export const ASSETS = {
     gold: { active: image("world/gold-active"), depleted: image("world/gold-depleted") },
     diamond: { active: image("world/diamond-active"), depleted: image("world/diamond-depleted") },
   } satisfies Record<ResourceKind, Record<"active" | "depleted", string>>,
-  enemies: {
-    basic: image("enemies/basic-zombie"),
-    runner: image("enemies/runner-zombie"),
-    breaker: image("enemies/breaker-zombie"),
-    jumper: image("enemies/jumper-zombie"),
-    summoner: image("enemies/summoner-zombie"),
-    boss: image("enemies/countdown-boss"),
-  } satisfies Record<EnemyKind, string>,
-  enemyBodies: {
-    basic: image("gameplay/enemies/basic/body"),
-    runner: image("gameplay/enemies/runner/body"),
-    breaker: image("gameplay/enemies/breaker/body"),
-    jumper: image("gameplay/enemies/jumper/body"),
-    summoner: image("gameplay/enemies/summoner/body"),
-    boss: image("enemies/countdown-boss"),
-  } satisfies Record<EnemyKind, string>,
-  enemyHands: {
-    basic: image("gameplay/enemies/basic/hand"),
-    runner: image("gameplay/enemies/runner/hand"),
-    breaker: image("gameplay/enemies/breaker/hand"),
-    jumper: image("gameplay/enemies/jumper/hand"),
-    summoner: image("gameplay/enemies/summoner/hand"),
-    boss: image("gameplay/enemies/basic/hand"),
-  } satisfies Record<EnemyKind, string>,
+  enemies: Object.fromEntries(Object.values(ENEMY_REGISTRY).map((entry) => [entry.id, image(entry.assets.portrait)])) as Record<EnemyKind, string>,
+  enemyBodies: Object.fromEntries(Object.values(ENEMY_REGISTRY).map((entry) => [entry.id, image(entry.assets.body)])) as Record<EnemyKind, string>,
+  enemyHands: Object.fromEntries(Object.values(ENEMY_REGISTRY).map((entry) => [entry.id, image(entry.assets.hand)])) as Record<EnemyKind, string>,
   player: {
     body: image("gameplay/player/body-base"),
     bodyDetails: image("gameplay/player/body-details"),

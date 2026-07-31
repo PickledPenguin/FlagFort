@@ -1,6 +1,7 @@
 import { BALANCE } from "./config";
 import { allAssetPaths, ASSETS } from "./assets";
 import { BUILD_BAR_ICON_PATHS } from "./build-bar-icons";
+import { ENEMY_REGISTRY } from "./enemy-registry";
 import type { Game } from "./game";
 import { META_BALANCE } from "./meta-balance";
 import { affordability, type ResourceWallet } from "./rules";
@@ -243,7 +244,7 @@ export class Renderer {
     }
     if (game.buildPreview) this.drawBuildPreview(game);
     for (const projectile of game.projectiles) {
-      if (projectile.owner === "boss-acid") {
+      if (projectile.owner === "boss-acid" || projectile.owner === "enemy-acid") {
         const size = projectile.radius * 3.4;
         this.drawSprite(
           ASSETS.projectiles.acid,
@@ -257,7 +258,15 @@ export class Renderer {
       ctx.save();
       ctx.translate(projectile.x, projectile.y);
       ctx.rotate(Math.atan2(projectile.vy, projectile.vx));
-      this.drawTintedSprite(ASSETS.projectiles.arrow, projectile.color, -20, -4, 24, 8);
+      if (projectile.owner === "enemy-arrow") {
+        ctx.strokeStyle = "#101214";
+        ctx.lineWidth = 3;
+        ctx.lineCap = "round";
+        ctx.beginPath(); ctx.moveTo(-18, 0); ctx.lineTo(10, 0); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(5, -5); ctx.lineTo(11, 0); ctx.lineTo(5, 5); ctx.stroke();
+      } else {
+        this.drawTintedSprite(ASSETS.projectiles.arrow, projectile.color, -20, -4, 24, 8);
+      }
       ctx.restore();
     }
     for (const enemy of game.enemies) {
@@ -546,7 +555,7 @@ export class Renderer {
 
   private drawEnemy(enemy: Enemy): void {
     const ctx = this.ctx;
-    const angle = Math.atan2(center - enemy.y, center - enemy.x);
+    const angle = enemy.angle ?? Math.atan2(center - enemy.y, center - enemy.x);
     ctx.save();
     ctx.translate(enemy.x, enemy.y);
     if (enemy.burning) {
@@ -561,7 +570,7 @@ export class Renderer {
       ctx.globalAlpha = 0.82;
     }
     if (enemy.attackWindup > 0) {
-      ctx.strokeStyle = "rgba(255,78,68,.75)";
+      ctx.strokeStyle = enemy.kind === "acidslinger" ? "rgba(111,235,62,.9)" : "rgba(255,78,68,.75)";
       ctx.lineWidth = 5;
       ctx.beginPath();
       ctx.arc(0, 0, enemy.radius + 11, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * enemy.attackWindup);
@@ -606,7 +615,25 @@ export class Renderer {
       }
       return;
     }
+    if (enemy.kind === "rammer" && enemy.attackWindup > 0) {
+      ctx.save();
+      ctx.rotate(angle);
+      ctx.strokeStyle = "rgba(255,181,83,.9)";
+      ctx.lineWidth = 5;
+      ctx.setLineDash([12, 8]);
+      ctx.beginPath(); ctx.moveTo(enemy.radius + 8, 0); ctx.lineTo(enemy.radius + 130, 0); ctx.stroke();
+      ctx.restore();
+    }
     ctx.rotate(angle);
+    const fullSpriteKinds: Enemy["kind"][] = ["gremlin", "splitter", "splitter-child", "popper", "archer", "acidslinger", "rammer"];
+    if (fullSpriteKinds.includes(enemy.kind)) {
+      const height = enemy.radius * (enemy.kind === "splitter-child" ? 4 : 3.25);
+      const width = height * (ENEMY_REGISTRY[enemy.kind].render?.aspectRatio ?? 1);
+      this.drawSprite(ASSETS.enemies[enemy.kind], -width / 2, -height / 2, width, height, enemy.flash > 0);
+      ctx.restore();
+      this.healthBar(enemy.x, enemy.y - enemy.radius - 12, enemy.kind === "rammer" ? 72 : 55, enemy.health / enemy.maxHealth, "#d2574e");
+      return;
+    }
     const handReach = enemy.radius + 11 + enemy.attackWindup * 10;
     const handDiameter = enemy.radius * 0.7;
     this.drawSprite(

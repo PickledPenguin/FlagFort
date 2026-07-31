@@ -137,6 +137,28 @@ describe("interface refinements", () => {
 });
 
 describe("combat and navigation refinements", () => {
+  it("attacks a blocking wall instead of reaching through it to a nearby flag", () => {
+    const game = new Game(input());
+    game.startRun("normal", "blocked-flag");
+    game.world.resources = [];
+    const wall = structure("wall", game.flag.x - 29, game.flag.y);
+    const basic = enemy({
+      kind: "basic",
+      x: game.flag.x - 58,
+      y: game.flag.y,
+      speed: 0,
+      targetId: "flag",
+      scanCooldown: 10,
+    });
+    const flagHealth = game.flag.health;
+    const wallHealth = wall.health;
+    game.structures = [wall];
+    game.enemies = [basic];
+    (game as unknown as { updateEnemies: (dt: number) => void }).updateEnemies(0.4);
+    expect(wall.health).toBeLessThan(wallHealth);
+    expect(game.flag.health).toBe(flagHealth);
+  });
+
   it("alternates punch hands and applies one hit per attack", () => {
     const game = new Game(input());
     game.startRun("normal", "hands");

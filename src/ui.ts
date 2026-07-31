@@ -10,6 +10,7 @@ import { CHALLENGES, challengeXpBonusPercent, resolveChallengeModifiers } from "
 import { challengeIcon } from "./challenge-icons";
 import { audioManager, type AudioVolumeChannel } from "./audio";
 import { ASSETS } from "./assets";
+import { ENEMY_REGISTRY, introducedRosterEnemies, rosterMilestones } from "./enemy-registry";
 import type { ActionKind, Choice, Difficulty, EnemyKind, StructureKind, Tier } from "./types";
 import {
   EQUIPMENT_ORDER,
@@ -56,14 +57,9 @@ function prefersReducedMotion(): boolean {
     && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-const enemyInfo: Record<EnemyKind, { title: string; text: string; tell: string }> = {
-  basic: { title: "Basic Zombie", text: "A steady attacker focused on the flag.", tell: "Green body" },
-  runner: { title: "Runner", text: "Fast movement and quick attacks, but lower health.", tell: "Small bright-green body" },
-  breaker: { title: "Breaker", text: "Slow, armored, and brutal against structures.", tell: "Dark body and helmet" },
-  jumper: { title: "Jumper", text: "Telegraphs a hop over one constructed barrier.", tell: "Green jump burst" },
-  summoner: { title: "Summoner", text: "Creates basic zombies, up to three living summons.", tell: "Purple summoning ring" },
-  boss: { title: "The Last Count", text: "Smashes structures and summons at half health.", tell: "Ten health segments" },
-};
+const enemyInfo = Object.fromEntries(Object.values(ENEMY_REGISTRY).map((entry) => [entry.id, {
+  title: entry.displayName, text: entry.description, tell: entry.tell,
+}])) as Record<EnemyKind, { title: string; text: string; tell: string }>;
 
 type MenuPanel = "controls" | "settings" | "challenges" | "credits" | "profile" | "upgrades" | "shop" | null;
 type TutorialOrigin = "menu";
@@ -909,6 +905,7 @@ export class Ui {
       </div>
       <div class="countdown-stack">
         ${this.runProgressMarkup()}
+        ${this.rosterForecastMarkup()}
         <div class="clock" data-clock-panel><div class="clock-face"><strong data-clock></strong></div><small data-night></small><span data-phase-label></span></div>
         ${this.game.phase === "day" && !this.game.tutorialMode ? `<button class="skip-night-button" data-action="skip-night" aria-label="Skip to Night">${icon("skip")}<span>Skip to Night</span><span class="tooltip">End the day early with no reward</span></button>` : ""}
     </div>
@@ -943,7 +940,7 @@ export class Ui {
       role="progressbar" aria-label="Run progress" aria-valuemin="${firstNight}" aria-valuemax="${firstNight + count - 1}" aria-valuenow="${this.game.night}">
       <div class="run-progress-line"><i></i></div>
       ${nights.map((night) => {
-        const milestone = BALANCE.nightMilestones.find((item) => item.night === night);
+        const milestone = rosterMilestones(this.game.enemyRoster).find((item) => item.night === night);
         const boss = night === 10 || (endless && night % 5 === 0);
         const state = night <= completed ? "completed" : night === this.game.night ? "current" : "future";
         const tooltip = milestone?.label ?? (boss ? `Boss Night ${night}` : `Night ${night}`);
@@ -953,6 +950,16 @@ export class Ui {
         </span>`;
       }).join("")}
     </div>`;
+  }
+
+  private rosterForecastMarkup(): string {
+    if (this.game.tutorialMode) return "";
+    const kinds = introducedRosterEnemies(this.game.enemyRoster, this.game.night);
+    const label = this.game.phase === "day" ? `Night ${this.game.night} forecast` : `Night ${this.game.night} timeline`;
+    return `<div class="roster-forecast" aria-label="${label}"><small>${label}</small><span>${kinds.map((kind) => {
+      const info = ENEMY_REGISTRY[kind];
+      return `<i title="${info.displayName}: ${info.description}"><img src="${ASSETS.enemies[kind]}" alt=""><b>${info.displayName}</b></i>`;
+    }).join("")}</span></div>`;
   }
 
   private actionButton(slot: number, action: ActionKind, label: string, symbol: string, disabled = false): string {

@@ -18,14 +18,22 @@ import {
 
 describe("audio asset coverage", () => {
   it("assigns every canonical sound exactly once", () => {
-    expect(SOUND_IDS).toHaveLength(52);
-    expect(new Set(SOUND_IDS).size).toBe(52);
+    expect(new Set(SOUND_IDS).size).toBe(SOUND_IDS.length);
     expect(Object.keys(SOUND_CONFIG).sort()).toEqual([...SOUND_IDS].sort());
-    expect(manifest.canonicalSoundCount).toBe(52);
-    expect(manifest.assignedSoundCount).toBe(52);
+    expect(manifest.canonicalSoundCount).toBe(SOUND_IDS.length);
+    expect(manifest.assignedSoundCount).toBe(SOUND_IDS.length);
     expect(manifest.missingSounds).toEqual([]);
     expect(manifest.entries.map((entry) => entry.canonicalFilename).sort())
       .toEqual(SOUND_IDS.map((id) => `${id}.ogg`).sort());
+  });
+
+  it("preserves the committed custom player and zombie source selections", () => {
+    const sourceFor = (id: string): string => manifest.entries
+      .find((entry) => entry.canonicalFilename === `${id}.ogg`)?.originalSourcePath ?? "";
+    expect(sourceFor("bow-fire")).toMatch(/kenney_rpg-audio\/Audio\/knifeSlice2\.ogg$/);
+    expect(sourceFor("arrow-impact")).toMatch(/Cinematic Sound Design - Cartoon Bloopers\/Arrow Hit Rattle\.wav$/);
+    expect(sourceFor("zombie-attack")).toMatch(/CREAHmn_Violent Humanoid Creature Exhale Short 4_SNDBTS_VB-SE\.wav$/);
+    expect(sourceFor("zombie-death")).toMatch(/VOXReac_Construction Kit Male Flutter Death Vocal Stuttered Long 05_ESM_HC4\.wav$/);
   });
 
   it("keeps one source copy per canonical destination", () => {
@@ -84,6 +92,13 @@ describe("audio asset coverage", () => {
       "portal-ambient",
       "zombie-death",
       "boss-acid-spit",
+      "archer-bow-fire",
+      "archer-arrow-impact",
+      "acidslinger-fire",
+      "acidslinger-impact",
+      "rammer-charge",
+      "rammer-rush",
+      "rammer-impact",
     ] as const) {
       expect(SOUND_CONFIG[cue].positioning).toBe("spatial");
     }

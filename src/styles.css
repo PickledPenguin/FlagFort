@@ -2476,6 +2476,12 @@ img.icon {
   pointer-events: none;
 }
 
+.roster-forecast { position:absolute; top:120px; right:calc(100% + 10px); display:flex; align-items:center; gap:8px; padding:6px 9px; border:1px solid rgba(229,242,218,.18); border-radius:10px; background:rgba(21,27,24,.88); color:#eef7e7; white-space:nowrap; pointer-events:auto; box-shadow:0 3px 12px rgba(0,0,0,.18); }
+.roster-forecast small { color:#b7c8ba; font-size:9px; text-transform:uppercase; letter-spacing:.08em; }
+.roster-forecast > span { display:flex; gap:5px; }
+.roster-forecast i { display:flex; align-items:center; gap:3px; font-style:normal; font-size:9px; }
+.roster-forecast img { width:20px; height:20px; object-fit:contain; }
+
 .countdown-stack > * {
   pointer-events: auto;
 }
@@ -2713,7 +2719,8 @@ img.icon {
   }
 }
 
-@media (max-width: 950px) {
+@media (max-width: 1100px) {
+  .roster-forecast i b { display: none; }
   .countdown-stack {
     top: 6px;
     width: clamp(280px, calc(100vw - 540px), 430px);

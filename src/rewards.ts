@@ -4,7 +4,7 @@ import type { EnemyKind } from "./types";
 import { challengeXpBonusPercent } from "./challenges";
 
 export interface RunRewardInput {
-  directPlayerKills: Record<EnemyKind, number>;
+  directPlayerKills: Partial<Record<EnemyKind, number>>;
   nightsSurvived: number;
   victory: boolean;
   effectiveDifficultyMultiplier?: number;
@@ -29,7 +29,7 @@ export interface CoinSettlement {
   returnPercent: number;
 }
 
-export function calculatePersonalKillXp(kills: Record<EnemyKind, number>): number {
+export function calculatePersonalKillXp(kills: Partial<Record<EnemyKind, number>>): number {
   return (Object.keys(META_BALANCE.rewards.enemyKillXp) as EnemyKind[])
     .reduce((total, kind) => total
       + Math.max(0, Math.floor(kills[kind] ?? 0)) * META_BALANCE.rewards.enemyKillXp[kind], 0);

@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="-66 -52 132 104"
+   role="img"
+   aria-labelledby="rammer-title rammer-desc"
+   version="1.1"
+   id="svg5"
+   sodipodi:docname="rammer-zombie.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs5" />
+  <sodipodi:namedview
+     id="namedview5"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="2.682827"
+     inkscape:cx="98.217292"
+     inkscape:cy="43.237973"
+     inkscape:window-width="1642"
+     inkscape:window-height="701"
+     inkscape:window-x="0"
+     inkscape:window-y="33"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="rammer-armor" />
+  <title
+     id="rammer-title">Rammer zombie</title>
+  <desc
+     id="rammer-desc">A massive armored zombie with a horned charging helmet.</desc>
+  <metadata
+     id="editor-metadata">FlagFort editable enemy artwork; armor, horns, hands, and anatomy are separate groups.</metadata>
+  <g
+     id="rammer-body"
+     fill="#4e7542"
+     stroke="#263c29"
+     stroke-width="3">
+    <circle
+       r="34"
+       id="circle1" />
+    <circle
+       cx="47"
+       cy="-19"
+       r="12"
+       id="circle2" />
+    <circle
+       cx="47"
+       cy="19"
+       r="12"
+       id="circle3" />
+  </g>
+  <g
+     id="rammer-armor"
+     fill="#626b69"
+     stroke="#263c29"
+     stroke-width="3">
+    <path
+       id="helmet"
+       d="M-30-10A31 31 0 0 1 28-10L21 7H-26Z" />
+    <path
+       id="helmet-4"
+       d="m -30.482692,9.1822352 a 31,31 0 0 0 58,0 l -7,-16.9999998 h -47 z" />
+    <path
+       id="shoulder-plate"
+       d="M-21-25-38-12-34 12-19 25-10 13-15 0-9-14Z" />
+  </g>
+  <g
+     id="eyes"
+     fill="#f2f0d9">
+    <ellipse
+       cx="8"
+       cy="-10"
+       rx="7"
+       ry="5"
+       id="ellipse3" />
+    <ellipse
+       cx="8"
+       cy="10"
+       rx="7"
+       ry="5"
+       id="ellipse4" />
+  </g>
+  <g
+     fill="#8e241f"
+     id="g5">
+    <circle
+       cx="12"
+       cy="-9"
+       r="3"
+       id="circle4" />
+    <circle
+       cx="12"
+       cy="9"
+       r="3"
+       id="circle5" />
+  </g>
+</svg>
