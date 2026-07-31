@@ -394,6 +394,37 @@ describe("event-driven HUD interaction", () => {
     expect(game.phase).toBe("day");
   });
 
+  it("contains keyboard focus in the pause dialog and restores it on resume", () => {
+    const { game, hud, overlay, ui } = createHarness();
+    game.togglePause();
+    ui.render(true);
+
+    const dialog = overlay.querySelector<HTMLElement>('[role="dialog"]')!;
+    const resume = dialog.querySelector<HTMLElement>('[data-action="resume"]')!;
+    const endRun = dialog.querySelector<HTMLElement>('[data-action="request-run-exit"]')!;
+    expect(dialog.getAttribute("aria-modal")).toBe("true");
+    expect(dialog.getAttribute("aria-labelledby")).toBe("pause-title");
+    expect(document.activeElement).toBe(resume);
+
+    endRun.focus();
+    window.dispatchEvent(new KeyboardEvent("keydown", { code: "Tab" }));
+    expect(document.activeElement).toBe(resume);
+    resume.focus();
+    window.dispatchEvent(new KeyboardEvent("keydown", { code: "Tab", shiftKey: true }));
+    expect(document.activeElement).toBe(endRun);
+
+    click(resume);
+    expect(game.phase).toBe("day");
+    expect(document.activeElement).toBe(hud.querySelector('[data-action="pause"]'));
+
+    game.togglePause();
+    ui.render(true);
+    window.dispatchEvent(new KeyboardEvent("keydown", { code: "Escape" }));
+    game.update(BALANCE.fixedStep);
+    expect(game.phase).toBe("day");
+    expect(document.activeElement).toBe(hud.querySelector('[data-action="pause"]'));
+  });
+
   it("confirms ending an active run before showing settlement results", () => {
     const { game, overlay, ui } = createHarness();
     game.togglePause();

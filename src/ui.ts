@@ -196,6 +196,9 @@ export class Ui {
     else if (this.game.phase === "victory" || this.game.phase === "defeat") this.overlay.innerHTML = this.resultMarkup();
     else this.overlay.innerHTML = "";
     this.decorateMenuPanel();
+    if (this.game.phase === "paused" && !this.runExitConfirmation) {
+      this.focusDialog(".pause-card");
+    }
   }
 
   private decorateMenuPanel(): void {
@@ -555,8 +558,8 @@ export class Ui {
   }
 
   private pauseMarkup(): string {
-    return `<section class="screen modal-screen"><div class="modal pause-card">
-      <p class="eyebrow">COUNT FROZEN</p><h2>Paused</h2>
+    return `<section class="screen modal-screen"><div class="modal pause-card" role="dialog" aria-modal="true" aria-labelledby="pause-title">
+      <p class="eyebrow">COUNT FROZEN</p><h2 id="pause-title">Paused</h2>
       <button class="primary wide" data-action="resume">${icon("play")} Resume</button>
       <button class="ghost wide" data-action="request-run-exit">End run</button>
     </div></section>`;
@@ -1200,6 +1203,8 @@ export class Ui {
       this.focusDialog(".investment-modal");
     } else if (action === "cancel-investment") {
       this.overlay.querySelector<HTMLElement>('[data-action="start"]')?.focus();
+    } else if (action === "resume") {
+      this.hud.querySelector<HTMLElement>('[data-action="pause"]')?.focus();
     } else if (action === "cancel-skip-night") {
       this.hud.querySelector<HTMLElement>('[data-action="skip-night"]')?.focus();
     } else if (this.runExitConfirmation && action === "request-run-exit") {
@@ -1349,6 +1354,10 @@ export class Ui {
       this.trapDialogFocus(event, ".run-exit-modal");
       return;
     }
+    if (this.game.phase === "paused" && event.code === "Tab") {
+      this.trapDialogFocus(event, ".pause-card");
+      return;
+    }
     if (this.game.skipNightConfirmation && event.code === "Tab") {
       this.trapDialogFocus(event, ".skip-night-modal");
       return;
@@ -1359,6 +1368,15 @@ export class Ui {
     }
     if (this.tutorialExitConfirmation && event.code === "Tab") {
       this.trapDialogFocus(event, ".tutorial-exit-modal");
+      return;
+    }
+    if (this.game.phase === "paused" && !this.runExitConfirmation && event.code === "Escape") {
+      this.game.togglePause();
+      this.game.input.escapePressed = false;
+      event.preventDefault();
+      this.invalidate();
+      this.render(true);
+      this.hud.querySelector<HTMLElement>('[data-action="pause"]')?.focus();
       return;
     }
     if (this.investmentOpen && event.code === "Escape") {
