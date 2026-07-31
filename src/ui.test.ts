@@ -392,6 +392,36 @@ describe("event-driven HUD interaction", () => {
     expect(game.modalLock).toBe(false);
     expect(overlay.textContent).toContain("Paused");
     expect(overlay.textContent).not.toContain("End this run?");
+    expect(document.activeElement).toBe(
+      overlay.querySelector('[data-action="request-run-exit"]'),
+    );
+  });
+
+  it("contains keyboard focus in the active-run exit dialog and restores it when canceled", () => {
+    const { game, overlay, ui } = createHarness();
+    game.togglePause();
+    ui.render(true);
+    click(overlay.querySelector('[data-action="request-run-exit"]')!);
+
+    const dialog = overlay.querySelector<HTMLElement>('[role="dialog"]')!;
+    const cancel = dialog.querySelector<HTMLElement>('[data-action="cancel-run-exit"]')!;
+    const confirm = dialog.querySelector<HTMLElement>('[data-action="confirm-run-exit"]')!;
+    expect(dialog.getAttribute("aria-modal")).toBe("true");
+    expect(dialog.getAttribute("aria-labelledby")).toBe("run-exit-title");
+    expect(document.activeElement).toBe(cancel);
+
+    confirm.focus();
+    window.dispatchEvent(new KeyboardEvent("keydown", { code: "Tab" }));
+    expect(document.activeElement).toBe(cancel);
+
+    cancel.focus();
+    window.dispatchEvent(new KeyboardEvent("keydown", { code: "Tab", shiftKey: true }));
+    expect(document.activeElement).toBe(confirm);
+
+    click(cancel);
+    expect(document.activeElement).toBe(
+      overlay.querySelector('[data-action="request-run-exit"]'),
+    );
   });
 
   it("offers only replay, next, and exit navigation in tutorial sections", () => {

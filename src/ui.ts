@@ -563,7 +563,7 @@ export class Ui {
   }
 
   private runExitConfirmationMarkup(): string {
-    return `<section class="screen modal-screen run-exit-screen"><div class="modal compact" role="dialog" aria-modal="true" aria-labelledby="run-exit-title">
+    return `<section class="screen modal-screen run-exit-screen"><div class="modal compact run-exit-modal" role="dialog" aria-modal="true" aria-labelledby="run-exit-title">
       <p class="eyebrow">ABANDON DEFENSE</p>
       <h2 id="run-exit-title">End this run?</h2>
       <p>Your progress will be settled now, and this run cannot be resumed.</p>
@@ -1196,6 +1196,10 @@ export class Ui {
       this.overlay.querySelector<HTMLElement>('[data-action="start"]')?.focus();
     } else if (action === "cancel-skip-night") {
       this.hud.querySelector<HTMLElement>('[data-action="skip-night"]')?.focus();
+    } else if (this.runExitConfirmation && action === "request-run-exit") {
+      this.focusDialog(".run-exit-modal");
+    } else if (action === "cancel-run-exit") {
+      this.overlay.querySelector<HTMLElement>('[data-action="request-run-exit"]')?.focus();
     } else if (action === "close-panel" && panelBeforeAction) {
       this.focusMenuPanelTrigger(panelBeforeAction);
     } else if (
@@ -1327,6 +1331,10 @@ export class Ui {
   }
 
   private handleKeydown(event: KeyboardEvent): void {
+    if (this.runExitConfirmation && event.code === "Tab") {
+      this.trapDialogFocus(event, ".run-exit-modal");
+      return;
+    }
     if (this.game.skipNightConfirmation && event.code === "Tab") {
       this.trapDialogFocus(event, ".skip-night-modal");
       return;
@@ -1365,6 +1373,7 @@ export class Ui {
       event.preventDefault();
       this.invalidate();
       this.render(true);
+      this.overlay.querySelector<HTMLElement>('[data-action="request-run-exit"]')?.focus();
       return;
     }
     if (this.game.skipNightConfirmation && event.code === "Escape") {
