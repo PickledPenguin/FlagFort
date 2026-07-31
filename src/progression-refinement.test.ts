@@ -314,6 +314,41 @@ describe("currency and reward presentation", () => {
       .toContain("sliders-horizontal.svg");
   });
 
+  it("treats run investment as a keyboard-contained dismissible dialog", () => {
+    const { game } = gameWithProfile();
+    const overlay = document.querySelector<HTMLElement>("#overlay")!;
+    const ui = new Ui(
+      game,
+      document.querySelector("#hud")!,
+      overlay,
+      document.querySelector("#toast")!,
+    );
+    game.returnToMenu();
+    ui.render(true);
+
+    const start = overlay.querySelector<HTMLElement>('[data-action="start"]')!;
+    start.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    const dialog = overlay.querySelector<HTMLElement>('[role="dialog"]')!;
+    const close = dialog.querySelector<HTMLElement>('[data-action="cancel-investment"]')!;
+    const confirm = dialog.querySelector<HTMLElement>('[data-action="confirm-investment"]')!;
+
+    expect(dialog.getAttribute("aria-modal")).toBe("true");
+    expect(dialog.getAttribute("aria-labelledby")).toBe("investment-title");
+    expect(document.activeElement).toBe(close);
+
+    confirm.focus();
+    window.dispatchEvent(new KeyboardEvent("keydown", { code: "Tab" }));
+    expect(document.activeElement).toBe(close);
+
+    close.focus();
+    window.dispatchEvent(new KeyboardEvent("keydown", { code: "Tab", shiftKey: true }));
+    expect(document.activeElement).toBe(confirm);
+
+    window.dispatchEvent(new KeyboardEvent("keydown", { code: "Escape" }));
+    expect(overlay.querySelector('[role="dialog"]')).toBeNull();
+    expect(document.activeElement).toBe(overlay.querySelector('[data-action="start"]'));
+  });
+
   it("distinguishes loss, break-even, and profit without color alone", () => {
     expect(settleCoinInvestment(100, 0).profitOrLoss).toBeLessThan(0);
     expect(settleCoinInvestment(100, 5).profitOrLoss).toBe(0);

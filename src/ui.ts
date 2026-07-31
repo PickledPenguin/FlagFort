@@ -502,9 +502,9 @@ export class Ui {
     const coins = this.game.profileManager?.profile.coins ?? 0;
     const maximum = Math.min(META_BALANCE.investment.maximum, coins);
     this.investmentDraft = Math.min(maximum, this.investmentDraft);
-    return `<section class="screen modal-screen investment-screen"><div class="modal investment-modal">
+    return `<section class="screen modal-screen investment-screen"><div class="modal investment-modal" role="dialog" aria-modal="true" aria-labelledby="investment-title">
       <button class="modal-close" data-action="cancel-investment" aria-label="Close">${icon("close")}</button>
-      <p class="eyebrow">OPTIONAL RUN INVESTMENT</p><h2>Back your defense</h2>
+      <p class="eyebrow">OPTIONAL RUN INVESTMENT</p><h2 id="investment-title">Back your defense</h2>
       <p>No investment is required. Your <em class="coin-symbol" aria-label="Coins">¢</em> stake is deducted once and settled once.</p>
       <label class="investment-control"><span><b>Investment</b><output>${coinAmount(this.investmentDraft)}</output></span>
         <input type="range" min="0" max="${maximum}" step="1" value="${this.investmentDraft}" data-investment>
@@ -1186,7 +1186,15 @@ export class Ui {
     }
     this.invalidate();
     this.render(true);
-    if (action === "close-panel" && panelBeforeAction) {
+    if (this.investmentOpen && (
+      action === "start"
+      || action === "restart-same"
+      || action === "restart-new"
+    )) {
+      this.focusDialog(".investment-modal");
+    } else if (action === "cancel-investment") {
+      this.overlay.querySelector<HTMLElement>('[data-action="start"]')?.focus();
+    } else if (action === "close-panel" && panelBeforeAction) {
       this.focusMenuPanelTrigger(panelBeforeAction);
     } else if (
       action === "controls"
@@ -1314,6 +1322,19 @@ export class Ui {
   }
 
   private handleKeydown(event: KeyboardEvent): void {
+    if (this.investmentOpen && event.code === "Tab") {
+      this.trapDialogFocus(event, ".investment-modal");
+      return;
+    }
+    if (this.investmentOpen && event.code === "Escape") {
+      this.investmentOpen = false;
+      this.game.input.escapePressed = false;
+      event.preventDefault();
+      this.invalidate();
+      this.render(true);
+      this.overlay.querySelector<HTMLElement>('[data-action="start"]')?.focus();
+      return;
+    }
     if (this.menuPanel && event.code === "Tab") {
       this.trapMenuPanelFocus(event);
       return;
@@ -1356,14 +1377,18 @@ export class Ui {
     }
   }
 
-  private menuPanelFocusables(): HTMLElement[] {
+  private dialogFocusables(selector: string): HTMLElement[] {
     return [...this.overlay.querySelectorAll<HTMLElement>(
-      ".menu-modal button:not(:disabled),.menu-modal input:not(:disabled)",
+      `${selector} button:not(:disabled),${selector} input:not(:disabled)`,
     )].filter((element) => element.tabIndex >= 0);
   }
 
   private focusMenuPanel(): void {
-    this.menuPanelFocusables()[0]?.focus();
+    this.focusDialog(".menu-modal");
+  }
+
+  private focusDialog(selector: string): void {
+    this.dialogFocusables(selector)[0]?.focus();
   }
 
   private focusMenuPanelTrigger(panel: Exclude<MenuPanel, null>): void {
@@ -1371,12 +1396,16 @@ export class Ui {
   }
 
   private trapMenuPanelFocus(event: KeyboardEvent): void {
-    const focusable = this.menuPanelFocusables();
+    this.trapDialogFocus(event, ".menu-modal");
+  }
+
+  private trapDialogFocus(event: KeyboardEvent, selector: string): void {
+    const focusable = this.dialogFocusables(selector);
     const first = focusable.at(0);
     const last = focusable.at(-1);
     if (!first || !last) return;
     const active = document.activeElement;
-    if (!this.overlay.querySelector(".menu-modal")?.contains(active)) {
+    if (!this.overlay.querySelector(selector)?.contains(active)) {
       first.focus();
       event.preventDefault();
     } else if (event.shiftKey && active === first) {
