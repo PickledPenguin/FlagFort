@@ -7,4 +7,5 @@
 - Keep player-originated sounds centered and spatialize world-originated sounds through the shared audio event system.
 - Preserve per-player ownership for structures, attacks, projectiles, kills, repairs, and equipment.
 - Preserve profile/save migration behavior in `src/profile.ts` and `src/storage.ts`. Avoid unrelated rewrites.
+- The audio files that are currently assigned to audio events are the canonical sound effects, do not change them. Audio effects can be added if needed but existing audio should not be changed or updated without explicit permission.
 - Validate with `npm test`, `npm run build`, `npm run visual:validate`, and relevant browser checks at CrazyGames iframe sizes. Rebuild canonical audio with `npm run audio:build` after changing audio selections.

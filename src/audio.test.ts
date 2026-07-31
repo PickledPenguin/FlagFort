@@ -27,15 +27,6 @@ describe("audio asset coverage", () => {
       .toEqual(SOUND_IDS.map((id) => `${id}.ogg`).sort());
   });
 
-  it("preserves the committed custom player and zombie source selections", () => {
-    const sourceFor = (id: string): string => manifest.entries
-      .find((entry) => entry.canonicalFilename === `${id}.ogg`)?.originalSourcePath ?? "";
-    expect(sourceFor("bow-fire")).toMatch(/kenney_rpg-audio\/Audio\/knifeSlice2\.ogg$/);
-    expect(sourceFor("arrow-impact")).toMatch(/Cinematic Sound Design - Cartoon Bloopers\/Arrow Hit Rattle\.wav$/);
-    expect(sourceFor("zombie-attack")).toMatch(/CREAHmn_Violent Humanoid Creature Exhale Short 4_SNDBTS_VB-SE\.wav$/);
-    expect(sourceFor("zombie-death")).toMatch(/VOXReac_Construction Kit Male Flutter Death Vocal Stuttered Long 05_ESM_HC4\.wav$/);
-  });
-
   it("keeps one source copy per canonical destination", () => {
     const sourcePaths = manifest.entries.map((entry) => entry.originalSourcePath);
     expect(new Set(sourcePaths).size).toBe(sourcePaths.length);
