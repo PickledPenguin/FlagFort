@@ -35,4 +35,16 @@ describe("main menu presentation", () => {
       /\.menu-screen:has\(> \.daily-reward\)\s*\{[\s\S]*padding-top:\s*226px;/,
     );
   });
+
+  it("keeps investment amounts and actions in clean, unbroken rows", () => {
+    expect(stylesSource).toMatch(
+      /\.investment-preview > span,\s*\.coin-settlement > span\s*\{/,
+    );
+    expect(stylesSource).not.toMatch(
+      /\.investment-preview span,\s*\.coin-settlement span\s*\{/,
+    );
+    expect(stylesSource).toMatch(
+      /\.investment-modal \.result-actions\s*\{[\s\S]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/,
+    );
+  });
 });

@@ -3875,8 +3875,8 @@ img.icon {
   gap: 8px;
 }
 
-.investment-preview span,
-.coin-settlement span {
+.investment-preview > span,
+.coin-settlement > span {
   min-width: 0;
   display: grid;
   gap: 3px;
@@ -3893,6 +3893,10 @@ img.icon {
 
 .investment-preview b {
   color: var(--gold);
+}
+
+.investment-modal .result-actions {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .investment-table {
