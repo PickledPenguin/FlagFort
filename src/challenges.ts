@@ -39,6 +39,7 @@ export interface ChallengeDefinition {
   description: string;
   icon: ChallengeIcon;
   nightDuration: number;
+  xpBonusPercent: number;
   modifiers: Partial<ChallengeModifiers>;
 }
 
@@ -63,66 +64,35 @@ export const DEFAULT_CHALLENGE_MODIFIERS: Readonly<ChallengeModifiers> = {
 
 export const CHALLENGES = ([
   {
-    id: "short-days",
-    title: "Short Days",
-    description: "Daytime is reduced from 60 to 30 seconds.",
-    icon: "timer",
-    modifiers: { dayDurationMultiplier: 0.5 },
+    id: "expensive-construction",
+    title: "Expensive Construction",
+    description: "Building and structure upgrades cost 50% more.",
+    icon: "hammer",
+    xpBonusPercent: 5,
+    modifiers: { constructionCostMultiplier: 1.5 },
   },
   {
     id: "resource-drought",
     title: "Resource Drought",
     description: "The world generates 50% fewer resource nodes.",
     icon: "sprout",
+    xpBonusPercent: 10,
     modifiers: { resourceNodeMultiplier: 0.5 },
   },
   {
-    id: "expensive-construction",
-    title: "Expensive Construction",
-    description: "Building and structure upgrades cost 50% more.",
-    icon: "hammer",
-    modifiers: { constructionCostMultiplier: 1.5 },
-  },
-  {
-    id: "no-repairs",
-    title: "No Repairs",
-    description: "Player-built structures cannot be repaired.",
-    icon: "wrench-off",
-    modifiers: { disablesStructureRepair: true },
-  },
-  {
-    id: "glass-defenses",
-    title: "Glass Defenses",
-    description: "Player-built structures have 50% maximum health.",
-    icon: "shield-half",
-    modifiers: { structureHealthMultiplier: 0.5 },
-  },
-  {
-    id: "fragile-flag",
-    title: "Fragile Flag",
-    description: "The flag has 50% health and cannot gain maximum health.",
-    icon: "flag",
-    modifiers: { flagHealthMultiplier: 0.5, disablesFlagHealthUpgrades: true },
-  },
-  {
-    id: "mortal-defender",
-    title: "Mortal Defender",
-    description: "Flag healing and automatic dawn healing are disabled.",
-    icon: "heart-off",
-    modifiers: { disablesPlayerHealing: true, disablesDawnPlayerHealing: true },
-  },
-  {
-    id: "portal-swarm",
-    title: "Portal Swarm",
-    description: "Twice as many portals open at each valid stage.",
-    icon: "orbit",
-    modifiers: { portalCountMultiplier: 2 },
+    id: "short-days",
+    title: "Short Days",
+    description: "Daytime is reduced from 60 to 30 seconds.",
+    icon: "timer",
+    xpBonusPercent: 10,
+    modifiers: { dayDurationMultiplier: 0.5 },
   },
   {
     id: "horde-night",
     title: "Horde Night",
     description: "Each night sends 50% more ordinary zombies.",
     icon: "users",
+    xpBonusPercent: 10,
     modifiers: { ordinaryZombieCountMultiplier: 1.5 },
   },
   {
@@ -130,20 +100,63 @@ export const CHALLENGES = ([
     title: "Elite Invasion",
     description: "Special zombies are twice as likely after introduction.",
     icon: "skull",
+    xpBonusPercent: 10,
     modifiers: { specialZombieWeightMultiplier: 2 },
+  },
+  {
+    id: "mortal-defender",
+    title: "Mortal Defender",
+    description: "Flag healing and automatic dawn healing are disabled.",
+    icon: "heart-off",
+    xpBonusPercent: 15,
+    modifiers: { disablesPlayerHealing: true, disablesDawnPlayerHealing: true },
+  },
+  {
+    id: "portal-swarm",
+    title: "Portal Swarm",
+    description: "Twice as many portals open at each valid stage.",
+    icon: "orbit",
+    xpBonusPercent: 15,
+    modifiers: { portalCountMultiplier: 2 },
+  },
+  {
+    id: "glass-defenses",
+    title: "Glass Defenses",
+    description: "Player-built structures have 50% maximum health.",
+    icon: "shield-half",
+    xpBonusPercent: 15,
+    modifiers: { structureHealthMultiplier: 0.5 },
   },
   {
     id: "accelerated-horde",
     title: "Accelerated Horde",
     description: "Zombies move and attack 25% faster.",
     icon: "gauge",
+    xpBonusPercent: 20,
     modifiers: { enemySpeedMultiplier: 1.25, enemyAttackSpeedMultiplier: 1.25 },
+  },
+  {
+    id: "fragile-flag",
+    title: "Fragile Flag",
+    description: "The flag has 50% health and cannot gain maximum health.",
+    icon: "flag",
+    xpBonusPercent: 20,
+    modifiers: { flagHealthMultiplier: 0.5, disablesFlagHealthUpgrades: true },
+  },
+  {
+    id: "no-repairs",
+    title: "No Repairs",
+    description: "Player-built structures cannot be repaired.",
+    icon: "wrench-off",
+    xpBonusPercent: 20,
+    modifiers: { disablesStructureRepair: true },
   },
   {
     id: "heavy-horde",
     title: "Heavy Horde",
     description: "Zombies have 50% more health and deal 25% more damage.",
     icon: "dumbbell",
+    xpBonusPercent: 25,
     modifiers: { enemyHealthMultiplier: 1.5, enemyDamageMultiplier: 1.25 },
   },
 ] as const).map((challenge) => ({
@@ -197,6 +210,14 @@ export function resolveChallengeModifiers(
 export function challengeDayDuration(challengeIds: Iterable<string>): number {
   return Math.round(
     BALANCE.dayDuration * resolveChallengeModifiers(challengeIds).dayDurationMultiplier,
+  );
+}
+
+export function challengeXpBonusPercent(challengeIds: Iterable<string>): number {
+  const selected = new Set(challengeIds);
+  return CHALLENGES.reduce(
+    (total, challenge) => total + (selected.has(challenge.id) ? challenge.xpBonusPercent : 0),
+    0,
   );
 }
 

@@ -1,6 +1,52 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="15 -25 50 50">
-  <g id="mallet-wood">
-    <path id="mallet-handle" d="M20.663 20.17 41.44-1.097" fill="none" stroke="#9a6b3a" stroke-width="7"/>
-    <rect id="mallet-head" x="14.844" y="-46.608" width="27" height="16" fill="#d5a45d" stroke="#3b2a1b" stroke-width="3" transform="rotate(45)"/>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="15 -25 50 50"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="mallet-wood.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="4.1920989"
+     inkscape:cx="9.6610315"
+     inkscape:cy="23.377311"
+     inkscape:window-width="1570"
+     inkscape:window-height="699"
+     inkscape:window-x="0"
+     inkscape:window-y="33"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="mallet-wood" />
+  <g
+     id="mallet-wood">
+    <path
+       id="mallet-handle"
+       d="M20.663 20.17 41.44-1.097"
+       fill="none"
+       stroke="#9a6b3a"
+       stroke-width="7" />
+    <rect
+       id="mallet-head"
+       x="14.844"
+       y="-46.608"
+       width="27"
+       height="16"
+       fill="#d5a45d"
+       stroke="#3b2a1b"
+       stroke-width="3"
+       transform="rotate(45)"
+       style="fill:#b77a45;fill-opacity:1" />
   </g>
 </svg>

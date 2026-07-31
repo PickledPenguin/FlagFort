@@ -145,11 +145,14 @@ describe("combat and navigation refinements", () => {
     game.enemies = [target];
     (game as unknown as { rebuildSpatial: () => void }).rebuildSpatial();
     const punch = (game as unknown as { punch: () => void }).punch.bind(game);
+    const advanceSwing = (game as unknown as { updateMeleeSwing: (dt: number) => void }).updateMeleeSwing.bind(game);
     punch();
+    advanceSwing(0.3);
     expect(game.player.punchHand).toBe("right");
     expect(target.health).toBe(100 - BALANCE.player.punchDamage);
     game.player.cooldown = 0;
     punch();
+    advanceSwing(0.3);
     expect(game.player.punchHand).toBe("left");
     expect(target.health).toBe(100 - BALANCE.player.punchDamage * 2);
     expect(game.player.punchSerial).toBe(2);

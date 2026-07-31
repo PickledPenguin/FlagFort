@@ -428,7 +428,7 @@ describe("currency and reward presentation", () => {
     game.phase = "victory";
     game.lastSettlement = {
       id: "valid-reward-categories",
-      xp: { personalKills: 12, nights: 700, victory: 300, difficulty: 150, total: 1162 },
+      xp: { personalKills: 12, nights: 700, victory: 300, difficulty: 150, challenge: 0, total: 1162 },
       coins: settleCoinInvestment(0, 10),
       previousLifetimeXp: 0,
       newLifetimeXp: 1162,
@@ -470,6 +470,7 @@ describe("currency and reward presentation", () => {
           nights: 0,
           victory: 0,
           difficulty: 0,
+          challenge: 0,
           total: 0,
         },
         coins,

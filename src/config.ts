@@ -32,7 +32,8 @@ export const BALANCE = {
   },
   bow: {
     damage: 12,
-    rate: 0.42,
+    // Cooldown seconds. A 30% lower attack rate means the old cooldown divided by 0.70.
+    rate: 0.42 / 0.70,
     speed: 940,
     range: 700,
     radius: 5,
@@ -70,7 +71,6 @@ export const BALANCE = {
     messageDuration: 2.8,
     criticalMessageDuration: 4.5,
     tutorialPreferenceKey: "countdown-forest-tutorial-seen",
-    reducedMotionPreferenceKey: "countdown-forest-reduced-motion",
     clockShakeStrength: 1.8,
     playerWarningCooldown: 20,
     flagWarningCooldown: 1.1,

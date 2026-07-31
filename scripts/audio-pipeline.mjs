@@ -158,6 +158,20 @@ export const selections = [
     events: ["Punch hits a zombie or portal"],
   },
   {
+    id: "sword-swing",
+    source: source("kenney_rpg-audio/Audio/drawKnife1.ogg"),
+    ...KENNEY_CC0,
+    pack: "RPG Audio",
+    events: ["Equipped player sword swing begins"],
+  },
+  {
+    id: "sword-hit",
+    source: source("kenney_rpg-audio/Audio/chop.ogg"),
+    ...KENNEY_CC0,
+    pack: "RPG Audio",
+    events: ["Equipped player sword damages one or more valid targets in a sweep"],
+  },
+  {
     id: "player-hurt",
     source: source("kenney_impact-sounds/Audio/impactSoft_medium_001.ogg"),
     ...KENNEY_CC0,
@@ -524,7 +538,7 @@ function build(selection) {
 }
 
 function main() {
-  if (selections.length !== 50) throw new Error(`Expected 50 selections, found ${selections.length}`);
+  if (selections.length !== 52) throw new Error(`Expected 52 selections, found ${selections.length}`);
   const destinations = new Set(selections.map((item) => item.id));
   if (destinations.size !== selections.length) throw new Error("Canonical destinations must be unique");
   const sourceHashesBefore = new Map(selections.map((item) => [item.source, sha256(item.source)]));
@@ -537,7 +551,7 @@ function main() {
   const manifest = {
     generatedAt: new Date().toISOString(),
     sourceFoldersSearched: [sourceRoot],
-    canonicalSoundCount: 50,
+    canonicalSoundCount: 52,
     assignedSoundCount: entries.length,
     missingSounds: [],
     licenses: {

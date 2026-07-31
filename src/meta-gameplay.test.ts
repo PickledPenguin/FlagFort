@@ -6,6 +6,8 @@ import { Input } from "./input";
 import { resolveEffectiveStat } from "./modifiers";
 import { ProfileManager } from "./profile";
 import type { Enemy, Structure } from "./types";
+import type { AudioCueDetail } from "./audio";
+import { BALANCE } from "./config";
 
 class TestStore {
   values = new Map<string, string>();
@@ -101,6 +103,34 @@ describe("effective stats and equipment", () => {
     expect(swordStats("diamond")!.targetLimit).toBeGreaterThan(swordStats("wood")!.targetLimit);
   });
 
+  it("uses the 30 percent slower Bow base once while preserving bonuses and projectile speed", () => {
+    const { game, profile } = gameWithProfile();
+    profile.profile.permanentUpgrades.bowRate = 2;
+    game.upgrades.bowRate = 0.08;
+    game.phase = "night";
+    (game as unknown as { shootBow(): void }).shootBow();
+    expect(BALANCE.bow.rate).toBeCloseTo(0.42 / 0.7);
+    expect(game.player.toolCooldown).toBeCloseTo(BALANCE.bow.rate / 1.28);
+    expect(Math.hypot(game.projectiles[0]!.vx, game.projectiles[0]!.vy)).toBeCloseTo(940);
+  });
+
+  it("keeps the sword harvest base slower while applying harvest bonuses", () => {
+    const { game, profile } = gameWithProfile();
+    profile.profile.equipment.sword = { tier: "wood", equipped: true };
+    profile.profile.permanentUpgrades.harvestRate = 1;
+    game.upgrades.harvestRate = 0.1;
+    game.phase = "night";
+    game.player.angle = 0;
+    const node = game.world.resources[0]!;
+    node.x = game.player.x + 50;
+    node.y = game.player.y;
+    game.enemies = [];
+    (game as unknown as { rebuildSpatial(): void }).rebuildSpatial();
+    (game as unknown as { punch(): void }).punch();
+    (game as unknown as { updateMeleeSwing(dt: number): void }).updateMeleeSwing(0.3);
+    expect(game.player.cooldown + 0.3).toBeCloseTo(BALANCE.player.punchRate * 2 / 1.1 - 0.1);
+  });
+
   it("applies structure bonuses from the structure owner", () => {
     const { game, profile } = gameWithProfile();
     profile.profile.permanentUpgrades.structureHealth = 2;
@@ -161,9 +191,19 @@ describe("effective stats and equipment", () => {
     const second = enemy(2, game.player.x + 55, game.player.y + 10);
     game.enemies = [first, second];
     (game as unknown as { rebuildSpatial(): void }).rebuildSpatial();
+    const cues: AudioCueDetail[] = [];
+    const listener = (event: Event): void => {
+      cues.push((event as CustomEvent<AudioCueDetail>).detail);
+    };
+    window.addEventListener("flagfall-audio-cue", listener);
     (game as unknown as { punch(): void }).punch();
+    (game as unknown as { updateMeleeSwing(dt: number): void }).updateMeleeSwing(0.3);
+    window.removeEventListener("flagfall-audio-cue", listener);
     expect(first.health).toBeLessThanOrEqual(0);
     expect(second.health).toBeLessThanOrEqual(0);
     expect(game.directPlayerKills.basic).toBe(2);
+    expect(cues.filter((cue) => cue.cue === "sword-swing")).toHaveLength(1);
+    expect(cues.filter((cue) => cue.cue === "sword-hit")).toHaveLength(1);
+    expect(cues.some((cue) => cue.cue === "player-punch-impact")).toBe(false);
   });
 });

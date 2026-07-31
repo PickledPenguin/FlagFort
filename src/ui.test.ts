@@ -469,6 +469,23 @@ describe("event-driven HUD interaction", () => {
     expect(document.activeElement).toBe(hud.querySelector('[data-action="pause"]'));
   });
 
+  it("opens shared audio settings from pause without exposing the removed motion toggle", () => {
+    const { game, overlay, ui } = createHarness();
+    game.togglePause();
+    ui.render(true);
+    click(overlay.querySelector('[data-action="settings"]')!);
+
+    expect(game.phase).toBe("paused");
+    expect(overlay.textContent).toContain("Master");
+    expect(overlay.textContent).toContain("Final countdown");
+    expect(overlay.textContent).not.toContain("Reduced motion");
+    expect(overlay.querySelectorAll('[data-audio-volume]')).toHaveLength(5);
+
+    window.dispatchEvent(new KeyboardEvent("keydown", { code: "Escape" }));
+    expect(game.phase).toBe("paused");
+    expect(overlay.textContent).toContain("Paused");
+  });
+
   it("confirms ending an active run before showing settlement results", () => {
     const { game, overlay, ui } = createHarness();
     game.togglePause();

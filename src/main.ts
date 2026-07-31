@@ -10,7 +10,7 @@ import { platform } from "./platform";
 import { ProfileManager } from "./profile";
 import type { RunSettlementResult } from "./profile";
 import { Renderer } from "./renderer";
-import type { Choice, EnemyKind } from "./types";
+import type { Choice, EnemyKind, Tier } from "./types";
 import { Ui } from "./ui";
 
 function requiredElement<T extends Element>(selector: string): T {
@@ -71,7 +71,24 @@ async function bootstrap(): Promise<void> {
       "summoner",
       "boss",
     ];
-    if (enemyPreview && enemyKinds.includes(enemyPreview)) {
+    const swordPreview = preview.get("swordPreview") as Tier | null;
+    const tiers: Tier[] = ["wood", "stone", "gold", "diamond"];
+    if (swordPreview && tiers.includes(swordPreview)) {
+      profileManager.profile.equipment.sword = { tier: swordPreview, equipped: true };
+      game.startRun("normal", "flagfall-sword-preview", [], true, { settle: false });
+      game.phase = "night";
+      game.selectedSlot = 1;
+      input.mouse.x = 830;
+      input.mouse.y = 480;
+      input.mouseDown = preview.has("swing");
+      if (preview.has("swingFreeze")) {
+        game.player.angle = 0;
+        (game as unknown as { punch(): void }).punch();
+        (game as unknown as { updateMeleeSwing(dt: number): void }).updateMeleeSwing(0.16);
+        input.mouseDown = false;
+        game.modalLock = true;
+      }
+    } else if (enemyPreview && enemyKinds.includes(enemyPreview)) {
       game.startRun("normal", "flagfall-enemy-preview", [], true, { settle: false });
       game.phase = "dawn";
       game.enemyWarning = enemyPreview;
@@ -113,11 +130,15 @@ async function bootstrap(): Promise<void> {
       game.toastTime = 600;
     } else if (preview.has("rewardPreview")) {
       const outcome = preview.get("rewardPreview");
+      const challengeRewardPreview = outcome === "challenge";
       const profitOrLoss = outcome === "loss" ? -100 : outcome === "break-even" ? 0 : 100;
       const totalReturn = 100 + profitOrLoss;
       game.startRun("normal", "flagfall-reward-preview", [], true, { settle: false });
       game.phase = outcome === "loss" ? "defeat" : "victory";
       game.night = game.phase === "victory" ? 10 : 1;
+      if (challengeRewardPreview) {
+        game.activeChallenges = new Set(["resource-drought", "accelerated-horde"]);
+      }
       game.stats.nightsSurvived = outcome === "loss" ? 0 : outcome === "break-even" ? 5 : 10;
       game.lastSettlement = {
         id: "reward-preview",
@@ -126,7 +147,8 @@ async function bootstrap(): Promise<void> {
           nights: game.stats.nightsSurvived === 10 ? 700 : game.stats.nightsSurvived === 5 ? 175 : 0,
           victory: game.phase === "victory" ? 300 : 0,
           difficulty: 75,
-          total: game.stats.nightsSurvived === 10 ? 1159 : game.stats.nightsSurvived === 5 ? 634 : 159,
+          challenge: challengeRewardPreview ? 348 : 0,
+          total: game.stats.nightsSurvived === 10 ? 1159 + (challengeRewardPreview ? 348 : 0) : game.stats.nightsSurvived === 5 ? 634 : 159,
         },
         coins: {
           investment: 100,

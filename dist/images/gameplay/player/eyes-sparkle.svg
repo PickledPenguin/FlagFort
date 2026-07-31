@@ -1,8 +1,39 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="-30 -30 60 60">
-  <g id="eyes-sparkle">
-    <path id="left-sparkle" d="M7-15 9-9l6 2-6 2-2 6-2-6-6-2 6-2Z" fill="#fff8d6" stroke="#24342b" stroke-width="1.5" stroke-linejoin="round"/>
-    <path id="right-sparkle" d="M7 4 9 10l6 2-6 2-2 6-2-6-6-2 6-2Z" fill="#fff8d6" stroke="#24342b" stroke-width="1.5" stroke-linejoin="round"/>
-    <circle id="left-pupil" cx="8" cy="-7" r="2" fill="#24342b"/>
-    <circle id="right-pupil" cx="8" cy="12" r="2" fill="#24342b"/>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="-30 -30 60 60"
+   version="1.1"
+   id="svg1"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <g
+     id="eyes-sparkle">
+    <path
+       id="left-sparkle"
+       d="M 12.656854,-14.656854 9.8284271,-9 12.656854,-3.3431458 7,-6.1715729 1.3431458,-3.3431458 4.1715729,-9 1.3431458,-14.656854 7,-11.828427 Z"
+       fill="#fff8d6"
+       stroke="#24342b"
+       stroke-width="1.5"
+       stroke-linejoin="round" />
+    <path
+       id="right-sparkle"
+       d="M 12.656854,4.3431458 9.8284271,10 12.656854,15.656854 7,12.828427 1.3431458,15.656854 4.1715729,10 1.3431458,4.3431458 7,7.1715729 Z"
+       fill="#fff8d6"
+       stroke="#24342b"
+       stroke-width="1.5"
+       stroke-linejoin="round" />
+    <circle
+       id="left-pupil"
+       cx="8"
+       cy="-9"
+       r="2"
+       fill="#24342b" />
+    <circle
+       id="right-pupil"
+       cx="8"
+       cy="10"
+       r="2"
+       fill="#24342b" />
   </g>
 </svg>

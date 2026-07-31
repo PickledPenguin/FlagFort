@@ -1,12 +1,14 @@
 import { META_BALANCE } from "./meta-balance";
 import { BALANCE } from "./config";
 import type { EnemyKind } from "./types";
+import { challengeXpBonusPercent } from "./challenges";
 
 export interface RunRewardInput {
   directPlayerKills: Record<EnemyKind, number>;
   nightsSurvived: number;
   victory: boolean;
   effectiveDifficultyMultiplier?: number;
+  challengeIds?: readonly string[];
 }
 
 export interface XpRewardBreakdown {
@@ -14,6 +16,7 @@ export interface XpRewardBreakdown {
   nights: number;
   victory: number;
   difficulty: number;
+  challenge: number;
   total: number;
 }
 
@@ -66,12 +69,18 @@ export function calculateXpRewards(input: RunRewardInput): XpRewardBreakdown {
   const nights = calculateNightXp(input.nightsSurvived);
   const victory = input.victory ? META_BALANCE.rewards.campaignVictoryBonus : 0;
   const difficulty = calculateDifficultyXp(input.effectiveDifficultyMultiplier ?? 1);
+  const normalEarnedXp = personalKills + nights + victory + difficulty;
+  // Challenge XP uses nearest-integer rounding after one combined-percentage calculation.
+  const challenge = input.victory && Math.floor(input.nightsSurvived) === 10
+    ? Math.round(normalEarnedXp * challengeXpBonusPercent(input.challengeIds ?? []) / 100)
+    : 0;
   return {
     personalKills,
     nights,
     victory,
     difficulty,
-    total: personalKills + nights + victory + difficulty,
+    challenge,
+    total: normalEarnedXp + challenge,
   };
 }
 

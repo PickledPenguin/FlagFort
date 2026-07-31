@@ -95,6 +95,7 @@ export const ASSETS = {
       bow: image("gameplay/player/tools/bow"),
       blueprint: image("gameplay/player/tools/blueprint"),
     },
+    swordSweep: image("gameplay/player/sword-sweep"),
   },
   equipment: EQUIPMENT_ASSETS,
   flag: {

@@ -231,6 +231,10 @@ export class Game {
     tutorialTarget: true,
   };
   private audioSpatialCooldown = 0;
+  private meleeSwingDuration = 0;
+  private meleeSwingElapsed = 0;
+  private meleeImpactPending = false;
+  private meleeSwingUsesSword = false;
   private uiDirty = true;
   private onMajorScreen: (() => void) | null = null;
 
@@ -355,6 +359,10 @@ export class Game {
     this.footstepCooldown = 0;
     this.healingActive = false;
     this.audioSpatialCooldown = 0;
+    this.meleeSwingDuration = 0;
+    this.meleeSwingElapsed = 0;
+    this.meleeImpactPending = false;
+    this.meleeSwingUsesSword = false;
     this.defeatReason = "";
     this.toolPreview = null;
     this.spawnPortals(!suppressPortalAudio);
@@ -924,6 +932,7 @@ export class Game {
     this.rebuildSpatial();
     this.updateAim();
     this.updatePlayer(dt);
+    this.updateMeleeSwing(dt);
     this.updateStructures(dt);
     this.updatePortals(dt);
     this.updateEnemies(dt);
@@ -1057,21 +1066,40 @@ export class Game {
       : baseMeleeInterval;
     if (this.player.cooldown > 0) return;
     this.player.cooldown = interval;
+    this.meleeSwingDuration = interval;
+    this.meleeSwingElapsed = 0;
+    this.meleeImpactPending = Boolean(sword);
+    this.meleeSwingUsesSword = Boolean(sword);
     const currentIndex = BALANCE.punchHands.indexOf(this.player.punchHand);
     this.player.punchHand = BALANCE.punchHands[(currentIndex + 1) % BALANCE.punchHands.length] ?? "right";
     this.player.punchSerial += 1;
     emitAudioCue({
-      cue: "player-punch-swing",
+      cue: sword ? "sword-swing" : "player-punch-swing",
       position: { x: this.player.x, y: this.player.y },
     });
+    if (!sword) this.resolveMeleeImpact(null);
+  }
+
+  private updateMeleeSwing(dt: number): void {
+    if (this.player.cooldown <= 0 && !this.meleeImpactPending) return;
+    this.meleeSwingElapsed += dt;
+    const hitTime = Math.min(0.48, this.meleeSwingDuration * 0.78) * 0.5;
+    if (!this.meleeImpactPending || this.meleeSwingElapsed < hitTime) return;
+    this.meleeImpactPending = false;
+    this.resolveMeleeImpact(this.meleeSwingUsesSword ? this.getEquippedSword() : null);
+  }
+
+  private resolveMeleeImpact(sword: ReturnType<typeof swordStats>): void {
     const range = sword?.range ?? BALANCE.player.punchRange;
     const candidates = this.enemyHash.query(this.player.x, this.player.y, range + 40)
       .filter((enemy) => this.inMeleeArc(enemy, range, sword?.arc ?? BALANCE.player.punchArc))
       .sort((a, b) => distance(this.player, a) - distance(this.player, b));
     const targets = candidates.slice(0, sword?.targetLimit ?? 1);
     if (targets.length) {
+      const damaged = new Set<number>();
       for (const enemy of targets) {
-        emitAudioCue({ cue: "player-punch-impact", position: { x: enemy.x, y: enemy.y } });
+        if (damaged.has(enemy.id)) continue;
+        damaged.add(enemy.id);
         const damage = resolveEffectiveStat({
           base: BALANCE.player.punchDamage,
           permanent: this.getPermanentPercent("punchDamage"),
@@ -1085,23 +1113,39 @@ export class Game {
           this.constrainToTutorialArena(enemy);
         }
       }
+      const impact = targets[0];
+      if (impact) emitAudioCue({
+        cue: sword ? "sword-hit" : "player-punch-impact",
+        position: { x: impact.x, y: impact.y },
+      });
       return;
     }
-    const portal = this.portals.filter((item) => this.inPunchArc(item)).sort((a, b) => distance(this.player, a) - distance(this.player, b))[0];
+    const portal = this.portals
+      .filter((item) => this.inMeleeArc(item, range, sword?.arc ?? BALANCE.player.punchArc))
+      .sort((a, b) => distance(this.player, a) - distance(this.player, b))[0];
     if (portal) {
-      emitAudioCue({ cue: "player-punch-impact", position: { x: portal.x, y: portal.y } });
+      emitAudioCue({ cue: sword ? "sword-hit" : "player-punch-impact", position: { x: portal.x, y: portal.y } });
       portal.health -= BALANCE.glovePortalDamage[this.getBestGlove()];
       portal.flash = 0.16;
       this.burst(portal.x, portal.y, "#9c73ff", 8);
       if (portal.health <= 0) this.relocatePortal(portal);
       return;
     }
-    const node = this.obstacleHash.query(this.player.x, this.player.y, BALANCE.player.punchRange + 70)
+    const node = this.obstacleHash.query(this.player.x, this.player.y, range + 70)
       .filter((item): item is ResourceNode => !("tier" in item))
-      .filter((item) => this.inPunchArc(item))
+      .filter((item) => this.inMeleeArc(item, range, sword?.arc ?? BALANCE.player.punchArc))
       .sort((a, b) => distance(this.player, a) - distance(this.player, b))[0];
     if (node) {
-      this.player.cooldown = Math.max(0.12, interval - this.upgrades.harvestRate);
+      const harvestBase = this.meleeSwingDuration;
+      const harvestInterval = Math.max(
+        0.12,
+        resolveCooldown(harvestBase, sword ? [this.getPermanentPercent("harvestRate")] : [])
+          - this.upgrades.harvestRate,
+      );
+      this.player.cooldown = sword
+        ? Math.max(0, harvestInterval - this.meleeSwingElapsed)
+        : harvestInterval;
+      this.meleeSwingDuration = harvestInterval;
       this.harvestNode(node, this.getBestGlove(), 1);
     }
     else this.burst(
@@ -1110,10 +1154,6 @@ export class Game {
       "#e8dab9",
       3,
     );
-  }
-
-  private inPunchArc(target: { x: number; y: number; radius: number }): boolean {
-    return this.inMeleeArc(target, BALANCE.player.punchRange, BALANCE.player.punchArc);
   }
 
   private inMeleeArc(
@@ -1131,7 +1171,8 @@ export class Game {
   private shootBow(): void {
     const interval = Math.max(0.15, resolveCooldown(BALANCE.bow.rate, [
       this.getPermanentPercent("bowRate"),
-    ]) - this.upgrades.bowRate);
+      this.upgrades.bowRate,
+    ]));
     if (this.player.toolCooldown > 0) return;
     this.player.toolCooldown = interval;
     const angle = this.player.angle;
@@ -2651,6 +2692,7 @@ export class Game {
         nightsSurvived: this.stats.nightsSurvived,
         victory,
         effectiveDifficultyMultiplier: this.adaptiveState.multiplier,
+        challengeIds: [...this.activeChallenges],
       });
       const coins = settleCoinInvestment(this.runInvestment, this.stats.nightsSurvived);
       this.lastSettlement = this.profileManager.settleRun(
@@ -2744,6 +2786,12 @@ export class Game {
       && this.getSelectedAction() === "fists"
       && this.player.cooldown > 0,
     );
+  }
+
+  getMeleeSwingProgress(): number | null {
+    if (this.player.cooldown <= 0 || this.meleeSwingDuration <= 0) return null;
+    const visualDuration = Math.min(0.48, this.meleeSwingDuration * 0.78);
+    return Math.max(0, Math.min(1, this.meleeSwingElapsed / visualDuration));
   }
 
   getCapacity(kind: "turret" | "harvester"): { current: number; maximum: number } {

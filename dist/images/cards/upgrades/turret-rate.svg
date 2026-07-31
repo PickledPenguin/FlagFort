@@ -1,1 +1,53 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><g id="turret-rate" stroke="#253027" stroke-width="8"><circle cx="48" cy="70" r="37" fill="#b9783d"/><path d="M48 70h72M5 20h45M3 38h38" stroke="#8ee9a0"/></g></svg>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 128 128"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="turret-rate.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="1.0117374"
+     inkscape:cx="52.385135"
+     inkscape:cy="114.16006"
+     inkscape:window-width="1101"
+     inkscape:window-height="864"
+     inkscape:window-x="100"
+     inkscape:window-y="33"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="turret-rate" />
+  <g
+     id="turret-rate"
+     stroke="#253027"
+     stroke-width="8">
+    <circle
+       cx="66"
+       cy="76"
+       r="37"
+       fill="#b9783d"
+       id="circle1" />
+    <path
+       d="M 6.7446821,14.765954 H 51.744682 m -44.9999999,16 H 44.744682"
+       stroke="#8ee9a0"
+       id="path1"
+       sodipodi:nodetypes="cccc" />
+    <path
+       d="M 78.063814,77.404218 H 121.27656"
+       style="stroke:#253027;stroke-width:12;stroke-dasharray:none;stroke-opacity:1"
+       id="path1-5"
+       sodipodi:nodetypes="cc" />
+  </g>
+</svg>

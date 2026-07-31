@@ -648,13 +648,36 @@ export class Renderer {
     ctx.rotate(angle);
     const action = game.getSelectedAction();
     const gloveTier = game.getBestGlove();
+    const swordItem = equipment?.sword;
+    const swordStats = action === "fists" && game.phase === "night"
+      ? game.getEquippedSword()
+      : null;
+    const swordEquipped = Boolean(swordStats && swordItem?.tier);
+    const swordProgress = swordEquipped ? game.getMeleeSwingProgress() : null;
     const punchInterval = Math.max(0.16, BALANCE.player.punchRate - game.upgrades.punchRate);
-    const punchReturn = punching ? Math.sin(Math.min(1, player.cooldown / punchInterval) * Math.PI / 2) * 18 : 0;
+    const punchReturn = punching && !swordEquipped
+      ? Math.sin(Math.min(1, player.cooldown / punchInterval) * Math.PI / 2) * 18
+      : 0;
     const rightReach = player.radius + 13 + (punching && player.punchHand === "right" ? punchReturn : 0);
     const leftReach = player.radius + 13 + (punching && player.punchHand === "left" ? punchReturn : 0);
     const handSprite = ASSETS.player.hands[gloveTier];
-    this.drawSprite(handSprite, rightReach - 10.5, -player.radius * 0.65 - 10.5, 21, 21, player.hurtFlash > 0);
-    this.drawSprite(handSprite, leftReach - 10.5, player.radius * 0.65 - 10.5, 21, 21, player.hurtFlash > 0);
+    if (swordEquipped && swordStats && swordProgress !== null && swordProgress < 1) {
+      const sweepSize = swordStats.range * 2.35;
+      const sweepOpacity = Math.sin(swordProgress * Math.PI) * 0.92;
+      ctx.save();
+      ctx.globalAlpha = sweepOpacity;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.arc(0, 0, swordStats.range + 4, -swordStats.arc, swordStats.arc);
+      ctx.closePath();
+      ctx.clip();
+      this.drawSprite(ASSETS.player.swordSweep, -sweepSize / 2, -sweepSize / 2, sweepSize, sweepSize);
+      ctx.restore();
+    }
+    if (!swordEquipped) {
+      this.drawSprite(handSprite, rightReach - 10.5, -player.radius * 0.65 - 10.5, 21, 21, player.hurtFlash > 0);
+      this.drawSprite(handSprite, leftReach - 10.5, player.radius * 0.65 - 10.5, 21, 21, player.hurtFlash > 0);
+    }
     if (action === "tool") {
       if (game.phase === "night") {
         this.drawSprite(ASSETS.player.tools.bow, 8, -30, 58, 60);
@@ -671,11 +694,6 @@ export class Renderer {
         ? META_BALANCE.assets.equipment.mallet[mallet.tier]
         : ASSETS.player.tools.recycle;
       this.drawSprite(malletAsset, 15, -25, 50, 50);
-    } else if (action === "fists" && game.phase === "night") {
-      const sword = equipment?.sword;
-      if (sword?.equipped && sword.tier) {
-        this.drawSprite(META_BALANCE.assets.equipment.sword[sword.tier], 9, -37, 61, 68);
-      }
     } else if (!["fists", "tool", "recycle"].includes(action)) {
       this.drawSprite(ASSETS.player.tools.blueprint, 20, -22, 45, 44);
     }
@@ -685,6 +703,25 @@ export class Renderer {
     this.drawTintedSprite(ASSETS.player.body, playerColor, -30, -30, 60, 60, flashing);
     this.drawSprite(ASSETS.player.bodyDetails, -30, -30, 60, 60, flashing);
     this.drawSprite(ASSETS.player.eyes[eyeStyle], -30, -30, 60, 60, flashing);
+    if (swordEquipped && swordItem?.tier && swordStats) {
+      const swingRotation = swordProgress === null || swordProgress >= 1
+        ? -0.2
+        : -swordStats.arc * 0.58 + swordStats.arc * 1.16 * swordProgress;
+      const gripX = 35;
+      const gripY = -10;
+      ctx.save();
+      ctx.translate(gripX, gripY);
+      ctx.rotate(swingRotation);
+      this.drawSprite(handSprite, -15, 4, 21, 21, flashing);
+      ctx.rotate(0.885);
+      this.drawSprite(META_BALANCE.assets.equipment.sword[swordItem.tier], -18, -72, 72, 79, flashing);
+      ctx.restore();
+      ctx.save();
+      ctx.translate(gripX, gripY);
+      ctx.rotate(swingRotation);
+      this.drawSprite(handSprite, -10.5, -10.5, 21, 21, flashing);
+      ctx.restore();
+    }
     const helmet = equipment?.helmet;
     if (helmet?.equipped && helmet.tier) {
       this.drawSprite(META_BALANCE.assets.equipment.helmet[helmet.tier], -30, -37, 60, 55, flashing);

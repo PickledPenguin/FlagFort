@@ -21,7 +21,7 @@ All listed source folders were accessible. Source audio was read only. The conve
 
 ## Selection and processing
 
-All 50 canonical sounds are assigned. There are no missing sounds.
+All 52 canonical sounds are assigned. There are no missing sounds. Sword Swing maps to Kenney RPG Audio `drawKnife1.ogg`, and Sword Hit maps to Kenney RPG Audio `chop.ogg`.
 
 The complete per-sound source mapping is in `public/audio/audio-attribution.json`. Every entry includes:
 

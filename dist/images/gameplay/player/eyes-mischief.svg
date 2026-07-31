@@ -1,8 +1,47 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="-30 -30 60 60">
-  <g id="eyes-mischief">
-    <path id="mischief-upper-eye" d="M1-13Q9-18 16-10Q9-5 1-9Z" fill="#fff8d6" stroke="#24342b" stroke-width="2" stroke-linejoin="round"/>
-    <path id="mischief-lower-eye" d="M1 8Q9 2 16 10Q9 16 1 12Z" fill="#fff8d6" stroke="#24342b" stroke-width="2" stroke-linejoin="round"/>
-    <circle id="upper-pupil" cx="11" cy="-10" r="2.5" fill="#24342b"/>
-    <circle id="lower-pupil" cx="11" cy="10" r="2.5" fill="#24342b"/>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="-30 -30 60 60"
+   version="1.1"
+   id="svg1"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <g
+     id="eyes-mischief">
+    <g
+       id="g2"
+       transform="rotate(60,8.499976,-11.085571)">
+      <path
+         id="mischief-upper-eye"
+         d="m 1,-13 q 8,-5 15,3 -7,5 -15,1 z"
+         fill="#fff8d6"
+         stroke="#24342b"
+         stroke-width="2"
+         stroke-linejoin="round" />
+      <circle
+         id="upper-pupil"
+         cx="9.2679491"
+         cy="-11"
+         r="2.5"
+         fill="#24342b" />
+    </g>
+    <g
+       id="g1"
+       transform="rotate(-75,8.4999791,9.4967486)">
+      <path
+         id="mischief-lower-eye"
+         d="M 1,8 Q 9,2 16,10 9,16 1,12 Z"
+         fill="#fff8d6"
+         stroke="#24342b"
+         stroke-width="2"
+         stroke-linejoin="round" />
+      <circle
+         id="lower-pupil"
+         cx="9.5734663"
+         cy="9.626792"
+         r="2.5"
+         fill="#24342b" />
+    </g>
   </g>
 </svg>

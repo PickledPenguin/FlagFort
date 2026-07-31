@@ -1,1 +1,98 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><path id="punch-damage" d="m28 111-13-50 19-8 9 24-4-57h16l8 45 2-52h16l3 51 9-43 15 4-7 51 12-29 14 9-18 48-27 15z" fill="#b9783d" stroke="#253027" stroke-width="8"/><path d="m15 22 16 15M6 51h23" stroke="#ffd34d" stroke-width="8"/></svg>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 128 128"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="punch-damage.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="1.5211518"
+     inkscape:cx="69.026641"
+     inkscape:cy="45.031666"
+     inkscape:window-width="1547"
+     inkscape:window-height="636"
+     inkscape:window-x="151"
+     inkscape:window-y="350"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg1" />
+  <circle
+     id="gold-glove"
+     r="8.7636375"
+     fill="#f6c945"
+     cx="72.517502"
+     cy="33.834343"
+     style="fill:#b9783d;fill-opacity:1;stroke:none;stroke-width:0.973931;stroke-dasharray:none" />
+  <circle
+     id="gold-glove-9"
+     r="8.7636375"
+     fill="#f6c945"
+     cx="110.69731"
+     cy="34.031807"
+     style="fill:#b9783d;fill-opacity:1;stroke:none;stroke-width:0.973931;stroke-dasharray:none" />
+  <g
+     id="sword-wood"
+     transform="matrix(0.68350076,0,0,0.68350076,43.573846,88.891013)">
+    <g
+       id="sword-blade-group"
+       transform="rotate(8.365,23.829,2.005)">
+      <path
+         id="sword-blade"
+         d="m 15,11 33,-53 14,-5 -4,16 -32,49 z"
+         fill="#b77a45"
+         stroke="#392f24"
+         stroke-width="4"
+         stroke-linejoin="round" />
+      <path
+         id="sword-blade-highlight"
+         d="M 26,6 52,-35"
+         fill="none"
+         stroke="#ffffff"
+         stroke-opacity="0.38"
+         stroke-width="3"
+         stroke-linecap="round" />
+    </g>
+    <path
+       id="sword-grip"
+       d="M 10.015,22.044 -3.104,36.908"
+       fill="none"
+       stroke="#8f5b32"
+       stroke-width="10"
+       stroke-linecap="round" />
+    <circle
+       id="sword-pommel"
+       cx="-5.0489998"
+       cy="39.451"
+       r="6"
+       fill="#f0cf88"
+       stroke="#392f24"
+       stroke-width="3" />
+    <path
+       id="sword-guard"
+       d="M 7.019,3.199 29.43,23.168 23.888,30.189 1.477,10.22 Z"
+       fill="#f0cf88"
+       stroke="#392f24"
+       stroke-width="4"
+       stroke-linejoin="round" />
+  </g>
+  <path
+     id="damage"
+     d="M 29.439411,13.879234 34.577013,26.894507 48.962329,24.15445 38.344605,34.08716 47.934799,45.047391 34.234517,41.279811 29.439411,54.295086 24.644306,41.279811 10.944024,45.047391 20.534218,34.08716 9.916494,24.15445 24.301801,26.894507 Z"
+     fill="#ff6b61"
+     stroke="#392321"
+     stroke-width="2.87121"
+     style="stroke-width:3.34012;stroke-dasharray:none" />
+</svg>

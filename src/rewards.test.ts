@@ -42,6 +42,24 @@ describe("end-of-run XP balance", () => {
     expect(calculateDifficultyXp(Infinity)).toBe(0);
     expect(calculateDifficultyXp(10)).toBe(150);
   });
+
+  it("adds selected challenge percentages once to normal victory XP with nearest rounding", () => {
+    const base = {
+      directPlayerKills: { basic: 1, runner: 0, breaker: 0, jumper: 0, summoner: 0, boss: 0 },
+      nightsSurvived: 10,
+      victory: true,
+      effectiveDifficultyMultiplier: 10,
+    };
+    const reward = calculateXpRewards({
+      ...base,
+      challengeIds: ["resource-drought", "accelerated-horde"],
+    });
+    expect(reward.personalKills + reward.nights + reward.victory + reward.difficulty).toBe(1151);
+    expect(reward.challenge).toBe(345);
+    expect(reward.total).toBe(1496);
+    expect(calculateXpRewards({ ...base, victory: false, challengeIds: ["heavy-horde"] }).challenge).toBe(0);
+    expect(calculateXpRewards({ ...base, nightsSurvived: 9, challengeIds: ["heavy-horde"] }).challenge).toBe(0);
+  });
 });
 
 describe("coin investment return table", () => {

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240">
+  <title>Sword slicing sweep</title>
+  <desc>A layered translucent arc that follows the player's sword attack.</desc>
+  <g id="sword-sweep" fill="none" stroke-linecap="round">
+    <path id="sweep-outer-glow" d="M120 18a102 102 0 0 1 0 204" stroke="#fff3b0" stroke-opacity=".18" stroke-width="30"/>
+    <path id="sweep-body" d="M120 23a97 97 0 0 1 0 194" stroke="#ffe169" stroke-opacity=".48" stroke-width="18"/>
+    <path id="sweep-edge" d="M120 28a92 92 0 0 1 0 184" stroke="#fffbd8" stroke-opacity=".92" stroke-width="6"/>
+  </g>
+</svg>

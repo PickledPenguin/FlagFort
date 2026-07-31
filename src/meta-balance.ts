@@ -56,8 +56,8 @@ export const META_BALANCE = {
   investment: {
     maximum: 100,
     returnPercentByNightsSurvived: [0, 20, 40, 60, 80, 100, 120, 140, 160, 180, 200],
-    endlessReturnPercentByNightsSurvived: [200, 220, 240, 260, 280, 300],
-    endlessCapPercent: 300,
+    endlessReturnPercentByNightsSurvived: [200, 205, 210, 215, 220, 225],
+    endlessCapPercent: 225,
     rounding: "nearest" as const,
   },
   rewards: {
@@ -76,6 +76,9 @@ export const META_BALANCE = {
       normalBaseMultiplier: 1,
       maximumVictoryFraction: 0.5,
     },
+    challengeBonus: {
+      rounding: "nearest" as const,
+    },
   },
   equipment: {
     tierPrices: { wood: 100, stone: 250, gold: 500, diamond: 900 } satisfies Record<Tier, number>,
@@ -89,7 +92,7 @@ export const META_BALANCE = {
       diamond: 0.75,
     } satisfies Record<Tier | "unequipped", number>,
     sword: {
-      wood: { damageMultiplier: 1.15, cooldownMultiplier: 2, range: 88, arc: 1.15, targetLimit: 2, knockback: 14 },
+      wood: { damageMultiplier: 1.1, cooldownMultiplier: 2, range: 88, arc: 1.15, targetLimit: 2, knockback: 14 },
       stone: { damageMultiplier: 1.35, cooldownMultiplier: 1.6, range: 94, arc: 1.3, targetLimit: 3, knockback: 18 },
       gold: { damageMultiplier: 1.65, cooldownMultiplier: 1.25, range: 101, arc: 1.45, targetLimit: 4, knockback: 23 },
       diamond: { damageMultiplier: 2, cooldownMultiplier: 1, range: 108, arc: 1.6, targetLimit: 5, knockback: 30 },

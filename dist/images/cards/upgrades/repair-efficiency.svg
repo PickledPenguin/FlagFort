@@ -1,1 +1,58 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><path id="repair-efficiency" d="m17 105 57-57-9-29 22-9 29 29-9 22-29-9-57 57z" fill="#aeb7bc" stroke="#253027" stroke-width="8"/><path d="m13 18 14 14m-7-21 14 14" stroke="#8ee9a0" stroke-width="7"/></svg>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 128 128"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="repair-efficiency.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="0.90918617"
+     inkscape:cx="31.346715"
+     inkscape:cy="28.047061"
+     inkscape:window-width="1698"
+     inkscape:window-height="460"
+     inkscape:window-x="0"
+     inkscape:window-y="33"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg1" />
+  <g
+     id="g2"
+     transform="matrix(1.3092244,0,0,1.3092244,-236.14982,55.184875)"
+     style="stroke:#ff6b61;stroke-opacity:1">
+    <path
+       id="speed-lines-8"
+       d="m 186.56325,-20.239015 h 30.55244 m -15.58283,14.6194461 -0.18877,-30.0887301"
+       stroke="#8ee9a0"
+       stroke-width="8"
+       style="fill:#ff6b61;fill-opacity:1;stroke:#8ee9a0;stroke-opacity:1" />
+  </g>
+  <g
+     id="g1"
+     transform="matrix(2.5748831,0,0,2.5748831,-157.21175,-205.65467)">
+    <path
+       id="repair-wrench"
+       d="M 70.5,121.49696 90.611689,104.73592"
+       fill="none"
+       stroke="#dce7e2"
+       stroke-width="7"
+       stroke-linecap="round" />
+    <path
+       d="m 103.30716,100.40794 c 0.12463,7.63148 -7.488293,9.08486 -12.249751,3.12214 -4.761458,-5.962718 -1.26678,-12.573328 6.147991,-10.763307"
+       style="fill:none;stroke:#dce7e2;stroke-width:7;stroke-linecap:round"
+       id="path1" />
+  </g>
+</svg>

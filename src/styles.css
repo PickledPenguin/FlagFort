@@ -3024,6 +3024,36 @@ img.icon {
   min-width: 0;
 }
 
+.challenge-card-copy em {
+  color: var(--gold);
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 900;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.challenge-summary {
+  margin: 10px 0 14px;
+  padding: 10px 12px;
+  border: 1px solid rgba(247, 202, 75, .42);
+  border-radius: 10px;
+  background: rgba(57, 43, 10, .42);
+}
+
+.challenge-summary summary {
+  color: var(--gold);
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.challenge-summary p {
+  margin: 8px 0 0;
+  color: var(--ink);
+  font-size: 10px;
+  line-height: 1.55;
+}
+
 .challenge-card-copy small {
   color: #c7d4c7;
   font-size: 10px;
@@ -3863,8 +3893,8 @@ img.icon {
 
 .equipment-effect {
   display: grid;
-  gap: 7px;
-  padding: 9px;
+  gap: 10px;
+  padding: 12px;
   border: 1px solid rgba(247, 202, 75, .42);
   border-radius: 9px;
   background: rgba(57, 43, 10, .55);
@@ -3881,13 +3911,13 @@ img.icon {
 
 .equipment-effect > header span {
   color: var(--gold);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 900;
 }
 
 .equipment-effect > header strong {
   color: var(--gold);
-  font-size: 10px;
+  font-size: 12px;
   text-transform: capitalize;
 }
 
@@ -3896,11 +3926,11 @@ img.icon {
   min-width: 0;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(64px, 1fr));
-  gap: 4px;
+  gap: 7px;
 }
 
 .equipment-current-stats {
-  padding: 6px;
+  padding: 9px;
   border: 1px solid rgba(247, 202, 75, .34);
   border-radius: 7px;
   background: rgba(4, 19, 11, .54);
@@ -3909,7 +3939,7 @@ img.icon {
 .equipment-current-stats > em {
   grid-column: 1 / -1;
   color: var(--gold);
-  font-size: 7px;
+  font-size: 9px;
   font-style: normal;
   font-weight: 900;
 }
@@ -3925,27 +3955,29 @@ img.icon {
 .equipment-tier-stat small,
 .equipment-effect-note {
   color: var(--muted);
-  font-size: 7px;
+  font-size: 9px;
+  line-height: 1.25;
 }
 
 .equipment-current-stats b,
 .equipment-tier-stat b {
   color: var(--ink);
-  font-size: 10px;
+  font-size: 13px;
+  line-height: 1.2;
 }
 
 .equipment-tier-stats {
   display: grid;
-  gap: 3px;
+  gap: 5px;
 }
 
 .equipment-tier-stat {
   min-width: 0;
   display: grid;
-  grid-template-columns: 112px minmax(0, 1fr);
+  grid-template-columns: 124px minmax(0, 1fr);
   align-items: center;
-  gap: 7px;
-  padding: 5px 6px;
+  gap: 9px;
+  padding: 8px 9px;
   border-radius: 6px;
   background: rgba(4, 19, 11, .34);
 }
@@ -3957,11 +3989,13 @@ img.icon {
 
 .equipment-tier-stat > header strong {
   text-transform: capitalize;
+  font-size: 13px;
 }
 
 .equipment-tier-stat > header em {
   color: var(--muted);
-  font-size: 6px;
+  font-size: 8px;
+  line-height: 1.2;
   font-style: normal;
   font-weight: 900;
 }
@@ -4446,7 +4480,7 @@ img.icon {
   }
 
   .equipment-effect {
-    padding: 5px 7px;
+    padding: 10px;
   }
 
 }

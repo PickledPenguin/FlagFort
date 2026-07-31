@@ -23,6 +23,7 @@ const gameplayAssets = [
   ...tiers.map((tier) => `images/gameplay/player/hands/${tier}.svg`),
   ...["repair-wrench", "recycle-mallet", "bow", "blueprint"]
     .map((name) => `images/gameplay/player/tools/${name}.svg`),
+  "images/gameplay/player/sword-sweep.svg",
   "images/gameplay/flag/base.svg",
   "images/gameplay/flag/cloth.svg",
   "images/gameplay/flag/healing-aura.svg",
@@ -74,7 +75,10 @@ async function validateSvg(relativePath) {
   assert(!/<image\b/i.test(svg), `${relativePath}: embedded or linked raster image is not allowed`);
   assert(!/\b(?:href|src)="data:/i.test(svg), `${relativePath}: data URL is not allowed`);
   assert(!/base64/i.test(svg), `${relativePath}: base64 content is not allowed`);
-  assert(!/(sodipodi:|inkscape:|<metadata\b)/i.test(svg), `${relativePath}: unnecessary editor metadata`);
+  assert(!/<script\b|<foreignObject\b/i.test(svg), `${relativePath}: executable SVG content is not allowed`);
+  assert(!/\bon[a-z]+\s*=/i.test(svg), `${relativePath}: SVG event handlers are not allowed`);
+  assert(!/\b(?:href|xlink:href|src)="(?:https?:|\/\/|javascript:)/i.test(svg),
+    `${relativePath}: unsafe external reference is not allowed`);
   assert((svg.match(/<svg\b/g) ?? []).length === (svg.match(/<\/svg>/g) ?? []).length,
     `${relativePath}: unbalanced svg root`);
 }
@@ -144,7 +148,7 @@ const content = await read("src/content.ts");
 
 for (const sourceFragment of [
   'tierColors: { wood: "#b77a45", stone: "#aeb7bc", gold: "#f6c945", diamond: "#57e5ef" }',
-  "radius: { wall: 33, door: 34, spikes: 34, harvester: 39, turret: 36 }",
+  "radius: { wall: 34, door: 34, spikes: 34, harvester: 39, turret: 36 }",
   "harvesterArm: [98, 108, 120, 134]",
   "doorFadedOpacity: 0.38",
 ]) {

@@ -3,9 +3,10 @@ import { generateSeed } from "./rng";
 import type { Game } from "./game";
 import { canAfford } from "./rules";
 import { browserStorage } from "./storage";
+import { resolveCooldown } from "./modifiers";
 import { buildBarIcon, costIcons, gameSymbol, icon, resourceIcon } from "./ui-icons";
 import { CARD_DEFINITIONS, TUTORIAL_SECTIONS } from "./content";
-import { CHALLENGES, resolveChallengeModifiers } from "./challenges";
+import { CHALLENGES, challengeXpBonusPercent, resolveChallengeModifiers } from "./challenges";
 import { challengeIcon } from "./challenge-icons";
 import { audioManager, type AudioVolumeChannel } from "./audio";
 import { ASSETS } from "./assets";
@@ -48,6 +49,11 @@ function coinAmount(value: number, prefix = ""): string {
   const signedValue = `${prefix}${value}`;
   const spokenPrefix = prefix === "+" ? "plus " : prefix === "-" ? "minus " : "";
   return `<span class="coin-amount" aria-label="${spokenPrefix}${Math.abs(value)} Coins" title="Coins"><span aria-hidden="true">${signedValue}<em>¢</em></span></span>`;
+}
+
+function prefersReducedMotion(): boolean {
+  return typeof window.matchMedia === "function"
+    && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
 const enemyInfo: Record<EnemyKind, { title: string; text: string; tell: string }> = {
@@ -146,8 +152,6 @@ export class Ui {
       }, { capture: true });
     }
     window.addEventListener("keydown", (event) => this.handleKeydown(event));
-    const reduced = this.readPreference(BALANCE.ui.reducedMotionPreferenceKey);
-    document.body.classList.toggle("reduce-motion", reduced);
   }
 
   render(force = false): void {
@@ -171,32 +175,7 @@ export class Ui {
 
   private renderOverlay(force: boolean): void {
     if (this.choiceAnimating) return;
-    const key = [
-      this.game.phase,
-      this.difficulty,
-      this.tutorialOpen,
-      this.tutorialExitConfirmation,
-      this.runExitConfirmation,
-      this.game.tutorialSection,
-      this.game.tutorialTask,
-      this.game.tutorialSectionComplete,
-      this.tutorialOrigin,
-      this.menuPanel,
-      this.game.dawnScreen,
-      this.game.enemyWarning,
-      this.game.choices.map((choice) => `${choice.id}:${choice.mutationId}`).join(","),
-      this.choiceAnimating,
-      this.game.rerollConfirmation,
-      this.game.rerollsUsed,
-      this.game.skipNightConfirmation,
-      this.investmentOpen,
-      this.investmentDraft,
-      this.dailyRewardVisible,
-      this.game.profileManager
-        ? JSON.stringify(this.game.profileManager.profile)
-        : "",
-      this.game.platform?.user?.id ?? "guest",
-    ].join("|");
+    const key = this.overlayKey();
     if (!force && key === this.lastOverlayKey) return;
     this.lastOverlayKey = key;
     if (this.tutorialOpen) this.overlay.innerHTML = this.tutorialMarkup();
@@ -225,6 +204,35 @@ export class Ui {
     }
   }
 
+  private overlayKey(): string {
+    return [
+      this.game.phase,
+      this.difficulty,
+      this.tutorialOpen,
+      this.tutorialExitConfirmation,
+      this.runExitConfirmation,
+      this.game.tutorialSection,
+      this.game.tutorialTask,
+      this.game.tutorialSectionComplete,
+      this.tutorialOrigin,
+      this.menuPanel,
+      this.game.dawnScreen,
+      this.game.enemyWarning,
+      this.game.choices.map((choice) => `${choice.id}:${choice.mutationId}`).join(","),
+      this.choiceAnimating,
+      this.game.rerollConfirmation,
+      this.game.rerollsUsed,
+      this.game.skipNightConfirmation,
+      this.investmentOpen,
+      this.investmentDraft,
+      this.dailyRewardVisible,
+      this.game.profileManager
+        ? JSON.stringify(this.game.profileManager.profile)
+        : "",
+      this.game.platform?.user?.id ?? "guest",
+    ].join("|");
+  }
+
   private decorateMenuPanel(): void {
     if (!this.menuPanel) return;
     const dialog = this.overlay.querySelector<HTMLElement>(".menu-modal");
@@ -242,6 +250,7 @@ export class Ui {
     const recent = this.game.records[0];
     const challengeModifiers = resolveChallengeModifiers(this.selectedChallenges);
     const daySeconds = Math.round(BALANCE.dayDuration * challengeModifiers.dayDurationMultiplier);
+    const challengeBonus = challengeXpBonusPercent(this.selectedChallenges);
     const profile = this.game.profileManager?.profile;
     const upgradeAvailable = profile ? canAffordAnyPermanentUpgrade(profile) : false;
     const equipmentAvailable = profile ? canAffordAnyEquipment(profile) : false;
@@ -276,7 +285,7 @@ export class Ui {
             <button data-action="fullscreen">${icon("maximize")}<span>Fullscreen</span></button>
           </nav>
           <footer>
-          <span>${daySeconds}s DAY · ${BALANCE.nightDuration}s NIGHT · 10 NIGHTS${this.selectedChallenges.size ? ` · ${this.selectedChallenges.size} CHALLENGES` : ""}</span>
+          <span>${daySeconds}s DAY · ${BALANCE.nightDuration}s NIGHT · 10 NIGHTS${this.selectedChallenges.size ? ` · ${this.selectedChallenges.size} CHALLENGES · +${challengeBonus}% VICTORY XP` : ""}</span>
             <span>v1.3.0</span>
           ${recent ? `<span class="last-run">${recent.victory ? "Victory" : "Defeat"} · ${recent.mode === "endless" ? `${recent.nightsSurvived} Endless nights` : `${recent.nightsSurvived}/10`}${recent.challengeIds?.length ? ` · ${recent.challengeIds.length} challenges` : ""}</span>` : ""}
           </footer>
@@ -327,39 +336,29 @@ export class Ui {
       </div></div>`;
     }
     if (this.menuPanel === "settings") {
-      const reduced = document.body.classList.contains("reduce-motion");
-      const audio = audioManager.getSettings();
       return `<div class="menu-modal"><div class="modal compact">
         <button class="modal-close" data-action="close-panel" aria-label="Close">${icon("close")}</button>
-        <p class="eyebrow">SETTINGS</p><h2>Audio &amp; display</h2>
-        <div class="audio-settings">
-          ${this.volumeControl("master", "Master", audio.master)}
-          ${this.volumeControl("effects", "Effects", audio.effects)}
-          ${this.volumeControl("ambience", "Ambience", audio.ambience)}
-          ${this.volumeControl("music", "Music", audio.music)}
-          ${this.volumeControl("countdown", "Final countdown", audio.countdown)}
-          <button class="setting-toggle ${audio.muted ? "active" : ""}" data-action="audio-mute" aria-pressed="${audio.muted}">
-            <span>${audio.muted ? buildBarIcon("selected-tier") : icon("close")}<b>Mute all audio</b></span><em>${audio.muted ? "ON" : "OFF"}</em>
-          </button>
-        </div>
-        <button class="setting-toggle ${reduced ? "active" : ""}" data-action="reduce-motion" aria-pressed="${reduced}">
-          <span>${reduced ? buildBarIcon("selected-tier") : icon("settings")}<b>Reduced motion</b></span><em>${reduced ? "ON" : "OFF"}</em>
-        </button>
+        ${this.settingsMarkup()}
         <button class="secondary wide" data-action="tutorial-menu">${icon("book")} Show tutorial again</button>
       </div></div>`;
     }
     if (this.menuPanel === "challenges") {
+      const bonus = challengeXpBonusPercent(this.selectedChallenges);
+      const selectedChallenges = CHALLENGES.filter((challenge) => this.selectedChallenges.has(challenge.id));
       return `<div class="menu-modal"><div class="modal challenge-modal">
         <button class="modal-close" data-action="close-panel" aria-label="Close">${icon("close")}</button>
         <p class="eyebrow">OPTIONAL CHALLENGES</p><h2>Choose any combination</h2>
         <p>Every selected rule stacks independently and remains deterministic for the run seed.</p>
+        <details class="challenge-summary"><summary>${selectedChallenges.length} selected · +${bonus}% campaign victory XP</summary>
+          <p>${selectedChallenges.length ? selectedChallenges.map((challenge) => `${challenge.title} (+${challenge.xpBonusPercent}%)`).join(" · ") : "Select challenges to add their XP percentages together."}</p>
+        </details>
         <div class="challenge-grid">${CHALLENGES.map((challenge) => {
           const selected = this.selectedChallenges.has(challenge.id);
           return `<label class="challenge-card ${selected ? "selected" : ""}">
             <input type="checkbox" data-challenge="${challenge.id}" ${selected ? "checked" : ""}
               aria-label="${challenge.title}">
             <span class="challenge-card-icon">${challengeIcon(challenge.icon)}</span>
-            <span class="challenge-card-copy"><strong>${challenge.title}</strong><small>${challenge.description}</small></span>
+            <span class="challenge-card-copy"><strong>${challenge.title}</strong><small>${challenge.description}</small><em>+${challenge.xpBonusPercent}% victory XP</em></span>
           </label>`;
         }).join("")}</div>
         <button class="primary wide" data-action="close-panel">Done</button>
@@ -640,6 +639,21 @@ export class Ui {
     </label>`;
   }
 
+  private settingsMarkup(titleId = "settings-title"): string {
+    const audio = audioManager.getSettings();
+    return `<p class="eyebrow">SETTINGS</p><h2 id="${titleId}">Audio</h2>
+      <div class="audio-settings">
+        ${this.volumeControl("master", "Master", audio.master)}
+        ${this.volumeControl("effects", "Effects", audio.effects)}
+        ${this.volumeControl("ambience", "Ambience", audio.ambience)}
+        ${this.volumeControl("music", "Music", audio.music)}
+        ${this.volumeControl("countdown", "Final countdown", audio.countdown)}
+        <button class="setting-toggle ${audio.muted ? "active" : ""}" data-action="audio-mute" aria-pressed="${audio.muted}">
+          <span>${audio.muted ? buildBarIcon("selected-tier") : icon("close")}<b>Mute all audio</b></span><em>${audio.muted ? "ON" : "OFF"}</em>
+        </button>
+      </div>`;
+  }
+
   private difficultyText(difficulty: Difficulty): string {
     if (difficulty === "easy") return "More flag health and a gentler horde";
     if (difficulty === "normal") return "The intended survival challenge";
@@ -648,9 +662,16 @@ export class Ui {
   }
 
   private pauseMarkup(): string {
+    if (this.menuPanel === "settings") {
+      return `<section class="screen modal-screen"><div class="modal compact pause-card" role="dialog" aria-modal="true" aria-labelledby="pause-settings-title">
+        <button class="modal-close" data-action="close-panel" aria-label="Back to pause menu">${icon("arrow-left")}</button>
+        ${this.settingsMarkup("pause-settings-title")}
+      </div></section>`;
+    }
     return `<section class="screen modal-screen"><div class="modal pause-card" role="dialog" aria-modal="true" aria-labelledby="pause-title">
       <p class="eyebrow">COUNT FROZEN</p><h2 id="pause-title">Paused</h2>
       <button class="primary wide" data-action="resume">${icon("play")} Resume</button>
+      <button class="secondary wide" data-action="settings">${icon("sliders-horizontal")} Settings</button>
       <button class="ghost wide" data-action="request-run-exit">End run</button>
     </div></section>`;
   }
@@ -753,6 +774,15 @@ export class Ui {
     const permanent = this.game.profileManager?.profile.permanentUpgrades[
       choice.id as PermanentUpgradeId
     ];
+    if (choice.id === "bowRate") {
+      const permanentBonus = permanentUpgradePercent(permanent ?? 0);
+      const currentRate = 1 / resolveCooldown(BALANCE.bow.rate, [permanentBonus, this.game.upgrades.bowRate]);
+      const resultingRate = 1 / resolveCooldown(BALANCE.bow.rate, [
+        permanentBonus,
+        this.game.upgrades.bowRate + BALANCE.upgrades.bowRate.amount,
+      ]);
+      return `${choice.description} Current ${currentRate.toFixed(2)}/s; resulting ${resultingRate.toFixed(2)}/s.`;
+    }
     if (choice.kind !== "upgrade" || permanent === undefined || permanent <= 0) {
       return choice.description;
     }
@@ -781,6 +811,11 @@ export class Ui {
     return `<img src="${definition.illustration}" alt="">`;
   }
 
+  private challengeRewardDetails(): string {
+    const selected = CHALLENGES.filter((challenge) => this.game.activeChallenges.has(challenge.id));
+    return `${selected.map((challenge) => `${challenge.title} +${challenge.xpBonusPercent}%`).join(", ")}. Combined +${challengeXpBonusPercent(this.game.activeChallenges)}%.`;
+  }
+
   private resultMarkup(): string {
     const victory = this.game.phase === "victory";
     const minutes = Math.floor(this.game.stats.elapsed / 60);
@@ -800,13 +835,14 @@ export class Ui {
         ["Personal Kills", settlement.xp.personalKills],
         ["Difficulty Bonus", settlement.xp.difficulty],
         ...(settlement.xp.victory > 0 ? [["Victory Bonus", settlement.xp.victory] as const] : []),
+        ...(settlement.xp.challenge > 0 ? [["Challenge Bonus", settlement.xp.challenge] as const] : []),
       ] as const;
       return `<section class="screen result-screen ${victory ? "won" : "lost"}"><div class="result-card reward-result-card" role="region" aria-labelledby="result-title" tabindex="-1">
         <p class="eyebrow">${victory ? "FINAL COUNT CLEARED" : "COUNT ENDED"}</p>
         <h2 id="result-title">${victory ? "Forest defended" : "Run settled"}</h2>
         ${this.game.defeatReason ? `<p class="result-reason">${this.game.defeatReason}</p>` : ""}
         <div class="reward-body"><div class="reward-list"><div class="reward-categories">${categories.map(([label, value], index) => `<div class="reward-line" style="--reveal-index:${index}">
-          <span>${label}</span><b>+${value} XP</b></div>`).join("")}</div>
+          <span ${label === "Challenge Bonus" ? `title="${this.escapeAttribute(this.challengeRewardDetails())}"` : ""}>${label}</span><b>+${value} XP</b></div>`).join("")}</div>
         <button class="reward-skip" data-action="reveal-rewards">Show totals now</button>
         </div><div class="reward-summary">
         <section class="reward-total" style="--reveal-index:6"><span>TOTAL REWARD</span><strong>+${settlement.xp.total} XP</strong></section>
@@ -1184,9 +1220,6 @@ export class Ui {
       case "close-panel":
         this.menuPanel = null;
         break;
-      case "reduce-motion":
-        this.toggleReducedMotion();
-        break;
       case "audio-mute":
         audioManager.toggleMuted();
         break;
@@ -1362,16 +1395,16 @@ export class Ui {
       spark.style.setProperty("--spark-delay", `${(i % 3) * 35}ms`);
       pair?.append(spark);
     }
-    const selectionDelay = document.body.classList.contains("reduce-motion")
+    const selectionDelay = prefersReducedMotion()
       ? 0
       : BALANCE.ui.cardSelectionDuration;
     window.setTimeout(() => {
       this.choiceAnimating = false;
-      this.animateChoiceReplacement(() => this.game.chooseDawn(index));
+      this.animateChoiceReplacement(() => this.game.chooseDawn(index), index);
     }, selectionDelay);
   }
 
-  private animateChoiceReplacement(apply: () => void): void {
+  private animateChoiceReplacement(apply: () => void, focusIndex = 0): void {
     if (this.choiceAnimating) return;
     this.choiceAnimating = true;
     const track = this.overlay.querySelector<HTMLElement>(".choice-track");
@@ -1390,15 +1423,16 @@ export class Ui {
         incoming.classList.remove("incoming");
         track.classList.remove("transitioning");
         this.choiceAnimating = false;
-        this.invalidate();
-        this.render(true);
+        this.lastOverlayKey = this.overlayKey();
+        this.patchDawnHeader();
+        incoming.querySelectorAll<HTMLElement>(".choice-pair")[focusIndex]?.focus();
       };
       const onTransitionEnd = (event: TransitionEvent): void => {
         if (event.target === incoming && event.propertyName === "transform") finish();
       };
       incoming.addEventListener("transitionend", onTransitionEnd);
       requestAnimationFrame(() => track.classList.add("transitioning"));
-      if (document.body.classList.contains("reduce-motion")) queueMicrotask(finish);
+      if (prefersReducedMotion()) queueMicrotask(finish);
     } else {
       const finish = (): void => {
         current?.removeEventListener("transitionend", onTransitionEnd);
@@ -1411,7 +1445,7 @@ export class Ui {
       };
       current?.addEventListener("transitionend", onTransitionEnd);
       requestAnimationFrame(() => current?.classList.add("leaving"));
-      if (!current || document.body.classList.contains("reduce-motion")) queueMicrotask(finish);
+      if (!current || prefersReducedMotion()) queueMicrotask(finish);
     }
   }
 
@@ -1419,7 +1453,7 @@ export class Ui {
     const title = this.overlay.querySelector<HTMLElement>(".dawn-panel header h2");
     const nextTitle = this.dawnHeading();
     if (!title || title.textContent === nextTitle) return;
-    if (document.body.classList.contains("reduce-motion")) {
+    if (prefersReducedMotion()) {
       title.textContent = nextTitle;
       return;
     }
@@ -1431,6 +1465,11 @@ export class Ui {
       title.classList.add("title-fading-in");
       requestAnimationFrame(() => title.classList.remove("title-fading-in"));
     }, BALANCE.ui.cardTransitionDuration * 0.42);
+  }
+
+  private patchDawnHeader(): void {
+    const eyebrow = this.overlay.querySelector<HTMLElement>(".dawn-panel header .eyebrow");
+    if (eyebrow) eyebrow.textContent = `DAWN ${this.game.night} · COUNT FROZEN`;
   }
 
   private handleKeydown(event: KeyboardEvent): void {
@@ -1463,6 +1502,15 @@ export class Ui {
       return;
     }
     if (this.game.phase === "paused" && !this.runExitConfirmation && event.code === "Escape") {
+      if (this.menuPanel === "settings") {
+        this.menuPanel = null;
+        this.game.input.escapePressed = false;
+        event.preventDefault();
+        this.invalidate();
+        this.render(true);
+        this.overlay.querySelector<HTMLElement>('[data-action="settings"]')?.focus();
+        return;
+      }
       this.game.togglePause();
       this.game.input.escapePressed = false;
       event.preventDefault();
@@ -1636,24 +1684,9 @@ export class Ui {
     this.invalidate();
   }
 
-  private toggleReducedMotion(): void {
-    const reduced = !document.body.classList.contains("reduce-motion");
-    document.body.classList.toggle("reduce-motion", reduced);
-    this.writePreference(BALANCE.ui.reducedMotionPreferenceKey, reduced);
-    this.invalidate();
-  }
-
   private async toggleFullscreen(): Promise<void> {
     if (document.fullscreenElement) await document.exitFullscreen();
     else if (document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen();
-  }
-
-  private readPreference(key: string): boolean {
-    try {
-      return browserStorage()?.getItem(key) === "true";
-    } catch {
-      return false;
-    }
   }
 
   private writePreference(key: string, value: boolean): void {

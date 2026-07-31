@@ -22,6 +22,8 @@ All source paths are absolute in `public/audio/audio-attribution.json`. This tab
 | player-footstep-grass.ogg | footstep_grass_004.ogg | Kenney / Impact Sounds | CC0 1.0 |
 | player-punch-swing.ogg | Woosh Sweep Slide Infographics Basic.wav | Cinematic Sound Design / Ultra Transitions & Impacts | Sonniss GDC Game Audio Bundle Part 9 royalty-free license |
 | player-punch-impact.ogg | impactPunch_medium_003.ogg | Kenney / Impact Sounds | CC0 1.0 |
+| sword-swing.ogg | drawKnife1.ogg | Kenney / RPG Audio | CC0 1.0 |
+| sword-hit.ogg | chop.ogg | Kenney / RPG Audio | CC0 1.0 |
 | player-hurt.ogg | impactSoft_medium_001.ogg | Kenney / Impact Sounds | CC0 1.0 |
 | player-heal.ogg | UIMisc_Kalimba 3 Up_CB Sounddesign_APPlicable Sounds.wav | CB_Sounddesign / Applicable Sounds - Organic UI and Building Games SFX | Sonniss GDC Game Audio Bundle Part 9 royalty-free license |
 | player-death.ogg | Cartoon Transition Bass Down.wav | Cinematic Sound Design / Cartoon & Animation Vol 2 | Sonniss GDC Game Audio Bundle Part 9 royalty-free license |

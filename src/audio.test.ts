@@ -18,11 +18,11 @@ import {
 
 describe("audio asset coverage", () => {
   it("assigns every canonical sound exactly once", () => {
-    expect(SOUND_IDS).toHaveLength(50);
-    expect(new Set(SOUND_IDS).size).toBe(50);
+    expect(SOUND_IDS).toHaveLength(52);
+    expect(new Set(SOUND_IDS).size).toBe(52);
     expect(Object.keys(SOUND_CONFIG).sort()).toEqual([...SOUND_IDS].sort());
-    expect(manifest.canonicalSoundCount).toBe(50);
-    expect(manifest.assignedSoundCount).toBe(50);
+    expect(manifest.canonicalSoundCount).toBe(52);
+    expect(manifest.assignedSoundCount).toBe(52);
     expect(manifest.missingSounds).toEqual([]);
     expect(manifest.entries.map((entry) => entry.canonicalFilename).sort())
       .toEqual(SOUND_IDS.map((id) => `${id}.ogg`).sort());
@@ -69,6 +69,7 @@ describe("audio asset coverage", () => {
       "player-heal",
       "player-death",
       "bow-fire",
+      "sword-swing",
       "structure-repair",
       "structure-recycle",
     ] as const) {
@@ -77,6 +78,7 @@ describe("audio asset coverage", () => {
     for (const cue of [
       "player-punch-impact",
       "arrow-impact",
+      "sword-hit",
       "resource-depleted",
       "turret-fire",
       "portal-ambient",

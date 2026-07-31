@@ -200,7 +200,7 @@ Keep independently moving parts separate, preserve each SVG viewBox and transpar
 
 ## Audio
 
-The centralized Web Audio manager in `src/audio.ts` preloads 50 canonical OGG files from `public/audio/`. It supports one-shots, spatial world sounds, two-nearest portal ambience loops, master/effects/ambience buses, mute, browser autoplay unlocking, cooldowns, concurrency limits, subtle repeated-sound variation, and scene cleanup. Volume settings persist in local storage.
+The centralized Web Audio manager in `src/audio.ts` preloads 52 canonical OGG files from `public/audio/`. It supports one-shots, spatial world sounds, two-nearest portal ambience loops, master/effects/ambience buses, mute, browser autoplay unlocking, cooldowns, concurrency limits, subtle repeated-sound variation, and scene cleanup. Volume settings persist in local storage.
 
 The typed music registry and crossfade manager live in `src/music.ts`. It uses
 day, night, upgrade, and final-countdown tracks; day music also covers the main

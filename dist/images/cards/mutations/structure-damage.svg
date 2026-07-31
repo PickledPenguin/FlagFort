@@ -1,8 +1,54 @@
-<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" viewBox="0 0 128 128" version="1.1" id="svg1">
-  <defs id="defs1"/>
-  <g id="structure-damage" stroke="#253027" stroke-width="8">
-    <circle id="structure" cx="62.580688" cy="64.746109" r="54.352085" fill="#b9783d"/>
-    <path id="damage-crack" d="M62 27 53 56 75 69 49 102" fill="none"/>
-    <path id="damage" d="M 96.333047,6.3772417 102.48564,21.963823 119.71293,18.682438 106.99756,30.577461 118.4824,43.703004 102.07548,39.191098 96.333047,54.77768 90.590617,39.191098 74.183697,43.703004 85.668539,30.577461 72.953167,18.682438 90.180447,21.963823 Z" fill="#ff6b61" stroke="#392321" stroke-width="2.87121"/>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 128 128"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="structure-damage.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="1.2730771"
+     inkscape:cx="14.53172"
+     inkscape:cy="-7.4622345"
+     inkscape:window-width="1484"
+     inkscape:window-height="602"
+     inkscape:window-x="0"
+     inkscape:window-y="33"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="structure-damage" />
+  <defs
+     id="defs1" />
+  <g
+     id="structure-damage"
+     stroke="#253027"
+     stroke-width="8">
+    <circle
+       id="structure"
+       cx="62.580688"
+       cy="64.746109"
+       r="54.352085"
+       fill="#b9783d" />
+    <path
+       id="damage-crack"
+       d="M62 27 53 56 75 69 49 102"
+       fill="none" />
+    <path
+       id="damage"
+       d="M 96.333047,6.3772417 102.48564,21.963823 119.71293,18.682438 106.99756,30.577461 118.4824,43.703004 102.07548,39.191098 96.333047,54.77768 90.590617,39.191098 74.183697,43.703004 85.668539,30.577461 72.953167,18.682438 90.180447,21.963823 Z"
+       fill="#ff6b61"
+       stroke="#392321"
+       stroke-width="2.87121"
+       style="stroke-width:4;stroke-dasharray:none" />
   </g>
 </svg>

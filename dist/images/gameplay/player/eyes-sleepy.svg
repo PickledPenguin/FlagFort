@@ -1,10 +1,73 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="-30 -30 60 60">
-  <g id="eyes-sleepy">
-    <path id="eye-whites" d="M4-12Q11-17 18-10Q11-4 4-9ZM4 12Q11 17 18 10Q11 4 4 9Z" fill="#fffdf1"/>
-    <g id="pupils" fill="#1d2821">
-      <circle cx="13" cy="-9" r="2.9"/>
-      <circle cx="13" cy="9" r="2.9"/>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="-30 -30 60 60"
+   version="1.1"
+   id="svg2"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs2" />
+  <g
+     id="eyes-sleepy">
+    <g
+       id="g1"
+       transform="rotate(180,9.5954973,0.75653487)">
+      <g
+         id="g3"
+         transform="rotate(-75,24.99922,31.871768)">
+        <g
+           id="g2">
+          <path
+             id="eye-whites-9"
+             d="m 34.575543,12.813688 c 4.666667,3.333333 9.333333,2.666667 14,-2 -4.666667,-3.9999997 -9.333333,-4.3333329 -14,-0.9999996 z"
+             fill="#fffdf1" />
+          <g
+             id="pupils-3"
+             fill="#1d2821"
+             transform="translate(28.643691,1.3313265)">
+            <circle
+               cx="13"
+               cy="9"
+               r="2.9000001"
+               id="circle2-0" />
+          </g>
+          <path
+             id="lids-2"
+             d="m 34.575543,12.813688 c 4.666667,2.666667 9.333333,2 14,-2"
+             fill="none"
+             stroke="#392f24"
+             stroke-width="2.5"
+             stroke-linecap="round" />
+        </g>
+      </g>
+      <g
+         id="g3-7"
+         transform="matrix(0.25881905,0.96592583,0.96592583,-0.25881905,-11.980705,-46.25707)">
+        <g
+           id="g2-0">
+          <path
+             id="eye-whites-9-3"
+             d="m 34.575543,12.813688 c 4.666667,3.333333 9.333333,2.666667 14,-2 -4.666667,-3.9999997 -9.333333,-4.3333329 -14,-0.9999996 z"
+             fill="#fffdf1" />
+          <g
+             id="pupils-3-9"
+             fill="#1d2821"
+             transform="translate(28.643691,1.3313265)">
+            <circle
+               cx="13"
+               cy="9"
+               r="2.9000001"
+               id="circle2-0-8" />
+          </g>
+          <path
+             id="lids-2-6"
+             d="m 34.575543,12.813688 c 4.666667,2.666667 9.333333,2 14,-2"
+             fill="none"
+             stroke="#392f24"
+             stroke-width="2.5"
+             stroke-linecap="round" />
+        </g>
+      </g>
     </g>
-    <path id="lids" d="M4-12Q11-16 18-10M4 12Q11 16 18 10" fill="none" stroke="#392f24" stroke-width="2.5" stroke-linecap="round"/>
   </g>
 </svg>

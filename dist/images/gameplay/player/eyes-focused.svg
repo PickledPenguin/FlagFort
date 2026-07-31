@@ -1,11 +1,65 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="-30 -30 60 60">
-  <g id="eyes-focused">
-    <path id="upper-eye" d="M4-14Q12-18 18-10Q13-3 5-6Z" fill="#fffdf1"/>
-    <path id="lower-eye" d="M4 14Q12 18 18 10Q13 3 5 6Z" fill="#fffdf1"/>
-    <g id="pupils" fill="#1d2821">
-      <circle cx="13" cy="-9" r="3.2"/>
-      <circle cx="13" cy="9" r="3.2"/>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="-30 -30 60 60"
+   version="1.1"
+   id="svg2"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs2" />
+  <g
+     id="eyes-focused">
+    <g
+       id="g2-5"
+       transform="rotate(75,41.332018,-17.909876)">
+      <g
+         id="g3-5">
+        <path
+           id="lower-eye-9-8"
+           d="m 33.5,18.5 c 5.333333,2.666667 10,1.333333 14,-4 -3.333333,-4.6666667 -7.666667,-6 -13,-4 z"
+           fill="#fffdf1" />
+        <g
+           id="pupils-8-2"
+           fill="#1d2821"
+           transform="translate(29.5,4.5)">
+          <circle
+             cx="13"
+             cy="9"
+             r="3.2"
+             id="circle2-5-9" />
+        </g>
+        <path
+           id="brows-7-8"
+           d="m 33.5,23.5 13,-4"
+           fill="none"
+           stroke="#392f24"
+           stroke-width="3"
+           stroke-linecap="round" />
+      </g>
     </g>
-    <path id="brows" d="M4-19L17-15M4 19L17 15" fill="none" stroke="#392f24" stroke-width="3" stroke-linecap="round"/>
+    <g
+       id="g4"
+       transform="rotate(-75,24.214901,0.80879673)">
+      <path
+         id="upper-eye"
+         d="m 4,-14 q 8,-4 14,4 -5,7 -13,4 z"
+         fill="#fffdf1" />
+      <g
+         id="pupils"
+         fill="#1d2821">
+        <circle
+           cx="13"
+           cy="-9"
+           r="3.2"
+           id="circle1" />
+      </g>
+      <path
+         id="brows"
+         d="m 4,-19 13,4"
+         fill="none"
+         stroke="#392f24"
+         stroke-width="3"
+         stroke-linecap="round" />
+    </g>
   </g>
 </svg>

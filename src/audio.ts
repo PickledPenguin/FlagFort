@@ -20,6 +20,8 @@ export const SOUND_IDS = [
   "player-footstep-grass",
   "player-punch-swing",
   "player-punch-impact",
+  "sword-swing",
+  "sword-hit",
   "player-hurt",
   "player-heal",
   "player-death",
@@ -110,6 +112,14 @@ export const SOUND_CONFIG: Record<SoundId, SoundConfig> = {
     cooldown: 0.055,
     positioning: "spatial",
     variation: { pitch: 0.025, volume: 0.06 },
+  }),
+  "sword-swing": effect(0.48, {
+    cooldown: 0.1,
+    positioning: "centered",
+  }),
+  "sword-hit": effect(0.7, {
+    cooldown: 0.055,
+    positioning: "spatial",
   }),
   "player-hurt": effect(0.92, { cooldown: 0.09, positioning: "centered" }),
   "player-heal": effect(0.55, { cooldown: 0.8, positioning: "centered" }),

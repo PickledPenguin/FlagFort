@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { BALANCE } from "./config";
 import {
   CHALLENGES,
+  challengeXpBonusPercent,
   DEFAULT_CHALLENGE_MODIFIERS,
   resolveChallengeModifiers,
 } from "./challenges";
@@ -46,6 +47,25 @@ describe("challenge configuration", () => {
       expect(challengeIcon(challenge.icon)).toContain(`./images/challenges/${challenge.icon}.svg`);
       expect(challenge.nightDuration).toBe(BALANCE.nightDuration);
     }
+  });
+
+  it("keeps challenge XP in the requested balance and display order", () => {
+    expect(CHALLENGES.map(({ title, xpBonusPercent }) => [title, xpBonusPercent])).toEqual([
+      ["Expensive Construction", 5],
+      ["Resource Drought", 10],
+      ["Short Days", 10],
+      ["Horde Night", 10],
+      ["Elite Invasion", 10],
+      ["Mortal Defender", 15],
+      ["Portal Swarm", 15],
+      ["Glass Defenses", 15],
+      ["Accelerated Horde", 20],
+      ["Fragile Flag", 20],
+      ["No Repairs", 20],
+      ["Heavy Horde", 25],
+    ]);
+    expect(challengeXpBonusPercent(CHALLENGES.map((challenge) => challenge.id))).toBe(175);
+    expect(challengeXpBonusPercent(["heavy-horde", "heavy-horde", "unknown"])).toBe(25);
   });
 
   it.each([
