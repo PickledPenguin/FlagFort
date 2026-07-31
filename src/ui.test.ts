@@ -576,6 +576,21 @@ describe("event-driven HUD interaction", () => {
       .toContain("Back to Main Menu");
   });
 
+  it("names and focuses tutorial instructions when training opens", () => {
+    const { game, overlay, ui } = createHarness();
+    game.returnToMenu();
+    ui.render(true);
+
+    click(overlay.querySelector('[data-action="tutorial-menu"]')!);
+
+    const guide = overlay.querySelector<HTMLElement>(".tutorial-guide-card")!;
+    expect(guide.getAttribute("role")).toBe("region");
+    expect(guide.getAttribute("aria-live")).toBe("polite");
+    expect(guide.getAttribute("aria-atomic")).toBe("true");
+    expect(guide.getAttribute("aria-labelledby")).toBe("tutorial-guide-title");
+    expect(document.activeElement).toBe(guide);
+  });
+
   it("confirms tutorial exit before discarding section progress", () => {
     const { game, overlay, ui } = createHarness();
     game.returnToMenu();

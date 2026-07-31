@@ -196,7 +196,9 @@ export class Ui {
     else if (this.game.phase === "victory" || this.game.phase === "defeat") this.overlay.innerHTML = this.resultMarkup();
     else this.overlay.innerHTML = "";
     this.decorateMenuPanel();
-    if (this.game.phase === "paused" && !this.runExitConfirmation) {
+    if (this.tutorialOpen && !this.tutorialExitConfirmation) {
+      this.overlay.querySelector<HTMLElement>(".tutorial-guide-card")?.focus();
+    } else if (this.game.phase === "paused" && !this.runExitConfirmation) {
       this.focusDialog(".pause-card");
     } else if (this.game.enemyWarning) {
       this.focusDialog(".warning-card");
@@ -600,9 +602,9 @@ export class Ui {
     const task = section.tasks[this.game.tutorialTask] ?? section.tasks.at(-1)!;
     const finalSection = this.game.tutorialSection === TUTORIAL_SECTIONS.length - 1;
     return `<section class="screen tutorial-screen interactive">
-      <div class="tutorial-guide-card" data-highlight="${task.highlight}">
+      <div class="tutorial-guide-card" data-highlight="${task.highlight}" role="region" aria-live="polite" aria-atomic="true" aria-labelledby="tutorial-guide-title" tabindex="-1">
         <button class="tutorial-exit" data-action="tutorial-exit" aria-label="Exit tutorial">${icon("close")}</button>
-        <header><span>TRAINING ${this.game.tutorialSection + 1} / ${TUTORIAL_SECTIONS.length}</span><b>${section.title}</b></header>
+        <header><span>TRAINING ${this.game.tutorialSection + 1} / ${TUTORIAL_SECTIONS.length}</span><b id="tutorial-guide-title">${section.title}</b></header>
         <div class="tutorial-progress">${TUTORIAL_SECTIONS.map((_, index) =>
           `<i class="${index === this.game.tutorialSection ? "current" : index < this.game.tutorialSection ? "done" : ""}"></i>`).join("")}</div>
         <p>${this.game.tutorialSectionComplete ? section.summary : task.instructions}</p>
