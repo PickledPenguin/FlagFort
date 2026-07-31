@@ -726,7 +726,7 @@ kbd {
   font-weight: 900;
 }
 
-.mouse-glyph {
+img.icon.mouse-glyph {
   width: 22px;
   height: 31px;
   filter: none;

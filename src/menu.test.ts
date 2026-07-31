@@ -17,4 +17,10 @@ describe("main menu presentation", () => {
     );
     expect(stylesSource).toContain("@keyframes menu-title-bounce");
   });
+
+  it("keeps the controls mouse icon legible against the dark guide panel", () => {
+    expect(stylesSource).toMatch(
+      /img\.icon\.mouse-glyph\s*\{[\s\S]*filter:\s*none/,
+    );
+  });
 });
