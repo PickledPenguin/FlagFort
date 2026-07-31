@@ -575,9 +575,9 @@ export class Ui {
   }
 
   private skipNightMarkup(): string {
-    return `<section class="screen modal-screen skip-night-screen"><div class="modal compact">
+    return `<section class="screen modal-screen skip-night-screen"><div class="modal compact skip-night-modal" role="dialog" aria-modal="true" aria-labelledby="skip-night-title">
       <p class="eyebrow">END DAY EARLY</p>
-      <h2>Skip to Night?</h2>
+      <h2 id="skip-night-title">Skip to Night?</h2>
       <p>The remaining daytime will be lost. Skipping grants no resources, score, or other reward.</p>
       <div class="reroll-actions">
         <button class="ghost" data-action="cancel-skip-night">Cancel</button>
@@ -1194,6 +1194,8 @@ export class Ui {
       this.focusDialog(".investment-modal");
     } else if (action === "cancel-investment") {
       this.overlay.querySelector<HTMLElement>('[data-action="start"]')?.focus();
+    } else if (action === "cancel-skip-night") {
+      this.hud.querySelector<HTMLElement>('[data-action="skip-night"]')?.focus();
     } else if (action === "close-panel" && panelBeforeAction) {
       this.focusMenuPanelTrigger(panelBeforeAction);
     } else if (
@@ -1236,6 +1238,9 @@ export class Ui {
     }
     this.hudStructureKey = "";
     this.render(true);
+    if (target.dataset.action === "skip-night") {
+      this.focusDialog(".skip-night-modal");
+    }
   }
 
   private selectChoice(target: HTMLElement, index: number): void {
@@ -1322,6 +1327,10 @@ export class Ui {
   }
 
   private handleKeydown(event: KeyboardEvent): void {
+    if (this.game.skipNightConfirmation && event.code === "Tab") {
+      this.trapDialogFocus(event, ".skip-night-modal");
+      return;
+    }
     if (this.investmentOpen && event.code === "Tab") {
       this.trapDialogFocus(event, ".investment-modal");
       return;
@@ -1364,6 +1373,7 @@ export class Ui {
       event.preventDefault();
       this.invalidate();
       this.render(true);
+      this.hud.querySelector<HTMLElement>('[data-action="skip-night"]')?.focus();
       return;
     }
     if (this.tutorialOpen && event.code === "Escape") {

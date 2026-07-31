@@ -264,6 +264,32 @@ describe("event-driven HUD interaction", () => {
     expect(game.skipNightConfirmation).toBe(false);
   });
 
+  it("contains keyboard focus in the Skip to Night dialog and restores it when canceled", () => {
+    const { hud, overlay } = createHarness();
+    const trigger = hud.querySelector<HTMLElement>('[data-action="skip-night"]')!;
+    click(trigger);
+
+    const dialog = overlay.querySelector<HTMLElement>('[role="dialog"]')!;
+    const cancel = dialog.querySelector<HTMLElement>('[data-action="cancel-skip-night"]')!;
+    const confirm = dialog.querySelector<HTMLElement>('[data-action="confirm-skip-night"]')!;
+    expect(dialog.getAttribute("aria-modal")).toBe("true");
+    expect(dialog.getAttribute("aria-labelledby")).toBe("skip-night-title");
+    expect(document.activeElement).toBe(cancel);
+
+    confirm.focus();
+    window.dispatchEvent(new KeyboardEvent("keydown", { code: "Tab" }));
+    expect(document.activeElement).toBe(cancel);
+
+    cancel.focus();
+    window.dispatchEvent(new KeyboardEvent("keydown", { code: "Tab", shiftKey: true }));
+    expect(document.activeElement).toBe(confirm);
+
+    click(cancel);
+    expect(document.activeElement).toBe(
+      hud.querySelector('[data-action="skip-night"]'),
+    );
+  });
+
   it("keeps outgoing and incoming card sets in one transform track and applies a choice once", () => {
     vi.useFakeTimers();
     const { game, overlay, ui } = createHarness();
@@ -313,9 +339,13 @@ describe("event-driven HUD interaction", () => {
 
   it("does not also pause when Escape cancels the Skip Night confirmation", () => {
     const { game, hud } = createHarness();
-    click(hud.querySelector('[data-action="skip-night"]')!);
+    const trigger = hud.querySelector<HTMLElement>('[data-action="skip-night"]')!;
+    click(trigger);
 
     window.dispatchEvent(new KeyboardEvent("keydown", { code: "Escape" }));
+    expect(document.activeElement).toBe(
+      hud.querySelector('[data-action="skip-night"]'),
+    );
     game.update(BALANCE.fixedStep);
 
     expect(game.skipNightConfirmation).toBe(false);
