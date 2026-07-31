@@ -248,6 +248,47 @@ describe("event-driven HUD interaction", () => {
     expect(toast.innerHTML).toBe("");
   });
 
+  it("contains keyboard focus in the reroll dialog and restores it when canceled", () => {
+    const { game, overlay, ui } = createHarness();
+    game.phase = "dawn";
+    game.choices = [
+      {
+        id: "moveSpeed",
+        name: "Fleet Feet",
+        description: "Move faster",
+        mutationId: "health",
+        mutationName: "Thick Skulls",
+        mutationDescription: "More enemy health",
+        kind: "upgrade",
+      },
+    ];
+    ui.render(true);
+
+    const trigger = overlay.querySelector<HTMLElement>('[data-action="reroll"]')!;
+    click(trigger);
+    const dialog = overlay.querySelector<HTMLElement>('[role="dialog"]')!;
+    const cancel = dialog.querySelector<HTMLElement>('[data-action="cancel-reroll"]')!;
+    const confirm = dialog.querySelector<HTMLElement>('[data-action="confirm-reroll"]')!;
+
+    expect(dialog.getAttribute("aria-modal")).toBe("true");
+    expect(dialog.getAttribute("aria-labelledby")).toBe("reroll-title");
+    expect(document.activeElement).toBe(cancel);
+
+    confirm.focus();
+    window.dispatchEvent(new KeyboardEvent("keydown", { code: "Tab" }));
+    expect(document.activeElement).toBe(cancel);
+
+    cancel.focus();
+    window.dispatchEvent(new KeyboardEvent("keydown", { code: "Tab", shiftKey: true }));
+    expect(document.activeElement).toBe(confirm);
+
+    window.dispatchEvent(new KeyboardEvent("keydown", { code: "Escape" }));
+    expect(game.rerollConfirmation).toBe(false);
+    expect(document.activeElement).toBe(
+      overlay.querySelector('[data-action="reroll"]'),
+    );
+  });
+
   it("pauses the day in an accessible Skip to Night confirmation and uses the normal night start", () => {
     const { game, hud, overlay, ui } = createHarness();
     const timer = game.timer;

@@ -630,8 +630,8 @@ export class Ui {
     const heading = this.dawnHeading();
     if (this.game.rerollConfirmation) {
       const cost = this.game.getRerollCost();
-      return `<section class="screen modal-screen reroll-screen"><div class="modal reroll-card">
-        <p class="eyebrow">CONFIRM RUN-WIDE REROLL</p><h2>Spend half of every resource?</h2>
+      return `<section class="screen modal-screen reroll-screen"><div class="modal reroll-card" role="dialog" aria-modal="true" aria-labelledby="reroll-title">
+        <p class="eyebrow">CONFIRM RUN-WIDE REROLL</p><h2 id="reroll-title">Spend half of every resource?</h2>
         <p>All four totals are affected. The discarded cards cannot be selected afterward.</p>
         <div class="reroll-shared-cost">${costIcons(cost, "-", this.game.resources)}</div>
         <p class="reroll-count">Used ${this.game.rerollsUsed} of ${BALANCE.reroll.limit} · ${BALANCE.reroll.limit - this.game.rerollsUsed} remaining</p>
@@ -1186,6 +1186,12 @@ export class Ui {
     }
     this.invalidate();
     this.render(true);
+    if (this.game.rerollConfirmation && action === "reroll") {
+      this.focusDialog(".reroll-card");
+    }
+    if (action === "cancel-reroll") {
+      this.overlay.querySelector<HTMLElement>('[data-action="reroll"]')?.focus();
+    }
     if (this.investmentOpen && (
       action === "start"
       || action === "restart-same"
@@ -1331,6 +1337,10 @@ export class Ui {
   }
 
   private handleKeydown(event: KeyboardEvent): void {
+    if (this.game.rerollConfirmation && event.code === "Tab") {
+      this.trapDialogFocus(event, ".reroll-card");
+      return;
+    }
     if (this.runExitConfirmation && event.code === "Tab") {
       this.trapDialogFocus(event, ".run-exit-modal");
       return;
@@ -1364,6 +1374,15 @@ export class Ui {
       this.invalidate();
       this.render(true);
       this.focusMenuPanelTrigger(panel);
+      return;
+    }
+    if (this.game.rerollConfirmation && event.code === "Escape") {
+      this.game.cancelReroll();
+      this.game.input.escapePressed = false;
+      event.preventDefault();
+      this.invalidate();
+      this.render(true);
+      this.overlay.querySelector<HTMLElement>('[data-action="reroll"]')?.focus();
       return;
     }
     if (this.runExitConfirmation && event.code === "Escape") {
