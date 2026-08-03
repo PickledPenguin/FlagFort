@@ -1,7 +1,14 @@
 import { BALANCE } from "./config";
 import { SeededRng } from "./rng";
 import { canUnlock } from "./rules";
-import type { Choice, Mutations, StructureKind, Tier, UnlockState, Upgrades } from "./types";
+import {
+  ENEMY_REGISTRY,
+  introducedRosterEnemies,
+  mutationWeightKey,
+  selectEnemyRoster,
+  type EnemyRoster,
+} from "./enemy-registry";
+import type { Choice, Mutations, RosterEnemyKind, StructureKind, Tier, UnlockState, Upgrades } from "./types";
 
 const unlockNames: Record<string, string> = {
   "gloves:stone": "Stone Gloves",
@@ -19,7 +26,7 @@ export function availableUnlocks(unlocks: UnlockState): string[] {
   return Object.keys(unlockNames).filter((id) => canUnlock(id, unlocks));
 }
 
-function availableMutationKeys(night: number): Array<keyof Mutations> {
+function availableMutationKeys(night: number, roster: EnemyRoster): Array<keyof Mutations> {
   const keys: Array<keyof Mutations> = [
     "basicWeight",
     "health",
@@ -29,21 +36,42 @@ function availableMutationKeys(night: number): Array<keyof Mutations> {
     "structureDamage",
     "waveSize",
   ];
-  if (night >= 2) keys.push("runnerWeight");
-  if (night >= 3) keys.push("breakerWeight");
-  if (night >= 5) keys.push("jumperWeight");
-  if (night >= 7) keys.push("summonerWeight");
+  for (const kind of introducedRosterEnemies(roster, night)) {
+    const key = mutationWeightKey(kind);
+    if (!keys.includes(key)) keys.push(key);
+  }
   return keys;
 }
 
-export function mutationText(key: keyof Mutations, current: number): string {
+function mutationTargets(
+  key: keyof Mutations,
+  night: number,
+  roster: EnemyRoster,
+): RosterEnemyKind[] {
+  const introduced = introducedRosterEnemies(roster, night);
+  const exact = introduced.filter((kind) => mutationWeightKey(kind) === key);
+  return exact.length > 0 ? exact : introduced;
+}
+
+export function mutationText(
+  key: keyof Mutations,
+  current: number,
+  targets: readonly RosterEnemyKind[] = [],
+): string {
   const next = current + BALANCE.mutations[key].amount;
   const amount = Math.round(next);
-  if (key === "basicWeight") return `Basic zombie spawn weight +${amount}.`;
-  if (key === "runnerWeight") return `Runner zombie spawn weight +${amount}.`;
-  if (key === "breakerWeight") return `Breaker zombie spawn weight +${amount}.`;
-  if (key === "jumperWeight") return `Jumper zombie spawn weight +${amount}.`;
-  if (key === "summonerWeight") return `Summoner zombie spawn weight +${amount}.`;
+  const names = targets.map((kind) => ENEMY_REGISTRY[kind].displayName).join(", ");
+  if (key === "basicWeight" || key === "runnerWeight" || key === "breakerWeight"
+    || key === "jumperWeight" || key === "summonerWeight") {
+    const fallbackNames: Partial<Record<keyof Mutations, string>> = {
+      basicWeight: "Basic zombie",
+      runnerWeight: "Runner zombie",
+      breakerWeight: "Breaker zombie",
+      jumperWeight: "Jumper zombie",
+      summonerWeight: "Summoner zombie",
+    };
+    return `${names || fallbackNames[key] || "Selected zombie"} spawn weight +${amount}.`;
+  }
   if (key === "waveSize") return `Each portal wave size +${amount} zombies.`;
   const percent = Math.round(next * 100);
   const stat: Record<"health" | "damage" | "speed" | "attackSpeed" | "structureDamage", string> = {
@@ -53,7 +81,9 @@ export function mutationText(key: keyof Mutations, current: number): string {
     attackSpeed: "attack speed",
     structureDamage: "structure damage",
   };
-  return `All zombies ${stat[key]} +${percent}%.`;
+  return names
+    ? `${names} ${stat[key]} +${percent}%.`
+    : `All zombies ${stat[key]} +${percent}%.`;
 }
 
 function upgradeText(key: keyof Upgrades, current: number): string {
@@ -90,9 +120,16 @@ function pairChoice(
   night: number,
   upgrades: Upgrades,
   mutations: Mutations,
+  roster: EnemyRoster,
 ): Choice {
-  const mutationId = rng.pick(availableMutationKeys(night));
+  const mutationId = rng.pick(availableMutationKeys(night, roster));
   const mutation = BALANCE.mutations[mutationId];
+  const mutationTargetKinds = mutationTargets(mutationId, night, roster);
+  const exactWeightTarget = mutationTargetKinds.length === 1
+    && mutationWeightKey(mutationTargetKinds[0]!) === mutationId;
+  const mutationName = exactWeightTarget
+    ? `${ENEMY_REGISTRY[mutationTargetKinds[0]!].displayName} Surge`
+    : mutation.name;
   if (kind === "unlock") {
     return {
       id: benefitId,
@@ -101,8 +138,9 @@ function pairChoice(
         ? "Harvest tougher resources and gather more per hit."
         : "Build this stronger material tier.",
       mutationId,
-      mutationName: mutation.name,
-      mutationDescription: mutationText(mutationId, mutations[mutationId]),
+      mutationName,
+      mutationDescription: mutationText(mutationId, mutations[mutationId], mutationTargetKinds),
+      mutationTargetKinds,
       kind,
     };
   }
@@ -113,8 +151,9 @@ function pairChoice(
     name: upgrade.name,
     description: upgradeText(upgradeId, upgrades[upgradeId]),
     mutationId,
-    mutationName: mutation.name,
-    mutationDescription: mutationText(mutationId, mutations[mutationId]),
+    mutationName,
+    mutationDescription: mutationText(mutationId, mutations[mutationId], mutationTargetKinds),
+    mutationTargetKinds,
     kind,
   };
 }
@@ -129,6 +168,7 @@ export function generateChoiceOfferings(
   excluded: ReadonlySet<string> = new Set(),
   reroll = 0,
   disabledBenefits: ReadonlySet<string> = new Set(),
+  roster: EnemyRoster = selectEnemyRoster(seed),
 ): Choice[] {
   const rng = new SeededRng(`${seed}:choices:${night}:${screen}:reroll:${reroll}`);
   const unlockPool = availableUnlocks(unlocks).filter((id) => !excluded.has(id));
@@ -153,7 +193,7 @@ export function generateChoiceOfferings(
     .shuffle(pool)
     .filter((id, index, values) => values.indexOf(id) === index)
     .slice(0, 3)
-    .map((id) => pairChoice(rng, String(id), useUnlocks ? "unlock" : "upgrade", night, upgrades, mutations));
+    .map((id) => pairChoice(rng, String(id), useUnlocks ? "unlock" : "upgrade", night, upgrades, mutations, roster));
 }
 
 export function applyUnlock(unlocks: UnlockState, id: string): void {

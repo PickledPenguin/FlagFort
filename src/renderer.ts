@@ -580,7 +580,21 @@ export class Renderer {
       ctx.strokeStyle = "rgba(255,92,76,.82)";
       ctx.lineWidth = 8;
       ctx.beginPath();
-      ctx.arc(0, 0, 175, 0, Math.PI * 2 * Math.min(1, enemy.bossSmashWindup / 1.25));
+      ctx.arc(0, 0, BALANCE.boss.slam.radius, 0, Math.PI * 2
+        * Math.min(1, enemy.bossSmashWindup / BALANCE.boss.slam.chargeDuration));
+      ctx.stroke();
+    }
+    if (enemy.kind === "boss" && (enemy.bossSlamWave ?? 0) > 0) {
+      const reducedMotion = typeof window !== "undefined"
+        && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+      const progress = 1 - (enemy.bossSlamWave ?? 0) / BALANCE.boss.slam.waveDuration;
+      const radius = reducedMotion ? BALANCE.boss.slam.radius : BALANCE.boss.slam.radius * progress;
+      ctx.strokeStyle = `rgba(255, 116, 82, ${Math.max(0.2, 0.9 - progress * 0.65)})`;
+      ctx.fillStyle = "rgba(255, 70, 58, .09)";
+      ctx.lineWidth = 12;
+      ctx.beginPath();
+      ctx.arc(0, 0, radius, 0, Math.PI * 2);
+      if (reducedMotion) ctx.fill();
       ctx.stroke();
     }
     if (enemy.kind === "boss" && enemy.acidWindup > 0) {
@@ -627,8 +641,8 @@ export class Renderer {
     ctx.rotate(angle);
     const fullSpriteKinds: Enemy["kind"][] = ["gremlin", "splitter", "splitter-child", "popper", "archer", "acidslinger", "rammer"];
     if (fullSpriteKinds.includes(enemy.kind)) {
-      const height = enemy.radius * (enemy.kind === "splitter-child" ? 4 : 3.25);
-      const width = height * (ENEMY_REGISTRY[enemy.kind].render?.aspectRatio ?? 1);
+      const height = ENEMY_REGISTRY[enemy.kind].render?.height ?? 80;
+      const width = ENEMY_REGISTRY[enemy.kind].render?.width ?? height;
       this.drawSprite(ASSETS.enemies[enemy.kind], -width / 2, -height / 2, width, height, enemy.flash > 0);
       ctx.restore();
       this.healthBar(enemy.x, enemy.y - enemy.radius - 12, enemy.kind === "rammer" ? 72 : 55, enemy.health / enemy.maxHealth, "#d2574e");
@@ -689,16 +703,22 @@ export class Renderer {
     const leftReach = player.radius + 13 + (punching && player.punchHand === "left" ? punchReturn : 0);
     const handSprite = ASSETS.player.hands[gloveTier];
     if (swordEquipped && swordStats && swordProgress !== null && swordProgress < 1) {
-      const sweepSize = swordStats.range * 2.35;
-      const sweepOpacity = Math.sin(swordProgress * Math.PI) * 0.92;
+      const animation = META_BALANCE.equipment.swordAnimation;
+      const damageProgress = Math.min(1, swordProgress / animation.damageProgress);
+      const sweepRadius = swordStats.range * (
+        animation.sweepStartRadiusRatio
+          + (1 - animation.sweepStartRadiusRatio) * damageProgress
+      );
+      const sweepOpacity = animation.sweepOpacity * Math.sin(swordProgress * Math.PI);
+      const sweepEnd = -swordStats.arc + swordStats.arc * 2 * damageProgress;
       ctx.save();
       ctx.globalAlpha = sweepOpacity;
+      ctx.fillStyle = "#fff";
       ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.arc(0, 0, swordStats.range + 4, -swordStats.arc, swordStats.arc);
+      ctx.arc(0, 0, sweepRadius, -swordStats.arc, sweepEnd);
+      ctx.arc(0, 0, animation.sweepInnerRadius, sweepEnd, -swordStats.arc, true);
       ctx.closePath();
-      ctx.clip();
-      this.drawSprite(ASSETS.player.swordSweep, -sweepSize / 2, -sweepSize / 2, sweepSize, sweepSize);
+      ctx.fill();
       ctx.restore();
     }
     if (!swordEquipped) {
@@ -731,20 +751,22 @@ export class Renderer {
     this.drawSprite(ASSETS.player.bodyDetails, -30, -30, 60, 60, flashing);
     this.drawSprite(ASSETS.player.eyes[eyeStyle], -30, -30, 60, 60, flashing);
     if (swordEquipped && swordItem?.tier && swordStats) {
+      const animation = META_BALANCE.equipment.swordAnimation;
       const swingRotation = swordProgress === null || swordProgress >= 1
         ? -0.2
-        : -swordStats.arc * 0.58 + swordStats.arc * 1.16 * swordProgress;
-      const gripX = 35;
-      const gripY = -10;
+        : -swordStats.arc + swordStats.arc * 2
+          * Math.min(1, swordProgress / animation.damageProgress);
+      const gripX = animation.gripX;
+      const gripY = animation.gripY;
       ctx.save();
       ctx.translate(gripX, gripY);
       ctx.rotate(swingRotation);
       this.drawSprite(handSprite, -15, 4, 21, 21, flashing);
-      ctx.rotate(0.885);
+      ctx.rotate(animation.bladeRotationOffset);
       this.drawSprite(META_BALANCE.assets.equipment.sword[swordItem.tier], -18, -72, 72, 79, flashing);
       ctx.restore();
       ctx.save();
-      ctx.translate(gripX, gripY);
+      ctx.translate(animation.offHandX, animation.offHandY);
       ctx.rotate(swingRotation);
       this.drawSprite(handSprite, -10.5, -10.5, 21, 21, flashing);
       ctx.restore();

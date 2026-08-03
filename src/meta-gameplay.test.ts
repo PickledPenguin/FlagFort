@@ -100,7 +100,7 @@ describe("effective stats and equipment", () => {
     expect(swordStats("wood")?.damageMultiplier).toBe(1.1);
     expect(swordStats("wood")?.cooldownMultiplier).toBe(2);
     expect(swordStats("diamond")?.damageMultiplier).toBe(2);
-    expect(swordStats("diamond")!.targetLimit).toBeGreaterThan(swordStats("wood")!.targetLimit);
+    expect(swordStats("diamond")!.arc).toBeGreaterThan(swordStats("wood")!.arc);
   });
 
   it("uses the 30 percent slower Bow base once while preserving bonuses and projectile speed", () => {

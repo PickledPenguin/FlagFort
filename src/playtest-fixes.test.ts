@@ -1,0 +1,278 @@
+// @vitest-environment jsdom
+
+import { beforeEach, describe, expect, it } from "vitest";
+import { BALANCE } from "./config";
+import { generateChoiceOfferings } from "./choices";
+import { ENEMY_REGISTRY, introducedRosterEnemies, mutationWeightKey, selectEnemyRoster } from "./enemy-registry";
+import { Game } from "./game";
+import { Input } from "./input";
+import { META_BALANCE } from "./meta-balance";
+import type { KeyValueStore } from "./platform";
+import { ProfileManager, migrateProfile } from "./profile";
+import { calculateXpRewards } from "./rewards";
+import { createMutations, createUnlocks, createUpgrades } from "./rules";
+import type { Enemy, Structure } from "./types";
+import { Ui } from "./ui";
+
+class TestStore implements KeyValueStore {
+  private values = new Map<string, string>();
+  getItem(key: string): string | null { return this.values.get(key) ?? null; }
+  setItem(key: string, value: string): void { this.values.set(key, value); }
+  removeItem(key: string): void { this.values.delete(key); }
+}
+
+function createGame(): Game {
+  document.body.innerHTML = '<canvas id="game-canvas"></canvas><div id="hud"></div><div id="overlay"></div><div id="toast"></div>';
+  const game = new Game(new Input(document.querySelector("canvas")!));
+  game.startRun("normal", "playtest-fixes", [], true, { settle: false });
+  game.phase = "night";
+  return game;
+}
+
+function harvester(id: number, x: number, y: number): Structure {
+  return {
+    id, ownerId: "local", kind: "harvester", tier: "wood", x, y,
+    radius: BALANCE.structure.radius.harvester, health: 100, maxHealth: 100,
+    cooldown: 0, angle: 0, lastArmAngle: 0, harvesterHitResourceIds: new Set(), flash: 0,
+  };
+}
+
+function spawn(game: Game, kind: Enemy["kind"], x: number, y: number): Enemy {
+  (game as unknown as { spawnEnemy(point: { x: number; y: number }, kind: Enemy["kind"]): void })
+    .spawnEnemy({ x, y }, kind);
+  const enemy = game.enemies.at(-1)!;
+  enemy.x = x;
+  enemy.y = y;
+  return enemy;
+}
+
+describe("Gremlin target recovery", () => {
+  it("clears destroyed and recycled harvester routes immediately", () => {
+    const game = createGame();
+    const target = harvester(40, game.flag.x + 260, game.flag.y);
+    game.structures = [target];
+    const gremlin = spawn(game, "gremlin", target.x - 100, target.y);
+    gremlin.targetId = target.id;
+    gremlin.path = [{ x: target.x, y: target.y }];
+    target.health = 0;
+    (game as unknown as { updateEnemies(dt: number): void }).updateEnemies(BALANCE.fixedStep);
+    expect(gremlin.targetId).toBe("flag");
+    expect(gremlin.path).not.toContainEqual({ x: target.x, y: target.y });
+
+    const replacement = harvester(41, gremlin.x + 100, gremlin.y);
+    game.structures = [replacement];
+    gremlin.targetId = replacement.id;
+    gremlin.path = [{ x: replacement.x, y: replacement.y }];
+    game.structures = [];
+    (game as unknown as { invalidateStructureTargets(id: number): void })
+      .invalidateStructureTargets(replacement.id);
+    expect(gremlin.targetId).toBe("flag");
+    expect(gremlin.path).toEqual([]);
+  });
+
+  it("resolves exact overlap gradually and attacks an adjacent harvester without reversing", () => {
+    const game = createGame();
+    const target = harvester(50, game.flag.x + 300, game.flag.y);
+    game.structures = [target];
+    const gremlin = spawn(game, "gremlin", target.x, target.y);
+    gremlin.targetId = target.id;
+    (game as unknown as { updateEnemies(dt: number): void }).updateEnemies(BALANCE.fixedStep);
+    const firstDistance = Math.hypot(gremlin.x - target.x, gremlin.y - target.y);
+    expect(firstDistance).toBeGreaterThan(0);
+    expect(firstDistance).toBeLessThanOrEqual(BALANCE.navigation.overlapResolveSpeed * BALANCE.fixedStep * 2 + 0.01);
+
+    gremlin.x = target.x - gremlin.radius - target.radius;
+    gremlin.y = target.y;
+    gremlin.targetId = target.id;
+    const beforeX = gremlin.x;
+    for (let index = 0; index < 40; index += 1) {
+      (game as unknown as { updateEnemies(dt: number): void }).updateEnemies(BALANCE.fixedStep);
+    }
+    expect(gremlin.x).toBeLessThanOrEqual(beforeX + 0.01);
+    expect(target.health).toBeLessThan(target.maxHealth);
+  });
+
+  it("abandons an out-of-range harvester and preserves blocker attacks", () => {
+    const game = createGame();
+    const distant = harvester(60, game.flag.x + 900, game.flag.y);
+    game.structures = [distant];
+    const gremlin = spawn(game, "gremlin", game.flag.x, game.flag.y + 300);
+    gremlin.targetId = distant.id;
+    (game as unknown as { selectEnemyTarget(enemy: Enemy): void }).selectEnemyTarget(gremlin);
+    expect(gremlin.targetId).toBe("flag");
+
+    const blocker = { ...harvester(61, gremlin.x, gremlin.y - 61), kind: "wall" as const };
+    game.structures = [blocker];
+    gremlin.targetId = "flag";
+    for (let index = 0; index < 100; index += 1) {
+      (game as unknown as { updateEnemies(dt: number): void }).updateEnemies(BALANCE.fixedStep);
+    }
+    expect(blocker.health).toBeLessThan(blocker.maxHealth);
+  });
+});
+
+describe("combat and roster playtest fixes", () => {
+  it("normalizes adult art, Splitter children, and the Rammer", () => {
+    for (const kind of ["gremlin", "splitter", "archer", "popper", "acidslinger"] as const) {
+      expect(ENEMY_REGISTRY[kind].render?.height).toBe(80);
+    }
+    expect(ENEMY_REGISTRY["splitter-child"].render?.height).toBe(60);
+    expect(ENEMY_REGISTRY.splitter.death.childSize).toBe(0.75);
+    expect(ENEMY_REGISTRY.rammer.render?.height).toBeGreaterThan(80);
+    expect(ENEMY_REGISTRY.rammer.render?.height).toBeLessThan(96);
+  });
+
+  it("generates mutation targets only from the seeded introduced roster", () => {
+    const seed = "roster-aware-cards";
+    const roster = selectEnemyRoster(seed);
+    const introduced = new Set(introducedRosterEnemies(roster, 7));
+    for (let reroll = 0; reroll < 12; reroll += 1) {
+      const choices = generateChoiceOfferings(
+        seed, 7, 1, createUnlocks(), createUpgrades(), createMutations(),
+        new Set(), reroll, new Set(), roster,
+      );
+      for (const choice of choices) {
+        expect(choice.mutationTargetKinds?.length).toBeGreaterThan(0);
+        expect(choice.mutationTargetKinds?.every((kind) => introduced.has(kind))).toBe(true);
+        if (choice.mutationId.endsWith("Weight")) {
+          expect(choice.mutationTargetKinds).toHaveLength(1);
+          expect(mutationWeightKey(choice.mutationTargetKinds![0]!)).toBe(choice.mutationId);
+          expect(choice.mutationDescription).toContain(ENEMY_REGISTRY[choice.mutationTargetKinds![0]!].displayName);
+        }
+      }
+    }
+  });
+
+  it("spawns the complete Night 10 schedule in addition to the boss", () => {
+    const game = createGame();
+    game.phase = "day";
+    game.night = 10;
+    (game as unknown as { beginNight(): void }).beginNight();
+    expect(game.waveSchedule.length).toBeGreaterThan(0);
+    expect(game.enemies.filter((enemy) => enemy.kind === "boss")).toHaveLength(1);
+    expect(game.portals.reduce((sum, portal) => sum + portal.assignedSpawns, 0))
+      .toBe(game.waveSchedule.length);
+  });
+
+  it("does not let flag healing revive a defeated player", () => {
+    const game = createGame();
+    game.player.x = game.flag.x;
+    game.player.y = game.flag.y;
+    game.player.health = 0;
+    game.update(BALANCE.fixedStep);
+    expect(game.phase).toBe("defeat");
+  });
+
+  it("applies one configured slam hit at the completed charge radius", () => {
+    const game = createGame();
+    const boss = spawn(game, "boss", game.flag.x + 180, game.flag.y);
+    const wall = { ...harvester(70, boss.x + 100, boss.y), kind: "wall" as const, radius: 34, health: 500, maxHealth: 500 };
+    game.structures = [wall];
+    game.player.x = boss.x + 120;
+    game.player.y = boss.y;
+    const playerBefore = game.player.health;
+    boss.summonCooldown = 0;
+    boss.bossSmashWindup = BALANCE.boss.slam.chargeDuration - 0.01;
+    (game as unknown as { updateBoss(enemy: Enemy, dt: number): void }).updateBoss(boss, 0.02);
+    expect(wall.health).toBeCloseTo(500 - BALANCE.boss.slam.structureDamage
+      * boss.structureDamage / ENEMY_REGISTRY.boss.base.structureDamage);
+    expect(game.player.health).toBeCloseTo(playerBefore - BALANCE.boss.slam.playerDamage
+      * boss.damage / ENEMY_REGISTRY.boss.base.damage);
+    expect(boss.bossSlamWave).toBe(BALANCE.boss.slam.waveDuration);
+    const after = wall.health;
+    (game as unknown as { updateBoss(enemy: Enemy, dt: number): void }).updateBoss(boss, 0.1);
+    expect(wall.health).toBe(after);
+  });
+
+  it("hits every zombie in the sword sector exactly once", () => {
+    const game = createGame();
+    game.player.angle = 0;
+    const sword = META_BALANCE.equipment.sword.diamond;
+    game.enemies = [];
+    const targets = Array.from({ length: 9 }, (_, index) => {
+      const angle = -sword.arc + sword.arc * 2 * index / 8;
+      return spawn(game, "basic", game.player.x + Math.cos(angle) * 80, game.player.y + Math.sin(angle) * 80);
+    });
+    (game as unknown as { rebuildSpatial(): void }).rebuildSpatial();
+    const before = targets.map((target) => target.health);
+    (game as unknown as { resolveMeleeImpact(value: (typeof META_BALANCE.equipment.sword)["diamond"]): void })
+      .resolveMeleeImpact(sword);
+    for (let index = 0; index < targets.length; index += 1) {
+      expect(targets[index]!.health).toBeLessThan(before[index]!);
+    }
+  });
+});
+
+describe("progression safety and presentation", () => {
+  beforeEach(() => {
+    document.body.innerHTML = '<canvas id="game-canvas"></canvas><div id="hud"></div><div id="overlay"></div><div id="toast"></div>';
+  });
+
+  it("keeps the coin floor for migration, settlement, and shop purchases", () => {
+    expect(migrateProfile({ coins: 0 }).coins).toBe(META_BALANCE.coinSafetyMinimum);
+    const manager = new ProfileManager(new TestStore());
+    manager.profile.coins = 100;
+    expect(manager.buyEquipment("helmet")).toBe(false);
+    manager.profile.coins = 110;
+    expect(manager.buyEquipment("helmet")).toBe(true);
+    expect(manager.profile.coins).toBe(META_BALANCE.coinSafetyMinimum);
+    expect(manager.beginRunSettlement("floor-run", 10)).toBe(true);
+    expect(manager.profile.coins).toBe(0);
+    const xp = calculateXpRewards({ directPlayerKills: {}, nightsSurvived: 0, victory: false });
+    const settled = manager.settleRun("floor-run", xp, {
+      investment: 10, returnedPrincipal: 0, profitOrLoss: -10, totalReturn: 0,
+      finalCoinChange: -10, returnPercent: 0,
+    }, { nightsSurvived: 0, victory: false, structureScore: 0 });
+    expect(settled?.newCoins).toBe(META_BALANCE.coinSafetyMinimum);
+    expect(manager.settleRun("floor-run", xp, settled!.coins, { nightsSurvived: 0, victory: false, structureScore: 0 })).toBeNull();
+  });
+
+  it("claims all seven rewards, repeats Day 7, and resets after a missed day", () => {
+    const manager = new ProfileManager(new TestStore());
+    const amounts: number[] = [];
+    for (let day = 1; day <= 8; day += 1) {
+      const result = manager.claimDailyReward(new Date(`2026-08-${String(day).padStart(2, "0")}T12:00:00Z`));
+      amounts.push(result.amount);
+      expect(manager.claimDailyReward(new Date(`2026-08-${String(day).padStart(2, "0")}T23:00:00Z`)).granted).toBe(false);
+    }
+    expect(amounts).toEqual([10, 15, 20, 25, 30, 35, 40, 40]);
+    expect(manager.getDailyRewardStatus(new Date("2026-08-10T12:00:00Z"))).toMatchObject({ available: true, day: 1, amount: 10, reset: true });
+  });
+
+  it("allows dismissal and reopening without consuming the daily reward", () => {
+    const manager = new ProfileManager(new TestStore());
+    const game = new Game(new Input(document.querySelector("canvas")!), manager);
+    const ui = new Ui(game, document.querySelector("#hud")!, document.querySelector("#overlay")!, document.querySelector("#toast")!, manager.getDailyRewardStatus());
+    game.returnToMenu();
+    ui.render(true);
+    document.querySelector<HTMLElement>('[data-action="dismiss-daily"]')!.click();
+    expect(manager.getDailyRewardStatus().available).toBe(true);
+    document.querySelector<HTMLElement>('[data-action="open-daily"]')!.click();
+    expect(document.querySelector('[data-action="claim-daily"]')).not.toBeNull();
+    document.querySelector<HTMLElement>('[data-action="claim-daily"]')!.click();
+    expect(manager.getDailyRewardStatus().available).toBe(false);
+  });
+
+  it("migrates Impossible records and applies difficulty XP once after the subtotal", () => {
+    const migrated = migrateProfile({ recentRuns: [{ seed: "old", date: "2026-01-01", difficulty: "impossible", challengeIds: [], victory: true, nightsSurvived: 10 }] });
+    expect(migrated.recentRuns[0]?.difficulty).toBe("extreme");
+    const normal = calculateXpRewards({ directPlayerKills: { basic: 2 }, nightsSurvived: 10, victory: true, selectedDifficulty: "normal" });
+    const extreme = calculateXpRewards({ directPlayerKills: { basic: 2 }, nightsSurvived: 10, victory: true, selectedDifficulty: "extreme" });
+    expect(extreme.subtotal).toBe(normal.total);
+    expect(extreme.total).toBe(Math.round(normal.total * BALANCE.difficulty.extreme.xpMultiplier));
+    expect(extreme.difficultyAdjustment).toBe(extreme.total - normal.total);
+  });
+
+  it("removes Night Forecast while rendering the adaptive pressure state", () => {
+    const manager = new ProfileManager(new TestStore());
+    const game = new Game(new Input(document.querySelector("canvas")!), manager);
+    game.startRun("normal", "pressure-indicator", [], true, { settle: false });
+    const ui = new Ui(game, document.querySelector("#hud")!, document.querySelector("#overlay")!, document.querySelector("#toast")!);
+    ui.render(true);
+    expect(document.body.textContent).not.toContain("Night Forecast");
+    expect(document.querySelector("[data-adaptive-pressure]")).not.toBeNull();
+    (game as unknown as { structureScore: number }).structureScore = 100_000;
+    ui.render(true);
+    expect(document.querySelector("[data-adaptive-pressure]")?.classList.contains("above")).toBe(true);
+  });
+});

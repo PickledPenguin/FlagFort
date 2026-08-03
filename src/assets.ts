@@ -144,6 +144,7 @@ export const ASSETS = {
     "heart", "timer", "settings", "play", "book", "maximize",
     "shuffle", "restart", "close", "arrow-left", "arrow-right", "skip", "copy", "pause",
     "info", "mouse", "upgrade-node", "gamepad-2", "trophy", "sliders-horizontal",
+    "calendar", "daily-claimed", "pressure-low", "pressure-normal", "pressure-high",
   ].map((name) => [name, image(`ui/${name}`)])) as Record<string, string>,
   structures: Object.fromEntries(
     (["wall", "door", "spikes", "harvester", "turret"] as StructureKind[]).map((kind) => [

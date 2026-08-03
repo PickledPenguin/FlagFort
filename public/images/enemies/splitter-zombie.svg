@@ -1,16 +1,21 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
-   viewBox="-54 -42 108 84"
+   viewBox="-54 -42 70 50"
    role="img"
    aria-labelledby="splitter-title splitter-desc"
    version="1.1"
    id="svg4"
    sodipodi:docname="splitter-zombie.svg"
    inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   width="70"
+   height="50"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
-   xmlns:svg="http://www.w3.org/2000/svg">
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
   <defs
      id="defs4" />
   <sodipodi:namedview
@@ -22,9 +27,9 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="4.3228907"
-     inkscape:cx="49.272586"
-     inkscape:cy="47.884625"
+     inkscape:zoom="2.9593003"
+     inkscape:cx="32.440101"
+     inkscape:cy="8.1100253"
      inkscape:window-width="1521"
      inkscape:window-height="661"
      inkscape:window-x="0"
@@ -36,64 +41,77 @@
   <desc
      id="splitter-desc">A divided green zombie with a glowing fracture.</desc>
   <metadata
-     id="editor-metadata">FlagFort editable enemy artwork; fracture and halves are separate groups.</metadata>
+     id="editor-metadata">FlagFort editable enemy artwork; fracture and halves are separate groups.<rdf:RDF>
+  <cc:Work
+     rdf:about="">
+    <dc:title>Splitter zombie</dc:title>
+  </cc:Work>
+</rdf:RDF>
+</metadata>
   <g
-     id="splitter-hands"
-     fill="#7db65a"
-     stroke="#263c29"
-     stroke-width="2">
+     id="g1"
+     transform="matrix(0.99219101,0,0,0.99219101,-0.42168542,-0.32797759)">
+    <g
+       id="splitter-hands"
+       fill="#7db65a"
+       stroke="#263c29"
+       stroke-width="2"
+       transform="translate(-28.460429,-16.58083)">
+      <circle
+         cx="36"
+         cy="-14"
+         r="8"
+         id="circle1" />
+      <circle
+         cx="36"
+         cy="14"
+         r="8"
+         id="circle2" />
+    </g>
     <circle
-       cx="36"
-       cy="-14"
-       r="8"
-       id="circle1" />
-    <circle
-       cx="36"
-       cy="14"
-       r="8"
-       id="circle2" />
-  </g>
-  <circle
-     style="fill:#7db65a;fill-opacity:1;stroke:#263c29;stroke-width:2;stroke-dasharray:none;stroke-opacity:1"
-     id="path1"
-     cx="-0.4815948"
-     cy="-0.3611939"
-     r="24.057976" />
-  <path
-     id="fracture-glow"
-     d="m 0.13102544,-22.982691 4.67243646,7.458589 -6.1965382,5.182953 6.1101787,9.90327189 L -1.1483346,6.0519275 4.7206399,12.855389 0,23"
-     fill="none"
-     stroke="#d8ef79"
-     stroke-width="4"
-     sodipodi:nodetypes="ccccccc" />
-  <g
-     id="eyes"
-     fill="#f2f0d9">
-    <ellipse
-       cx="8"
-       cy="-8.5139189"
-       rx="7"
-       ry="5"
-       id="ellipse2" />
-    <ellipse
-       cx="8"
-       cy="7.9063168"
-       rx="7"
-       ry="5"
-       id="ellipse3" />
-  </g>
-  <g
-     id="pupils"
-     fill="#8e241f">
-    <circle
-       cx="11"
-       cy="-7.6354389"
-       r="3"
-       id="circle3" />
-    <circle
-       cx="11"
-       cy="7.2708778"
-       r="3"
-       id="circle4" />
+       style="fill:#7db65a;fill-opacity:1;stroke:#263c29;stroke-width:2;stroke-dasharray:none;stroke-opacity:1"
+       id="path1"
+       cx="-28.942024"
+       cy="-16.942024"
+       r="24.057976" />
+    <path
+       id="fracture-glow"
+       d="m -28.329404,-39.563521 4.672436,7.458589 -6.196538,5.182953 6.110179,9.903272 -5.865437,6.489804 5.868974,6.8034617 -4.720639,10.144611"
+       fill="none"
+       stroke="#d8ef79"
+       stroke-width="4"
+       sodipodi:nodetypes="ccccccc" />
+    <g
+       id="eyes"
+       fill="#f2f0d9"
+       transform="translate(-28.460429,-16.58083)">
+      <ellipse
+         cx="8"
+         cy="-8.5139189"
+         rx="7"
+         ry="5"
+         id="ellipse2" />
+      <ellipse
+         cx="8"
+         cy="7.9063168"
+         rx="7"
+         ry="5"
+         id="ellipse3" />
+    </g>
+    <g
+       id="pupils"
+       fill="#8e241f"
+       transform="translate(-28.460429,-16.58083)">
+      <circle
+         cx="11"
+         cy="-7.6354389"
+         r="3"
+         id="circle3" />
+      <circle
+         cx="11"
+         cy="7.2708778"
+         r="3"
+         id="circle4" />
+    </g>
   </g>
 </svg>

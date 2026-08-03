@@ -7,7 +7,8 @@ import type { ActionKind, ResourceKind, StructureKind, Tier } from "./types";
 type GenericIcon = "heart" | "timer" | "settings" | "play"
   | "book" | "maximize" | "shuffle" | "restart" | "close" | "arrow-left"
   | "arrow-right" | "skip" | "copy" | "pause" | "info" | "mouse"
-  | "gamepad-2" | "trophy" | "sliders-horizontal" | "upgrade-node";
+  | "gamepad-2" | "trophy" | "sliders-horizontal" | "upgrade-node"
+  | "calendar" | "daily-claimed" | "pressure-low" | "pressure-normal" | "pressure-high";
 
 export function icon(name: GenericIcon, className = ""): string {
   return `<img class="icon ${className}" src="${ASSETS.ui[name]}" alt="" aria-hidden="true">`;

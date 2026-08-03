@@ -42,7 +42,7 @@ describe("versioned profile persistence", () => {
     expect(profile.schemaVersion).toBe(META_BALANCE.profileSchemaVersion);
     expect(profile.spendableXp).toBe(profile.lifetimeXp);
     expect(profile.playerLevel).toBe(derivePlayerLevel(profile.lifetimeXp));
-    expect(profile.coins).toBe(0);
+    expect(profile.coins).toBe(META_BALANCE.coinSafetyMinimum);
     expect(profile.permanentUpgrades.bowDamage).toBe(5);
     expect(profile.equipment.helmet.tier).toBe("diamond");
     expect(profile.equipment.sword.tier).toBeNull();
@@ -88,12 +88,12 @@ describe("versioned profile persistence", () => {
     const store = new TestStore();
     const first = new ProfileManager(store);
     expect(first.claimDailyReward(new Date("2026-07-30T23:59:59-04:00")).granted).toBe(true);
-    expect(first.profile.coins).toBe(10);
+    expect(first.profile.coins).toBe(20);
 
     const reloaded = new ProfileManager(store);
     expect(reloaded.claimDailyReward(new Date("2026-07-31T03:59:59Z")).granted).toBe(false);
     expect(reloaded.claimDailyReward(new Date("2026-08-01T00:00:00Z")).granted).toBe(true);
-    expect(reloaded.profile.coins).toBe(20);
+    expect(reloaded.profile.coins).toBe(35);
     expect(crazyGamesCalendarDate(new Date("2026-08-01T00:00:00+14:00"))).toBe("2026-07-31");
   });
 
@@ -153,7 +153,7 @@ describe("versioned profile persistence", () => {
     expect(canAffordAnyEquipment(profile)).toBe(false);
 
     profile.spendableXp = 1000;
-    profile.coins = 100;
+    profile.coins = 110;
     expect(canAffordAnyPermanentUpgrade(profile)).toBe(true);
     expect(canAffordAnyEquipment(profile)).toBe(true);
 

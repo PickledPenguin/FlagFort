@@ -71,6 +71,9 @@ export const BALANCE = {
     runnerMaximumExtraDistance: 620,
     runnerRouteCommitmentDuration: 1.6,
     runnerRepathInterval: 0.75,
+    targetRepathCooldown: 0.18,
+    targetHysteresis: 1.12,
+    overlapResolveSpeed: 210,
   },
   ui: {
     messageDuration: 2.8,
@@ -181,6 +184,14 @@ export const BALANCE = {
     acidRadius: 13,
     acidRange: 900,
     acidLifetime: 2.2,
+    slam: {
+      chargeDuration: 1.25,
+      cooldown: 5.5,
+      radius: 260,
+      playerDamage: 34,
+      structureDamage: 92,
+      waveDuration: 0.48,
+    },
   },
   jumper: {
     jumpRange: 180,
@@ -226,11 +237,11 @@ export const BALANCE = {
    * and real combat/economic output visible in one configurable table.
    */
   structureValues: {
-    wall: { wood: 10, stone: 20, gold: 34, diamond: 52 },
-    door: { wood: 10, stone: 20, gold: 34, diamond: 52 },
+    wall: { wood: 10, stone: 20, gold: 34, diamond: 51 },
+    door: { wood: 10, stone: 20, gold: 35, diamond: 52 },
     spikes: { wood: 13, stone: 26, gold: 45, diamond: 68 },
     harvester: { wood: 26, stone: 51, gold: 84, diamond: 123 },
-    turret: { wood: 36, stone: 79, gold: 150, diamond: 270 },
+    turret: { wood: 36, stone: 79, gold: 149, diamond: 262 },
   } satisfies Record<StructureKind, Record<Tier, number>>,
   adaptive: {
     expectedByNight: [126, 266, 455, 700, 1015, 1400, 1890, 2485, 3185, 2030],
@@ -260,6 +271,10 @@ export const BALANCE = {
     damageInfluence: 0.1,
     specialWeightInfluence: 0.35,
     spawnFrequencyInfluence: 0.25,
+    pressureIndicator: {
+      belowMaximum: 0.92,
+      aboveMinimum: 1.08,
+    },
   },
   cracks: {
     thresholds: [0.001, 0.25, 0.5, 0.75],
@@ -273,11 +288,11 @@ export const BALANCE = {
     adaptiveHud: false,
   },
   difficulty: {
-    easy: { label: "Easy", enemyHealth: 0.78, enemyDamage: 0.72, enemySpeed: 0.92, attackSpeed: 0.9, spawnCount: 0.78, flagHealth: 1.35 },
-    normal: { label: "Normal", enemyHealth: 1, enemyDamage: 1, enemySpeed: 1, attackSpeed: 1, spawnCount: 1, flagHealth: 1 },
-    hard: { label: "Hard", enemyHealth: 1.25, enemyDamage: 1.25, enemySpeed: 1.08, attackSpeed: 1.12, spawnCount: 1.22, flagHealth: 0.88 },
-    impossible: { label: "Impossible", enemyHealth: 1.65, enemyDamage: 1.6, enemySpeed: 1.18, attackSpeed: 1.3, spawnCount: 1.55, flagHealth: 0.72 },
-  } satisfies Record<Difficulty, { label: string; enemyHealth: number; enemyDamage: number; enemySpeed: number; attackSpeed: number; spawnCount: number; flagHealth: number }>,
+    easy: { label: "Easy", enemyHealth: 0.78, enemyDamage: 0.72, enemySpeed: 0.92, attackSpeed: 0.9, spawnCount: 0.78, flagHealth: 1.35, xpMultiplier: 0.8 },
+    normal: { label: "Normal", enemyHealth: 1, enemyDamage: 1, enemySpeed: 1, attackSpeed: 1, spawnCount: 1, flagHealth: 1, xpMultiplier: 1 },
+    hard: { label: "Hard", enemyHealth: 1.25, enemyDamage: 1.25, enemySpeed: 1.08, attackSpeed: 1.12, spawnCount: 1.22, flagHealth: 0.88, xpMultiplier: 1.2 },
+    extreme: { label: "Extreme", enemyHealth: 1.65, enemyDamage: 1.6, enemySpeed: 1.18, attackSpeed: 1.3, spawnCount: 1.55, flagHealth: 0.72, xpMultiplier: 1.55 },
+  } satisfies Record<Difficulty, { label: string; enemyHealth: number; enemyDamage: number; enemySpeed: number; attackSpeed: number; spawnCount: number; flagHealth: number; xpMultiplier: number }>,
   upgrades: {
     moveSpeed: { name: "Fleet Feet", amount: 0.08 },
     maxHealth: { name: "Heartwood", amount: 20 },

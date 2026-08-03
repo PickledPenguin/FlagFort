@@ -1,6 +1,6 @@
 import { META_BALANCE } from "./meta-balance";
 import { BALANCE } from "./config";
-import type { EnemyKind } from "./types";
+import type { Difficulty, EnemyKind } from "./types";
 import { challengeXpBonusPercent } from "./challenges";
 
 export interface RunRewardInput {
@@ -9,6 +9,7 @@ export interface RunRewardInput {
   victory: boolean;
   effectiveDifficultyMultiplier?: number;
   challengeIds?: readonly string[];
+  selectedDifficulty?: Difficulty;
 }
 
 export interface XpRewardBreakdown {
@@ -16,7 +17,11 @@ export interface XpRewardBreakdown {
   nights: number;
   victory: number;
   difficulty: number;
+  adaptiveDifficulty?: number;
   challenge: number;
+  subtotal?: number;
+  difficultyPercent?: number;
+  difficultyAdjustment?: number;
   total: number;
 }
 
@@ -68,19 +73,27 @@ export function calculateXpRewards(input: RunRewardInput): XpRewardBreakdown {
   const personalKills = calculatePersonalKillXp(input.directPlayerKills);
   const nights = calculateNightXp(input.nightsSurvived);
   const victory = input.victory ? META_BALANCE.rewards.campaignVictoryBonus : 0;
-  const difficulty = calculateDifficultyXp(input.effectiveDifficultyMultiplier ?? 1);
-  const normalEarnedXp = personalKills + nights + victory + difficulty;
+  const adaptiveDifficulty = calculateDifficultyXp(input.effectiveDifficultyMultiplier ?? 1);
+  const normalEarnedXp = personalKills + nights + victory + adaptiveDifficulty;
   // Challenge XP uses nearest-integer rounding after one combined-percentage calculation.
   const challenge = input.victory && Math.floor(input.nightsSurvived) === 10
     ? Math.round(normalEarnedXp * challengeXpBonusPercent(input.challengeIds ?? []) / 100)
     : 0;
+  const subtotal = normalEarnedXp + challenge;
+  const selectedDifficulty = input.selectedDifficulty ?? "normal";
+  const difficultyMultiplier = BALANCE.difficulty[selectedDifficulty].xpMultiplier;
+  const total = Math.round(subtotal * difficultyMultiplier);
   return {
     personalKills,
     nights,
     victory,
-    difficulty,
+    difficulty: adaptiveDifficulty,
+    adaptiveDifficulty,
     challenge,
-    total: normalEarnedXp + challenge,
+    subtotal,
+    difficultyPercent: Math.round(difficultyMultiplier * 100),
+    difficultyAdjustment: total - subtotal,
+    total,
   };
 }
 

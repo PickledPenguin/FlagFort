@@ -246,7 +246,7 @@ describe("Mallet recycling and editable assets", () => {
     expect(mallet.tiers.diamond).toBe(META_BALANCE.equipment.recyclingRate.diamond);
     const sword = equipmentStatDefinitions("sword");
     expect(sword.map((stat) => stat.id)).toEqual([
-      "damage", "attack-interval", "sweep-range", "sweep-arc", "target-limit", "knockback",
+      "damage", "attack-interval", "sweep-range", "sweep-arc", "knockback",
     ]);
     expect(effectiveEquipmentStats("sword", "wood", true, 0.2).damage).toBe(
       BALANCE.player.punchDamage * 1.3,
@@ -301,7 +301,7 @@ describe("currency and reward presentation", () => {
   it("announces affordable valid purchases on both main-menu actions", () => {
     const { game, manager } = gameWithProfile();
     manager.profile.spendableXp = 1000;
-    manager.profile.coins = 100;
+    manager.profile.coins = 110;
     const ui = new Ui(
       game,
       document.querySelector("#hud")!,

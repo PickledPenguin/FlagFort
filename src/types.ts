@@ -1,4 +1,4 @@
-export type Difficulty = "easy" | "normal" | "hard" | "impossible";
+export type Difficulty = "easy" | "normal" | "hard" | "extreme";
 export type RunMode = "campaign" | "endless";
 export type Phase = "menu" | "day" | "night" | "dawn" | "paused" | "victory" | "defeat";
 export type ResourceKind = "wood" | "stone" | "gold" | "diamond";
@@ -116,6 +116,7 @@ export interface Enemy extends Circle {
   jumpCooldown: number;
   jumpTime: number;
   bossSmashWindup: number;
+  bossSlamWave?: number;
   bossHalfSummoned: boolean;
   acidCooldown: number;
   acidWindup: number;
@@ -249,6 +250,7 @@ export interface Choice {
   mutationId: keyof Mutations;
   mutationName: string;
   mutationDescription: string;
+  mutationTargetKinds?: RosterEnemyKind[];
   kind: "unlock" | "upgrade";
 }
 

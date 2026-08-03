@@ -41,7 +41,7 @@ async function bootstrap(): Promise<void> {
   platform.loadingStart();
 
   const profileManager = new ProfileManager(platform.storage);
-  const dailyReward = profileManager.claimDailyReward();
+  const dailyReward = profileManager.getDailyRewardStatus();
   const input = new Input(canvas);
   const game = new Game(input, profileManager, platform);
   const renderer = new Renderer(canvas);
@@ -140,8 +140,12 @@ async function bootstrap(): Promise<void> {
           personalKills: 84,
           nights: game.stats.nightsSurvived === 10 ? 700 : game.stats.nightsSurvived === 5 ? 175 : 0,
           victory: game.phase === "victory" ? 300 : 0,
+          adaptiveDifficulty: 75,
           difficulty: 75,
           challenge: challengeRewardPreview ? 348 : 0,
+          subtotal: game.stats.nightsSurvived === 10 ? 1159 + (challengeRewardPreview ? 348 : 0) : game.stats.nightsSurvived === 5 ? 634 : 159,
+          difficultyPercent: 100,
+          difficultyAdjustment: 0,
           total: game.stats.nightsSurvived === 10 ? 1159 + (challengeRewardPreview ? 348 : 0) : game.stats.nightsSurvived === 5 ? 634 : 159,
         },
         coins: {

@@ -38,6 +38,8 @@ export interface PlayerProfile {
   playerLevel: number;
   coins: number;
   lastDailyRewardDate: string | null;
+  dailyRewardStreak: number;
+  dailyRewardEligibleDate: string | null;
   permanentUpgrades: Record<PermanentUpgradeId, number>;
   equipment: EquipmentInventory;
   playerColor: string;
@@ -52,6 +54,16 @@ export interface DailyRewardResult {
   granted: boolean;
   amount: number;
   date: string;
+}
+
+export interface DailyRewardStatus {
+  available: boolean;
+  day: number;
+  amount: number;
+  today: string;
+  lastClaimDate: string | null;
+  streak: number;
+  reset: boolean;
 }
 
 export interface RunSettlementResult {
@@ -112,7 +124,8 @@ export function nextEquipmentPurchase(
 export function canAffordAnyEquipment(profile: PlayerProfile): boolean {
   return EQUIPMENT_ORDER.some((kind) => {
     const purchase = nextEquipmentPurchase(profile, kind);
-    return purchase !== null && purchase.cost <= profile.coins;
+    return purchase !== null
+      && purchase.cost <= profile.coins - META_BALANCE.coinSafetyMinimum;
   });
 }
 
@@ -128,8 +141,10 @@ export function createDefaultProfile(): PlayerProfile {
     lifetimeXp: 0,
     spendableXp: 0,
     playerLevel: 1,
-    coins: 0,
+    coins: META_BALANCE.coinSafetyMinimum,
     lastDailyRewardDate: null,
+    dailyRewardStreak: 0,
+    dailyRewardEligibleDate: null,
     permanentUpgrades: createPermanentUpgrades(),
     equipment: createEquipmentInventory(),
     playerColor: META_BALANCE.customization.colors[0],
@@ -201,6 +216,11 @@ export function crazyGamesCalendarDate(now: Date): string {
   return now.toISOString().slice(0, 10);
 }
 
+function calendarDayNumber(date: string): number {
+  const [year, month, day] = date.split("-").map(Number);
+  return Math.floor(Date.UTC(year ?? 0, (month ?? 1) - 1, day ?? 1) / 86_400_000);
+}
+
 export function migrateProfile(raw: unknown): PlayerProfile {
   const defaults = createDefaultProfile();
   const source = recordObject(raw);
@@ -261,6 +281,12 @@ export function migrateProfile(raw: unknown): PlayerProfile {
       Boolean(record && typeof record === "object"
         && typeof (record as RunRecord).seed === "string"
         && typeof (record as RunRecord).date === "string")).slice(0, 10)
+      .map((record) => ({
+        ...record,
+        difficulty: (record.difficulty as string) === "impossible"
+          ? "extreme" as const
+          : record.difficulty,
+      }))
     : [];
   const knownRecentNights = recentRuns.reduce(
     (total, record) => total + finiteNonNegative(record.nightsSurvived),
@@ -277,10 +303,19 @@ export function migrateProfile(raw: unknown): PlayerProfile {
     lifetimeXp,
     spendableXp,
     playerLevel: derivePlayerLevel(lifetimeXp),
-    coins: finiteNonNegative(source.coins),
+    coins: Math.max(META_BALANCE.coinSafetyMinimum, finiteNonNegative(source.coins)),
     lastDailyRewardDate: typeof source.lastDailyRewardDate === "string"
       && /^\d{4}-\d{2}-\d{2}$/.test(source.lastDailyRewardDate)
       ? source.lastDailyRewardDate
+      : null,
+    dailyRewardStreak: Math.min(
+      META_BALANCE.dailyRewards.repeatingDay,
+      finiteNonNegative(source.dailyRewardStreak,
+        typeof source.lastDailyRewardDate === "string" ? 1 : 0),
+    ),
+    dailyRewardEligibleDate: typeof source.dailyRewardEligibleDate === "string"
+      && /^\d{4}-\d{2}-\d{2}$/.test(source.dailyRewardEligibleDate)
+      ? source.dailyRewardEligibleDate
       : null,
     permanentUpgrades,
     equipment,
@@ -338,6 +373,7 @@ export class ProfileManager {
         // A corrupt legacy record list must not affect the profile.
       }
     }
+    this.refreshDailyRewardEligibility();
     this.save();
   }
 
@@ -348,6 +384,7 @@ export class ProfileManager {
 
   reload(): void {
     this.profile = parseProfile(this.storage.getItem(META_BALANCE.profileStorageKey));
+    this.refreshDailyRewardEligibility();
     this.save();
     this.emit();
   }
@@ -357,13 +394,48 @@ export class ProfileManager {
     return () => this.listeners.delete(listener);
   }
 
+  getDailyRewardStatus(now = new Date()): DailyRewardStatus {
+    const today = crazyGamesCalendarDate(now);
+    const lastClaimDate = this.profile.lastDailyRewardDate;
+    const difference = lastClaimDate
+      ? calendarDayNumber(today) - calendarDayNumber(lastClaimDate)
+      : Number.POSITIVE_INFINITY;
+    const available = difference > 0;
+    const reset = Boolean(lastClaimDate && difference > 1);
+    const day = available
+      ? reset || !lastClaimDate
+        ? 1
+        : Math.min(META_BALANCE.dailyRewards.repeatingDay, this.profile.dailyRewardStreak + 1)
+      : Math.max(1, this.profile.dailyRewardStreak);
+    const amount = META_BALANCE.dailyRewards.coinsByDay[day - 1]
+      ?? META_BALANCE.dailyRewards.coinsByDay.at(-1)
+      ?? 0;
+    return {
+      available,
+      day,
+      amount,
+      today,
+      lastClaimDate,
+      streak: this.profile.dailyRewardStreak,
+      reset,
+    };
+  }
+
+  refreshDailyRewardEligibility(now = new Date()): DailyRewardStatus {
+    const status = this.getDailyRewardStatus(now);
+    this.profile.dailyRewardEligibleDate = status.available ? status.today : null;
+    return status;
+  }
+
   claimDailyReward(now = new Date()): DailyRewardResult {
-    const date = crazyGamesCalendarDate(now);
-    if (this.profile.lastDailyRewardDate === date) return { granted: false, amount: 0, date };
-    this.profile.lastDailyRewardDate = date;
-    this.profile.coins += META_BALANCE.dailyRewardCoins;
+    const status = this.getDailyRewardStatus(now);
+    if (!status.available) return { granted: false, amount: 0, date: status.today };
+    this.profile.lastDailyRewardDate = status.today;
+    this.profile.dailyRewardStreak = status.day;
+    this.profile.dailyRewardEligibleDate = null;
+    this.profile.coins += status.amount;
     this.commit();
-    return { granted: true, amount: META_BALANCE.dailyRewardCoins, date };
+    return { granted: true, amount: status.amount, date: status.today };
   }
 
   beginRunSettlement(id: string, requestedInvestment: number, startedAt = new Date()): boolean {
@@ -373,6 +445,7 @@ export class ProfileManager {
     if (this.profile.pendingRunSettlement) {
       this.completeSettlementId(this.profile.pendingRunSettlement.id);
       this.profile.pendingRunSettlement = null;
+      this.profile.coins = Math.max(META_BALANCE.coinSafetyMinimum, this.profile.coins);
     }
     const investment = Math.min(
       META_BALANCE.investment.maximum,
@@ -406,6 +479,7 @@ export class ProfileManager {
     this.profile.lifetimeXp += xp.total;
     this.profile.spendableXp += xp.total;
     this.profile.coins += coins.totalReturn;
+    this.profile.coins = Math.max(META_BALANCE.coinSafetyMinimum, this.profile.coins);
     this.profile.playerLevel = derivePlayerLevel(this.profile.lifetimeXp);
     this.profile.progress.totalNightsSurvived += Math.max(
       0,
@@ -448,7 +522,8 @@ export class ProfileManager {
   buyEquipment(kind: EquipmentKind): boolean {
     const item = this.profile.equipment[kind];
     const purchase = nextEquipmentPurchase(this.profile, kind);
-    if (!purchase || this.profile.coins < purchase.cost) return false;
+    if (!purchase
+      || this.profile.coins - purchase.cost < META_BALANCE.coinSafetyMinimum) return false;
     this.profile.coins -= purchase.cost;
     item.tier = purchase.tier;
     item.equipped = true;

@@ -10,7 +10,7 @@ import { CHALLENGES, challengeXpBonusPercent, resolveChallengeModifiers } from "
 import { challengeIcon } from "./challenge-icons";
 import { audioManager, type AudioVolumeChannel } from "./audio";
 import { ASSETS } from "./assets";
-import { ENEMY_REGISTRY, introducedRosterEnemies, rosterMilestones } from "./enemy-registry";
+import { ENEMY_REGISTRY, rosterMilestones } from "./enemy-registry";
 import type { ActionKind, Choice, Difficulty, EnemyKind, StructureKind, Tier } from "./types";
 import {
   EQUIPMENT_ORDER,
@@ -35,7 +35,7 @@ import {
   canAffordAnyEquipment,
   canAffordAnyPermanentUpgrade,
   levelProgress,
-  type DailyRewardResult,
+  type DailyRewardStatus,
 } from "./profile";
 
 const labels: Record<StructureKind, string> = {
@@ -92,16 +92,20 @@ export class Ui {
     private readonly hud: HTMLElement,
     private readonly overlay: HTMLElement,
     private readonly toastLayer: HTMLElement,
-    private readonly dailyReward: DailyRewardResult = {
-      granted: false,
-      amount: 0,
-      date: "",
+    initialDailyReward: DailyRewardStatus = {
+      available: false,
+      day: 1,
+      amount: 10,
+      today: "",
+      lastClaimDate: null,
+      streak: 0,
+      reset: false,
     },
   ) {
     this.profileColorDraft = game.profileManager?.profile.playerColor
       ?? META_BALANCE.customization.colors[0];
     this.profileEyeDraft = game.profileManager?.profile.eyeStyle ?? "round";
-    this.dailyRewardVisible = dailyReward.granted;
+    this.dailyRewardVisible = initialDailyReward.available;
     overlay.addEventListener("click", (event) => this.handleOverlayClick(event));
     overlay.addEventListener("input", (event) => {
       const input = (event.target as HTMLElement).closest<HTMLInputElement>("#seed-input");
@@ -189,6 +193,8 @@ export class Ui {
     this.decorateMenuPanel();
     if (this.tutorialOpen && !this.tutorialExitConfirmation) {
       this.overlay.querySelector<HTMLElement>(".tutorial-guide-card")?.focus();
+    } else if (this.dailyRewardVisible && this.game.phase === "menu") {
+      this.focusDialog(".daily-rewards-modal");
     } else if (this.game.phase === "paused" && !this.runExitConfirmation) {
       this.focusDialog(".pause-card");
     } else if (this.game.enemyWarning) {
@@ -261,9 +267,10 @@ export class Ui {
           <h1>FLAG <span>FORT</span></h1>
           <p class="menu-copy">Build by day. Hold through ten nights.</p>
           <div class="difficulty-picker" role="group" aria-label="Difficulty">
-            ${(["easy", "normal", "hard", "impossible"] as Difficulty[]).map((difficulty) => `
+            ${(["easy", "normal", "hard", "extreme"] as Difficulty[]).map((difficulty) => `
               <button class="difficulty ${this.difficulty === difficulty ? "selected" : ""}" data-difficulty="${difficulty}" aria-pressed="${this.difficulty === difficulty}">
                 <strong>${BALANCE.difficulty[difficulty].label}</strong>
+                <small class="difficulty-xp">${Math.round(BALANCE.difficulty[difficulty].xpMultiplier * 100)}% XP</small>
                 <span class="tooltip">${this.difficultyText(difficulty)}</span>
               </button>`).join("")}
           </div>
@@ -286,11 +293,8 @@ export class Ui {
           ${recent ? `<span class="last-run">${recent.victory ? "Victory" : "Defeat"} · ${recent.mode === "endless" ? `${recent.nightsSurvived} Endless nights` : `${recent.nightsSurvived}/10`}${recent.challengeIds?.length ? ` · ${recent.challengeIds.length} challenges` : ""}</span>` : ""}
           </footer>
         </main>
-        ${this.dailyRewardVisible ? `<aside class="daily-reward" role="status">
-          <span class="daily-coin">${coinAmount(this.dailyReward.amount, "+")}</span>
-          <div><b>Daily supply drop</b><small><em aria-hidden="true">¢</em><span class="sr-only">Coins</span> added for ${this.dailyReward.date} UTC</small></div>
-          <button data-action="dismiss-daily" aria-label="Dismiss daily reward">${icon("close")}</button>
-        </aside>` : ""}
+        ${this.dailyRewardSummaryMarkup()}
+        ${this.dailyRewardVisible ? this.dailyRewardModalMarkup() : ""}
         ${this.menuPanel ? this.menuPanelMarkup() : ""}
       </section>`;
   }
@@ -314,6 +318,47 @@ export class Ui {
       </span>
       <strong>${coinAmount(profile.coins)}</strong>
     </button>`;
+  }
+
+  private dailyRewardSummaryMarkup(): string {
+    const manager = this.game.profileManager;
+    if (!manager) return "";
+    const status = manager.getDailyRewardStatus();
+    return `<button class="daily-rewards-summary ${status.available ? "available" : ""}"
+      data-action="open-daily" aria-label="Open Daily Rewards${status.available ? `. Day ${status.day} reward available` : ""}">
+      <span>${icon("calendar")}<b>Daily Rewards</b><small>${status.available
+        ? `Day ${status.day} ready · ${status.amount}¢`
+        : `Day ${status.day} claimed · next UTC day`}</small></span>
+      <strong>${status.available ? "CLAIM" : `${status.streak} DAY`}</strong>
+    </button>`;
+  }
+
+  private dailyRewardModalMarkup(): string {
+    const manager = this.game.profileManager;
+    if (!manager) return "";
+    const status = manager.getDailyRewardStatus();
+    const tiers = META_BALANCE.dailyRewards.coinsByDay.map((amount, index) => {
+      const day = index + 1;
+      const missed = status.reset && day <= status.streak;
+      const current = status.available && day === status.day;
+      const claimed = !status.reset && day <= status.streak;
+      const state = current ? "current" : claimed ? "claimed" : missed ? "missed" : "upcoming";
+      return `<li class="${state}"><span>${claimed ? icon("daily-claimed") : missed ? icon("restart") : `<b>${day}</b>`}</span>
+        <small>DAY ${day}</small><strong>${amount}<em>¢</em></strong><i>${state}</i></li>`;
+    }).join("");
+    return `<div class="menu-modal daily-modal-shell"><div class="modal daily-rewards-modal" role="dialog" aria-modal="true" aria-labelledby="daily-reward-title">
+      <button class="modal-close" data-action="dismiss-daily" aria-label="Close">${icon("close")}</button>
+      <p class="eyebrow">CONSECUTIVE LOGIN SUPPLIES</p><h2 id="daily-reward-title">Daily Rewards</h2>
+      <p>Claim once per UTC calendar day. Miss a day and the next claim returns to Day 1. Day 7 repeats while the streak continues.</p>
+      ${status.reset ? `<p class="daily-reset-note">${icon("restart")} A missed day reset this reward to Day 1.</p>` : ""}
+      <ol class="daily-tier-grid">${tiers}</ol>
+      <p class="daily-boundary">${status.available
+        ? `Day ${status.day} is ready now.`
+        : "Next reward becomes available after 00:00 UTC."}</p>
+      <button class="primary wide" data-action="${status.available ? "claim-daily" : "dismiss-daily"}">
+        ${status.available ? `Claim Day ${status.day} · ${coinAmount(status.amount)}` : "Done"}
+      </button>
+    </div></div>`;
   }
 
   private menuPanelMarkup(): string {
@@ -576,7 +621,7 @@ export class Ui {
           <h3>${copy[kind].title}</h3><p>${copy[kind].text}</p>
           ${this.equipmentEffectMarkup(kind, item)}
           <div class="tier-track">${EQUIPMENT_TIER_ORDER.map((tier) => `<i class="${item.tier && EQUIPMENT_TIER_ORDER.indexOf(tier) <= EQUIPMENT_TIER_ORDER.indexOf(item.tier) ? "owned" : ""}" title="${tier}"></i>`).join("")}</div>
-          ${next && price !== null ? `<button class="primary wide" data-action="buy-equipment" data-equipment="${kind}" ${profile.coins < price ? "disabled" : ""}>
+          ${next && price !== null ? `<button class="primary wide" data-action="buy-equipment" data-equipment="${kind}" ${profile.coins - price < META_BALANCE.coinSafetyMinimum ? "disabled" : ""}>
             ${item.tier ? `Upgrade to ${next}` : "Unlock Wood"} · ${coinAmount(price)}
           </button>` : `<button class="primary wide" disabled>Diamond maximum</button>`}
           ${item.tier ? `<button class="secondary wide" data-action="toggle-equipment" data-equipment="${kind}">${item.equipped ? "Equipped · Unequip" : "Equip"}</button>` : ""}
@@ -654,7 +699,7 @@ export class Ui {
     if (difficulty === "easy") return "More flag health and a gentler horde";
     if (difficulty === "normal") return "The intended survival challenge";
     if (difficulty === "hard") return "Tougher, faster, larger waves";
-    return "An intentionally extreme count";
+    return "An intentionally extreme count with the largest XP reward";
   }
 
   private pauseMarkup(): string {
@@ -800,6 +845,9 @@ export class Ui {
   }
 
   private mutationIcon(choice: Choice): string {
+    if (choice.mutationTargetKinds?.length === 1) {
+      return `<img src="${ASSETS.enemies[choice.mutationTargetKinds[0]!]}" alt="">`;
+    }
     const definition = CARD_DEFINITIONS.find(
       (card) => card.category === "mutation" && card.id === choice.mutationId,
     );
@@ -821,6 +869,10 @@ export class Ui {
       const previous = levelProgress(settlement.previousLifetimeXp);
       const next = levelProgress(settlement.newLifetimeXp);
       const profitOrLoss = settlement.coins.profitOrLoss;
+      const adaptiveXp = settlement.xp.adaptiveDifficulty ?? settlement.xp.difficulty;
+      const difficultyAdjustment = settlement.xp.difficultyAdjustment ?? 0;
+      const difficultyPercent = settlement.xp.difficultyPercent ?? 100;
+      const xpSubtotal = settlement.xp.subtotal ?? settlement.xp.total - difficultyAdjustment;
       const investmentOutcome = profitOrLoss > 0
         ? { className: "positive", label: "PROFIT", sign: "+" }
         : profitOrLoss < 0
@@ -829,7 +881,7 @@ export class Ui {
       const categories = [
         ["Nights Survived", settlement.xp.nights],
         ["Personal Kills", settlement.xp.personalKills],
-        ["Difficulty Bonus", settlement.xp.difficulty],
+        ["Adaptive Difficulty Bonus", adaptiveXp],
         ...(settlement.xp.victory > 0 ? [["Victory Bonus", settlement.xp.victory] as const] : []),
         ...(settlement.xp.challenge > 0 ? [["Challenge Bonus", settlement.xp.challenge] as const] : []),
       ] as const;
@@ -841,14 +893,18 @@ export class Ui {
           <span ${label === "Challenge Bonus" ? `title="${this.escapeAttribute(this.challengeRewardDetails())}"` : ""}>${label}</span><b>+${value} XP</b></div>`).join("")}</div>
         <button class="reward-skip" data-action="reveal-rewards">Show totals now</button>
         </div><div class="reward-summary">
-        <section class="reward-total" style="--reveal-index:6"><span>TOTAL REWARD</span><strong>+${settlement.xp.total} XP</strong></section>
-        <div class="level-transition" style="--reveal-index:7">
+        <section class="difficulty-xp-adjustment ${difficultyAdjustment < 0 ? "penalty" : "bonus"}" style="--reveal-index:6">
+          <span><b>${BALANCE.difficulty[this.game.difficulty].label} Difficulty</b><small>${difficultyPercent}% applied once to ${xpSubtotal} XP</small></span>
+          <strong>${difficultyAdjustment >= 0 ? "+" : ""}${difficultyAdjustment} XP</strong>
+        </section>
+        <section class="reward-total" style="--reveal-index:7"><span>FINAL XP TOTAL</span><strong>+${settlement.xp.total} XP</strong></section>
+        <div class="level-transition" style="--reveal-index:8">
           <span><small>Before</small><b>Level ${previous.level}</b><em>${previous.current}/${previous.required} XP</em></span>
           <i>${icon("arrow-right")}</i>
           <span><small>After</small><b>Level ${next.level}</b><em>${next.current}/${next.required} XP</em></span>
           ${settlement.newLevel > settlement.previousLevel ? `<strong>LEVEL UP ×${settlement.newLevel - settlement.previousLevel}</strong>` : ""}
         </div>
-        <div class="coin-settlement ${investmentOutcome.className}" style="--reveal-index:8" aria-label="Investment outcome">
+        <div class="coin-settlement ${investmentOutcome.className}" style="--reveal-index:9" aria-label="Investment outcome">
           <span><small>Invested</small><b>${coinAmount(settlement.coins.investment)}</b></span>
           <i class="settlement-arrow" aria-hidden="true">${icon("arrow-right")}</i>
           <span><small>Returned</small><b>${coinAmount(settlement.coins.totalReturn)}</b></span>
@@ -905,7 +961,7 @@ export class Ui {
       </div>
       <div class="countdown-stack">
         ${this.runProgressMarkup()}
-        ${this.rosterForecastMarkup()}
+        ${this.adaptivePressureMarkup()}
         <div class="clock" data-clock-panel><div class="clock-face"><strong data-clock></strong></div><small data-night></small><span data-phase-label></span></div>
         ${this.game.phase === "day" && !this.game.tutorialMode ? `<button class="skip-night-button" data-action="skip-night" aria-label="Skip to Night">${icon("skip")}<span>Skip to Night</span><span class="tooltip">End the day early with no reward</span></button>` : ""}
     </div>
@@ -952,14 +1008,24 @@ export class Ui {
     </div>`;
   }
 
-  private rosterForecastMarkup(): string {
+  private adaptivePressureState(): { state: "below" | "around" | "above"; label: string; iconName: "pressure-low" | "pressure-normal" | "pressure-high" } {
+    const multiplier = this.game.getAdaptiveThreat().multiplier;
+    if (multiplier < BALANCE.adaptive.pressureIndicator.belowMaximum) {
+      return { state: "below", label: "Below expected", iconName: "pressure-low" };
+    }
+    if (multiplier > BALANCE.adaptive.pressureIndicator.aboveMinimum) {
+      return { state: "above", label: "Above expected", iconName: "pressure-high" };
+    }
+    return { state: "around", label: "Around expected", iconName: "pressure-normal" };
+  }
+
+  private adaptivePressureMarkup(): string {
     if (this.game.tutorialMode) return "";
-    const kinds = introducedRosterEnemies(this.game.enemyRoster, this.game.night);
-    const label = this.game.phase === "day" ? `Night ${this.game.night} forecast` : `Night ${this.game.night} timeline`;
-    return `<div class="roster-forecast" aria-label="${label}"><small>${label}</small><span>${kinds.map((kind) => {
-      const info = ENEMY_REGISTRY[kind];
-      return `<i title="${info.displayName}: ${info.description}"><img src="${ASSETS.enemies[kind]}" alt=""><b>${info.displayName}</b></i>`;
-    }).join("")}</span></div>`;
+    const pressure = this.adaptivePressureState();
+    return `<div class="adaptive-pressure ${pressure.state}" data-adaptive-pressure="${pressure.state}"
+      aria-label="Adaptive pressure: ${pressure.label}" title="Upcoming pressure adapts to your progression and fortification.">
+      ${icon(pressure.iconName)}<span>${pressure.label}</span>
+    </div>`;
   }
 
   private actionButton(slot: number, action: ActionKind, label: string, symbol: string, disabled = false): string {
@@ -1022,6 +1088,14 @@ export class Ui {
     this.lastClockSecond = clock;
     for (const resource of RESOURCE_ORDER) this.setText(`[data-resource="${resource}"]`, `${this.game.resources[resource]}`);
     const liveThreat = this.game.getAdaptiveThreat();
+    const pressure = this.adaptivePressureState();
+    const pressureElement = this.hud.querySelector<HTMLElement>("[data-adaptive-pressure]");
+    if (pressureElement && pressureElement.dataset.adaptivePressure !== pressure.state) {
+      pressureElement.dataset.adaptivePressure = pressure.state;
+      pressureElement.className = `adaptive-pressure ${pressure.state}`;
+      pressureElement.setAttribute("aria-label", `Adaptive pressure: ${pressure.label}`);
+      pressureElement.innerHTML = `${icon(pressure.iconName)}<span>${pressure.label}</span>`;
+    }
     this.setText("[data-adaptive-actual]", `${liveThreat.actual}`);
     this.setText("[data-adaptive-expected]", `${liveThreat.expected}`);
     this.setText("[data-adaptive-difference]", `${liveThreat.difference}`);
@@ -1231,6 +1305,13 @@ export class Ui {
         audioManager.toggleMuted();
         break;
       case "dismiss-daily":
+        this.dailyRewardVisible = false;
+        break;
+      case "open-daily":
+        this.dailyRewardVisible = true;
+        break;
+      case "claim-daily":
+        this.game.profileManager?.claimDailyReward();
         this.dailyRewardVisible = false;
         break;
       case "pick-color":
@@ -1480,6 +1561,18 @@ export class Ui {
   }
 
   private handleKeydown(event: KeyboardEvent): void {
+    if (this.dailyRewardVisible && event.code === "Tab") {
+      this.trapDialogFocus(event, ".daily-rewards-modal");
+      return;
+    }
+    if (this.dailyRewardVisible && event.code === "Escape") {
+      this.dailyRewardVisible = false;
+      event.preventDefault();
+      this.invalidate();
+      this.render(true);
+      this.overlay.querySelector<HTMLElement>('[data-action="open-daily"]')?.focus();
+      return;
+    }
     if (this.game.enemyWarning && event.code === "Tab") {
       this.trapDialogFocus(event, ".warning-card");
       return;
@@ -1646,6 +1739,7 @@ export class Ui {
       "restart-same",
       "restart-new",
       "continue-endless",
+      "claim-daily",
     ]);
     const cancelActions = new Set([
       "close-panel",

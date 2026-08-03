@@ -142,13 +142,6 @@ export function equipmentStatDefinitions(kind: EquipmentKind): readonly Equipmen
       tiers: tierValues("arc"),
     },
     {
-      id: "target-limit",
-      label: "Targets",
-      unit: "count",
-      unequipped: 1,
-      tiers: tierValues("targetLimit"),
-    },
-    {
       id: "knockback",
       label: "Knockback",
       unit: "pixels",

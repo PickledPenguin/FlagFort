@@ -35,7 +35,7 @@ import {
   recyclingRate,
   swordStats,
 } from "./equipment";
-import { permanentUpgradePercent, type PermanentUpgradeId } from "./meta-balance";
+import { META_BALANCE, permanentUpgradePercent, type PermanentUpgradeId } from "./meta-balance";
 import { resolveCooldown, resolveEffectiveStat } from "./modifiers";
 import type { GamePlatform } from "./platform";
 import type { ProfileManager, RunSettlementResult } from "./profile";
@@ -817,6 +817,7 @@ export class Game {
       this.dawnPicked,
       0,
       this.disabledDawnBenefits(),
+      this.enemyRoster,
     );
     this.markUi(true);
   }
@@ -856,6 +857,7 @@ export class Game {
       new Set([...this.dawnPicked, ...discarded]),
       this.rerollsUsed,
       this.disabledDawnBenefits(),
+      this.enemyRoster,
     );
     if (this.choices.length < 3) {
       this.choices = generateChoiceOfferings(
@@ -868,6 +870,7 @@ export class Game {
       this.dawnPicked,
       this.rerollsUsed,
       this.disabledDawnBenefits(),
+      this.enemyRoster,
       );
     }
     this.notify(`Reroll ${this.rerollsUsed} of ${BALANCE.reroll.limit}`);
@@ -1087,7 +1090,8 @@ export class Game {
   private updateMeleeSwing(dt: number): void {
     if (this.player.cooldown <= 0 && !this.meleeImpactPending) return;
     this.meleeSwingElapsed += dt;
-    const hitTime = Math.min(0.48, this.meleeSwingDuration * 0.78) * 0.5;
+    const hitTime = this.meleeSwingDuration
+      * META_BALANCE.equipment.swordAnimation.damageProgress;
     if (!this.meleeImpactPending || this.meleeSwingElapsed < hitTime) return;
     this.meleeImpactPending = false;
     this.resolveMeleeImpact(this.meleeSwingUsesSword ? this.getEquippedSword() : null);
@@ -1098,7 +1102,7 @@ export class Game {
     const candidates = this.enemyHash.query(this.player.x, this.player.y, range + 40)
       .filter((enemy) => this.inMeleeArc(enemy, range, sword?.arc ?? BALANCE.player.punchArc))
       .sort((a, b) => distance(this.player, a) - distance(this.player, b));
-    const targets = candidates.slice(0, sword?.targetLimit ?? 1);
+    const targets = sword ? candidates : candidates.slice(0, 1);
     if (targets.length) {
       const damaged = new Set<number>();
       for (const enemy of targets) {
@@ -1247,6 +1251,7 @@ export class Game {
     }
     addWallet(this.resources, preview.refund);
     this.structures = this.structures.filter((item) => item !== structure);
+    this.invalidateStructureTargets(structure.id);
     this.recalculateStructureScore();
     this.structureRevision += 1;
     this.navigationFields.clear();
@@ -1655,9 +1660,14 @@ export class Game {
     // Scaling order: base, selected difficulty, accumulated mutation, then clamped adaptive influence.
     const adaptiveHealth = 1 + (this.adaptiveState.multiplier - 1) * BALANCE.adaptive.healthInfluence;
     const adaptiveDamage = 1 + (this.adaptiveState.multiplier - 1) * BALANCE.adaptive.damageInfluence;
+    const mutationParentKind = kind === "splitter-child" ? "splitter" : kind;
+    const mutationApplies = Object.values(this.enemyRoster).includes(
+      mutationParentKind as typeof this.enemyRoster[keyof typeof this.enemyRoster],
+    );
+    const mutation = mutationApplies ? this.mutations : createMutations();
     const health = base.health
       * difficulty.enemyHealth
-      * (1 + this.mutations.health)
+      * (1 + mutation.health)
       * adaptiveHealth
       * challenges.enemyHealthMultiplier;
     const angle = this.rng.range(0, Math.PI * 2);
@@ -1672,20 +1682,20 @@ export class Game {
       maxHealth: health,
       speed: base.speed
         * difficulty.enemySpeed
-        * (1 + this.mutations.speed)
+        * (1 + mutation.speed)
         * challenges.enemySpeedMultiplier,
       damage: base.damage
         * difficulty.enemyDamage
-        * (1 + this.mutations.damage)
+        * (1 + mutation.damage)
         * adaptiveDamage
         * challenges.enemyDamageMultiplier,
       structureDamage: base.structureDamage * difficulty.enemyDamage
-        * (1 + this.mutations.structureDamage)
+        * (1 + mutation.structureDamage)
         * adaptiveDamage
         * challenges.enemyDamageMultiplier,
       attackRate: base.attackRate / (
         difficulty.attackSpeed
-        * (1 + this.mutations.attackSpeed)
+        * (1 + mutation.attackSpeed)
         * challenges.enemyAttackSpeedMultiplier
       ),
       cooldown: 0,
@@ -1701,6 +1711,7 @@ export class Game {
       jumpCooldown: 0,
       jumpTime: 0,
       bossSmashWindup: 0,
+      bossSlamWave: 0,
       bossHalfSummoned: false,
       acidCooldown: kind === "boss" ? BALANCE.boss.acidAttackInterval : 0,
       acidWindup: 0,
@@ -1800,7 +1811,15 @@ export class Game {
       enemy.flash = Math.max(0, enemy.flash - dt);
       enemy.jumpCooldown = Math.max(0, enemy.jumpCooldown - dt);
       enemy.routeCommitment = Math.max(0, enemy.routeCommitment - dt);
+      enemy.bossSlamWave = Math.max(0, (enemy.bossSlamWave ?? 0) - dt);
       const definition = ENEMY_REGISTRY[enemy.kind];
+      if (typeof enemy.targetId === "number"
+        && !this.structures.some((structure) =>
+          structure.id === enemy.targetId && structure.health > 0)) {
+        this.invalidateEnemyTarget(enemy);
+        this.selectEnemyTarget(enemy);
+      }
+      this.resolveEnemyStructureOverlap(enemy, dt);
       if (enemy.kind === "rammer" && this.updateRammer(enemy, dt)) continue;
       if (enemy.jumpTime > 0) {
         this.updateJumperAirborne(enemy, dt);
@@ -1814,7 +1833,8 @@ export class Game {
       }
       const target = this.getEnemyTarget(enemy);
       if (!target) {
-        enemy.targetId = "flag";
+        this.invalidateEnemyTarget(enemy);
+        this.selectEnemyTarget(enemy);
         continue;
       }
       if ("tutorialTarget" in target) {
@@ -1836,6 +1856,10 @@ export class Game {
           ? (enemy.chargeProgress ?? 0) / definition.attack.chargeSeconds
           : 0;
       }
+      if (targetDistance <= reach) {
+        this.enemyAttack(enemy, target, dt);
+        continue;
+      }
       const blocker = this.firstBlockingStructure(enemy, target);
       const blockerReach = enemy.kind === "boss" ? BALANCE.boss.obstacleAttackRange : 9;
       if (definition.movement.avoidStructures && enemy.routeIncludesStructures && enemy.path.length > 0) {
@@ -1853,10 +1877,6 @@ export class Game {
         } else {
           this.enemyAttack(enemy, blocker, dt);
         }
-        continue;
-      }
-      if (targetDistance <= reach) {
-        this.enemyAttack(enemy, target, dt);
         continue;
       }
       this.moveEnemyToward(enemy, target, dt);
@@ -1884,6 +1904,13 @@ export class Game {
     this.enemies = this.enemies.filter((enemy) => enemy.health > 0);
     this.structures = this.structures.filter((structure) => structure.health > 0);
     if (this.structures.length !== structureCountBeforeCleanup) {
+      const livingStructureIds = new Set(this.structures.map((structure) => structure.id));
+      for (const enemy of this.enemies) {
+        if (typeof enemy.targetId === "number" && !livingStructureIds.has(enemy.targetId)) {
+          this.invalidateEnemyTarget(enemy);
+          this.selectEnemyTarget(enemy);
+        }
+      }
       this.structureRevision += 1;
       this.navigationFields.clear();
     }
@@ -1934,9 +1961,12 @@ export class Game {
       const locked = typeof enemy.targetId === "number"
         ? this.structures.find((item) => item.id === enemy.targetId && item.kind === "harvester")
         : null;
-      if (locked && distance(enemy, locked) <= detection * 1.12 && enemy.routeCommitment > 0) return;
+      if (locked && locked.health > 0
+        && distance(enemy, locked) <= detection * BALANCE.navigation.targetHysteresis
+        && enemy.routeCommitment > 0) return;
       const harvesters = this.structures
-        .filter((item) => item.kind === "harvester" && distance(enemy, item) <= detection)
+        .filter((item) => item.kind === "harvester" && item.health > 0
+          && distance(enemy, item) <= detection)
         .sort((a, b) => distance(enemy, a) - distance(enemy, b) || a.id - b.id);
       enemy.targetId = harvesters[0]?.id ?? "flag";
       enemy.routeCommitment = definition.targeting.lockSeconds;
@@ -1977,8 +2007,44 @@ export class Game {
     if (enemy.targetId === "player") return this.player;
     if (enemy.targetId === "flag") return this.flagPresent ? this.flag : null;
     if (enemy.targetId === "tutorial") return this.tutorialTarget;
-    if (typeof enemy.targetId === "number") return this.structures.find((item) => item.id === enemy.targetId) ?? null;
+    if (typeof enemy.targetId === "number") {
+      return this.structures.find((item) => item.id === enemy.targetId && item.health > 0) ?? null;
+    }
     return null;
+  }
+
+  private invalidateEnemyTarget(enemy: Enemy): void {
+    enemy.targetId = null;
+    enemy.path = [];
+    enemy.pathIndex = 0;
+    enemy.pathCooldown = BALANCE.navigation.targetRepathCooldown;
+    enemy.routeCommitment = 0;
+    enemy.routeIncludesStructures = false;
+    enemy.stuckTime = 0;
+    enemy.attackWindup = 0;
+    enemy.chargeProgress = 0;
+  }
+
+  private invalidateStructureTargets(structureId: number): void {
+    for (const enemy of this.enemies) {
+      if (enemy.targetId !== structureId) continue;
+      this.invalidateEnemyTarget(enemy);
+      this.selectEnemyTarget(enemy);
+    }
+  }
+
+  private resolveEnemyStructureOverlap(enemy: Enemy, dt: number): void {
+    for (const structure of this.structures) {
+      if (structure.health <= 0 || !overlaps(enemy, structure)) continue;
+      const d = distance(enemy, structure);
+      const minimum = enemy.radius + structure.radius + 1;
+      const fallbackAngle = ((enemy.id * 31 + structure.id * 17) % 360) * Math.PI / 180;
+      const nx = d > 0.001 ? (enemy.x - structure.x) / d : Math.cos(fallbackAngle);
+      const ny = d > 0.001 ? (enemy.y - structure.y) / d : Math.sin(fallbackAngle);
+      const push = Math.min(minimum - d, BALANCE.navigation.overlapResolveSpeed * dt);
+      enemy.x += nx * push;
+      enemy.y += ny * push;
+    }
   }
 
   private tryJumperLeap(
@@ -2146,6 +2212,7 @@ export class Game {
     enemy.x += Math.cos(angle) * speed * dt;
     enemy.y += Math.sin(angle) * speed * dt;
     this.resolveResourceCollision(enemy);
+    this.resolveEnemyStructureOverlap(enemy, dt);
     const moved = Math.hypot(enemy.x - beforeX, enemy.y - beforeY);
     if (moved < speed * dt * 0.18) enemy.stuckTime += dt;
     else enemy.stuckTime = Math.max(0, enemy.stuckTime - dt * 2);
@@ -2533,27 +2600,38 @@ export class Game {
       this.shake = 14;
     }
     enemy.summonCooldown -= dt * attackSpeed;
-    if (enemy.summonCooldown <= 0 && distance(enemy, this.flag) < 210) {
+    if (enemy.summonCooldown <= 0
+      && distance(enemy, this.flag) < BALANCE.boss.slam.radius) {
       enemy.bossSmashWindup += dt * attackSpeed;
     } else if (enemy.bossSmashWindup > 0) {
       enemy.bossSmashWindup = Math.max(0, enemy.bossSmashWindup - dt * 0.5);
     }
-    if (enemy.bossSmashWindup >= 1.25) {
+    if (enemy.bossSmashWindup >= BALANCE.boss.slam.chargeDuration) {
       enemy.bossSmashWindup = 0;
-      enemy.summonCooldown = 5.5;
+      enemy.summonCooldown = BALANCE.boss.slam.cooldown;
+      enemy.bossSlamWave = BALANCE.boss.slam.waveDuration;
+      const playerEdgeDistance = Math.max(0, distance(enemy, this.player) - this.player.radius);
+      if (playerEdgeDistance <= BALANCE.boss.slam.radius) {
+        const damage = this.mitigateIncomingDamage(
+          BALANCE.boss.slam.playerDamage
+            * (enemy.damage / Math.max(1, ENEMY_REGISTRY.boss.base.damage)),
+        );
+        this.player.health -= damage;
+        this.player.hurtFlash = 0.3;
+        this.burst(this.player.x, this.player.y, "#ff6b55", 10, `-${Math.round(damage)}`);
+      }
       for (const structure of this.structures) {
-        if (distance(enemy, structure) < 175
-          && segmentCircle(enemy.x, enemy.y, this.flag.x, this.flag.y, {
-            ...structure,
-            radius: structure.radius + enemy.radius * BALANCE.boss.obstaclePathWidth,
-          })) {
-          structure.health -= enemy.structureDamage * 0.8;
+        const edgeDistance = Math.max(0, distance(enemy, structure) - structure.radius);
+        if (edgeDistance <= BALANCE.boss.slam.radius) {
+          structure.health -= BALANCE.boss.slam.structureDamage
+            * (enemy.structureDamage / Math.max(1, ENEMY_REGISTRY.boss.base.structureDamage));
           structure.flash = 0.3;
           emitAudioCue({ cue: "structure-damaged", position: { x: structure.x, y: structure.y } });
         }
       }
       this.burst(enemy.x, enemy.y, "#ff6b55", 24, "SMASH");
       this.shake = 14;
+      emitAudioCue({ cue: "breaker-smash", position: { x: enemy.x, y: enemy.y } });
     }
   }
 
@@ -2786,6 +2864,7 @@ export class Game {
     const disabled = this.getChallengeModifiers().disablesPlayerHealing;
     const canHeal = this.flagPresent
       && !disabled
+      && this.player.health > 0
       && distance(this.player, this.flag) <= BALANCE.flagProtectedRadius
       && this.player.health < this.player.maxHealth;
     if (!canHeal) {
@@ -2834,7 +2913,7 @@ export class Game {
         * this.adaptiveState.multiplier
         * challengeModifiers.ordinaryZombieCountMultiplier,
     );
-    this.waveSchedule = this.isBossNight() ? [] : this.buildWaveSchedule(total);
+    this.waveSchedule = this.buildWaveSchedule(total);
     this.waveScheduleCursor = 0;
     const scheduledTotal = this.waveSchedule.length;
     const perPortal = Math.floor(scheduledTotal / this.portals.length);
@@ -2885,6 +2964,7 @@ export class Game {
       this.dawnPicked,
       0,
       this.disabledDawnBenefits(),
+      this.enemyRoster,
     );
     this.notify("Dawn restored every resource node");
     emitAudioCue({ cue: "dawn-start" });
@@ -3092,6 +3172,7 @@ export class Game {
         victory,
         effectiveDifficultyMultiplier: this.adaptiveState.multiplier,
         challengeIds: [...this.activeChallenges],
+        selectedDifficulty: this.difficulty,
       });
       const coins = settleCoinInvestment(this.runInvestment, this.stats.nightsSurvived);
       this.lastSettlement = this.profileManager.settleRun(

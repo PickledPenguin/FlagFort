@@ -39,10 +39,14 @@ export const PERMANENT_UPGRADES: readonly PermanentUpgradeDefinition[] = [
 ] as const;
 
 export const META_BALANCE = {
-  profileSchemaVersion: 3,
+  profileSchemaVersion: 4,
   profileStorageKey: "flagfort-profile-v2",
   legacyRecordsKey: "countdown-forest-records",
-  dailyRewardCoins: 10,
+  coinSafetyMinimum: 10,
+  dailyRewards: {
+    coinsByDay: [10, 15, 20, 25, 30, 35, 40],
+    repeatingDay: 7,
+  },
   permanentUpgrade: {
     maximumLevel: 5,
     percentPerLevel: 0.1,
@@ -99,18 +103,28 @@ export const META_BALANCE = {
       diamond: 0.75,
     } satisfies Record<Tier | "unequipped", number>,
     sword: {
-      wood: { damageMultiplier: 1.1, cooldownMultiplier: 2, range: 88, arc: 1.15, targetLimit: 2, knockback: 14 },
-      stone: { damageMultiplier: 1.35, cooldownMultiplier: 1.6, range: 94, arc: 1.3, targetLimit: 3, knockback: 18 },
-      gold: { damageMultiplier: 1.65, cooldownMultiplier: 1.25, range: 101, arc: 1.45, targetLimit: 4, knockback: 23 },
-      diamond: { damageMultiplier: 2, cooldownMultiplier: 1, range: 108, arc: 1.6, targetLimit: 5, knockback: 30 },
+      wood: { damageMultiplier: 1.1, cooldownMultiplier: 2, range: 92, arc: 1.28, knockback: 14 },
+      stone: { damageMultiplier: 1.35, cooldownMultiplier: 1.6, range: 100, arc: 1.42, knockback: 18 },
+      gold: { damageMultiplier: 1.65, cooldownMultiplier: 1.25, range: 108, arc: 1.56, knockback: 23 },
+      diamond: { damageMultiplier: 2, cooldownMultiplier: 1, range: 116, arc: 1.7, knockback: 30 },
     } satisfies Record<Tier, {
       damageMultiplier: number;
       cooldownMultiplier: number;
       range: number;
-      arc: number;
-      targetLimit: number;
+        arc: number;
       knockback: number;
-    }>,
+      }>,
+    swordAnimation: {
+      damageProgress: 0.32,
+      sweepStartRadiusRatio: 0.28,
+      sweepInnerRadius: 16,
+      sweepOpacity: 0.34,
+      gripX: 35,
+      gripY: -10,
+      offHandX: 27,
+      offHandY: 11,
+      bladeRotationOffset: 0.885,
+    },
   },
   customization: {
     colors: ["#d9b783", "#f1c7a5", "#a96f4d", "#6f4938", "#d7a6c8", "#8fc7ba"],

@@ -99,7 +99,7 @@ The tutorial is a separate nine-section interactive training forest available fr
 
 ## Difficulty
 
-Easy, Normal, Hard, and Impossible use centralized modifiers for enemy health, damage, speed, attack rate, wave size, and flag durability. Difficulty never changes the 60-second day or 30-second standard night. Easy is approachable, while Impossible is intentionally extreme.
+Easy, Normal, Hard, and Extreme use centralized modifiers for enemy health, damage, speed, attack rate, wave size, flag durability, and final XP. Difficulty never changes the 60-second day or 30-second standard night. Easy is approachable, while Extreme is intentionally severe.
 
 Persistent progression includes lifetime and spendable XP, permanent starting
 upgrades, coins, daily rewards, player customization, and tiered equipment.
