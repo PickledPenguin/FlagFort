@@ -222,15 +222,15 @@ export const BALANCE = {
    * Values are normalized to a Wood wall worth 10. Tier growth combines the
    * cumulative resource cost at 1/2/4/8 resource exchange weights with the
    * structure's existing health, retaliation, harvesting, or turret-DPS ratios.
-   * This preserves the former danger ordering while making material investment
+   * This preserves the danger ordering while making material investment
    * and real combat/economic output visible in one configurable table.
    */
   structureValues: {
-    wall: { wood: 10, stone: 20, gold: 34, diamond: 51 },
-    door: { wood: 10, stone: 20, gold: 35, diamond: 52 },
+    wall: { wood: 10, stone: 20, gold: 34, diamond: 52 },
+    door: { wood: 10, stone: 20, gold: 34, diamond: 52 },
     spikes: { wood: 13, stone: 26, gold: 45, diamond: 68 },
     harvester: { wood: 26, stone: 51, gold: 84, diamond: 123 },
-    turret: { wood: 36, stone: 79, gold: 149, diamond: 262 },
+    turret: { wood: 36, stone: 79, gold: 150, diamond: 270 },
   } satisfies Record<StructureKind, Record<Tier, number>>,
   adaptive: {
     expectedByNight: [126, 266, 455, 700, 1015, 1400, 1890, 2485, 3185, 2030],

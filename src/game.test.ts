@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { BALANCE } from "./config";
 import { generateChoiceOfferings, mutationText } from "./choices";
+import { introducedRosterEnemies } from "./enemy-registry";
 import { Game } from "./game";
 import type { Input } from "./input";
 import { NavigationGrid, pathIntersectsObstacle } from "./pathfinding";
@@ -498,6 +499,37 @@ describe("phase and run rules", () => {
     const doorHealth = door.health;
     game.update(0.4);
     expect(door.health).toBeLessThan(doorHealth);
+  });
+
+  it("lets melee zombies complete attacks at normal frame intervals", () => {
+    const game = new Game(fakeInput());
+    game.startRun("normal", "melee-flag-attack");
+    game.phase = "night";
+    game.timer = 20;
+    const zombie = testEnemy({
+      x: game.flag.x + game.flag.radius + BALANCE.enemy.basic.radius,
+      y: game.flag.y,
+      damage: BALANCE.enemy.basic.damage,
+      scanCooldown: 0,
+    });
+    game.enemies = [zombie];
+    const flagHealth = game.flag.health;
+
+    for (let frame = 0; frame < 120; frame += 1) game.update(1 / 60);
+
+    expect(game.flag.health).toBeLessThan(flagHealth);
+  });
+
+  it("schedules every introduced special zombie in each wave", () => {
+    const game = new Game(fakeInput());
+    game.startRun("normal", "special-wave-coverage");
+    game.night = 7;
+    (game as unknown as { beginNight(): void }).beginNight();
+    const scheduledKinds = new Set(game.getWaveForecast().map((entry) => entry.kind));
+    const introducedSpecials = introducedRosterEnemies(game.enemyRoster, game.night)
+      .filter((kind) => kind !== "basic");
+
+    for (const kind of introducedSpecials) expect(scheduledKinds).toContain(kind);
   });
 
   it("never lets a jumper attack a blocking wall while its jump is cooling down", () => {

@@ -1757,9 +1757,18 @@ export class Game {
 
   private buildWaveSchedule(threatBudget: number): EnemyKind[] {
     const rng = new SeededRng(`${this.seed}:wave:${this.night}:${this.difficulty}`);
+    const introduced = introducedRosterEnemies(this.enemyRoster, this.night);
+    const guaranteedSpecials = introduced.filter((kind) => kind !== "basic");
     const result: EnemyKind[] = [];
     const counts = new Map<EnemyKind, number>();
     let remaining = Math.max(1, threatBudget);
+    for (const kind of guaranteedSpecials) {
+      const definition = ENEMY_REGISTRY[kind];
+      if (definition.threat > remaining) continue;
+      result.push(kind);
+      counts.set(kind, 1);
+      remaining -= definition.threat;
+    }
     let guard = 0;
     while (remaining >= ENEMY_REGISTRY.basic.threat && guard < 500) {
       guard += 1;
@@ -1821,10 +1830,12 @@ export class Game {
         this.enemyRangedAttack(enemy, target, dt);
         continue;
       }
-      enemy.chargeProgress = Math.max(0, (enemy.chargeProgress ?? 0) - dt * 0.35);
-      enemy.attackWindup = definition.attack.chargeSeconds > 0
-        ? (enemy.chargeProgress ?? 0) / definition.attack.chargeSeconds
-        : 0;
+      if (definition.attack.mode === "arrow" || definition.attack.mode === "acid") {
+        enemy.chargeProgress = Math.max(0, (enemy.chargeProgress ?? 0) - dt * 0.35);
+        enemy.attackWindup = definition.attack.chargeSeconds > 0
+          ? (enemy.chargeProgress ?? 0) / definition.attack.chargeSeconds
+          : 0;
+      }
       const blocker = this.firstBlockingStructure(enemy, target);
       const blockerReach = enemy.kind === "boss" ? BALANCE.boss.obstacleAttackRange : 9;
       if (definition.movement.avoidStructures && enemy.routeIncludesStructures && enemy.path.length > 0) {
@@ -2124,6 +2135,10 @@ export class Game {
     if (distance(enemy, waypoint) < 34 && enemy.pathIndex < enemy.path.length - 1) enemy.pathIndex += 1;
     const active = enemy.path[enemy.pathIndex] ?? target;
     const angle = Math.atan2(active.y - enemy.y, active.x - enemy.x);
+    const attackMode = ENEMY_REGISTRY[enemy.kind].attack.mode;
+    if (attackMode === "melee" || attackMode === "boss") {
+      enemy.attackWindup = Math.max(0, enemy.attackWindup - dt * 2.5);
+    }
     const sunlightMultiplier = enemy.burning && this.phase === "day" ? BALANCE.sunlight.movementMultiplier : 1;
     const speed = enemy.speed * sunlightMultiplier * (enemy.attackWindup > 0 ? 0.2 : 1);
     const beforeX = enemy.x;
