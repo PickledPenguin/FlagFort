@@ -3,7 +3,7 @@ import { generateSeed } from "./rng";
 import type { Game } from "./game";
 import { canAfford } from "./rules";
 import { browserStorage } from "./storage";
-import { resolveCooldown } from "./modifiers";
+import { resolveActionCooldown, resolveEffectiveStat } from "./modifiers";
 import { buildBarIcon, costIcons, gameSymbol, icon, resourceIcon } from "./ui-icons";
 import { CARD_DEFINITIONS, TUTORIAL_SECTIONS } from "./content";
 import { CHALLENGES, challengeXpBonusPercent, resolveChallengeModifiers } from "./challenges";
@@ -28,6 +28,7 @@ import {
   equipmentStatDefinitions,
   equipmentUpgradePrice,
   nextEquipmentTier,
+  swordStats,
   type EquipmentState,
   type EquipmentStatDefinition,
 } from "./equipment";
@@ -324,11 +325,20 @@ export class Ui {
     const manager = this.game.profileManager;
     if (!manager) return "";
     const status = manager.getDailyRewardStatus();
+    const tiers = META_BALANCE.dailyRewards.coinsByDay.map((amount, index) => {
+      const day = index + 1;
+      const current = day === status.day;
+      const claimed = !status.reset && day <= status.streak;
+      const state = claimed ? current ? "claimed today" : "claimed" : current ? "current" : "upcoming";
+      const classes = `${claimed ? "claimed " : ""}${current ? "current" : claimed ? "" : "upcoming"}`;
+      return `<i class="${classes}" aria-label="Day ${day}: ${amount} Coins, ${state}">${claimed ? icon("daily-claimed") : `<b>${day}</b>`}</i>`;
+    }).join("");
     return `<button class="daily-rewards-summary ${status.available ? "available" : ""}"
       data-action="open-daily" aria-label="Open Daily Rewards${status.available ? `. Day ${status.day} reward available` : ""}">
-      <span>${icon("calendar")}<b>Daily Rewards</b><small>${status.available
+      <span class="daily-summary-heading">${icon("calendar")}<b>Daily Rewards</b><small>${status.available
         ? `Day ${status.day} ready · ${status.amount}¢`
-        : `Day ${status.day} claimed · next UTC day`}</small></span>
+        : `Day ${status.day} claimed · next Daily tomorrow`}</small></span>
+      <span class="daily-summary-sequence">${tiers}</span>
       <strong>${status.available ? "CLAIM" : `${status.streak} DAY`}</strong>
     </button>`;
   }
@@ -339,22 +349,22 @@ export class Ui {
     const status = manager.getDailyRewardStatus();
     const tiers = META_BALANCE.dailyRewards.coinsByDay.map((amount, index) => {
       const day = index + 1;
-      const missed = status.reset && day <= status.streak;
-      const current = status.available && day === status.day;
+      const current = day === status.day;
       const claimed = !status.reset && day <= status.streak;
-      const state = current ? "current" : claimed ? "claimed" : missed ? "missed" : "upcoming";
-      return `<li class="${state}"><span>${claimed ? icon("daily-claimed") : missed ? icon("restart") : `<b>${day}</b>`}</span>
+      const state = claimed ? current ? "claimed today" : "claimed" : current ? "current" : "upcoming";
+      const classes = `${claimed ? "claimed " : ""}${current ? "current" : claimed ? "" : "upcoming"}`;
+      return `<li class="${classes}"><span>${claimed ? icon("daily-claimed") : `<b>${day}</b>`}</span>
         <small>DAY ${day}</small><strong>${amount}<em>¢</em></strong><i>${state}</i></li>`;
     }).join("");
     return `<div class="menu-modal daily-modal-shell"><div class="modal daily-rewards-modal" role="dialog" aria-modal="true" aria-labelledby="daily-reward-title">
       <button class="modal-close" data-action="dismiss-daily" aria-label="Close">${icon("close")}</button>
-      <p class="eyebrow">CONSECUTIVE LOGIN SUPPLIES</p><h2 id="daily-reward-title">Daily Rewards</h2>
-      <p>Claim once per UTC calendar day. Miss a day and the next claim returns to Day 1. Day 7 repeats while the streak continues.</p>
-      ${status.reset ? `<p class="daily-reset-note">${icon("restart")} A missed day reset this reward to Day 1.</p>` : ""}
+      <p class="eyebrow">DAILY SUPPLIES</p><h2 id="daily-reward-title">Daily Rewards</h2>
+      <p>Claim one Daily reward per calendar day. Miss a day and the next Daily returns to Day 1. Day 7 repeats while the Daily streak continues.</p>
+      ${status.reset ? `<p class="daily-reset-note">${icon("restart")} A missed day reset Daily rewards to Day 1.</p>` : ""}
       <ol class="daily-tier-grid">${tiers}</ol>
       <p class="daily-boundary">${status.available
         ? `Day ${status.day} is ready now.`
-        : "Next reward becomes available after 00:00 UTC."}</p>
+        : "The next Daily reward becomes available tomorrow."}</p>
       <button class="primary wide" data-action="${status.available ? "claim-daily" : "dismiss-daily"}">
         ${status.available ? `Claim Day ${status.day} · ${coinAmount(status.amount)}` : "Done"}
       </button>
@@ -815,19 +825,45 @@ export class Ui {
     const permanent = this.game.profileManager?.profile.permanentUpgrades[
       choice.id as PermanentUpgradeId
     ];
-    if (choice.id === "bowRate") {
-      const permanentBonus = permanentUpgradePercent(permanent ?? 0);
-      const currentRate = 1 / resolveCooldown(BALANCE.bow.rate, [permanentBonus, this.game.upgrades.bowRate]);
-      const resultingRate = 1 / resolveCooldown(BALANCE.bow.rate, [
-        permanentBonus,
-        this.game.upgrades.bowRate + BALANCE.upgrades.bowRate.amount,
-      ]);
+    const rateKey = choice.id as "punchRate" | "bowRate" | "harvestRate" | "turretRate" | "harvesterSpeed";
+    if (["punchRate", "bowRate", "harvestRate", "turretRate", "harvesterSpeed"].includes(rateKey)) {
+      const profile = this.game.profileManager?.profile;
+      const permanentFor = (id: PermanentUpgradeId): number =>
+        permanentUpgradePercent(profile?.permanentUpgrades[id] ?? 0);
+      const permanentForRate = (id: typeof rateKey): number =>
+        id === "punchRate" ? 0 : permanentFor(id);
+      const added = BALANCE.upgrades[rateKey].amount;
+      const temporary = this.game.upgrades[rateKey];
+      const sword = profile?.equipment.sword;
+      const swordCooldown = sword?.equipped ? swordStats(sword.tier)?.cooldownMultiplier ?? 1 : 1;
+      let currentRate: number;
+      let resultingRate: number;
+      if (rateKey === "harvesterSpeed") {
+        const tier = this.game.selectedTiers.harvester;
+        const base = BALANCE.structure.harvesterSpeed[BALANCE.tierIndex[tier]] ?? 0.8;
+        currentRate = resolveEffectiveStat({ base, permanent: permanentForRate(rateKey), temporary });
+        resultingRate = resolveEffectiveStat({ base, permanent: permanentForRate(rateKey), temporary: temporary + added });
+      } else {
+        const base = rateKey === "bowRate"
+          ? BALANCE.bow.rate
+          : rateKey === "turretRate"
+            ? BALANCE.structure.turretRate[BALANCE.tierIndex[this.game.selectedTiers.turret]] ?? 1
+            : BALANCE.player.punchRate;
+        const sharedPunchTemporary = rateKey === "harvestRate" ? this.game.upgrades.punchRate : 0;
+        const layers = {
+          permanent: permanentForRate(rateKey),
+          temporary: temporary + sharedPunchTemporary,
+        };
+        const multipliers = rateKey === "punchRate" || rateKey === "harvestRate" ? [swordCooldown] : [];
+        currentRate = 1 / resolveActionCooldown(base, layers, multipliers);
+        resultingRate = 1 / resolveActionCooldown(base, { ...layers, temporary: layers.temporary + added }, multipliers);
+      }
       return `${choice.description} Current ${currentRate.toFixed(2)}/s; resulting ${resultingRate.toFixed(2)}/s.`;
     }
     if (choice.kind !== "upgrade" || permanent === undefined || permanent <= 0) {
       return choice.description;
     }
-    return `${choice.description} Permanent base: +${Math.round(permanentUpgradePercent(permanent) * 100)}%; this temporary benefit is applied afterward.`;
+    return `${choice.description} Permanent bonus: +${Math.round(permanentUpgradePercent(permanent) * 100)}%; valid percentages combine before being applied once.`;
   }
 
   private dawnHeading(): string {
@@ -955,20 +991,22 @@ export class Ui {
 
   private hudMarkup(): string {
     return `
-      <div class="player-status">
-        <span class="health-icon">${icon("heart")}</span><div class="health-track"><i data-health-bar></i></div><b data-health-value></b>
-        <button class="hud-icon-button" data-action="pause" aria-label="Pause">${icon("pause")}<span class="tooltip">Pause</span></button>
+      <div class="player-hud-group">
+        <div class="player-status">
+          <span class="health-icon">${icon("heart")}</span><div class="health-track"><i data-health-bar></i></div><b data-health-value></b>
+          <button class="hud-icon-button" data-action="pause" aria-label="Pause">${icon("pause")}<span class="tooltip">Pause</span></button>
+        </div>
+        <div class="seed-chip"><b>${this.game.seed}</b><button data-action="copy-seed" aria-label="Copy seed">${icon("copy")}<span class="tooltip">Copy seed</span></button></div>
+        ${this.adaptivePressureMarkup()}
       </div>
       <div class="countdown-stack">
         ${this.runProgressMarkup()}
-        ${this.adaptivePressureMarkup()}
         <div class="clock" data-clock-panel><div class="clock-face"><strong data-clock></strong></div><small data-night></small><span data-phase-label></span></div>
         ${this.game.phase === "day" && !this.game.tutorialMode ? `<button class="skip-night-button" data-action="skip-night" aria-label="Skip to Night">${icon("skip")}<span>Skip to Night</span><span class="tooltip">End the day early with no reward</span></button>` : ""}
     </div>
       ${this.game.debugAdaptive ? this.adaptiveDebugMarkup() : ""}
       <aside class="resources" aria-label="Resources">${RESOURCE_ORDER.map((resource) =>
         `<div title="${resource}">${resourceIcon(resource, true)}<b data-resource="${resource}">0</b></div>`).join("")}</aside>
-      <div class="seed-chip"><b>${this.game.seed}</b><button data-action="copy-seed" aria-label="Copy seed">${icon("copy")}<span class="tooltip">Copy seed</span></button></div>
       ${this.openTierPanel ? this.tierPanelMarkup(this.openTierPanel) : ""}
       <div class="context-readout" data-context></div>
       <div class="toolbar" role="toolbar" aria-label="Actions">
@@ -1160,12 +1198,19 @@ export class Ui {
 
   private adaptiveDebugMarkup(): string {
     const threat = this.game.getAdaptiveThreat();
+    const performance = this.game.performanceDifficulty;
+    const snapshot = this.game.lastNightPerformance;
     return `<aside class="adaptive-debug" aria-label="Adaptive difficulty debug">
       <span>Actual <b data-adaptive-actual>${threat.actual}</b></span>
       <span>Expected <b data-adaptive-expected>${threat.expected}</b></span>
       <span>Difference <b data-adaptive-difference>${threat.difference}</b></span>
       <span>Structure <b data-adaptive-structure>${threat.structureMultiplier.toFixed(3)}</b></span>
       <span>Level ${threat.playerLevel} <b data-adaptive-level>${threat.levelMultiplier.toFixed(3)}</b></span>
+      <span>Corrective <b data-adaptive-corrective>+${this.game.autoCorrectiveDelta.toFixed(3)}</b></span>
+      <span>Easy score <b>${performance.easyPerformance.toFixed(3)}</b></span>
+      <span>Pressure <b>${performance.pressurePenalty.toFixed(3)}</b></span>
+      ${snapshot ? `<span>Night ${snapshot.night} damage <b>${snapshot.totalIncomingDamage.toFixed(1)}</b></span>
+        <span>Fort loss <b>${snapshot.destroyedStructureCount}/${snapshot.destroyedStructureValue}</b></span>` : ""}
       <span>Raw <b data-adaptive-raw>${threat.rawMultiplier.toFixed(3)}</b></span>
       <span>Clamped <b data-adaptive-clamped>${threat.multiplier.toFixed(3)}</b></span>
     </aside>`;

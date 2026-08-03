@@ -35,8 +35,8 @@ All source paths are absolute in `public/audio/audio-attribution.json`. This tab
 | diamond-hit.ogg | impactGlass_light_003.ogg | Kenney / Impact Sounds | CC0 1.0 |
 | resource-collected.ogg | Ting Coins.wav | Cinematic Sound Design / UI Interaction Elements | Sonniss GDC Game Audio Bundle Part 9 royalty-free license |
 | resource-depleted.ogg | impactSoft_heavy_002.ogg | Kenney / Impact Sounds | CC0 1.0 |
-| structure-place.ogg | ROBTMvmt_Tower Deploy Hitech Robot Motor Dark Thump Servo Whine 04_ESM_TDG.wav | Epic Stock Media / Tower Defense Game | Sonniss GDC Game Audio Bundle Part 9 royalty-free license |
-| structure-upgrade.ogg | GAMEMisc_Magic Creation 23_CB Sounddesign_APPlicable Sounds.wav | CB_Sounddesign / Applicable Sounds - Organic UI and Building Games SFX | Sonniss GDC Game Audio Bundle Part 9 royalty-free license |
+| structure-place.ogg | structure-place.ogg | Epic Stock Media / Tower Defense Game | Sonniss GDC Game Audio Bundle Part 9 royalty-free license |
+| structure-upgrade.ogg | structure-upgrade.ogg | CB_Sounddesign / Applicable Sounds - Organic UI and Building Games SFX | Sonniss GDC Game Audio Bundle Part 9 royalty-free license |
 | structure-repair.ogg | MACHMech_Mechanism Counting Machine Interact Loose Container Short 01_ESM_HDLM.wav | Epic Stock Media / HD Lock And Mechanism Sound Design Kit | Sonniss GDC Game Audio Bundle Part 9 royalty-free license |
 | structure-recycle.ogg | structure-recycle.ogg | Epic Stock Media / Board Game - Sound Set Kit for Tabletop and Digital Games | Sonniss GDC Game Audio Bundle Part 9 royalty-free license |
 | structure-damaged.ogg | impactPlate_medium_002.ogg | Kenney / Impact Sounds | CC0 1.0 |

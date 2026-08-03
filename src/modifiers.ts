@@ -28,3 +28,33 @@ export function resolveCooldown(baseCooldown: number, additiveRateBonuses: reado
   const totalRate = additiveRateBonuses.reduce((sum, bonus) => sum + Math.max(-0.95, bonus), 0);
   return baseCooldown / Math.max(0.05, 1 + totalRate);
 }
+
+export interface ActionSpeedLayers {
+  permanent?: number;
+  equipment?: number;
+  challenge?: number;
+  temporary?: number;
+  mutation?: number;
+  contextual?: number;
+}
+
+/**
+ * Resolves rate bonuses once, then converts the effective rate back to a
+ * cooldown. Explicit cooldown multipliers are reserved for equipment whose
+ * design intentionally changes action timing, such as swords.
+ */
+export function resolveActionCooldown(
+  baseCooldown: number,
+  layers: ActionSpeedLayers,
+  documentedCooldownMultipliers: readonly number[] = [],
+): number {
+  const effectiveRate = resolveEffectiveStat({ base: 1, ...layers });
+  const cooldownMultiplier = documentedCooldownMultipliers
+    .filter((value) => Number.isFinite(value) && value >= 0)
+    .reduce((product, value) => product * value, 1);
+  return baseCooldown / Math.max(0.05, effectiveRate) * cooldownMultiplier;
+}
+
+export function resolveActionRate(baseCooldown: number, layers: ActionSpeedLayers): number {
+  return 1 / resolveActionCooldown(baseCooldown, layers);
+}

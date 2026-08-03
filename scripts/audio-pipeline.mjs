@@ -260,7 +260,8 @@ export const selections = [
   },
   {
     id: "structure-place",
-    source: source("Sonniss.com-GDC2026-GameAudioBundle2of5/Epic Stock Media - Tower Defense Game/ROBTMvmt_Tower Deploy Hitech Robot Motor Dark Thump Servo Whine 04_ESM_TDG.wav"),
+    source: manual("structure-place"),
+    preserveSource: true,
     creator: "Epic Stock Media",
     pack: "Tower Defense Game",
     ...SONNISS_ROYALTY_FREE,
@@ -268,7 +269,8 @@ export const selections = [
   },
   {
     id: "structure-upgrade",
-    source: source("Sonniss.com-GDC2026-GameAudioBundle2of5/CB_Sounddesign - Applicable Sounds - Organic UI and Building Games SFX/GAMEMisc_Magic Creation 23_CB Sounddesign_APPlicable Sounds.wav"),
+    source: manual("structure-upgrade"),
+    preserveSource: true,
     creator: "CB_Sounddesign",
     pack: "Applicable Sounds - Organic UI and Building Games SFX",
     ...SONNISS_ROYALTY_FREE,

@@ -82,6 +82,30 @@ async function bootstrap(): Promise<void> {
         input.mouseDown = false;
         game.modalLock = true;
       }
+    } else if (preview.has("bossSlamPreview")) {
+      game.startRun("normal", "flagfall-boss-slam-preview", [], true, { settle: false });
+      game.phase = "night";
+      const bossPosition = { x: game.flag.x + 150, y: game.flag.y };
+      (game as unknown as {
+        spawnEnemy(position: { x: number; y: number }, kind: EnemyKind): void;
+      }).spawnEnemy(bossPosition, "boss");
+      const boss = game.enemies.at(-1);
+      if (boss) {
+        boss.x = bossPosition.x;
+        boss.y = bossPosition.y;
+        boss.summonCooldown = 0;
+        if (preview.get("bossSlamPreview") === "windup") {
+          boss.bossSmashWindup = BALANCE.boss.slam.chargeDuration * 0.6;
+        } else {
+          boss.bossSmashWindup = BALANCE.boss.slam.chargeDuration;
+          (game as unknown as {
+            updateBoss(enemy: typeof boss, dt: number): void;
+          }).updateBoss(boss, 0);
+          const slamEffect = game.areaEffects.at(-1);
+          if (slamEffect?.kind === "boss-slam") slamEffect.remaining = slamEffect.duration / 2;
+        }
+      }
+      game.modalLock = true;
     } else if (enemyPreview && enemyKinds.includes(enemyPreview)) {
       game.startRun("normal", "flagfall-enemy-preview", [], true, { settle: false });
       game.phase = "dawn";

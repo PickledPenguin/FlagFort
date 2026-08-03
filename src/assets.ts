@@ -97,6 +97,10 @@ export const ASSETS = {
     arrow: image("gameplay/projectiles/arrow"),
     acid: image("gameplay/projectiles/acid"),
   },
+  effects: {
+    bossSlamWave: image("effects/boss-slam-wave"),
+    popperAcidBurst: image("effects/popper-acid-burst"),
+  },
   cursors: {
     ringAllowed: image("gameplay/cursors/ring-allowed"),
     ringBlocked: image("gameplay/cursors/ring-blocked"),

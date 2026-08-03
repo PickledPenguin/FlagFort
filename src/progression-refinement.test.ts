@@ -152,7 +152,9 @@ describe("additive adaptive difficulty and rewards", () => {
   it("awards difficulty XP at reduced, base, intermediate, and maximum boundaries", () => {
     expect(calculateDifficultyXp(0.5)).toBe(0);
     expect(calculateDifficultyXp(1)).toBe(0);
-    expect(calculateDifficultyXp(1.375)).toBe(75);
+    const midpoint = (META_BALANCE.rewards.difficultyBonus.normalBaseMultiplier
+      + BALANCE.adaptive.effective.maximumMultiplier) / 2;
+    expect(calculateDifficultyXp(midpoint)).toBe(75);
     expect(calculateDifficultyXp(BALANCE.adaptive.effective.maximumMultiplier)).toBe(
       META_BALANCE.rewards.campaignVictoryBonus / 2,
     );

@@ -84,7 +84,7 @@ describe("versioned profile persistence", () => {
     expect(manager.profile.progress.totalNightsSurvived).toBe(14);
   });
 
-  it("grants one UTC calendar-day reward across reloads", () => {
+  it("grants one New York calendar-day reward across reloads and daylight-saving changes", () => {
     const store = new TestStore();
     const first = new ProfileManager(store);
     expect(first.claimDailyReward(new Date("2026-07-30T23:59:59-04:00")).granted).toBe(true);
@@ -95,6 +95,12 @@ describe("versioned profile persistence", () => {
     expect(reloaded.claimDailyReward(new Date("2026-08-01T00:00:00Z")).granted).toBe(true);
     expect(reloaded.profile.coins).toBe(35);
     expect(crazyGamesCalendarDate(new Date("2026-08-01T00:00:00+14:00"))).toBe("2026-07-31");
+    expect(crazyGamesCalendarDate(new Date("2026-03-08T04:59:59Z"))).toBe("2026-03-07");
+    expect(crazyGamesCalendarDate(new Date("2026-03-08T05:00:00Z"))).toBe("2026-03-08");
+    expect(crazyGamesCalendarDate(new Date("2026-03-09T03:59:59Z"))).toBe("2026-03-08");
+    expect(crazyGamesCalendarDate(new Date("2026-03-09T04:00:00Z"))).toBe("2026-03-09");
+    expect(crazyGamesCalendarDate(new Date("2026-11-02T04:59:59Z"))).toBe("2026-11-01");
+    expect(crazyGamesCalendarDate(new Date("2026-11-02T05:00:00Z"))).toBe("2026-11-02");
   });
 
   it("deducts and settles a run exactly once", () => {

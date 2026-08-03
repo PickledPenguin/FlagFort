@@ -103,6 +103,7 @@ export interface Enemy extends Circle {
   damage: number;
   structureDamage: number;
   attackRate: number;
+  attackSpeedMultiplier?: number;
   cooldown: number;
   attackWindup: number;
   targetId: number | "player" | "flag" | "tutorial" | null;
@@ -176,6 +177,13 @@ export interface Particle extends Vec2 {
   color: string;
   text?: string;
   resource?: ResourceKind;
+}
+
+export interface AreaEffect extends Vec2 {
+  kind: "boss-slam" | "popper-acid";
+  radius: number;
+  remaining: number;
+  duration: number;
 }
 
 export interface World {

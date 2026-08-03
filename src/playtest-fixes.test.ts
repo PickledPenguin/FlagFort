@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { BALANCE } from "./config";
 import { generateChoiceOfferings } from "./choices";
 import { ENEMY_REGISTRY, introducedRosterEnemies, mutationWeightKey, selectEnemyRoster } from "./enemy-registry";
-import { Game } from "./game";
+import { Game, LOCAL_PLAYER_ID } from "./game";
 import { Input } from "./input";
 import { META_BALANCE } from "./meta-balance";
 import type { KeyValueStore } from "./platform";
@@ -31,7 +31,7 @@ function createGame(): Game {
 
 function harvester(id: number, x: number, y: number): Structure {
   return {
-    id, ownerId: "local", kind: "harvester", tier: "wood", x, y,
+    id, ownerId: LOCAL_PLAYER_ID, kind: "harvester", tier: "wood", x, y,
     radius: BALANCE.structure.radius.harvester, health: 100, maxHealth: 100,
     cooldown: 0, angle: 0, lastArmAngle: 0, harvesterHitResourceIds: new Set(), flash: 0,
   };
@@ -114,14 +114,14 @@ describe("Gremlin target recovery", () => {
 describe("combat and roster playtest fixes", () => {
   it("preserves the manually tuned special-zombie render sizes", () => {
     expect(ENEMY_REGISTRY.gremlin.render).toMatchObject({ width: 60, height: 39 });
-    expect(ENEMY_REGISTRY.splitter.render).toMatchObject({ width: 50, height: 70 });
+    expect(ENEMY_REGISTRY.splitter.render).toMatchObject({ width: 70, height: 50 });
     expect(ENEMY_REGISTRY.archer.render).toMatchObject({ width: 70, height: 70 });
-    expect(ENEMY_REGISTRY.popper.render).toMatchObject({ width: 60, height: 80 });
-    expect(ENEMY_REGISTRY.acidslinger.render).toMatchObject({ width: 56, height: 98 });
+    expect(ENEMY_REGISTRY.popper.render).toMatchObject({ width: 80, height: 60 });
+    expect(ENEMY_REGISTRY.acidslinger.render).toMatchObject({ width: 98, height: 56 });
     expect(ENEMY_REGISTRY["splitter-child"].render)
-      .toMatchObject({ width: 46, height: 56 });
+      .toMatchObject({ width: 56, height: 46 });
     expect(ENEMY_REGISTRY.splitter.death.childSize).toBe(0.75);
-    expect(ENEMY_REGISTRY.rammer.render).toMatchObject({ width: 61.6, height: 88 });
+    expect(ENEMY_REGISTRY.rammer.render).toMatchObject({ width: 88, height: 61.6 });
   });
 
   it("generates mutation targets only from the seeded introduced roster", () => {

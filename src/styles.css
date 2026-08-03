@@ -1238,11 +1238,20 @@ img.icon.mouse-glyph {
 }
 
 /* Persistent gameplay HUD */
-.player-status {
+.player-hud-group {
   position: absolute;
+  z-index: 13;
   left: 15px;
   top: 15px;
   width: 255px;
+  display: grid;
+  justify-items: start;
+  gap: 7px;
+}
+
+.player-status {
+  position: relative;
+  width: 100%;
   height: 54px;
   display: grid;
   grid-template-columns: 36px minmax(0, 1fr) 38px 36px;
@@ -1378,10 +1387,8 @@ img.icon {
 }
 
 .seed-chip {
-  position: absolute;
-  left: 16px;
-  top: 77px;
-  max-width: 220px;
+  position: relative;
+  max-width: 100%;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -1926,8 +1933,9 @@ img.icon {
   }
 
   .player-status {
-    width: 190px;
+    width: 100%;
   }
+  .player-hud-group { width: 190px; }
 }
 
 /* Refactored shared assets and build controls */
@@ -3321,9 +3329,10 @@ img.icon {
   z-index: 5;
   top: 88px;
   left: 18px;
-  width: min(310px, calc(100vw - 36px));
+  width: min(356px, calc(100vw - 36px));
   min-width: 0;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
@@ -3336,11 +3345,48 @@ img.icon {
 }
 
 .daily-rewards-summary.available { border-color: rgba(247, 202, 75, .72); background: rgba(47, 37, 11, .94); }
-.daily-rewards-summary > span { min-width: 0; display: grid; grid-template-columns: 22px minmax(0, 1fr); text-align: left; }
-.daily-rewards-summary .icon { grid-row: 1 / 3; align-self: center; width: 18px; }
+.daily-rewards-summary .daily-summary-heading { min-width: 0; display: grid; grid-template-columns: 22px minmax(0, 1fr); text-align: left; }
+.daily-rewards-summary .daily-summary-heading > .icon { grid-row: 1 / 3; align-self: center; width: 18px; }
 .daily-rewards-summary b, .daily-rewards-summary small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .daily-rewards-summary small { color: var(--muted); font-size: 9px; }
 .daily-rewards-summary > strong { flex: 0 0 auto; color: var(--gold); font-size: 10px; letter-spacing: .08em; }
+.daily-summary-sequence {
+  position: relative;
+  grid-column: 1 / -1;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  align-items: center;
+  gap: 5px;
+}
+.daily-summary-sequence::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  left: 6%;
+  right: 6%;
+  top: 50%;
+  height: 2px;
+  background: rgba(229, 242, 218, .2);
+}
+.daily-summary-sequence i {
+  position: relative;
+  z-index: 1;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  justify-self: center;
+  border: 2px solid rgba(229, 242, 218, .28);
+  border-radius: 50%;
+  color: var(--muted);
+  background: #0a1c12;
+  font-style: normal;
+  font-size: 8px;
+}
+.daily-summary-sequence i.claimed { border-color: var(--green); color: #092417; background: var(--green); }
+.daily-summary-sequence i.current { border-color: var(--gold); color: #271b04; background: var(--gold); box-shadow: 0 0 0 3px rgba(247, 202, 75, .18); }
+.daily-summary-sequence .icon { width: 12px; height: 12px; }
 
 .daily-modal-shell { z-index: 40; }
 .daily-rewards-modal { width: min(760px, calc(100vw - 32px)); }
@@ -3376,8 +3422,7 @@ img.icon {
 }
 
 .adaptive-pressure {
-  position: absolute;
-  top: 50px;
+  position: relative;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -3403,6 +3448,7 @@ img.icon {
 .difficulty-xp-adjustment.penalty strong { color: #ff9b91; }
 
 @media (max-width: 760px), (max-height: 620px) {
+  .player-hud-group { width: 190px; }
   .daily-tier-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .daily-tier-grid li.current { transform: none; }
   .daily-rewards-summary { top: 68px; width: min(266px, calc(100vw - 16px)); padding-block: 2px; }

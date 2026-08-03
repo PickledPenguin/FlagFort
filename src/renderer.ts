@@ -242,6 +242,7 @@ export class Renderer {
     for (const structure of game.structures) {
       if (this.visible(game, structure.x, structure.y, structure.radius + 140)) this.drawStructure(structure, game.player);
     }
+    for (const effect of game.areaEffects) this.drawAreaEffect(effect);
     if (game.buildPreview) this.drawBuildPreview(game);
     for (const projectile of game.projectiles) {
       if (projectile.owner === "boss-acid" || projectile.owner === "enemy-acid") {
@@ -577,24 +578,26 @@ export class Renderer {
       ctx.stroke();
     }
     if (enemy.kind === "boss" && enemy.bossSmashWindup > 0) {
+      const slamProgress = Math.min(
+        1,
+        enemy.bossSmashWindup / BALANCE.boss.slam.chargeDuration,
+      );
+      const slamDiameter = BALANCE.boss.slam.radius * 2;
+      ctx.save();
+      ctx.globalAlpha = 0.3 + slamProgress * 0.18;
+      this.drawSprite(
+        ASSETS.effects.bossSlamWave,
+        -BALANCE.boss.slam.radius,
+        -BALANCE.boss.slam.radius,
+        slamDiameter,
+        slamDiameter,
+      );
+      ctx.restore();
       ctx.strokeStyle = "rgba(255,92,76,.82)";
       ctx.lineWidth = 8;
       ctx.beginPath();
-      ctx.arc(0, 0, BALANCE.boss.slam.radius, 0, Math.PI * 2
-        * Math.min(1, enemy.bossSmashWindup / BALANCE.boss.slam.chargeDuration));
-      ctx.stroke();
-    }
-    if (enemy.kind === "boss" && (enemy.bossSlamWave ?? 0) > 0) {
-      const reducedMotion = typeof window !== "undefined"
-        && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-      const progress = 1 - (enemy.bossSlamWave ?? 0) / BALANCE.boss.slam.waveDuration;
-      const radius = reducedMotion ? BALANCE.boss.slam.radius : BALANCE.boss.slam.radius * progress;
-      ctx.strokeStyle = `rgba(255, 116, 82, ${Math.max(0.2, 0.9 - progress * 0.65)})`;
-      ctx.fillStyle = "rgba(255, 70, 58, .09)";
-      ctx.lineWidth = 12;
-      ctx.beginPath();
-      ctx.arc(0, 0, radius, 0, Math.PI * 2);
-      if (reducedMotion) ctx.fill();
+      ctx.arc(0, 0, BALANCE.boss.slam.radius, -Math.PI / 2,
+        -Math.PI / 2 + Math.PI * 2 * slamProgress);
       ctx.stroke();
     }
     if (enemy.kind === "boss" && enemy.acidWindup > 0) {
@@ -675,6 +678,21 @@ export class Renderer {
       enemy.health / enemy.maxHealth,
       "#d2574e",
     );
+  }
+
+  private drawAreaEffect(effect: import("./types").AreaEffect): void {
+    const reducedMotion = typeof window !== "undefined"
+      && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    const progress = Math.max(0, Math.min(1, 1 - effect.remaining / effect.duration));
+    const radius = reducedMotion ? effect.radius : effect.radius * progress;
+    const path = effect.kind === "boss-slam"
+      ? ASSETS.effects.bossSlamWave
+      : ASSETS.effects.popperAcidBurst;
+    const size = radius * 2;
+    this.ctx.save();
+    this.ctx.globalAlpha = reducedMotion ? 0.72 : Math.max(0.24, 1 - progress * 0.58);
+    this.drawSprite(path, effect.x - radius, effect.y - radius, size, size);
+    this.ctx.restore();
   }
 
   private drawPlayer(game: Game): void {

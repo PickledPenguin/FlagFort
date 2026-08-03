@@ -36,7 +36,12 @@ import {
   swordStats,
 } from "./equipment";
 import { META_BALANCE, permanentUpgradePercent, type PermanentUpgradeId } from "./meta-balance";
-import { resolveCooldown, resolveEffectiveStat } from "./modifiers";
+import { resolveActionCooldown, resolveEffectiveStat } from "./modifiers";
+import {
+  performanceDifficultyDelta,
+  type NightPerformanceSnapshot,
+  type PerformanceDifficultyResult,
+} from "./performance-difficulty";
 import type { GamePlatform } from "./platform";
 import type { ProfileManager, RunSettlementResult } from "./profile";
 import { calculateXpRewards, settleCoinInvestment } from "./rewards";
@@ -50,6 +55,7 @@ import {
 } from "./enemy-registry";
 import type {
   ActionKind,
+  AreaEffect,
   Choice,
   Difficulty,
   Enemy,
@@ -71,6 +77,21 @@ import type {
   Vec2,
   World,
 } from "./types";
+
+interface NightPerformanceTracker {
+  night: number;
+  totalIncomingDamage: number;
+  flagDamage: number;
+  zombiesEnteringFlagRadius: number;
+  playerDamageTaken: number;
+  totalZombiesSpawned: number;
+  startingZombieKills: number;
+  startingPersonalKills: number;
+  damagedStructureIds: Set<number>;
+  destroyedStructureIds: Set<number>;
+  structureValues: Map<number, number>;
+  flagRadiusEnemyIds: Set<number>;
+}
 
 export interface BuildPreview {
   x: number;
@@ -164,6 +185,7 @@ export class Game {
   enemies: Enemy[] = [];
   projectiles: Projectile[] = [];
   particles: Particle[] = [];
+  areaEffects: AreaEffect[] = [];
   selectedSlot = 1;
   selectedTiers: Record<StructureKind, Tier> = {
     wall: "wood",
@@ -205,6 +227,9 @@ export class Game {
   activeChallenges = new Set<string>();
   structureScore = 0;
   adaptiveState: AdaptiveDifficulty = adaptiveDifficulty(0, 1);
+  lastNightPerformance: NightPerformanceSnapshot | null = null;
+  performanceDifficulty: PerformanceDifficultyResult = performanceDifficultyDelta(null);
+  autoCorrectiveDelta = 0;
   debugNavigation = BALANCE.debug.navigation
     || (typeof location !== "undefined" && new URLSearchParams(location.search).has("navDebug"));
   debugAdaptive = BALANCE.debug.adaptiveHud
@@ -244,6 +269,7 @@ export class Game {
   private meleeImpactPending = false;
   private meleeSwingUsesSword = false;
   private uiDirty = true;
+  private nightPerformance: NightPerformanceTracker | null = null;
   private onMajorScreen: (() => void) | null = null;
 
   constructor(
@@ -340,6 +366,7 @@ export class Game {
     this.enemies = [];
     this.projectiles = [];
     this.particles = [];
+    this.areaEffects = [];
     this.navigationFields.clear();
     this.structureRevision = 0;
     this.nightWaveScheduled = false;
@@ -365,6 +392,10 @@ export class Game {
       1,
       this.profileManager?.profile.playerLevel ?? 1,
     );
+    this.lastNightPerformance = null;
+    this.performanceDifficulty = performanceDifficultyDelta(null);
+    this.autoCorrectiveDelta = 0;
+    this.nightPerformance = null;
     this.playerDamageWarned = false;
     this.flagWarningCooldown = 0;
     this.footstepCooldown = 0;
@@ -943,6 +974,7 @@ export class Game {
     this.updateStructures(dt);
     this.updatePortals(dt);
     this.updateEnemies(dt);
+    this.trackFlagRadiusEntries();
     this.updateProjectiles(dt);
     this.updateParticles(dt);
     this.updateHealing(dt);
@@ -1064,13 +1096,13 @@ export class Game {
 
   private punch(): void {
     const sword = this.getEquippedSword();
-    const baseMeleeInterval = Math.max(
-      0.16,
-      BALANCE.player.punchRate - this.upgrades.punchRate,
-    );
-    const interval = sword
-      ? baseMeleeInterval * sword.cooldownMultiplier
-      : baseMeleeInterval;
+    const interval = Math.max(0.16, resolveActionCooldown(
+      BALANCE.player.punchRate,
+      {
+        temporary: this.upgrades.punchRate,
+      },
+      sword ? [sword.cooldownMultiplier] : [],
+    ));
     if (this.player.cooldown > 0) return;
     this.player.cooldown = interval;
     this.meleeSwingDuration = interval;
@@ -1144,11 +1176,16 @@ export class Game {
       .filter((item) => this.inMeleeArc(item, range, sword?.arc ?? BALANCE.player.punchArc))
       .sort((a, b) => distance(this.player, a) - distance(this.player, b))[0];
     if (node) {
-      const harvestBase = this.meleeSwingDuration;
       const harvestInterval = Math.max(
         0.12,
-        resolveCooldown(harvestBase, sword ? [this.getPermanentPercent("harvestRate")] : [])
-          - this.upgrades.harvestRate,
+        resolveActionCooldown(
+          BALANCE.player.punchRate,
+          {
+            permanent: this.getPermanentPercent("harvestRate"),
+            temporary: this.upgrades.punchRate + this.upgrades.harvestRate,
+          },
+          sword ? [sword.cooldownMultiplier] : [],
+        ),
       );
       this.player.cooldown = sword
         ? Math.max(0, harvestInterval - this.meleeSwingElapsed)
@@ -1177,10 +1214,10 @@ export class Game {
   }
 
   private shootBow(): void {
-    const interval = Math.max(0.15, resolveCooldown(BALANCE.bow.rate, [
-      this.getPermanentPercent("bowRate"),
-      this.upgrades.bowRate,
-    ]));
+    const interval = Math.max(0.15, resolveActionCooldown(BALANCE.bow.rate, {
+      permanent: this.getPermanentPercent("bowRate"),
+      temporary: this.upgrades.bowRate,
+    }));
     if (this.player.toolCooldown > 0) return;
     this.player.toolCooldown = interval;
     const angle = this.player.angle;
@@ -1526,10 +1563,10 @@ export class Game {
     if (structure.cooldown > 0) return;
     structure.cooldown = Math.max(
       0.16,
-      resolveCooldown(
-        BALANCE.structure.turretRate[tierIndex] ?? 1,
-        [this.getPermanentPercent("turretRate", ownerId)],
-      ) * (1 - Math.min(0.7, this.upgrades.turretRate)),
+      resolveActionCooldown(BALANCE.structure.turretRate[tierIndex] ?? 1, {
+        permanent: this.getPermanentPercent("turretRate", ownerId),
+        temporary: this.upgrades.turretRate,
+      }),
     );
     this.projectiles.push({
       id: this.nextId++,
@@ -1665,6 +1702,12 @@ export class Game {
       mutationParentKind as typeof this.enemyRoster[keyof typeof this.enemyRoster],
     );
     const mutation = mutationApplies ? this.mutations : createMutations();
+    const attackSpeedMultiplier = resolveEffectiveStat({
+      base: 1,
+      permanent: difficulty.attackSpeed - 1,
+      mutation: mutation.attackSpeed,
+      challenge: challenges.enemyAttackSpeedMultiplier - 1,
+    });
     const health = base.health
       * difficulty.enemyHealth
       * (1 + mutation.health)
@@ -1693,11 +1736,8 @@ export class Game {
         * (1 + mutation.structureDamage)
         * adaptiveDamage
         * challenges.enemyDamageMultiplier,
-      attackRate: base.attackRate / (
-        difficulty.attackSpeed
-        * (1 + mutation.attackSpeed)
-        * challenges.enemyAttackSpeedMultiplier
-      ),
+      attackRate: base.attackRate / Math.max(0.05, attackSpeedMultiplier),
+      attackSpeedMultiplier,
       cooldown: 0,
       attackWindup: 0,
       targetId: this.tutorialMode && !this.flagPresent ? "tutorial" : "flag",
@@ -1743,7 +1783,12 @@ export class Game {
       chargeHitIds: new Set(),
     });
     const spawned = this.enemies.at(-1);
-    if (spawned) this.constrainToTutorialArena(spawned);
+    if (spawned) {
+      this.constrainToTutorialArena(spawned);
+      if (this.phase === "night" && this.nightPerformance) {
+        this.nightPerformance.totalZombiesSpawned += 1;
+      }
+    }
   }
 
   private rollEnemyKind(
@@ -2138,17 +2183,14 @@ export class Game {
   private enemyAttack(enemy: Enemy, target: Player | Flag | Structure, dt: number): void {
     if (enemy.jumpTime > 0) return;
     if (enemy.cooldown > 0) return;
-    enemy.attackWindup += dt
-      * 3.4
-      * this.getChallengeModifiers().enemyAttackSpeedMultiplier;
+    enemy.attackWindup += dt * 3.4 * (enemy.attackSpeedMultiplier ?? 1);
     if (enemy.attackWindup < 1) return;
     enemy.attackWindup = 0;
     enemy.cooldown = enemy.attackRate;
     const isStructure = "kind" in target && "tier" in target;
     const rawDamage = isStructure ? enemy.structureDamage : enemy.damage;
-    const damage = target === this.player ? this.mitigateIncomingDamage(rawDamage) : rawDamage;
     const playerWasFull = target === this.player && this.player.health >= this.player.maxHealth;
-    target.health -= damage;
+    const damage = this.applyIncomingDamage(target, rawDamage);
     emitAudioCue({
       cue: (ENEMY_REGISTRY[enemy.kind].audio.attack ?? "zombie-attack") as import("./audio").SoundId,
       position: { x: enemy.x, y: enemy.y },
@@ -2342,7 +2384,7 @@ export class Game {
     const definition = ENEMY_REGISTRY[enemy.kind];
     const projectile = definition.projectile;
     if (!projectile) return;
-    enemy.chargeProgress = (enemy.chargeProgress ?? 0) + dt * this.getChallengeModifiers().enemyAttackSpeedMultiplier;
+    enemy.chargeProgress = (enemy.chargeProgress ?? 0) + dt * (enemy.attackSpeedMultiplier ?? 1);
     enemy.attackWindup = Math.min(1, enemy.chargeProgress / definition.attack.chargeSeconds);
     enemy.angle = Math.atan2(target.y - enemy.y, target.x - enemy.x);
     if (enemy.chargeProgress < definition.attack.chargeSeconds) return;
@@ -2411,11 +2453,11 @@ export class Game {
         enemy.chargeHitIds.add(structure.id);
         const remainingHealth = Math.max(0, structure.health);
         if (enemy.chargeDamageLeft >= remainingHealth) {
-          structure.health = 0;
+          this.applyIncomingDamage(structure, remainingHealth);
           enemy.chargeDamageLeft -= remainingHealth;
           this.burst(structure.x, structure.y, "#ff9a51", 18, "BREACH");
         } else {
-          structure.health -= enemy.chargeDamageLeft;
+          this.applyIncomingDamage(structure, enemy.chargeDamageLeft);
           enemy.chargeDamageLeft = 0;
         }
         structure.flash = 0.3;
@@ -2458,7 +2500,7 @@ export class Game {
         position: { x: enemy.x, y: enemy.y },
       });
     }
-    enemy.chargeProgress += dt * this.getChallengeModifiers().enemyAttackSpeedMultiplier;
+    enemy.chargeProgress += dt * (enemy.attackSpeedMultiplier ?? 1);
     enemy.attackWindup = Math.min(1, enemy.chargeProgress / ram.loadSeconds);
     if (enemy.chargeProgress < ram.loadSeconds) return true;
     enemy.chargeProgress = 0;
@@ -2533,9 +2575,9 @@ export class Game {
     const death = ENEMY_REGISTRY.popper.death;
     const inner = death.burstInnerRadius ?? 52;
     const outer = death.burstOuterRadius ?? 145;
-    const maximum = (death.burstDamage ?? 30)
-      * (enemy.damage / Math.max(1, ENEMY_REGISTRY.popper.base.damage));
-    const damageAt = (target: { x: number; y: number; radius: number }): number => {
+    const playerScale = enemy.damage / Math.max(1, ENEMY_REGISTRY.popper.base.damage);
+    const structureScale = enemy.structureDamage / Math.max(1, ENEMY_REGISTRY.popper.base.structureDamage);
+    const damageAt = (target: { x: number; y: number; radius: number }, maximum: number): number => {
       const edge = Math.max(0, distance(enemy, target) - target.radius);
       if (edge > outer) return 0;
       if (edge <= inner) return maximum;
@@ -2543,25 +2585,36 @@ export class Game {
       return maximum * Math.pow(t, death.burstFalloff ?? 1.7);
     };
     if (death.burstTargets?.includes("player")) {
-      const damage = damageAt(this.player);
+      const damage = damageAt(this.player, (death.burstPlayerDamage ?? death.burstDamage ?? 30) * playerScale);
       if (damage > 0) {
-        this.player.health -= this.mitigateIncomingDamage(damage);
+        this.applyIncomingDamage(this.player, damage);
         this.player.hurtFlash = 0.25;
       }
     }
+    if (this.flagPresent && death.burstTargets?.includes("flag")) {
+      const damage = damageAt(this.flag, (death.burstFlagDamage ?? death.burstDamage ?? 30) * playerScale);
+      if (damage > 0) {
+        this.applyIncomingDamage(this.flag, damage);
+        this.flag.hurtFlash = 0.25;
+        emitAudioCue({ cue: "flag-damaged" });
+      }
+    }
     for (const structure of this.structures) {
+      if (!this.isOwnedByPlayer(structure, this.player.id)) continue;
       if (!death.burstTargets?.includes(structure.kind)) continue;
-      const damage = damageAt(structure);
+      const damage = damageAt(structure, (death.burstStructureDamage ?? death.burstDamage ?? 30) * structureScale);
       if (damage <= 0) continue;
-      structure.health -= damage;
+      this.applyIncomingDamage(structure, damage);
       structure.flash = 0.25;
     }
+    const duration = death.burstWaveDuration ?? 0.38;
+    this.areaEffects.push({ kind: "popper-acid", x: enemy.x, y: enemy.y, radius: outer, remaining: duration, duration });
     this.burst(enemy.x, enemy.y, "#67d73e", 34, "ACID BURST");
     this.shake = Math.max(this.shake, 7);
   }
 
   private updateSummoner(enemy: Enemy, dt: number): void {
-    enemy.summonCooldown -= dt * this.getChallengeModifiers().enemyAttackSpeedMultiplier;
+    enemy.summonCooldown -= dt * (enemy.attackSpeedMultiplier ?? 1);
     if (enemy.summonCooldown > 0) return;
     const living = this.enemies.filter((item) => item.summonedBy === enemy.id && item.health > 0).length;
     if (living >= 3) {
@@ -2577,7 +2630,7 @@ export class Game {
   private updateBoss(enemy: Enemy, dt: number): void {
     if (!this.flagPresent) return;
     enemy.targetId = "flag";
-    const attackSpeed = this.getChallengeModifiers().enemyAttackSpeedMultiplier;
+    const attackSpeed = enemy.attackSpeedMultiplier ?? 1;
     enemy.acidCooldown = Math.max(0, enemy.acidCooldown - dt * attackSpeed);
     const playerDistance = distance(enemy, this.player);
     if (enemy.acidWindup > 0) {
@@ -2612,23 +2665,47 @@ export class Game {
       enemy.bossSlamWave = BALANCE.boss.slam.waveDuration;
       const playerEdgeDistance = Math.max(0, distance(enemy, this.player) - this.player.radius);
       if (playerEdgeDistance <= BALANCE.boss.slam.radius) {
-        const damage = this.mitigateIncomingDamage(
+        const damage = this.applyIncomingDamage(
+          this.player,
           BALANCE.boss.slam.playerDamage
             * (enemy.damage / Math.max(1, ENEMY_REGISTRY.boss.base.damage)),
         );
-        this.player.health -= damage;
         this.player.hurtFlash = 0.3;
         this.burst(this.player.x, this.player.y, "#ff6b55", 10, `-${Math.round(damage)}`);
       }
+      if (this.flagPresent) {
+        const flagEdgeDistance = Math.max(0, distance(enemy, this.flag) - this.flag.radius);
+        if (flagEdgeDistance <= BALANCE.boss.slam.radius) {
+          this.applyIncomingDamage(
+            this.flag,
+            BALANCE.boss.slam.flagDamage
+              * (enemy.damage / Math.max(1, ENEMY_REGISTRY.boss.base.damage)),
+          );
+          this.flag.hurtFlash = 0.3;
+          emitAudioCue({ cue: "flag-damaged" });
+        }
+      }
       for (const structure of this.structures) {
+        if (!this.isOwnedByPlayer(structure, this.player.id)) continue;
         const edgeDistance = Math.max(0, distance(enemy, structure) - structure.radius);
         if (edgeDistance <= BALANCE.boss.slam.radius) {
-          structure.health -= BALANCE.boss.slam.structureDamage
-            * (enemy.structureDamage / Math.max(1, ENEMY_REGISTRY.boss.base.structureDamage));
+          this.applyIncomingDamage(
+            structure,
+            BALANCE.boss.slam.structureDamage
+              * (enemy.structureDamage / Math.max(1, ENEMY_REGISTRY.boss.base.structureDamage)),
+          );
           structure.flash = 0.3;
           emitAudioCue({ cue: "structure-damaged", position: { x: structure.x, y: structure.y } });
         }
       }
+      this.areaEffects.push({
+        kind: "boss-slam",
+        x: enemy.x,
+        y: enemy.y,
+        radius: BALANCE.boss.slam.radius,
+        remaining: BALANCE.boss.slam.waveDuration,
+        duration: BALANCE.boss.slam.waveDuration,
+      });
       this.burst(enemy.x, enemy.y, "#ff6b55", 24, "SMASH");
       this.shake = 14;
       emitAudioCue({ cue: "breaker-smash", position: { x: enemy.x, y: enemy.y } });
@@ -2693,8 +2770,7 @@ export class Game {
         if (accepts("player") && !projectile.hitIds.has("player")
           && segmentCircle(projectile.previousX, projectile.previousY, projectile.x, projectile.y, this.player)) {
           projectile.hitIds.add("player");
-          const damage = this.mitigateIncomingDamage(projectile.damage);
-          this.player.health -= damage;
+          const damage = this.applyIncomingDamage(this.player, projectile.damage);
           this.player.hurtFlash = 0.25;
           impacted = true;
           emitAudioCue({ cue: "player-hurt", position: { x: this.player.x, y: this.player.y } });
@@ -2703,7 +2779,7 @@ export class Game {
         if (this.flagPresent && accepts("flag") && !projectile.hitIds.has("flag")
           && segmentCircle(projectile.previousX, projectile.previousY, projectile.x, projectile.y, this.flag)) {
           projectile.hitIds.add("flag");
-          this.flag.health -= projectile.damage;
+          this.applyIncomingDamage(this.flag, projectile.damage);
           this.flag.hurtFlash = 0.25;
           impacted = true;
           emitAudioCue({ cue: "flag-damaged" });
@@ -2712,7 +2788,7 @@ export class Game {
           if (!accepts(structure.id) || projectile.hitIds.has(structure.id)) continue;
           if (!segmentCircle(projectile.previousX, projectile.previousY, projectile.x, projectile.y, structure)) continue;
           projectile.hitIds.add(structure.id);
-          structure.health -= projectile.damage;
+          this.applyIncomingDamage(structure, projectile.damage);
           structure.flash = 0.22;
           impacted = true;
           this.burst(structure.x, structure.y, projectile.color, 8);
@@ -2753,8 +2829,7 @@ export class Game {
           && segmentCircle(projectile.previousX, projectile.previousY, projectile.x, projectile.y, this.player)) {
           const wasFull = this.player.health >= this.player.maxHealth;
           projectile.hitIds.add("player");
-          const damage = this.mitigateIncomingDamage(projectile.damage);
-          this.player.health -= damage;
+          const damage = this.applyIncomingDamage(this.player, projectile.damage);
           this.player.hurtFlash = 0.25;
           emitAudioCue({ cue: "player-hurt", position: { x: this.player.x, y: this.player.y } });
           this.burst(this.player.x, this.player.y, "#b8ff3d", 12, `-${Math.round(damage)}`);
@@ -2768,7 +2843,7 @@ export class Game {
           if (projectile.hitIds.has(structure.id)) continue;
           if (!segmentCircle(projectile.previousX, projectile.previousY, projectile.x, projectile.y, structure)) continue;
           projectile.hitIds.add(structure.id);
-          structure.health -= projectile.damage;
+          this.applyIncomingDamage(structure, projectile.damage);
           structure.flash = 0.22;
           emitAudioCue({ cue: "structure-damaged", position: { x: structure.x, y: structure.y } });
           this.burst(structure.x, structure.y, "#9be739", 8);
@@ -2857,6 +2932,8 @@ export class Game {
       particle.life -= dt;
     }
     this.particles = this.particles.filter((particle) => particle.life > 0);
+    for (const effect of this.areaEffects) effect.remaining -= dt;
+    this.areaEffects = this.areaEffects.filter((effect) => effect.remaining > 0);
     for (const node of this.world.resources) node.hitFlash = Math.max(0, node.hitFlash - dt);
   }
 
@@ -2898,6 +2975,23 @@ export class Game {
     this.phaseTransitionImpact = 0.55;
     this.selectedSlot = 2;
     this.nightWaveScheduled = true;
+    this.nightPerformance = {
+      night: this.night,
+      totalIncomingDamage: 0,
+      flagDamage: 0,
+      zombiesEnteringFlagRadius: 0,
+      playerDamageTaken: 0,
+      totalZombiesSpawned: 0,
+      startingZombieKills: this.stats.zombiesDefeated,
+      startingPersonalKills: Object.values(this.directPlayerKills).reduce((sum, value) => sum + value, 0),
+      damagedStructureIds: new Set(),
+      destroyedStructureIds: new Set(),
+      structureValues: new Map(this.structures.map((structure) => [
+        structure.id,
+        structurePointValue(structure.kind, structure.tier),
+      ])),
+      flagRadiusEnemyIds: new Set(),
+    };
     for (const enemy of this.enemies) enemy.burning = false;
     const difficulty = BALANCE.difficulty[this.difficulty];
     const challengeModifiers = this.getChallengeModifiers();
@@ -2906,6 +3000,7 @@ export class Game {
       this.structureScore,
       this.night,
       this.profileManager?.profile.playerLevel ?? 1,
+      this.night > 1 ? [this.autoCorrectiveDelta] : [],
     );
     const total = Math.round(
       (BALANCE.waveBase + (this.night - 1) * BALANCE.waveGrowth + this.mutations.waveSize)
@@ -2938,6 +3033,7 @@ export class Game {
   }
 
   private beginDawn(): void {
+    this.finalizeNightPerformance();
     this.phase = "dawn";
     this.syncSpatialAudio(false);
     this.nightWaveScheduled = false;
@@ -3314,6 +3410,64 @@ export class Game {
     return mitigatePlayerDamage(damage, helmet?.tier ?? null, helmet?.equipped ?? false);
   }
 
+  private trackFlagRadiusEntries(): void {
+    const tracker = this.nightPerformance;
+    if (!tracker || this.phase !== "night" || !this.flagPresent) return;
+    for (const enemy of this.enemies) {
+      if (enemy.health <= 0 || tracker.flagRadiusEnemyIds.has(enemy.id)) continue;
+      if (distance(enemy, this.flag) - enemy.radius > BALANCE.flagProtectedRadius) continue;
+      tracker.flagRadiusEnemyIds.add(enemy.id);
+      tracker.zombiesEnteringFlagRadius += 1;
+    }
+  }
+
+  private applyIncomingDamage(target: Player | Flag | Structure, rawDamage: number): number {
+    const damage = target === this.player ? this.mitigateIncomingDamage(rawDamage) : Math.max(0, rawDamage);
+    const before = Math.max(0, target.health);
+    target.health -= damage;
+    const applied = Math.min(before, damage);
+    const tracker = this.nightPerformance;
+    if (!tracker || this.phase !== "night" || applied <= 0) return damage;
+    tracker.totalIncomingDamage += applied;
+    if (target === this.player) tracker.playerDamageTaken += applied;
+    else if (target === this.flag) tracker.flagDamage += applied;
+    else if ("kind" in target && "tier" in target) {
+      tracker.damagedStructureIds.add(target.id);
+      tracker.structureValues.set(target.id, structurePointValue(target.kind, target.tier));
+      if (before > 0 && target.health <= 0) tracker.destroyedStructureIds.add(target.id);
+    }
+    return damage;
+  }
+
+  private finalizeNightPerformance(): void {
+    const tracker = this.nightPerformance;
+    if (!tracker) return;
+    const personalKills = Object.values(this.directPlayerKills).reduce((sum, value) => sum + value, 0)
+      - tracker.startingPersonalKills;
+    const valueOf = (ids: ReadonlySet<number>): number => [...ids]
+      .reduce((sum, id) => sum + (tracker.structureValues.get(id) ?? 0), 0);
+    this.lastNightPerformance = {
+      night: tracker.night,
+      totalIncomingDamage: tracker.totalIncomingDamage,
+      damagedStructureCount: tracker.damagedStructureIds.size,
+      damagedStructureValue: valueOf(tracker.damagedStructureIds),
+      destroyedStructureCount: tracker.destroyedStructureIds.size,
+      destroyedStructureValue: valueOf(tracker.destroyedStructureIds),
+      flagDamage: tracker.flagDamage,
+      flagMaximumHealth: this.flag.maxHealth,
+      zombiesEnteringFlagRadius: tracker.zombiesEnteringFlagRadius,
+      personalZombieKills: Math.max(0, personalKills),
+      playerDamageTaken: tracker.playerDamageTaken,
+      playerMaximumHealth: this.player.maxHealth,
+      totalZombieKills: Math.max(0, this.stats.zombiesDefeated - tracker.startingZombieKills),
+      totalZombiesSpawned: tracker.totalZombiesSpawned,
+      survivingZombiesAtDawn: this.enemies.filter((enemy) => enemy.health > 0).length,
+    };
+    this.performanceDifficulty = performanceDifficultyDelta(this.lastNightPerformance);
+    this.autoCorrectiveDelta = this.performanceDifficulty.delta;
+    this.nightPerformance = null;
+  }
+
   private createSettlementId(): string {
     const values = new Uint32Array(2);
     if (typeof crypto !== "undefined") crypto.getRandomValues(values);
@@ -3338,6 +3492,7 @@ export class Game {
         this.structureScore,
         this.night,
         this.profileManager?.profile.playerLevel ?? 1,
+        this.night > 1 ? [this.autoCorrectiveDelta] : [],
       )
       : this.adaptiveState;
   }

@@ -128,7 +128,7 @@ describe("effective stats and equipment", () => {
     (game as unknown as { rebuildSpatial(): void }).rebuildSpatial();
     (game as unknown as { punch(): void }).punch();
     (game as unknown as { updateMeleeSwing(dt: number): void }).updateMeleeSwing(0.3);
-    expect(game.player.cooldown + 0.3).toBeCloseTo(BALANCE.player.punchRate * 2 / 1.1 - 0.1);
+    expect(game.player.cooldown + 0.3).toBeCloseTo(BALANCE.player.punchRate * 2 / 1.2);
   });
 
   it("applies structure bonuses from the structure owner", () => {

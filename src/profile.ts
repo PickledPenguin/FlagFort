@@ -213,7 +213,15 @@ export function levelProgress(lifetimeXp: number): {
 
 export function crazyGamesCalendarDate(now: Date): string {
   if (Number.isNaN(now.getTime())) throw new Error("Invalid daily reward date");
-  return now.toISOString().slice(0, 10);
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/New_York",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(now);
+  const part = (type: "year" | "month" | "day"): string =>
+    parts.find((item) => item.type === type)?.value ?? "";
+  return `${part("year")}-${part("month")}-${part("day")}`;
 }
 
 function calendarDayNumber(date: string): number {

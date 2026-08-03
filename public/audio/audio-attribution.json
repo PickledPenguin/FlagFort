@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-03T15:34:17.372Z",
+  "generatedAt": "2026-08-03T18:31:30.371Z",
   "sourceFoldersSearched": [
     "/Users/aiagents/Documents/GMTK/Audio"
   ],
@@ -1117,74 +1117,68 @@
     },
     {
       "canonicalFilename": "structure-place.ogg",
-      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/Sonniss.com-GDC2026-GameAudioBundle2of5/Epic Stock Media - Tower Defense Game/ROBTMvmt_Tower Deploy Hitech Robot Motor Dark Thump Servo Whine 04_ESM_TDG.wav",
-      "originalFilename": "ROBTMvmt_Tower Deploy Hitech Robot Motor Dark Thump Servo Whine 04_ESM_TDG.wav",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/manual/structure-place.ogg",
+      "originalFilename": "structure-place.ogg",
       "creator": "Epic Stock Media",
       "pack": "Tower Defense Game",
       "license": "Sonniss GDC Game Audio Bundle Part 9 royalty-free license",
-      "sourceSha256": "c9f2c8b24ce6ae6fb7b519b2bbcdb2503816ca5cdd6c8f81ee3fc27149600d48",
+      "sourceSha256": "70417cf1087982090a440a70ad07d4ec7c1db6fc51ef13868c44e40bfca7a6f2",
       "modifications": [
-        "Trimmed leading and trailing digital silence below -55 dB",
-        "-7.8 dB fixed gain normalization without dynamic-range compression",
-        "Resampled to 48 kHz stereo",
-        "Encoded as OGG Opus at 80 kbps variable bitrate"
+        "Copied manually curated canonical audio without re-encoding"
       ],
       "gameplayEvents": [
         "A structure is successfully placed"
       ],
       "sourceTechnical": {
-        "codec": "pcm_s24le",
-        "sampleRate": 96000,
-        "channels": 2,
-        "duration": 1.036229,
-        "bytes": 3849898,
-        "integratedLufs": -10.2,
-        "truePeakDbfs": -1,
-        "meanDbfs": -14.2,
-        "maxDbfs": -1
+        "codec": "vorbis",
+        "sampleRate": 48000,
+        "channels": 1,
+        "duration": 0.609396,
+        "bytes": 10082,
+        "integratedLufs": -25.3,
+        "truePeakDbfs": -2.9,
+        "meanDbfs": -22,
+        "maxDbfs": -3.5
       },
       "outputTechnical": {
-        "codec": "opus",
+        "codec": "vorbis",
         "sampleRate": 48000,
-        "channels": 2,
-        "duration": 0.937,
-        "bytes": 10030
+        "channels": 1,
+        "duration": 0.609396,
+        "bytes": 10082
       }
     },
     {
       "canonicalFilename": "structure-upgrade.ogg",
-      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/Sonniss.com-GDC2026-GameAudioBundle2of5/CB_Sounddesign - Applicable Sounds - Organic UI and Building Games SFX/GAMEMisc_Magic Creation 23_CB Sounddesign_APPlicable Sounds.wav",
-      "originalFilename": "GAMEMisc_Magic Creation 23_CB Sounddesign_APPlicable Sounds.wav",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/manual/structure-upgrade.ogg",
+      "originalFilename": "structure-upgrade.ogg",
       "creator": "CB_Sounddesign",
       "pack": "Applicable Sounds - Organic UI and Building Games SFX",
       "license": "Sonniss GDC Game Audio Bundle Part 9 royalty-free license",
-      "sourceSha256": "061a4899d8c85abcd53eb074cbb81c56ab3688692c2838a1cdf20e64b03b506c",
+      "sourceSha256": "70417cf1087982090a440a70ad07d4ec7c1db6fc51ef13868c44e40bfca7a6f2",
       "modifications": [
-        "Trimmed leading and trailing digital silence below -55 dB",
-        "+1.4 dB fixed gain normalization without dynamic-range compression",
-        "Resampled to 48 kHz stereo",
-        "Encoded as OGG Opus at 80 kbps variable bitrate"
+        "Copied manually curated canonical audio without re-encoding"
       ],
       "gameplayEvents": [
         "An existing structure is upgraded"
       ],
       "sourceTechnical": {
-        "codec": "pcm_s24le",
+        "codec": "vorbis",
         "sampleRate": 48000,
-        "channels": 2,
-        "duration": 3.18575,
-        "bytes": 918434,
-        "integratedLufs": -19.9,
-        "truePeakDbfs": -2.6,
-        "meanDbfs": -26.8,
-        "maxDbfs": -3
+        "channels": 1,
+        "duration": 0.609396,
+        "bytes": 10082,
+        "integratedLufs": -25.3,
+        "truePeakDbfs": -2.9,
+        "meanDbfs": -22,
+        "maxDbfs": -3.5
       },
       "outputTechnical": {
-        "codec": "opus",
+        "codec": "vorbis",
         "sampleRate": 48000,
-        "channels": 2,
-        "duration": 2.786625,
-        "bytes": 27793
+        "channels": 1,
+        "duration": 0.609396,
+        "bytes": 10082
       }
     },
     {

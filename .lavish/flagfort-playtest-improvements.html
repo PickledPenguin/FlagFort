@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>FlagFort Playtest Improvements</title>
+  <style>
+    :root{--bg:#07160f;--panel:#0e2518;--panel2:#153522;--ink:#eef5dc;--muted:#a7b9a8;--line:#5f7d65;--green:#8ee8a5;--gold:#f7ca4b;--red:#ff766c;--purple:#a884ff}
+    *{box-sizing:border-box;min-width:0} html{background:var(--bg);color:var(--ink);font:15px/1.55 Inter,ui-sans-serif,system-ui,sans-serif} body{margin:0;background:radial-gradient(circle at 70% 0,#173f2a 0,transparent 38%),var(--bg)}
+    main{width:min(1180px,calc(100% - 28px));margin:auto;padding:34px 0 70px} h1,h2,h3{margin:0;font-family:Impact,Haettenschweiler,'Arial Narrow Bold',sans-serif;letter-spacing:.035em;text-transform:uppercase} h1{padding:.06em 0;font-size:clamp(46px,8vw,92px);line-height:1.06} h1 strong{display:inline-block;padding:.06em 0 .14em;line-height:1.2} h2{font-size:32px} h3{font-size:21px} p{margin:7px 0 0;color:var(--muted)} code{color:var(--green);overflow-wrap:anywhere}
+    .hero{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(280px,.7fr);gap:22px;align-items:end;margin-bottom:24px}.kicker{color:var(--gold);font-weight:900;letter-spacing:.18em;text-transform:uppercase}.hero strong{color:var(--green)}
+    .score{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.metric,.card,.shot,.effect,.flow,.table-wrap{border:2px solid var(--line);border-radius:17px;background:linear-gradient(145deg,rgba(21,53,34,.95),rgba(8,27,17,.95));box-shadow:0 7px 0 rgba(0,0,0,.28)}.metric{padding:14px}.metric b{display:block;padding-top:3px;color:var(--green);font:34px/1.15 Impact,sans-serif}.metric span{color:var(--muted);font-size:12px;font-weight:800;text-transform:uppercase}
+    .statusbar{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0 34px}.badge{padding:7px 11px;border:2px solid var(--line);border-radius:999px;background:#0a2015;font-size:12px;font-weight:850}.badge.ok{border-color:var(--green);color:var(--green)}.badge.warn{border-color:var(--gold);color:var(--gold)}
+    section{margin-top:42px}.section-head{display:flex;justify-content:space-between;gap:18px;align-items:end;margin-bottom:14px}.section-head p{max-width:620px;text-align:right}
+    .gallery{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.shot{overflow:hidden}.shot img{display:block;width:100%;height:auto;background:#07160f}.caption{padding:12px 14px}.caption b{color:var(--green)}
+    .cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.card{padding:17px}.card .num{color:var(--gold);font:28px/1 Impact,sans-serif}.card ul{margin:10px 0 0;padding-left:18px;color:var(--muted)}.card li+li{margin-top:5px}
+    .effects{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.effect{display:grid;grid-template-columns:190px minmax(0,1fr);gap:14px;align-items:center;padding:14px}.effect img{width:100%;aspect-ratio:1;object-fit:contain;background:#244b2d;border-radius:50%}.effect strong{color:var(--gold)}
+    .flow{padding:18px;overflow:hidden}.mermaid{display:flex;justify-content:center;overflow:auto}.mermaid svg{max-width:100%;height:auto}
+    .table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:760px}th,td{padding:12px 14px;text-align:left;border-bottom:1px solid rgba(167,185,168,.2);vertical-align:top}th{color:var(--gold);font-size:11px;letter-spacing:.1em;text-transform:uppercase}td:first-child{font-weight:850}.pass{color:var(--green);font-weight:900}.note{color:var(--gold);font-weight:900}
+    .formula{margin-top:13px;padding:15px;border-left:5px solid var(--green);border-radius:10px;background:#071c12;color:var(--ink);font:700 14px/1.6 ui-monospace,SFMono-Regular,monospace;overflow-wrap:anywhere}
+    footer{margin-top:42px;padding:20px;border:2px solid var(--gold);border-radius:17px;background:rgba(75,55,8,.32)}footer h2{color:var(--gold)}
+    @media(max-width:800px){.hero,.gallery,.effects{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.section-head{display:block}.section-head p{text-align:left}.effect{grid-template-columns:120px minmax(0,1fr)}}
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+</head>
+<body>
+<main>
+  <header class="hero">
+    <div><div class="kicker">FlagFort implementation handoff</div><h1>Playtest<br><strong>Improvements</strong></h1><p>Daily clarity, adaptive pressure, true AOE combat, roster safety, and single-pass action speed are implemented as one deterministic update.</p></div>
+    <div class="score"><div class="metric"><b>7</b><span>requested areas completed</span></div><div class="metric"><b>3</b><span>iframe sizes checked</span></div><div class="metric"><b>237</b><span>editable SVGs validated</span></div><div class="metric"><b>242/243</b><span>full-suite tests passing</span></div></div>
+  </header>
+  <div class="statusbar"><span class="badge ok">Build passed</span><span class="badge ok">Visual validation passed</span><span class="badge ok">Deterministic calculations</span><span class="badge ok">No player-facing time zones</span><span class="badge warn">1 pre-existing audio-worktree failure</span></div>
+
+  <section>
+    <div class="section-head"><div><div class="kicker">Real browser evidence</div><h2>Daily rewards now explain themselves</h2></div><p>The compact card carries the full seven-day sequence. The modal keeps the same values and exact claimed, current, and upcoming state without time-zone language.</p></div>
+    <div class="gallery"><figure class="shot"><img src="flagfort-playtest-assets/daily-compact-800.png" alt="Compact FlagFort menu showing the seven Daily reward nodes"><figcaption class="caption"><b>Compact at 800×450</b><p>Seven connected nodes remain readable beside the main menu without opening the modal.</p></figcaption></figure><figure class="shot"><img src="flagfort-playtest-assets/daily-modal-1280.png" alt="Daily Rewards modal showing seven reward values"><figcaption class="caption"><b>Modal at 1280×720</b><p>Exact 10, 15, 20, 25, 30, 35, and 40 coin values with clear state styling.</p></figcaption></figure></div>
+  </section>
+
+  <section>
+    <div class="section-head"><div><div class="kicker">HUD comparison</div><h2>Adaptive Threat belongs to the player stack</h2></div><p>Health, seed, and live pressure now share one left-aligned group. The countdown remains centered and resources remain right-aligned.</p></div>
+    <div class="gallery"><figure class="shot"><img src="flagfort-playtest-assets/hud-1280.png" alt="FlagFort HUD at 1280 by 720"><figcaption class="caption"><b>1280×720</b><p>Full HUD spacing with the pressure pill directly below the seed.</p></figcaption></figure><figure class="shot"><img src="flagfort-playtest-assets/hud-800.png" alt="FlagFort HUD at 800 by 450"><figcaption class="caption"><b>800×450</b><p>Compact health width prevents collision with the centered night-progress group.</p></figcaption></figure></div>
+  </section>
+
+  <section>
+    <div class="section-head"><div><div class="kicker">Difficulty lifecycle</div><h2>Only the previous night can affect the next</h2></div><p>The corrective delta is recalculated, never accumulated. It is nonnegative, separately capped, and ramps toward full strength after early nights.</p></div>
+    <div class="flow"><div class="mermaid">
+flowchart TD
+  A["Night N begins<br/>fresh metric tracker"] --> B["Combat records incoming damage,<br/>fort value loss, radius entries, kills"]
+  B --> C["Dawn freezes snapshot"]
+  C --> D["Pressure penalty + clear performance"]
+  D --> E["Clamp nonnegative corrective delta<br/>own max 0.32 + early-night ramp"]
+  E --> F["Day N+1 pill shows final upcoming pressure"]
+  F --> G["Night N+1 adds delta before schedule generation"]
+  G --> H["New tracker replaces old snapshot input"]
+    </div></div>
+    <div class="formula">final multiplier = 1 + structure delta + player-level delta + previous-night corrective delta<br>corrective delta = clamp(0, own maximum, ramp × (easy performance - pressure penalty))</div>
+  </section>
+
+  <section>
+    <div class="section-head"><div><div class="kicker">Combat effects</div><h2>Editable rings, exact danger radii</h2></div><p>Both SVGs keep transparent centers and scale from their origin to the collision radius. Reduced motion presents the full danger area without expansion.</p></div>
+    <div class="effects"><article class="effect"><img src="flagfort-playtest-assets/boss-slam-wave.svg" alt="Dirt-brown boss slam ring"><div><h3>Boss Slam</h3><p><strong>260 radius</strong> with player, flag, and structure damage configured separately. Structure damage is doubled to 184 before enemy scaling.</p></div></article><article class="effect"><img src="flagfort-playtest-assets/popper-acid-burst.svg" alt="Green Popper acid ring"><div><h3>Popper Acid</h3><p><strong>145 outer radius</strong> with preserved inner radius and falloff. Combat death only, never dawn or forced cleanup.</p></div></article></div>
+  </section>
+
+  <section>
+    <div class="section-head"><div><div class="kicker">Engineering audit</div><h2>One source of truth per behavior</h2></div><p>The registry mapping remains because seeded tier selections consume save-compatible mutation weight keys. Rate bonuses now flow through one reciprocal-aware resolver.</p></div>
+    <div class="cards"><article class="card"><span class="num">01</span><h3>Roster weights retained</h3><ul><li><code>mutationWeightKey</code> maps the chosen tier enemy to existing persisted weight fields.</li><li>Cards, target names, eligibility, and spawn weights keep using the same deterministic mapping.</li></ul></article><article class="card"><span class="num">02</span><h3>Action speeds centralized</h3><ul><li>Permanent, temporary, challenge, mutation, and difficulty percentages add first.</li><li>The total rate is applied once, then converted to cooldown.</li><li>Sword cooldown is the documented intentional multiplier.</li></ul></article><article class="card"><span class="num">03</span><h3>Damage tracking centralized</h3><ul><li>Player, flag, structures, ram, projectiles, Boss Slam, and Popper all report through the same incoming-damage path.</li><li>Per-player structure ownership is preserved.</li></ul></article></div>
+  </section>
+
+  <section>
+    <div class="section-head"><div><div class="kicker">Verification matrix</div><h2>Checks and outcomes</h2></div><p>The single remaining suite failure belongs to the pre-existing audio edits and was deliberately not altered because assigned canonical audio is protected.</p></div>
+    <div class="table-wrap"><table><thead><tr><th>Check</th><th>Outcome</th><th>Evidence</th></tr></thead><tbody>
+      <tr><td>Production build</td><td class="pass">Passed</td><td><code>npm run build</code></td></tr>
+      <tr><td>Editable asset validation</td><td class="pass">Passed</td><td>237 SVGs, including both new ring effects</td></tr>
+      <tr><td>Focused improvement regressions</td><td class="pass">Passed</td><td>Daily DST/state, snapshot timing, AOE target coverage, cleanup suppression, rates, and HUD placement</td></tr>
+      <tr><td>Browser layouts</td><td class="pass">Passed</td><td>1280×720, 960×540, 800×450 with no HUD collision or document overflow</td></tr>
+      <tr><td>Full test suite</td><td class="note">242/243</td><td>Only canonical audio attribution fails because the existing worktree omits <code>structure-upgrade.ogg</code> from manual attribution</td></tr>
+    </tbody></table></div>
+  </section>
+
+  <footer><div class="kicker">Protected boundary</div><h2>Audio changes were left untouched</h2><p>The worktree already contained modified audio binaries, manual sources, and generated attribution. This implementation neither changed sound selections nor rebuilt canonical audio.</p></footer>
+</main>
+<script>mermaid.initialize({startOnLoad:true,theme:'base',themeVariables:{background:'#0e2518',primaryColor:'#153522',primaryTextColor:'#eef5dc',primaryBorderColor:'#8ee8a5',lineColor:'#f7ca4b',secondaryColor:'#2a5635',tertiaryColor:'#07160f',fontFamily:'Inter, system-ui, sans-serif'}})</script>
+</body>
+</html>
