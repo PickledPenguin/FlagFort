@@ -39,6 +39,7 @@ describe("player appearance rendering", () => {
       },
       getSelectedAction: () => "fists",
       getBestGlove: () => "wood",
+      isCombatMode: () => false,
     });
 
     expect(renderer.drawTintedSprite).toHaveBeenCalledWith(

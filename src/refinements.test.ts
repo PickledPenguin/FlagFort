@@ -250,12 +250,18 @@ describe("night, economy, and tutorial refinements", () => {
     expect(game.portals.every((portal) => portal.spawned === portal.assignedSpawns)).toBe(true);
   });
 
-  it("enters normal dawn early after the complete wave is eliminated", () => {
+  it("leaves combat mode early after the complete wave is eliminated without ending night", () => {
     const game = new Game(input());
     game.startRun("normal", "early-dawn");
     (game as unknown as { beginNight: () => void }).beginNight();
     for (const portal of game.portals) portal.spawned = portal.assignedSpawns;
     game.enemies = [];
+    game.update(0.02);
+    expect(game.phase).toBe("night");
+    expect(game.isCombatMode()).toBe(false);
+    expect(game.stats.nightsSurvived).toBe(0);
+
+    game.timer = 0;
     game.update(0.02);
     expect(game.phase).toBe("dawn");
     expect(game.stats.nightsSurvived).toBe(1);

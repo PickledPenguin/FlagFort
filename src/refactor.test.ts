@@ -90,18 +90,18 @@ describe("foundational refactor", () => {
     expect(CHALLENGES.every((challenge) => challenge.nightDuration === 30)).toBe(true);
   });
 
-  it("keeps boss overtime nighttime and delays sunlight until the boss is dead", () => {
+  it("keeps boss night active until the boss dies, regardless of ordinary zombies", () => {
     const game = new Game(input());
     game.startRun("normal", "boss-overtime");
     const boss = enemy("boss", 9001);
     const ordinary = enemy("basic", 9002);
     game.phase = "night";
     game.night = 10;
-    game.timer = 0;
+    game.timer = 10;
     game.enemies = [boss, ordinary];
     game.update(0.02);
     expect(game.phase).toBe("night");
-    expect(game.timer).toBe(0);
+    expect(game.timer).toBeLessThan(10);
     expect(ordinary.burning).toBe(false);
     expect(ordinary.sunlightExposure).toBe(0);
     boss.health = 0;

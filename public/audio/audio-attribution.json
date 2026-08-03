@@ -837,9 +837,9 @@
       "canonicalFilename": "bow-fire.ogg",
       "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/manual/bow-fire.ogg",
       "originalFilename": "bow-fire.ogg",
-      "creator": "Kenney",
-      "pack": "RPG Audio",
-      "license": "CC0 1.0",
+      "creator": "Pixabay",
+      "pack": "Pixabay",
+      "license": "Pixabay Content License",
       "sourceSha256": "8d756a78230cc85799ef4a445d147c83854614dac325258b9883466e22c95765",
       "modifications": [
         "Copied manually curated canonical audio without re-encoding"
@@ -1119,9 +1119,9 @@
       "canonicalFilename": "structure-place.ogg",
       "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/manual/structure-place.ogg",
       "originalFilename": "structure-place.ogg",
-      "creator": "Epic Stock Media",
-      "pack": "Tower Defense Game",
-      "license": "Sonniss GDC Game Audio Bundle Part 9 royalty-free license",
+      "creator": "Pixabay",
+      "pack": "Pixabay",
+      "license": "Pixabay Content License",
       "sourceSha256": "70417cf1087982090a440a70ad07d4ec7c1db6fc51ef13868c44e40bfca7a6f2",
       "modifications": [
         "Copied manually curated canonical audio without re-encoding"
@@ -1152,9 +1152,9 @@
       "canonicalFilename": "structure-upgrade.ogg",
       "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/manual/structure-upgrade.ogg",
       "originalFilename": "structure-upgrade.ogg",
-      "creator": "CB_Sounddesign",
-      "pack": "Applicable Sounds - Organic UI and Building Games SFX",
-      "license": "Sonniss GDC Game Audio Bundle Part 9 royalty-free license",
+      "creator": "Pixabay",
+      "pack": "Pixabay",
+      "license": "Pixabay Content License",
       "sourceSha256": "70417cf1087982090a440a70ad07d4ec7c1db6fc51ef13868c44e40bfca7a6f2",
       "modifications": [
         "Copied manually curated canonical audio without re-encoding"
@@ -1323,9 +1323,9 @@
       "canonicalFilename": "turret-fire.ogg",
       "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/manual/turret-fire.ogg",
       "originalFilename": "turret-fire.ogg",
-      "creator": "David Dumais Audio",
-      "pack": "Melee Weapons Sound Effects Pack 2",
-      "license": "Sonniss GDC Game Audio Bundle Part 9 royalty-free license",
+      "creator": "Pixabay",
+      "pack": "Pixabay",
+      "license": "Pixabay Content License",
       "sourceSha256": "8d756a78230cc85799ef4a445d147c83854614dac325258b9883466e22c95765",
       "modifications": [
         "Copied manually curated canonical audio without re-encoding"
@@ -1641,9 +1641,9 @@
       "canonicalFilename": "jumper-jump.ogg",
       "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/manual/jumper-jump.ogg",
       "originalFilename": "jumper-jump.ogg",
-      "creator": "344 Audio",
-      "pack": "Air Designed",
-      "license": "Sonniss GDC Game Audio Bundle Part 9 royalty-free license",
+      "creator": "Pixabay",
+      "pack": "Pixabay",
+      "license": "Pixabay Content License",
       "sourceSha256": "38618c0ebd6cdab382494295893fd5d47556c788976a4a3f2414eb4f50faa259",
       "modifications": [
         "Copied manually curated canonical audio without re-encoding"
@@ -1672,11 +1672,11 @@
     },
     {
       "canonicalFilename": "summoner-cast.ogg",
-      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/Sonniss.com-GDC2026-GameAudioBundle2of5/Epic Stock Media - Fantasy Game 2 - Sound Kit for Enchanted Realms/MAGAngl_Magic Light Spell Enchantment Potion Effect Tonal Bright 03_ESM_FG2.wav",
-      "originalFilename": "MAGAngl_Magic Light Spell Enchantment Potion Effect Tonal Bright 03_ESM_FG2.wav",
-      "creator": "Epic Stock Media",
-      "pack": "Fantasy Game 2 - Sound Kit for Enchanted Realms",
-      "license": "Sonniss GDC Game Audio Bundle Part 9 royalty-free license",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/manual/summoner-cast.ogg",
+      "originalFilename": "summoner-cast.ogg",
+      "creator": "Pixabay",
+      "pack": "Pixabay",
+      "license": "Pixabay Content License",
       "sourceSha256": "66fd5c33f2b5e221dce96ba2e24a172683c8c696621d8567ef895627d981d869",
       "modifications": [
         "Trimmed leading and trailing digital silence below -55 dB",
@@ -1783,9 +1783,9 @@
       "canonicalFilename": "popper-burst.ogg",
       "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/manual/popper-burst.ogg",
       "originalFilename": "popper-burst.ogg",
-      "creator": "Kenney",
-      "pack": "Impact Sounds",
-      "license": "CC0 1.0",
+      "creator": "Pixabay",
+      "pack": "Pixabay",
+      "license": "Pixabay Content License",
       "sourceSha256": "0800e2178e05b188db496ea4b9b6a08b2af96f3c1361f5a94f54dc9a252eb551",
       "modifications": [
         "Copied manually curated canonical audio without re-encoding"
@@ -1816,9 +1816,9 @@
       "canonicalFilename": "archer-bow-fire.ogg",
       "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/manual/archer-bow-fire.ogg",
       "originalFilename": "archer-bow-fire.ogg",
-      "creator": "Kenney",
-      "pack": "RPG Audio",
-      "license": "CC0 1.0",
+      "creator": "Pixabay",
+      "pack": "Pixabay",
+      "license": "Pixabay Content License",
       "sourceSha256": "8d756a78230cc85799ef4a445d147c83854614dac325258b9883466e22c95765",
       "modifications": [
         "Copied manually curated canonical audio without re-encoding"
@@ -1849,9 +1849,9 @@
       "canonicalFilename": "archer-arrow-impact.ogg",
       "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/manual/archer-arrow-impact.ogg",
       "originalFilename": "archer-arrow-impact.ogg",
-      "creator": "Kenney",
-      "pack": "Impact Sounds",
-      "license": "CC0 1.0",
+      "creator": "Pixabay",
+      "pack": "Pixabay",
+      "license": "Pixabay Content License",
       "sourceSha256": "1a4b2b626b30d812d70ca759eef177479dfe91fa3a6064c4197c7a74892aae54",
       "modifications": [
         "Copied manually curated canonical audio without re-encoding"
@@ -1918,9 +1918,9 @@
       "canonicalFilename": "acidslinger-impact.ogg",
       "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/manual/acidslinger-impact.ogg",
       "originalFilename": "acidslinger-impact.ogg",
-      "creator": "344 Audio",
-      "pack": "Elemental Palette Designed Vol. 1",
-      "license": "Sonniss GDC Game Audio Bundle Part 9 royalty-free license",
+      "creator": "Pixabay",
+      "pack": "Pixabay",
+      "license": "Pixabay Content License",
       "sourceSha256": "57c0a7f5c87389835c21c04823f5d73f1b0e0053bdb93bde037eb2798b109c09",
       "modifications": [
         "Copied manually curated canonical audio without re-encoding"
@@ -2130,9 +2130,9 @@
       "canonicalFilename": "boss-acid-spit.ogg",
       "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/manual/boss-acid-spit.ogg",
       "originalFilename": "boss-acid-spit.ogg",
-      "creator": "344 Audio",
-      "pack": "Barbershop Vol. 1",
-      "license": "Sonniss GDC Game Audio Bundle Part 9 royalty-free license",
+      "creator": "Pixabay",
+      "pack": "Pixabay",
+      "license": "Pixabay Content License",
       "sourceSha256": "4c63dcc4be14dc0a27b5eb7a43a387f6d90c21611215f5126d9c25fc7a6c86ce",
       "modifications": [
         "Copied manually curated canonical audio without re-encoding"

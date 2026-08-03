@@ -1,4 +1,5 @@
 import { BALANCE, RESOURCE_ORDER, STRUCTURE_ORDER, TIER_ORDER } from "./config";
+import { BUILD_ACTION_BAR, COMBAT_ACTION_BAR, type ActionBarAction } from "./action-bar";
 import { generateSeed } from "./rng";
 import type { Game } from "./game";
 import { canAfford } from "./rules";
@@ -978,7 +979,7 @@ export class Ui {
     this.hud.classList.toggle("hidden", !active);
     this.hud.classList.toggle("tutorial-active", this.game.tutorialMode);
     if (!active) return;
-    const phaseKey = this.game.phase === "night" ? "night" : "day";
+    const phaseKey = `${this.game.phase}:${this.game.isCombatMode() ? "combat" : "build"}`;
     const unlockKey = STRUCTURE_ORDER.map((kind) => this.game.unlocks.structures[kind].join(",")).join("|");
     const tierKey = STRUCTURE_ORDER.map((kind) => this.game.selectedTiers[kind]).join(",");
     const structureKey = `${phaseKey}|${this.openTierPanel}|${unlockKey}|${tierKey}`;
@@ -1002,7 +1003,7 @@ export class Ui {
       <div class="countdown-stack">
         ${this.runProgressMarkup()}
         <div class="clock" data-clock-panel><div class="clock-face"><strong data-clock></strong></div><small data-night></small><span data-phase-label></span></div>
-        ${this.game.phase === "day" && !this.game.tutorialMode ? `<button class="skip-night-button" data-action="skip-night" aria-label="Skip to Night">${icon("skip")}<span>Skip to Night</span><span class="tooltip">End the day early with no reward</span></button>` : ""}
+        ${this.game.phase === "day" && !this.game.isCombatMode() && !this.game.tutorialMode ? `<button class="skip-night-button" data-action="skip-night" aria-label="Skip to Night">${icon("skip")}<span>Skip to Night</span><span class="tooltip">End the day early with no reward</span></button>` : ""}
     </div>
       ${this.game.debugAdaptive ? this.adaptiveDebugMarkup() : ""}
       <aside class="resources" aria-label="Resources">${RESOURCE_ORDER.map((resource) =>
@@ -1010,17 +1011,34 @@ export class Ui {
       ${this.openTierPanel ? this.tierPanelMarkup(this.openTierPanel) : ""}
       <div class="context-readout" data-context></div>
       <div class="toolbar" role="toolbar" aria-label="Actions">
-        ${this.actionButton(1, "fists", "Fists", gameSymbol("fists", this.game.getBestGlove()))}
-      ${this.actionButton(
-        2,
-        "tool",
-        this.game.phase === "night" ? "Bow" : "Repair",
-        this.game.phase === "night" ? buildBarIcon("nighttime-bow") : gameSymbol("tool"),
-        this.game.phase === "day" && this.game.getChallengeModifiers().disablesStructureRepair,
-      )}
-        ${this.actionButton(3, "recycle", "Recycle", gameSymbol("recycle"), this.game.phase === "night")}
-        ${STRUCTURE_ORDER.map((kind, index) => this.structureButton(kind, index + 4)).join("")}
+        ${this.actionBarMarkup()}
       </div>`;
+  }
+
+  private actionBarMarkup(): string {
+    const combat = this.game.isCombatMode();
+    const actions = combat ? COMBAT_ACTION_BAR : BUILD_ACTION_BAR;
+    const actionButtons = actions.map((item, index) => this.actionBarButton(item, index + 1)).join("");
+    if (combat) return actionButtons;
+    return actionButtons + STRUCTURE_ORDER.map((kind, index) => this.structureButton(kind, index + 4)).join("");
+  }
+
+  private actionBarButton(item: ActionBarAction, slot: number): string {
+    if (item.icon === "melee") {
+      const swordTier = this.game.getEquippedSwordTier();
+      const label = swordTier ? "Sword" : item.label;
+      const symbol = swordTier
+        ? `<img class="equipment-action-icon" src="${META_BALANCE.assets.equipment.sword[swordTier]}" alt="" aria-hidden="true">`
+        : gameSymbol("fists", this.game.getBestGlove());
+      return this.actionButton(slot, item.action, label, symbol);
+    }
+    const symbol = item.icon === "nighttime-bow"
+      ? buildBarIcon("nighttime-bow")
+      : gameSymbol(item.action);
+    const disabled = item.action === "tool"
+      && !this.game.isCombatMode()
+      && this.game.getChallengeModifiers().disablesStructureRepair;
+    return this.actionButton(slot, item.action, item.label, symbol, disabled);
   }
 
   private runProgressMarkup(): string {
@@ -1077,7 +1095,7 @@ export class Ui {
     const tier = this.game.selectedTiers[kind];
     const cost = this.game.getTierCost(kind, tier);
     const capacity = kind === "turret" || kind === "harvester" ? this.game.getCapacity(kind) : null;
-    const unavailable = this.game.phase === "night" || !this.game.isTutorialSlotAllowed(slot);
+    const unavailable = this.game.isCombatMode() || !this.game.isTutorialSlotAllowed(slot);
     return `<button class="tool structure-tool" data-slot="${slot}" data-kind="${kind}" aria-label="${labels[kind]}" ${unavailable ? "disabled" : ""}>
       <kbd>${slot}</kbd><span class="tool-symbol">${gameSymbol(kind, tier)}</span><i class="tier-badge ${tier}">${buildBarIcon("material-tier-badge", { tier })}</i>
       ${capacity ? `<span class="capacity-badge" data-capacity="${kind}">${capacity.current}/${capacity.maximum}</span>` : ""}

@@ -119,7 +119,7 @@ describe("effective stats and equipment", () => {
     profile.profile.equipment.sword = { tier: "wood", equipped: true };
     profile.profile.permanentUpgrades.harvestRate = 1;
     game.upgrades.harvestRate = 0.1;
-    game.phase = "night";
+    (game as unknown as { beginNight(): void }).beginNight();
     game.player.angle = 0;
     const node = game.world.resources[0]!;
     node.x = game.player.x + 50;
@@ -184,7 +184,7 @@ describe("effective stats and equipment", () => {
   it("cleaves each target once and credits direct melee ownership", () => {
     const { game, profile } = gameWithProfile();
     profile.profile.equipment.sword = { tier: "diamond", equipped: true };
-    game.phase = "night";
+    (game as unknown as { beginNight(): void }).beginNight();
     game.selectedSlot = 1;
     game.player.angle = 0;
     const first = enemy(1, game.player.x + 50, game.player.y - 10);

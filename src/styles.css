@@ -1759,6 +1759,12 @@ img.icon {
   height: 43px;
 }
 
+.equipment-action-icon {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
 .game-symbol.structure {
   display: grid;
   place-items: center;

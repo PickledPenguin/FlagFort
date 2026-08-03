@@ -355,7 +355,9 @@ describe("phase and run rules", () => {
   it("replenishes every resource node at dawn", () => {
     const game = new Game(fakeInput());
     game.startRun("normal", "dawn-seed");
-    game.phase = "night";
+    (game as unknown as { beginNight(): void }).beginNight();
+    for (const portal of game.portals) portal.spawned = portal.assignedSpawns;
+    game.enemies = [];
     game.timer = 0.01;
     game.world.resources[0]!.health = 0;
     game.world.resources[1]!.health = 1;
@@ -381,33 +383,47 @@ describe("phase and run rules", () => {
     expect(game.buildPreview?.reason).toBe("Portal no-build zone");
   });
 
-  it("ignites surviving ordinary zombies at dawn without delaying choices", () => {
+  it("starts dawn upgrades at zero while keeping daytime combat until every zombie is killed", () => {
     const game = new Game(fakeInput());
     game.startRun("normal", "sunlight-state-seed");
+    (game as unknown as { beginNight(): void }).beginNight();
     const enemy = testEnemy();
-    game.enemies.push(enemy);
-    game.phase = "night";
-    game.timer = 0;
+    game.enemies = [enemy];
+    game.timer = 0.01;
+    for (const portal of game.portals) portal.spawned = portal.assignedSpawns;
     game.update(0.02);
     expect(game.phase).toBe("dawn");
-    expect(enemy.burning).toBe(false);
-    expect(enemy.sunlightExposure).toBe(0);
+    expect(game.isCombatMode()).toBe(true);
     expect(game.choices).toHaveLength(3);
+
+    for (let screen = 0; screen < 3; screen += 1) game.chooseDawn(0);
+    if (game.enemyWarning) game.dismissEnemyWarning();
+    expect(game.phase).toBe("day");
+    expect(game.isCombatMode()).toBe(true);
+    expect(enemy.burning).toBe(true);
+    const healthBeforeSunlight = enemy.health;
+    game.update(1);
+    expect(enemy.health).toBeLessThan(healthBeforeSunlight);
+
+    enemy.health = 0;
+    game.update(0.02);
+    expect(game.phase).toBe("day");
+    expect(game.isCombatMode()).toBe(false);
   });
 
-  it("does not spawn ordinary zombies after the night clock reaches zero", () => {
+  it("stops spawning queued ordinary zombies when the normal night clock ends", () => {
     const game = new Game(fakeInput());
     game.startRun("normal", "zero-clock-spawn-seed");
     game.phase = "night";
-    game.night = 10;
     game.timer = 0;
+    game.phaseElapsed = BALANCE.nightSpawnCutoff;
     const portal = game.portals[0]!;
     portal.assignedSpawns = 5;
     portal.spawned = 1;
     portal.spawnCooldown = 0;
-    game.enemies.push(testEnemy({ id: 999, kind: "boss", health: 100, maxHealth: 100 }));
     game.update(0.02);
     expect(portal.spawned).toBe(1);
+    expect(game.phase).toBe("dawn");
   });
 
   it("stops scheduled portal spawning after the first 15 seconds", () => {
@@ -578,12 +594,13 @@ describe("phase and run rules", () => {
     expect(secondDamage).toBeGreaterThan(firstDamage);
   });
 
-  it("requires both a zero timer and a dead boss on night ten", () => {
+  it("completes the boss night as soon as the complete wave is eliminated", () => {
     const game = new Game(fakeInput());
     game.startRun("normal", "boss-seed");
     game.phase = "night";
     game.night = 10;
     game.timer = 0;
+    (game as unknown as { nightWaveScheduled: boolean }).nightWaveScheduled = true;
     game.enemies.push({
       id: 999,
       kind: "boss",
@@ -626,10 +643,10 @@ describe("phase and run rules", () => {
       jumpEndX: 0,
       jumpEndY: 0,
     });
+    for (const portal of game.portals) portal.spawned = portal.assignedSpawns;
     game.update(0.02);
     expect(game.phase).toBe("night");
-    expect(game.timer).toBe(0);
-    game.enemies[0]!.health = 0;
+    for (const enemy of game.enemies) enemy.health = 0;
     game.update(0.02);
     expect(game.phase).toBe("victory");
   });
@@ -642,6 +659,7 @@ describe("phase and run rules", () => {
       game.update(0.02);
       expect(game.phase).toBe("night");
       expect(game.night).toBe(completedNight);
+      for (const portal of game.portals) portal.spawned = portal.assignedSpawns;
       game.enemies = [];
       game.timer = 0;
       game.update(0.02);
@@ -661,8 +679,8 @@ describe("phase and run rules", () => {
     expect(game.enemies.some((enemy) => enemy.kind === "boss")).toBe(true);
     const boss = game.enemies.find((enemy) => enemy.kind === "boss");
     if (!boss) throw new Error("Night 10 boss was not created");
-    boss.health = 0;
-    game.timer = 0;
+    for (const portal of game.portals) portal.spawned = portal.assignedSpawns;
+    for (const enemy of game.enemies) enemy.health = 0;
     game.update(0.02);
     expect(game.phase).toBe("victory");
     expect(game.stats.nightsSurvived).toBe(10);

@@ -6,6 +6,7 @@ import { audioManager } from "./audio";
 import { BALANCE } from "./config";
 import { Game } from "./game";
 import { Input } from "./input";
+import { ProfileManager } from "./profile";
 import { Ui } from "./ui";
 
 interface Harness {
@@ -17,7 +18,7 @@ interface Harness {
   ui: Ui;
 }
 
-function createHarness(): Harness {
+function createHarness(configureProfile?: (manager: ProfileManager) => void): Harness {
   const values = new Map<string, string>();
   Object.defineProperty(document.defaultView, "localStorage", {
     configurable: true,
@@ -55,9 +56,11 @@ function createHarness(): Harness {
     toJSON: () => ({}),
   });
   const input = new Input(canvas);
-  const game = new Game(input);
+  const manager = configureProfile ? new ProfileManager(window.localStorage) : null;
+  if (manager && configureProfile) configureProfile(manager);
+  const game = new Game(input, manager);
   const ui = new Ui(game, hud, overlay, toast);
-  game.startRun("normal", "ui-test-seed");
+  game.startRun("normal", "ui-test-seed", [], false, { settle: false });
   ui.render(true);
   return { game, hud, input, overlay, toast, ui };
 }
@@ -95,10 +98,51 @@ describe("event-driven HUD interaction", () => {
     expect(href('.tier-option.locked use[href*="locked.svg"]'))
       .toBe("./images/ui/build-bar/indicators/locked.svg#icon");
 
-    game.phase = "night";
+    (game as unknown as { beginNight(): void }).beginNight();
     ui.render(true);
     expect(href('[aria-label="Bow"] use'))
       .toBe("./images/ui/build-bar/actions/nighttime-bow.svg#icon");
+  });
+
+  it("renders only the combat loadout and ignores unavailable number slots", () => {
+    const { game, hud, ui } = createHarness();
+    (game as unknown as { beginNight(): void }).beginNight();
+    game.selectedSlot = 2;
+    ui.render(true);
+
+    expect([...hud.querySelectorAll<HTMLElement>(".toolbar [data-slot]")]
+      .map((button) => button.dataset.slot)).toEqual(["1", "2"]);
+    game.selectSlot(8);
+    expect(game.selectedSlot).toBe(2);
+  });
+
+  it("keeps the combat loadout during daytime cleanup and restores build slots afterward", () => {
+    const { game, hud, ui } = createHarness();
+    game.phase = "day";
+    (game as unknown as { combatMode: boolean }).combatMode = true;
+    ui.render(true);
+    expect([...hud.querySelectorAll<HTMLElement>(".toolbar [data-slot]")]
+      .map((button) => button.dataset.slot)).toEqual(["1", "2"]);
+    expect(hud.querySelector('[data-action="skip-night"]')).toBeNull();
+
+    (game as unknown as { combatMode: boolean }).combatMode = false;
+    ui.render(true);
+    expect([...hud.querySelectorAll<HTMLElement>(".toolbar [data-slot]")]
+      .map((button) => button.dataset.slot)).toEqual(["1", "2", "3", "4", "5", "6", "7", "8"]);
+    expect(hud.querySelector('[data-action="skip-night"]')).not.toBeNull();
+  });
+
+  it("shows the equipped sword in combat slot one instead of fists", () => {
+    const { game, hud, ui } = createHarness((manager) => {
+      manager.profile.equipment.sword = { tier: "gold", equipped: true };
+    });
+    (game as unknown as { beginNight(): void }).beginNight();
+    ui.render(true);
+
+    const sword = hud.querySelector<HTMLImageElement>('[data-slot="1"] .equipment-action-icon');
+    expect(hud.querySelector('[data-slot="1"]')?.getAttribute("aria-label")).toBe("Sword");
+    expect(sword?.getAttribute("src")).toBe("./images/equipment/sword-gold.svg");
+    expect(hud.querySelector('[data-slot="1"] .build-bar-icon-fists')).toBeNull();
   });
 
   it("keeps toolbar DOM identity stable during continuous HUD patches", () => {

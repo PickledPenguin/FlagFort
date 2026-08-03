@@ -1,4 +1,5 @@
 import { BALANCE, RESOURCE_ORDER, STRUCTURE_ORDER, TIER_ORDER } from "./config";
+import { actionBarActions } from "./action-bar";
 import { resolveChallengeModifiers, type ChallengeModifiers } from "./challenges";
 import { emitAudioCue, emitAudioSpatialState } from "./audio";
 import { applyUnlock, generateChoiceOfferings } from "./choices";
@@ -128,8 +129,6 @@ interface TutorialTarget {
 
 const center = BALANCE.mapSize / 2;
 export const LOCAL_PLAYER_ID: PlayerId = "local-player";
-const ACTIONS: ActionKind[] = ["fists", "tool", "recycle", "wall", "spikes", "door", "harvester", "turret"];
-
 function emptyEnemyCounts(): Record<EnemyKind, number> {
   return Object.fromEntries(Object.keys(ENEMY_REGISTRY).map((kind) => [kind, 0])) as Record<EnemyKind, number>;
 }
@@ -252,6 +251,7 @@ export class Game {
   private tutorialHarvestedNodeIds = new Set<number>();
   private tutorialDoorStartSide = 0;
   private nightWaveScheduled = false;
+  private combatMode = false;
   private waveScheduleCursor = 0;
   private playerDamageWarned = false;
   private flagWarningCooldown = 0;
@@ -370,6 +370,7 @@ export class Game {
     this.navigationFields.clear();
     this.structureRevision = 0;
     this.nightWaveScheduled = false;
+    this.combatMode = false;
     this.selectedSlot = 1;
     this.selectedTiers = { wall: "wood", spikes: "wood", door: "wood", harvester: "wood", turret: "wood" };
     this.unlocks = createUnlocks();
@@ -531,6 +532,7 @@ export class Game {
     const section = TUTORIAL_SECTIONS[this.tutorialSection];
     if (!section) return;
     this.phase = "day";
+    this.combatMode = false;
     this.previousPhase = "day";
     this.timer = BALANCE.dayDuration;
     this.phaseElapsed = 0;
@@ -765,13 +767,14 @@ export class Game {
   }
 
   selectSlot(slot: number): void {
-    if (slot < 1 || slot > 8 || !this.isTutorialSlotAllowed(slot)) {
+    const action = this.getActionBarActions()[slot - 1];
+    if (!action) return;
+    if (!this.isTutorialSlotAllowed(slot)) {
       emitAudioCue({ cue: "ui-invalid" });
       return;
     }
     this.selectedSlot = slot;
     emitAudioCue({ cue: "ui-click" });
-    const action = ACTIONS[slot - 1];
     if (this.tutorialMode && action && STRUCTURE_ORDER.includes(action as StructureKind)) {
       this.recordTutorialEvent(`selected-${action}`);
     }
@@ -913,7 +916,7 @@ export class Game {
   }
 
   requestSkipNight(): void {
-    if (this.phase !== "day" || this.skipNightConfirmation) return;
+    if (this.phase !== "day" || this.combatMode || this.skipNightConfirmation) return;
     this.skipNightConfirmation = true;
     this.modalLock = true;
     this.markUi(true);
@@ -989,13 +992,16 @@ export class Game {
     }
     if (this.tutorialMode) this.updateTutorialProgress();
 
-    if (this.phase === "night" && !this.isBossNight() && this.shouldEndNightEarly()) {
-      this.notify("All zombies killed", true);
+    if (this.phase === "night" && this.isBossNight()
+      && !this.enemies.some((enemy) => enemy.kind === "boss" && enemy.health > 0)) {
+      this.notify("Boss defeated", true);
       emitAudioCue({ cue: "wave-cleared" });
-      this.beginDawn();
+      this.completeBossNight();
       this.input.endFrame();
       return;
     }
+
+    if (this.combatMode && this.canLeaveCombatMode()) this.leaveCombatMode();
 
     if (this.tutorialMode) {
       this.player.health = Math.max(1, this.player.health);
@@ -1005,10 +1011,6 @@ export class Game {
     else if (this.timer <= 0) {
       if (this.phase === "day") this.beginNight();
       else if (!this.isBossNight()) this.beginDawn();
-      else {
-        const bossAlive = this.enemies.some((enemy) => enemy.kind === "boss");
-        if (!bossAlive) this.completeBossNight();
-      }
     }
     this.input.endFrame();
   }
@@ -1081,15 +1083,15 @@ export class Game {
   private handleAction(): void {
     if (!this.input.mouseDown) return;
     if (this.tutorialMode && !this.isTutorialSlotAllowed(this.selectedSlot)) return;
-    const action = ACTIONS[this.selectedSlot - 1];
+    const action = this.getSelectedAction();
     if (!action) return;
     if (action === "fists") this.punch();
     else if (action === "tool") {
-      if (this.phase === "night") this.shootBow();
+      if (this.combatMode) this.shootBow();
       else if (this.input.pressed) this.repair();
     } else if (action === "recycle") {
-      if (this.phase === "day" && this.input.pressed) this.recycle();
-    } else if (this.phase === "day" && this.input.pressed) {
+      if (!this.combatMode && this.input.pressed) this.recycle();
+    } else if (!this.combatMode && this.input.pressed) {
       this.placeStructure(action);
     }
   }
@@ -1300,8 +1302,8 @@ export class Game {
   }
 
   private updateToolPreview(): void {
-    const action = ACTIONS[this.selectedSlot - 1];
-    if (this.phase !== "day" || (action !== "tool" && action !== "recycle")) {
+    const action = this.getSelectedAction();
+    if (this.combatMode || (action !== "tool" && action !== "recycle")) {
       this.toolPreview = null;
       return;
     }
@@ -1401,8 +1403,8 @@ export class Game {
   }
 
   private updateBuildPreview(): void {
-    const action = ACTIONS[this.selectedSlot - 1];
-    if (this.phase !== "day" || !action || action === "fists" || action === "tool" || action === "recycle") {
+    const action = this.getSelectedAction();
+    if (this.combatMode || !action || action === "fists" || action === "tool" || action === "recycle") {
       this.buildPreview = null;
       return;
     }
@@ -1683,11 +1685,25 @@ export class Game {
     }
   }
 
-  private shouldEndNightEarly(): boolean {
+  private isNightWaveCleared(): boolean {
     if (!this.nightWaveScheduled) return false;
     const scheduledWaveComplete = this.portals.every((portal) => portal.spawned >= portal.assignedSpawns);
     if (!scheduledWaveComplete) return false;
     return !this.enemies.some((enemy) => enemy.health > 0);
+  }
+
+  private canLeaveCombatMode(): boolean {
+    if (this.phase === "night") return !this.isBossNight() && this.isNightWaveCleared();
+    if (this.phase === "day") return !this.enemies.some((enemy) => enemy.health > 0);
+    return false;
+  }
+
+  private leaveCombatMode(): void {
+    this.combatMode = false;
+    this.selectedSlot = 1;
+    this.notify("All zombies killed", true);
+    emitAudioCue({ cue: "wave-cleared" });
+    this.markUi(true);
   }
 
   private spawnEnemy(portal: Portal | Vec2, kind: EnemyKind, summonedBy?: number, child = false): void {
@@ -2617,11 +2633,11 @@ export class Game {
     enemy.summonCooldown -= dt * (enemy.attackSpeedMultiplier ?? 1);
     if (enemy.summonCooldown > 0) return;
     const living = this.enemies.filter((item) => item.summonedBy === enemy.id && item.health > 0).length;
-    if (living >= 3) {
+    if (living >= 5) {
       enemy.summonCooldown = 2;
       return;
     }
-    enemy.summonCooldown = 8;
+    enemy.summonCooldown = 4;
     this.spawnEnemy(enemy, "basic", enemy.id);
     emitAudioCue({ cue: "summoner-cast", position: { x: enemy.x, y: enemy.y } });
     this.burst(enemy.x, enemy.y, "#9d6bff", 14, "SUMMON");
@@ -2919,7 +2935,6 @@ export class Game {
         }
       }
       this.burst(enemy.x, enemy.y, "#8fc75d", enemy.kind === "boss" ? 40 : 14, enemy.kind === "boss" ? "BOSS DOWN" : undefined);
-      if (enemy.kind === "boss" && this.timer <= 0) this.completeBossNight();
     }
   }
 
@@ -2970,6 +2985,7 @@ export class Game {
 
   private beginNight(): void {
     this.phase = "night";
+    this.combatMode = true;
     this.phaseElapsed = 0;
     this.timer = BALANCE.nightDuration;
     this.phaseTransitionImpact = 0.55;
@@ -3074,7 +3090,9 @@ export class Game {
     this.phaseTransitionImpact = 0.55;
     for (const structure of this.structures) structure.harvesterHitResourceIds.clear();
     this.timer = this.getDayDuration();
-    this.selectedSlot = 1;
+    this.combatMode = this.enemies.some((enemy) => enemy.health > 0);
+    if (!this.combatMode) this.selectedSlot = 1;
+    else if (this.selectedSlot > 2) this.selectedSlot = 1;
     this.spawnPortals();
     this.igniteOrdinaryZombies();
     this.notify(`Day ${this.night}: build before the count reaches zero`);
@@ -3322,7 +3340,15 @@ export class Game {
   }
 
   getSelectedAction(): ActionKind {
-    return ACTIONS[this.selectedSlot - 1] ?? "fists";
+    return this.getActionBarActions()[this.selectedSlot - 1] ?? "fists";
+  }
+
+  private getActionBarActions(): readonly ActionKind[] {
+    return actionBarActions(this.combatMode);
+  }
+
+  isCombatMode(): boolean {
+    return this.combatMode;
   }
 
   getTierCost(kind: StructureKind, tier: Tier): ResourceWallet {
@@ -3351,9 +3377,15 @@ export class Game {
   }
 
   getEquippedSword() {
-    if (this.phase !== "night") return null;
+    if (!this.combatMode) return null;
     const item = this.profileManager?.profile.equipment.sword;
     return swordStats(item?.tier ?? null, item?.equipped ?? false);
+  }
+
+  getEquippedSwordTier(): Tier | null {
+    if (!this.combatMode) return null;
+    const item = this.profileManager?.profile.equipment.sword;
+    return item?.equipped ? item.tier : null;
   }
 
   isSwordActive(): boolean {

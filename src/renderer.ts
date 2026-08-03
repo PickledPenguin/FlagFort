@@ -708,7 +708,7 @@ export class Renderer {
     const action = game.getSelectedAction();
     const gloveTier = game.getBestGlove();
     const swordItem = equipment?.sword;
-    const swordStats = action === "fists" && game.phase === "night"
+    const swordStats = action === "fists" && game.isCombatMode()
       ? game.getEquippedSword()
       : null;
     const swordEquipped = Boolean(swordStats && swordItem?.tier);
@@ -744,7 +744,7 @@ export class Renderer {
       this.drawSprite(handSprite, leftReach - 10.5, player.radius * 0.65 - 10.5, 21, 21, player.hurtFlash > 0);
     }
     if (action === "tool") {
-      if (game.phase === "night") {
+      if (game.isCombatMode()) {
         this.drawSprite(ASSETS.player.tools.bow, 8, -30, 58, 60);
       } else {
         const wrench = equipment?.wrench;
@@ -971,7 +971,7 @@ export class Renderer {
       ctx.arc(x + portal.x * scale, y + portal.y * scale, 4, 0, Math.PI * 2);
       ctx.fill();
     }
-    if (game.phase === "night") {
+    if (game.isCombatMode()) {
       for (const enemy of game.enemies) {
         ctx.fillStyle = enemy.kind === "boss" ? "#ff5149" : "#8ac95e";
         ctx.fillRect(x + enemy.x * scale - 1, y + enemy.y * scale - 1, enemy.kind === "boss" ? 6 : 3, enemy.kind === "boss" ? 6 : 3);
