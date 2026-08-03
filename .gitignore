@@ -1,4 +1,8 @@
 node_modules/
 .lavish.
-Audio/
+/Audio/*
+!/Audio/manual/
+!/Audio/manual/*.ogg
+!/public/audio
+/dist/audio/
 *.zip

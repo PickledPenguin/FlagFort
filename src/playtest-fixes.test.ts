@@ -112,14 +112,16 @@ describe("Gremlin target recovery", () => {
 });
 
 describe("combat and roster playtest fixes", () => {
-  it("normalizes adult art, Splitter children, and the Rammer", () => {
-    for (const kind of ["gremlin", "splitter", "archer", "popper", "acidslinger"] as const) {
-      expect(ENEMY_REGISTRY[kind].render?.height).toBe(80);
-    }
-    expect(ENEMY_REGISTRY["splitter-child"].render?.height).toBe(60);
+  it("preserves the manually tuned special-zombie render sizes", () => {
+    expect(ENEMY_REGISTRY.gremlin.render).toMatchObject({ width: 60, height: 39 });
+    expect(ENEMY_REGISTRY.splitter.render).toMatchObject({ width: 50, height: 70 });
+    expect(ENEMY_REGISTRY.archer.render).toMatchObject({ width: 70, height: 70 });
+    expect(ENEMY_REGISTRY.popper.render).toMatchObject({ width: 60, height: 80 });
+    expect(ENEMY_REGISTRY.acidslinger.render).toMatchObject({ width: 56, height: 98 });
+    expect(ENEMY_REGISTRY["splitter-child"].render)
+      .toMatchObject({ width: 46, height: 56 });
     expect(ENEMY_REGISTRY.splitter.death.childSize).toBe(0.75);
-    expect(ENEMY_REGISTRY.rammer.render?.height).toBeGreaterThan(80);
-    expect(ENEMY_REGISTRY.rammer.render?.height).toBeLessThan(96);
+    expect(ENEMY_REGISTRY.rammer.render).toMatchObject({ width: 61.6, height: 88 });
   });
 
   it("generates mutation targets only from the seeded introduced roster", () => {

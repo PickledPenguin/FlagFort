@@ -1,10 +1,11 @@
 import { createHash } from "node:crypto";
 import { execFileSync, spawnSync } from "node:child_process";
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { copyFileSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const scriptPath = fileURLToPath(import.meta.url);
+const projectRoot = resolve(dirname(scriptPath), "..");
 const sourceRoot = join(projectRoot, "Audio");
 const outputRoot = join(projectRoot, "public", "audio");
 const manifestPath = join(outputRoot, "audio-attribution.json");
@@ -22,6 +23,7 @@ const SONNISS_ROYALTY_FREE = {
 };
 
 const source = (relativePath) => join(sourceRoot, relativePath);
+const manual = (id) => source(`manual/${id}.ogg`);
 
 export const selections = [
   {
@@ -159,14 +161,16 @@ export const selections = [
   },
   {
     id: "sword-swing",
-    source: source("kenney_rpg-audio/Audio/drawKnife1.ogg"),
+    source: manual("sword-swing"),
+    preserveSource: true,
     ...KENNEY_CC0,
     pack: "RPG Audio",
     events: ["Equipped player sword swing begins"],
   },
   {
     id: "sword-hit",
-    source: source("kenney_rpg-audio/Audio/chop.ogg"),
+    source: manual("sword-hit"),
+    preserveSource: true,
     ...KENNEY_CC0,
     pack: "RPG Audio",
     events: ["Equipped player sword damages one or more valid targets in a sweep"],
@@ -196,14 +200,16 @@ export const selections = [
   },
   {
     id: "bow-fire",
-    source: source("kenney_rpg-audio/Audio/knifeSlice2.ogg"),
+    source: manual("bow-fire"),
+    preserveSource: true,
     ...KENNEY_CC0,
     pack: "RPG Audio",
     events: ["Player arrow is successfully fired"],
   },
   {
     id: "arrow-impact",
-    source: source("Sonniss.com-GDC2026-GameAudioBundle2of5/Cinematic Sound Design - Cartoon Bloopers/Arrow Hit Rattle.wav"),
+    source: manual("arrow-impact"),
+    preserveSource: true,
     creator: "Cinematic Sound Design",
     pack: "Cartoon Bloopers",
     ...SONNISS_ROYALTY_FREE,
@@ -278,7 +284,8 @@ export const selections = [
   },
   {
     id: "structure-recycle",
-    source: source("Sonniss.com-GDC2026-GameAudioBundle2of5/Epic Stock Media - Board Game - Sound Set Kit for Tabletop and Digital Games/GAMEBoard_Event Board Reset Organic Multiple Pieces Wood Small 02_ESM_BG.wav"),
+    source: manual("structure-recycle"),
+    preserveSource: true,
     creator: "Epic Stock Media",
     pack: "Board Game - Sound Set Kit for Tabletop and Digital Games",
     ...SONNISS_ROYALTY_FREE,
@@ -293,7 +300,8 @@ export const selections = [
   },
   {
     id: "structure-destroyed",
-    source: source("Sonniss.com-GDC2026-GameAudioBundle2of5/Alexander Kopeikin - 100 kHz Designed Ice/ice, block of ice crushed, heavy-015.wav"),
+    source: manual("structure-destroyed"),
+    preserveSource: true,
     creator: "Alexander Kopeikin",
     pack: "100 kHz Designed Ice",
     ...SONNISS_ROYALTY_FREE,
@@ -301,7 +309,8 @@ export const selections = [
   },
   {
     id: "turret-fire",
-    source: source("Sonniss.com-GDC2026-GameAudioBundle2of5/David Dumais Audio - Melee Weapons Sound Effects Pack 2/WEAPWhip_WHIP Snap Crack 05_DDUMAIS_MWP2.wav"),
+    source: manual("turret-fire"),
+    preserveSource: true,
     creator: "David Dumais Audio",
     pack: "Melee Weapons Sound Effects Pack 2",
     ...SONNISS_ROYALTY_FREE,
@@ -357,7 +366,8 @@ export const selections = [
   },
   {
     id: "zombie-death",
-    source: source("Sonniss.com-GDC2026-GameAudioBundle2of5/Epic Stock Media - Humanoid Creatures Vol 4 - Monstrous and Undead Creature Vocalization Sound Sets/VOXReac_Construction Kit Male Flutter Death Vocal Stuttered Long 05_ESM_HC4.wav"),
+    source: manual("zombie-death"),
+    preserveSource: true,
     creator: "Epic Stock Media",
     pack: "Humanoid Creatures Vol 4",
     ...SONNISS_ROYALTY_FREE,
@@ -374,7 +384,8 @@ export const selections = [
   },
   {
     id: "jumper-jump",
-    source: source("Sonniss.com-GDC2026-GameAudioBundle1of5/344 Audio - Air Designed/AEROJet_Blast Off Clean_344 Audio_Air Designed.wav"),
+    source: manual("jumper-jump"),
+    preserveSource: true,
     creator: "344 Audio",
     pack: "Air Designed",
     ...SONNISS_ROYALTY_FREE,
@@ -406,21 +417,24 @@ export const selections = [
   },
   {
     id: "popper-burst",
-    source: source("kenney_impact-sounds/Audio/impactSoft_heavy_004.ogg"),
+    source: manual("popper-burst"),
+    preserveSource: true,
     ...KENNEY_CC0,
     pack: "Impact Sounds",
     events: ["A Popper releases its acid burst"],
   },
   {
     id: "archer-bow-fire",
-    source: source("kenney_rpg-audio/Audio/knifeSlice.ogg"),
+    source: manual("archer-bow-fire"),
+    preserveSource: true,
     ...KENNEY_CC0,
     pack: "RPG Audio",
     events: ["An Archer releases a charged arrow"],
   },
   {
     id: "archer-arrow-impact",
-    source: source("kenney_impact-sounds/Audio/impactTin_medium_004.ogg"),
+    source: manual("archer-arrow-impact"),
+    preserveSource: true,
     ...KENNEY_CC0,
     pack: "Impact Sounds",
     events: ["An Archer arrow hits its intended target"],
@@ -435,7 +449,8 @@ export const selections = [
   },
   {
     id: "acidslinger-impact",
-    source: source("Sonniss.com-GDC2026-GameAudioBundle1of5/344 Audio - Elemental Palette Designed Vol. 1/WATRMisc_Water, Liquid Impact, Bubble, Sci Fi, Hit 04_344 Audio_Elemental Palette Designed Vol 1.wav"),
+    source: manual("acidslinger-impact"),
+    preserveSource: true,
     creator: "344 Audio",
     pack: "Elemental Palette Designed Vol. 1",
     ...SONNISS_ROYALTY_FREE,
@@ -444,7 +459,8 @@ export const selections = [
   },
   {
     id: "rammer-charge",
-    source: source("Sonniss.com-GDC2026-GameAudioBundle2of5/Epic Stock Media - Humanoid Creatures Vol 4 - Monstrous and Undead Creature Vocalization Sound Sets/CREAHmn_Designed Orc Male Attack Long Heavy Hit Charged Up 03_ESM_HC4.wav"),
+    source: manual("rammer-charge"),
+    preserveSource: true,
     creator: "Epic Stock Media",
     pack: "Humanoid Creatures Vol 4",
     ...SONNISS_ROYALTY_FREE,
@@ -486,7 +502,8 @@ export const selections = [
   },
   {
     id: "boss-acid-spit",
-    source: source("Sonniss.com-GDC2026-GameAudioBundle1of5/344 Audio - Barbershop Vol. 1/OBJMisc_Spray Bottle, Spray 1_344 Audio_Barbershop Vol 1.wav"),
+    source: manual("boss-acid-spit"),
+    preserveSource: true,
     creator: "344 Audio",
     pack: "Barbershop Vol. 1",
     ...SONNISS_ROYALTY_FREE,
@@ -569,6 +586,22 @@ function build(selection) {
   const destination = join(outputRoot, `${selection.id}.ogg`);
   const sourceTechnical = probe(selection.source);
   const sourceLoudness = loudness(selection.source);
+  if (selection.preserveSource) {
+    copyFileSync(selection.source, destination);
+    return {
+      canonicalFilename: `${selection.id}.ogg`,
+      originalSourcePath: selection.source,
+      originalFilename: selection.source.split("/").at(-1),
+      creator: selection.creator,
+      pack: selection.pack,
+      license: selection.license,
+      sourceSha256: sha256(selection.source),
+      modifications: ["Copied manually curated canonical audio without re-encoding"],
+      gameplayEvents: selection.events,
+      sourceTechnical: { ...sourceTechnical, ...sourceLoudness },
+      outputTechnical: probe(destination),
+    };
+  }
   const gainDb = conversionGain(selection, sourceLoudness);
   const filters = [];
   if (!selection.ambience) {
@@ -617,6 +650,19 @@ function build(selection) {
 function main() {
   const destinations = new Set(selections.map((item) => item.id));
   if (destinations.size !== selections.length) throw new Error("Canonical destinations must be unique");
+  const manualFilenames = readdirSync(join(sourceRoot, "manual"))
+    .filter((filename) => filename.endsWith(".ogg"))
+    .sort();
+  const configuredManualFilenames = selections
+    .filter((item) => item.preserveSource)
+    .map((item) => `${item.id}.ogg`)
+    .sort();
+  if (JSON.stringify(manualFilenames) !== JSON.stringify(configuredManualFilenames)) {
+    throw new Error(
+      "Every Audio/manual OGG must have a matching preserveSource selection: "
+      + JSON.stringify({ manualFilenames, configuredManualFilenames }),
+    );
+  }
   const sourceHashesBefore = new Map(selections.map((item) => [item.source, sha256(item.source)]));
   mkdirSync(outputRoot, { recursive: true });
   const entries = selections.map(build);
@@ -657,4 +703,4 @@ function main() {
   console.log(`Wrote ${sourceMapPath}`);
 }
 
-main();
+if (process.argv[1] && resolve(process.argv[1]) === scriptPath) main();

@@ -1,4 +1,114 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="-18 -15 36 30" role="img" aria-labelledby="split-child-title split-child-desc">
-  <title id="split-child-title">Splitter child</title><desc id="split-child-desc">A tiny shard-like child of a Splitter.</desc><metadata id="editor-metadata">FlagFort editable child artwork.</metadata>
-  <g id="child-body" fill="#91c967" stroke="#263c29" stroke-width="1.4"><path d="M-7-10C5-14 13-5 11 4 9 12-4 14-11 6Z"/><circle cx="12" cy="-5" r="3"/><circle cx="13" cy="6" r="3"/></g><path id="child-fracture" d="m-2-10 3 5-4 4 5 4-4 6" fill="none" stroke="#e1f58a" stroke-width="2"/><g id="child-eyes" fill="#f2f0d9"><circle cx="4" cy="-4" r="3"/><circle cx="5" cy="5" r="3"/></g><g fill="#8e241f"><circle cx="5" cy="-4" r="1.4"/><circle cx="6" cy="5" r="1.4"/></g>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="-18 -15 28 23"
+   role="img"
+   aria-labelledby="split-child-title split-child-desc"
+   version="1.1"
+   id="svg6"
+   sodipodi:docname="splitter-child-zombie.svg"
+   width="28"
+   height="23"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <defs
+     id="defs6" />
+  <sodipodi:namedview
+     id="namedview6"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="7.3663646"
+     inkscape:cx="15.000615"
+     inkscape:cy="9.3669"
+     inkscape:window-width="1520"
+     inkscape:window-height="679"
+     inkscape:window-x="0"
+     inkscape:window-y="33"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg6" />
+  <title
+     id="split-child-title">Splitter child</title>
+  <desc
+     id="split-child-desc">A tiny shard-like child of a Splitter.</desc>
+  <metadata
+     id="editor-metadata">FlagFort editable child artwork.<rdf:RDF>
+  <cc:Work
+     rdf:about="">
+    <dc:title>Splitter child</dc:title>
+  </cc:Work>
+</rdf:RDF>
+</metadata>
+  <g
+     id="g8"
+     transform="matrix(0.9595009,0,0,0.9595009,-0.39957684,-0.33598209)">
+    <g
+       id="child-body"
+       fill="#91c967"
+       stroke="#263c29"
+       stroke-width="1.4"
+       transform="translate(-6.2321022,-3.3289622)">
+      <g
+         id="g7">
+        <path
+           d="M -7,-10 C 5,-14 13,-5 11,4 9,12 -4,14 -11,6 Z"
+           id="path1" />
+        <circle
+           cx="12"
+           cy="-5"
+           r="3"
+           id="circle1" />
+        <circle
+           cx="13"
+           cy="6"
+           r="3"
+           id="circle2" />
+      </g>
+    </g>
+    <path
+       id="child-fracture"
+       d="m -8.2321022,-13.328962 3,4.9999998 -4,4 5,4.00000005 -4,5.99999995"
+       fill="none"
+       stroke="#e1f58a"
+       stroke-width="2" />
+    <g
+       id="child-eyes"
+       fill="#f2f0d9"
+       transform="translate(-6.2321022,-3.3289622)">
+      <circle
+         cx="4"
+         cy="-4"
+         r="3"
+         id="circle3" />
+      <circle
+         cx="5"
+         cy="5"
+         r="3"
+         id="circle4" />
+    </g>
+    <g
+       fill="#8e241f"
+       id="g6"
+       transform="translate(-6.2321022,-3.3289622)">
+      <circle
+         cx="5"
+         cy="-4"
+         r="1.4"
+         id="circle5" />
+      <circle
+         cx="6"
+         cy="5"
+         r="1.4"
+         id="circle6" />
+    </g>
+  </g>
 </svg>

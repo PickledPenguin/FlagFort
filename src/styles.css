@@ -3363,12 +3363,21 @@ img.icon {
 .daily-boundary { color: var(--muted); font-size: 10px; text-align: center; }
 
 .difficulty { gap: 2px; }
-.difficulty-xp { color: var(--gold); font-size: 8px; font-weight: 900; letter-spacing: .06em; }
+.difficulty-xp { 
+  color: var(--gold); 
+  font-size: 8px; 
+  font-weight: 900; 
+  letter-spacing: .06em; 
+  text-shadow: 
+    -0.5px -0.5px 0 #04110b,  
+     0.5px -0.5px 0 #04110b,
+    -0.5px  0.5px 0 #04110b,
+     0.5px  0.5px 0 #04110b;
+}
 
 .adaptive-pressure {
   position: absolute;
-  top: 120px;
-  right: calc(100% + 10px);
+  top: 50px;
   display: flex;
   align-items: center;
   gap: 6px;

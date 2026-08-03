@@ -1,6 +1,8 @@
 // @vitest-environment jsdom
 // @vitest-environment-options {"url":"http://localhost/"}
 
+import { createHash } from "node:crypto";
+import { readFileSync, readdirSync } from "node:fs";
 import { beforeEach, describe, expect, it } from "vitest";
 import manifest from "../public/audio/audio-attribution.json";
 import {
@@ -31,6 +33,27 @@ describe("audio asset coverage", () => {
     const sourcePaths = manifest.entries.map((entry) => entry.originalSourcePath);
     expect(new Set(sourcePaths).size).toBe(sourcePaths.length);
     expect(manifest.entries.every((entry) => entry.sourceSha256.length === 64)).toBe(true);
+  });
+
+  it("preserves every manually curated canonical sound byte-for-byte", () => {
+    const manualFilenames = readdirSync("Audio/manual")
+      .filter((filename) => filename.endsWith(".ogg"))
+      .sort();
+    const manualEntries = manifest.entries
+      .filter((entry) => entry.originalSourcePath.includes("/Audio/manual/"))
+      .sort((left, right) => left.canonicalFilename.localeCompare(right.canonicalFilename));
+    expect(manualEntries.map((entry) => entry.canonicalFilename)).toEqual(manualFilenames);
+
+    const sha256 = (path: string): string => createHash("sha256")
+      .update(readFileSync(path))
+      .digest("hex");
+    for (const entry of manualEntries) {
+      expect(entry.modifications).toEqual([
+        "Copied manually curated canonical audio without re-encoding",
+      ]);
+      expect(sha256(entry.originalSourcePath))
+        .toBe(sha256(`public/audio/${entry.canonicalFilename}`));
+    }
   });
 
   it("uses the requested horde and repeated-effect limits", () => {

@@ -265,7 +265,7 @@ export const BALANCE = {
     effective: {
       baseMultiplier: 1,
       minimumMultiplier: 0.5,
-      maximumMultiplier: 1.75,
+      maximumMultiplier: 2,
     },
     healthInfluence: 0.16,
     damageInfluence: 0.1,

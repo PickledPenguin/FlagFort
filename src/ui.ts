@@ -697,9 +697,9 @@ export class Ui {
 
   private difficultyText(difficulty: Difficulty): string {
     if (difficulty === "easy") return "More flag health and a gentler horde";
-    if (difficulty === "normal") return "The intended survival challenge";
-    if (difficulty === "hard") return "Tougher, faster, larger waves";
-    return "An intentionally extreme count with the largest XP reward";
+    if (difficulty === "normal") return "The intended challenge";
+    if (difficulty === "hard") return "Tougher, faster, larger waves with an increased XP reward";
+    return "Intentionally extreme with the largest XP reward";
   }
 
   private pauseMarkup(): string {

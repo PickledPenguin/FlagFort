@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
-   viewBox="-58 -45 110 90"
+   viewBox="-58 -45 80 60"
    role="img"
    aria-labelledby="popper-title popper-desc"
    version="1.1"
    id="svg8"
    sodipodi:docname="popper-zombie.svg"
    inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
-   width="110"
-   height="90"
+   width="80"
+   height="60"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
@@ -28,8 +28,8 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:zoom="3.1159163"
-     inkscape:cx="53.916724"
-     inkscape:cy="32.414221"
+     inkscape:cx="36.907281"
+     inkscape:cy="16.68851"
      inkscape:window-width="1491"
      inkscape:window-height="627"
      inkscape:window-x="0"
@@ -52,7 +52,7 @@
      id="popper-body"
      stroke="#263c29"
      stroke-width="2"
-     transform="translate(-9.9489193,0.64186576)">
+     transform="translate(-25.716268,-14.358134)">
     <circle
        id="body"
        r="25"
@@ -101,7 +101,7 @@
   <g
      id="eyes"
      fill="#f2f0d9"
-     transform="translate(-9.9489193,0.64186576)">
+     transform="translate(-25.716268,-14.358134)">
     <ellipse
        cx="9"
        cy="-9"
@@ -118,7 +118,7 @@
   <g
      fill="#8e241f"
      id="g8"
-     transform="translate(-9.9489193,0.64186576)">
+     transform="translate(-25.716268,-14.358134)">
     <circle
        cx="12"
        cy="-8"
