@@ -20,6 +20,7 @@ import {
 } from "./rewards";
 import {
   adaptiveDifficulty,
+  baseWaveThreatBudget,
   dismantleRefund,
   expectedStructurePoints,
   structurePointValue,
@@ -69,7 +70,7 @@ describe("canonical structure value", () => {
       door: { wood: 10, stone: 20, gold: 35, diamond: 52 },
       spikes: { wood: 13, stone: 26, gold: 45, diamond: 68 },
       harvester: { wood: 26, stone: 51, gold: 84, diamond: 123 },
-      turret: { wood: 36, stone: 79, gold: 149, diamond: 262 },
+      turret: { wood: 36, stone: 84, gold: 180, diamond: 380 },
     } satisfies Record<StructureKind, Record<Tier, number>>;
     for (const kind of STRUCTURE_ORDER) {
       const values = TIER_ORDER.map((tier) => structurePointValue(kind, tier));
@@ -82,9 +83,31 @@ describe("canonical structure value", () => {
     expect(structurePointValue("door", "wood")).toBe(10);
     expect(structurePointValue("spikes", "wood")).toBeGreaterThan(structurePointValue("wall", "wood"));
     expect(structurePointValue("turret", "wood")).toBeGreaterThan(structurePointValue("harvester", "wood"));
-    expect(structurePointValue("turret", "diamond")).toBe(262);
+    expect(structurePointValue("turret", "diamond")).toBe(380);
     expect(structurePointValue("turret", "diamond"))
-      .toBeGreaterThan(structurePointValue("turret", "wood") * 7);
+      .toBeGreaterThan(structurePointValue("turret", "wood") * 10);
+  });
+
+  it("keeps fort expectations monotonic and mildly superlinear through Endless", () => {
+    const expectations = Array.from({ length: 20 }, (_, index) =>
+      expectedStructurePoints(index + 1));
+    const growth = expectations.slice(1).map((value, index) => value - expectations[index]!);
+    expect(expectations[0]).toBe(126);
+    expect(expectations[1]).toBe(266);
+    expect(expectations[9]).toBe(2081);
+    expect(expectations.every((value, index) => index === 0 || value > expectations[index - 1]!))
+      .toBe(true);
+    expect(growth.every((value, index) => index === 0 || value >= growth[index - 1]!))
+      .toBe(true);
+  });
+
+  it("grows late wave budgets slightly faster than linear", () => {
+    const budgets = Array.from({ length: 10 }, (_, index) => baseWaveThreatBudget(index + 1));
+    expect(budgets.slice(0, 2)).toEqual([8, 12]);
+    expect(budgets[9]).toBe(51);
+    expect(budgets[9]).toBeGreaterThan(BALANCE.waveBase + 9 * BALANCE.waveGrowth);
+    expect(budgets.every((value, index) => index === 0 || value > budgets[index - 1]!))
+      .toBe(true);
   });
 
   it("replaces tier value and excludes destroyed, recycled, and remote structures", () => {
@@ -147,6 +170,29 @@ describe("additive adaptive difficulty and rewards", () => {
     expect(high.structureMultiplier).toBe(BALANCE.adaptive.structure.maximumMultiplier);
     expect(high.levelMultiplier).toBe(BALANCE.adaptive.level.maximumMultiplier);
     expect(high.multiplier).toBe(BALANCE.adaptive.effective.maximumMultiplier);
+  });
+
+  it("keeps helpful floors while allowing the positive components to reach 3x", () => {
+    expect(BALANCE.adaptive.structure.minimumMultiplier).toBe(0.5);
+    expect(BALANCE.adaptive.level.minimumMultiplier).toBe(1);
+    expect(BALANCE.adaptive.effective.minimumMultiplier).toBe(0.5);
+    expect(BALANCE.adaptive.structure.maximumMultiplier).toBe(1.85);
+    expect(BALANCE.adaptive.level.maximumMultiplier).toBe(1.6);
+    expect(BALANCE.adaptive.autoCorrective.maximumDelta).toBe(0.55);
+
+    const maximum = adaptiveDifficulty(1_000_000, 10, 999, [0.55]);
+    expect(maximum.structureDelta).toBeCloseTo(0.85);
+    expect(maximum.levelDelta).toBeCloseTo(0.6);
+    expect(maximum.otherDelta).toBeCloseTo(0.55);
+    expect(maximum.multiplier).toBe(3);
+  });
+
+  it("raises the logged boss-fort pressure beyond the former structure cap", () => {
+    const rescoredFort = 3786 + 4 * (380 - 262);
+    const bossNight = adaptiveDifficulty(rescoredFort, 10, 19);
+    expect(bossNight.structureMultiplier).toBeGreaterThan(1.7);
+    expect(bossNight.multiplier).toBeGreaterThan(1.95);
+    expect(bossNight.multiplier).toBeGreaterThan(1.77);
   });
 
   it("awards difficulty XP at reduced, base, intermediate, and maximum boundaries", () => {

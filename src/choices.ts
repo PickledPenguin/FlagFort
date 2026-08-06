@@ -26,7 +26,19 @@ export function availableUnlocks(unlocks: UnlockState): string[] {
   return Object.keys(unlockNames).filter((id) => canUnlock(id, unlocks));
 }
 
-function availableMutationKeys(night: number, roster: EnemyRoster): Array<keyof Mutations> {
+function currentRosterKinds(
+  night: number,
+  roster: EnemyRoster,
+  additionalRoster: readonly RosterEnemyKind[],
+): RosterEnemyKind[] {
+  return [...new Set([...introducedRosterEnemies(roster, night), ...additionalRoster])];
+}
+
+function availableMutationKeys(
+  night: number,
+  roster: EnemyRoster,
+  additionalRoster: readonly RosterEnemyKind[],
+): Array<keyof Mutations> {
   const keys: Array<keyof Mutations> = [
     "basicWeight",
     "health",
@@ -36,7 +48,7 @@ function availableMutationKeys(night: number, roster: EnemyRoster): Array<keyof 
     "structureDamage",
     "waveSize",
   ];
-  for (const kind of introducedRosterEnemies(roster, night)) {
+  for (const kind of currentRosterKinds(night, roster, additionalRoster)) {
     const key = mutationWeightKey(kind);
     if (!keys.includes(key)) keys.push(key);
   }
@@ -47,8 +59,9 @@ function mutationTargets(
   key: keyof Mutations,
   night: number,
   roster: EnemyRoster,
+  additionalRoster: readonly RosterEnemyKind[],
 ): RosterEnemyKind[] {
-  const introduced = introducedRosterEnemies(roster, night);
+  const introduced = currentRosterKinds(night, roster, additionalRoster);
   const exact = introduced.filter((kind) => mutationWeightKey(kind) === key);
   return exact.length > 0 ? exact : introduced;
 }
@@ -121,10 +134,11 @@ function pairChoice(
   upgrades: Upgrades,
   mutations: Mutations,
   roster: EnemyRoster,
+  additionalRoster: readonly RosterEnemyKind[],
 ): Choice {
-  const mutationId = rng.pick(availableMutationKeys(night, roster));
+  const mutationId = rng.pick(availableMutationKeys(night, roster, additionalRoster));
   const mutation = BALANCE.mutations[mutationId];
-  const mutationTargetKinds = mutationTargets(mutationId, night, roster);
+  const mutationTargetKinds = mutationTargets(mutationId, night, roster, additionalRoster);
   const exactWeightTarget = mutationTargetKinds.length === 1
     && mutationWeightKey(mutationTargetKinds[0]!) === mutationId;
   const mutationName = exactWeightTarget
@@ -158,6 +172,17 @@ function pairChoice(
   };
 }
 
+export function availableUpgradeKeys(
+  upgrades: Upgrades,
+  excluded: ReadonlySet<string> = new Set(),
+  disabledBenefits: ReadonlySet<string> = new Set(),
+): Array<keyof Upgrades> {
+  return (Object.keys(upgrades) as Array<keyof Upgrades>).filter((id) =>
+    !excluded.has(id)
+      && !disabledBenefits.has(id)
+      && upgrades[id] < BALANCE.upgradeCaps[id] - 1e-9);
+}
+
 export function generateChoiceOfferings(
   seed: string,
   night: number,
@@ -169,20 +194,12 @@ export function generateChoiceOfferings(
   reroll = 0,
   disabledBenefits: ReadonlySet<string> = new Set(),
   roster: EnemyRoster = selectEnemyRoster(seed),
+  additionalRoster: readonly RosterEnemyKind[] = [],
 ): Choice[] {
   const rng = new SeededRng(`${seed}:choices:${night}:${screen}:reroll:${reroll}`);
   const unlockPool = availableUnlocks(unlocks).filter((id) => !excluded.has(id));
   const useUnlocks = screen === 0 && unlockPool.length > 0;
-  const upgradeKeys = (Object.keys(upgrades) as Array<keyof Upgrades>).filter((id) => {
-    if (excluded.has(id) || disabledBenefits.has(id)) return false;
-    if (id === "turretCapacity") {
-      return BALANCE.structure.startingCapacity.turret + upgrades.turretCapacity < BALANCE.structure.maximumCapacity.turret;
-    }
-    if (id === "harvesterCapacity") {
-      return BALANCE.structure.startingCapacity.harvester + upgrades.harvesterCapacity < BALANCE.structure.maximumCapacity.harvester;
-    }
-    return true;
-  });
+  const upgradeKeys = availableUpgradeKeys(upgrades, excluded, disabledBenefits);
   let pool: Array<string | keyof Upgrades> = useUnlocks ? unlockPool : upgradeKeys;
   if (useUnlocks) {
     const multiplier = night <= 4 ? 3 : night <= 6 ? 2 : 1;
@@ -193,7 +210,16 @@ export function generateChoiceOfferings(
     .shuffle(pool)
     .filter((id, index, values) => values.indexOf(id) === index)
     .slice(0, 3)
-    .map((id) => pairChoice(rng, String(id), useUnlocks ? "unlock" : "upgrade", night, upgrades, mutations, roster));
+    .map((id) => pairChoice(
+      rng,
+      String(id),
+      useUnlocks ? "unlock" : "upgrade",
+      night,
+      upgrades,
+      mutations,
+      roster,
+      additionalRoster,
+    ));
 }
 
 export function applyUnlock(unlocks: UnlockState, id: string): void {

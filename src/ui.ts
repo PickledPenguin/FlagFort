@@ -11,7 +11,7 @@ import { CHALLENGES, challengeXpBonusPercent, resolveChallengeModifiers } from "
 import { challengeIcon } from "./challenge-icons";
 import { audioManager, type AudioVolumeChannel } from "./audio";
 import { ASSETS } from "./assets";
-import { ENEMY_REGISTRY, rosterMilestones } from "./enemy-registry";
+import { ENEMY_REGISTRY } from "./enemy-registry";
 import type { ActionKind, Choice, Difficulty, EnemyKind, StructureKind, Tier } from "./types";
 import {
   EQUIPMENT_ORDER,
@@ -804,6 +804,16 @@ export class Ui {
         <div class="reroll-actions"><button class="ghost" data-action="cancel-reroll">Keep cards</button><button class="primary" data-action="confirm-reroll">Confirm reroll</button></div>
       </div></section>`;
     }
+    if (this.game.isUpgradeSelectionExhausted()) {
+      return `<section class="screen dawn-screen"><div class="dawn-panel upgrade-cap-panel" role="region" aria-labelledby="upgrade-cap-title" tabindex="-1">
+        <header><p class="eyebrow">DAWN ${this.game.night} · PROGRESSION COMPLETE</p><h2 id="upgrade-cap-title">Every available upgrade is maximized</h2>
+          <span>Your fort cannot gain any more run upgrades. Choose how this run continues.</span></header>
+        <div class="upgrade-cap-actions">
+          <button class="ghost" data-action="end-maxed-run">End run and collect rewards</button>
+          <button class="primary" data-action="continue-maxed-run">Continue without upgrades</button>
+        </div>
+      </div></section>`;
+    }
     return `<section class="screen dawn-screen"><div class="dawn-panel" role="region" aria-labelledby="dawn-title" tabindex="-1">
       <header><p class="eyebrow">DAWN ${this.game.night} · COUNT FROZEN</p><h2 id="dawn-title">${heading}</h2><span>Each benefit empowers the horde.</span>
       </header>
@@ -1004,6 +1014,9 @@ export class Ui {
         ${this.runProgressMarkup()}
         <div class="clock" data-clock-panel><div class="clock-face"><strong data-clock></strong></div><small data-night></small><span data-phase-label></span></div>
         ${this.game.phase === "day" && !this.game.isCombatMode() && !this.game.tutorialMode ? `<button class="skip-night-button" data-action="skip-night" aria-label="Skip to Night">${icon("skip")}<span>Skip to Night</span><span class="tooltip">End the day early with no reward</span></button>` : ""}
+        ${this.game.runMode === "endless" && this.game.phase === "night" ? `<button class="fort-pulse-button" data-action="fort-pulse" ${this.game.canUseFortPulse() ? "" : "disabled"} aria-label="Fort Pulse">
+          <span>FORT PULSE</span><small>24 gold + 8 diamond - once per night</small><span class="tooltip">Damage nearby special enemies</span>
+        </button>` : ""}
     </div>
       ${this.game.debugAdaptive ? this.adaptiveDebugMarkup() : ""}
       <aside class="resources" aria-label="Resources">${RESOURCE_ORDER.map((resource) =>
@@ -1052,7 +1065,7 @@ export class Ui {
       role="progressbar" aria-label="Run progress" aria-valuemin="${firstNight}" aria-valuemax="${firstNight + count - 1}" aria-valuenow="${this.game.night}">
       <div class="run-progress-line"><i></i></div>
       ${nights.map((night) => {
-        const milestone = rosterMilestones(this.game.enemyRoster).find((item) => item.night === night);
+        const milestone = this.game.getRosterMilestones().find((item) => item.night === night);
         const boss = night === 10 || (endless && night % 5 === 0);
         const state = night <= completed ? "completed" : night === this.game.night ? "current" : "future";
         const tooltip = milestone?.label ?? (boss ? `Boss Night ${night}` : `Night ${night}`);
@@ -1224,6 +1237,10 @@ export class Ui {
       <span>Difference <b data-adaptive-difference>${threat.difference}</b></span>
       <span>Structure <b data-adaptive-structure>${threat.structureMultiplier.toFixed(3)}</b></span>
       <span>Level ${threat.playerLevel} <b data-adaptive-level>${threat.levelMultiplier.toFixed(3)}</b></span>
+      <span>Turret DPS <b>${threat.turretDps.toFixed(1)}/${threat.expectedTurretDps.toFixed(1)}</b></span>
+      <span>Coverage <b>${Math.round(threat.turretCoverageRatio * 100)}%</b></span>
+      <span>Upgrade progress <b>${Math.round(threat.playerUpgradeFraction * 100)}%</b></span>
+      <span>Power <b>+${threat.powerDelta.toFixed(3)}</b></span>
       <span>Corrective <b data-adaptive-corrective>+${this.game.autoCorrectiveDelta.toFixed(3)}</b></span>
       <span>Easy score <b>${performance.easyPerformance.toFixed(3)}</b></span>
       <span>Pressure <b>${performance.pressurePenalty.toFixed(3)}</b></span>
@@ -1424,6 +1441,12 @@ export class Ui {
       case "confirm-reroll":
         this.animateChoiceReplacement(() => this.game.confirmReroll());
         return;
+      case "end-maxed-run":
+        this.game.endRunAtUpgradeCap();
+        break;
+      case "continue-maxed-run":
+        this.game.continueWithoutUpgrade();
+        break;
       case "skip-night":
         this.game.requestSkipNight();
         break;
@@ -1506,7 +1529,7 @@ export class Ui {
     const target = (event.target as HTMLElement).closest<HTMLElement>("[data-action],[data-slot],[data-tier]");
     if (!target) return;
     this.game.input.releasePointer();
-    if (target.dataset.action === "skip-night" || target.dataset.action === "copy-seed") {
+    if (target.dataset.action === "skip-night" || target.dataset.action === "copy-seed" || target.dataset.action === "fort-pulse") {
       audioManager.play("ui-click");
     }
     if (target.dataset.action === "pause") {
@@ -1515,6 +1538,8 @@ export class Ui {
       this.game.requestSkipNight();
     } else if (target.dataset.action === "copy-seed") {
       this.game.copySeed();
+    } else if (target.dataset.action === "fort-pulse") {
+      this.game.useFortPulse();
     } else if (target.dataset.tier && target.dataset.kind) {
       this.game.selectTier(target.dataset.kind as StructureKind, target.dataset.tier as Tier);
       this.openTierPanel = target.dataset.kind as StructureKind;

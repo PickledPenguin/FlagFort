@@ -51,7 +51,7 @@ All source paths are absolute in `public/audio/audio-attribution.json`. This tab
 | zombie-death.ogg | zombie-death.ogg | Epic Stock Media / Humanoid Creatures Vol 4 | Sonniss GDC Game Audio Bundle Part 9 royalty-free license |
 | breaker-smash.ogg | GORESplt_Gore Designed Transient Heavy Impact Smash 01_ESM_HALG.wav | Epic Stock Media / Halloween Game - Haunted House and Horror Audio Scare Kit | Sonniss GDC Game Audio Bundle Part 9 royalty-free license |
 | jumper-jump.ogg | jumper-jump.ogg | 344 Audio / Air Designed | Sonniss GDC Game Audio Bundle Part 9 royalty-free license |
-| summoner-cast.ogg | MAGAngl_Magic Light Spell Enchantment Potion Effect Tonal Bright 03_ESM_FG2.wav | Epic Stock Media / Fantasy Game 2 - Sound Kit for Enchanted Realms | Sonniss GDC Game Audio Bundle Part 9 royalty-free license |
+| summoner-cast.ogg | summoner-cast.ogg | Epic Stock Media / Fantasy Game 2 - Sound Kit for Enchanted Realms | Sonniss GDC Game Audio Bundle Part 9 royalty-free license |
 | gremlin-sabotage.ogg | impactMetal_heavy_003.ogg | Kenney / Impact Sounds | CC0 1.0 |
 | splitter-split.ogg | impactGlass_heavy_004.ogg | Kenney / Impact Sounds | CC0 1.0 |
 | popper-burst.ogg | popper-burst.ogg | Kenney / Impact Sounds | CC0 1.0 |

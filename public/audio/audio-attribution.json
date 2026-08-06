@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-03T18:31:30.371Z",
+  "generatedAt": "2026-08-04T20:56:58.757Z",
   "sourceFoldersSearched": [
     "/Users/aiagents/Documents/GMTK/Audio"
   ],
@@ -837,9 +837,9 @@
       "canonicalFilename": "bow-fire.ogg",
       "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/manual/bow-fire.ogg",
       "originalFilename": "bow-fire.ogg",
-      "creator": "Pixabay",
-      "pack": "Pixabay",
-      "license": "Pixabay Content License",
+      "creator": "Kenney",
+      "pack": "RPG Audio",
+      "license": "CC0 1.0",
       "sourceSha256": "8d756a78230cc85799ef4a445d147c83854614dac325258b9883466e22c95765",
       "modifications": [
         "Copied manually curated canonical audio without re-encoding"
@@ -1119,9 +1119,9 @@
       "canonicalFilename": "structure-place.ogg",
       "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/manual/structure-place.ogg",
       "originalFilename": "structure-place.ogg",
-      "creator": "Pixabay",
-      "pack": "Pixabay",
-      "license": "Pixabay Content License",
+      "creator": "Epic Stock Media",
+      "pack": "Tower Defense Game",
+      "license": "Sonniss GDC Game Audio Bundle Part 9 royalty-free license",
       "sourceSha256": "70417cf1087982090a440a70ad07d4ec7c1db6fc51ef13868c44e40bfca7a6f2",
       "modifications": [
         "Copied manually curated canonical audio without re-encoding"
@@ -1152,9 +1152,9 @@
       "canonicalFilename": "structure-upgrade.ogg",
       "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/manual/structure-upgrade.ogg",
       "originalFilename": "structure-upgrade.ogg",
-      "creator": "Pixabay",
-      "pack": "Pixabay",
-      "license": "Pixabay Content License",
+      "creator": "CB_Sounddesign",
+      "pack": "Applicable Sounds - Organic UI and Building Games SFX",
+      "license": "Sonniss GDC Game Audio Bundle Part 9 royalty-free license",
       "sourceSha256": "70417cf1087982090a440a70ad07d4ec7c1db6fc51ef13868c44e40bfca7a6f2",
       "modifications": [
         "Copied manually curated canonical audio without re-encoding"
@@ -1323,9 +1323,9 @@
       "canonicalFilename": "turret-fire.ogg",
       "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/manual/turret-fire.ogg",
       "originalFilename": "turret-fire.ogg",
-      "creator": "Pixabay",
-      "pack": "Pixabay",
-      "license": "Pixabay Content License",
+      "creator": "David Dumais Audio",
+      "pack": "Melee Weapons Sound Effects Pack 2",
+      "license": "Sonniss GDC Game Audio Bundle Part 9 royalty-free license",
       "sourceSha256": "8d756a78230cc85799ef4a445d147c83854614dac325258b9883466e22c95765",
       "modifications": [
         "Copied manually curated canonical audio without re-encoding"
@@ -1641,9 +1641,9 @@
       "canonicalFilename": "jumper-jump.ogg",
       "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/manual/jumper-jump.ogg",
       "originalFilename": "jumper-jump.ogg",
-      "creator": "Pixabay",
-      "pack": "Pixabay",
-      "license": "Pixabay Content License",
+      "creator": "344 Audio",
+      "pack": "Air Designed",
+      "license": "Sonniss GDC Game Audio Bundle Part 9 royalty-free license",
       "sourceSha256": "38618c0ebd6cdab382494295893fd5d47556c788976a4a3f2414eb4f50faa259",
       "modifications": [
         "Copied manually curated canonical audio without re-encoding"
@@ -1674,37 +1674,33 @@
       "canonicalFilename": "summoner-cast.ogg",
       "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/manual/summoner-cast.ogg",
       "originalFilename": "summoner-cast.ogg",
-      "creator": "Pixabay",
-      "pack": "Pixabay",
-      "license": "Pixabay Content License",
-      "sourceSha256": "66fd5c33f2b5e221dce96ba2e24a172683c8c696621d8567ef895627d981d869",
+      "creator": "Epic Stock Media",
+      "pack": "Fantasy Game 2 - Sound Kit for Enchanted Realms",
+      "license": "Sonniss GDC Game Audio Bundle Part 9 royalty-free license",
+      "sourceSha256": "65135858452a4f19836e01ad5bb366b62d524ee39c3919a9f5cbeb5cf3bfb9e8",
       "modifications": [
-        "Trimmed leading and trailing digital silence below -55 dB",
-        "Limited to the clean first 2.75 seconds",
-        "-4.5 dB fixed gain normalization without dynamic-range compression",
-        "Resampled to 48 kHz stereo",
-        "Encoded as OGG Opus at 80 kbps variable bitrate"
+        "Copied manually curated canonical audio without re-encoding"
       ],
       "gameplayEvents": [
         "A summoner successfully summons zombies"
       ],
       "sourceTechnical": {
-        "codec": "pcm_s24le",
-        "sampleRate": 96000,
+        "codec": "vorbis",
+        "sampleRate": 24000,
         "channels": 2,
-        "duration": 5.2,
-        "bytes": 3599350,
-        "integratedLufs": -13.5,
-        "truePeakDbfs": -1,
-        "meanDbfs": -20.2,
-        "maxDbfs": -1
+        "duration": 1.035708,
+        "bytes": 12465,
+        "integratedLufs": -31.3,
+        "truePeakDbfs": -19.8,
+        "meanDbfs": -35.2,
+        "maxDbfs": -20.6
       },
       "outputTechnical": {
-        "codec": "opus",
-        "sampleRate": 48000,
+        "codec": "vorbis",
+        "sampleRate": 24000,
         "channels": 2,
-        "duration": 2.7565,
-        "bytes": 24559
+        "duration": 1.035708,
+        "bytes": 12465
       }
     },
     {
@@ -1783,9 +1779,9 @@
       "canonicalFilename": "popper-burst.ogg",
       "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/manual/popper-burst.ogg",
       "originalFilename": "popper-burst.ogg",
-      "creator": "Pixabay",
-      "pack": "Pixabay",
-      "license": "Pixabay Content License",
+      "creator": "Kenney",
+      "pack": "Impact Sounds",
+      "license": "CC0 1.0",
       "sourceSha256": "0800e2178e05b188db496ea4b9b6a08b2af96f3c1361f5a94f54dc9a252eb551",
       "modifications": [
         "Copied manually curated canonical audio without re-encoding"
@@ -1816,9 +1812,9 @@
       "canonicalFilename": "archer-bow-fire.ogg",
       "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/manual/archer-bow-fire.ogg",
       "originalFilename": "archer-bow-fire.ogg",
-      "creator": "Pixabay",
-      "pack": "Pixabay",
-      "license": "Pixabay Content License",
+      "creator": "Kenney",
+      "pack": "RPG Audio",
+      "license": "CC0 1.0",
       "sourceSha256": "8d756a78230cc85799ef4a445d147c83854614dac325258b9883466e22c95765",
       "modifications": [
         "Copied manually curated canonical audio without re-encoding"
@@ -1849,9 +1845,9 @@
       "canonicalFilename": "archer-arrow-impact.ogg",
       "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/manual/archer-arrow-impact.ogg",
       "originalFilename": "archer-arrow-impact.ogg",
-      "creator": "Pixabay",
-      "pack": "Pixabay",
-      "license": "Pixabay Content License",
+      "creator": "Kenney",
+      "pack": "Impact Sounds",
+      "license": "CC0 1.0",
       "sourceSha256": "1a4b2b626b30d812d70ca759eef177479dfe91fa3a6064c4197c7a74892aae54",
       "modifications": [
         "Copied manually curated canonical audio without re-encoding"
@@ -1918,9 +1914,9 @@
       "canonicalFilename": "acidslinger-impact.ogg",
       "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/manual/acidslinger-impact.ogg",
       "originalFilename": "acidslinger-impact.ogg",
-      "creator": "Pixabay",
-      "pack": "Pixabay",
-      "license": "Pixabay Content License",
+      "creator": "344 Audio",
+      "pack": "Elemental Palette Designed Vol. 1",
+      "license": "Sonniss GDC Game Audio Bundle Part 9 royalty-free license",
       "sourceSha256": "57c0a7f5c87389835c21c04823f5d73f1b0e0053bdb93bde037eb2798b109c09",
       "modifications": [
         "Copied manually curated canonical audio without re-encoding"
@@ -2130,9 +2126,9 @@
       "canonicalFilename": "boss-acid-spit.ogg",
       "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/manual/boss-acid-spit.ogg",
       "originalFilename": "boss-acid-spit.ogg",
-      "creator": "Pixabay",
-      "pack": "Pixabay",
-      "license": "Pixabay Content License",
+      "creator": "344 Audio",
+      "pack": "Barbershop Vol. 1",
+      "license": "Sonniss GDC Game Audio Bundle Part 9 royalty-free license",
       "sourceSha256": "4c63dcc4be14dc0a27b5eb7a43a387f6d90c21611215f5126d9c25fc7a6c86ce",
       "modifications": [
         "Copied manually curated canonical audio without re-encoding"

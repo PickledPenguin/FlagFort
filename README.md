@@ -126,6 +126,18 @@ npm run dev
 
 Open the local URL printed by Vite.
 
+Completing a run on `localhost` prints a standardized per-night adaptive
+difficulty report in the browser console. Runs that reach at least one night
+are also written to ignored `playtest-logs/*.jsonl` files. Each file contains a
+compact run header followed by one complete JSON object per night, including an
+executive summary, adaptive and corrective inputs, all wave multipliers, the
+requested threat budget, scheduled count and roster, pressure, kills, survivors,
+and the correction for the next night. Version 2 logs also include starting and
+ending structure inventory, build and repair activity, resource flow, damage and
+kill attribution, enemy damage by target, boss kill time, card selections,
+loadout and equipment, activity time, and separate scheduled, boss, summon, and
+child populations.
+
 ## Tests
 
 ```bash

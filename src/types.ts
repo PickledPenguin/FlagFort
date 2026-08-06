@@ -114,6 +114,7 @@ export interface Enemy extends Circle {
   flash: number;
   summonCooldown: number;
   summonedBy?: number;
+  countsTowardWave?: boolean;
   jumpCooldown: number;
   jumpTime: number;
   bossSmashWindup: number;
@@ -129,6 +130,8 @@ export interface Enemy extends Circle {
   lastDamageSource?: DamageSource | null;
   lastHitByPlayerId?: PlayerId | null;
   stuckTime: number;
+  fullyStuckTime?: number;
+  forcedBlockerId?: number | null;
   routeCommitment: number;
   routeIncludesStructures: boolean;
   routeStructureRevision: number;

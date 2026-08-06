@@ -133,6 +133,33 @@
   height: 15px;
 }
 
+.fort-pulse-button {
+  position: absolute;
+  left: 50%;
+  top: 126px;
+  transform: translateX(-50%);
+  display: grid;
+  gap: 1px;
+  min-width: 190px;
+  padding: 7px 12px;
+  border: 2px solid rgba(87, 229, 239, .72);
+  border-radius: 10px;
+  color: #e8ffff;
+  background: rgba(11, 42, 51, .94);
+  box-shadow: 0 4px 0 rgba(3, 18, 24, .7);
+  font-weight: 900;
+  text-align: center;
+}
+
+.fort-pulse-button small {
+  color: #9bdce1;
+  font-size: 9px;
+}
+
+.fort-pulse-button:disabled {
+  opacity: .48;
+}
+
 .threat-chip {
   position: absolute;
   left: 50%;
@@ -1048,6 +1075,34 @@ img.icon.mouse-glyph {
 .dawn-panel header > span {
   color: var(--muted);
   font-size: 11px;
+}
+
+.upgrade-cap-panel {
+  width: min(720px, 91%);
+  padding: 42px;
+  border: 3px solid rgba(120, 242, 159, .48);
+  border-radius: 22px;
+  background: linear-gradient(145deg, rgba(23, 60, 40, .98), rgba(8, 27, 18, .98));
+  box-shadow: var(--shadow);
+}
+
+.upgrade-cap-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 30px;
+}
+
+.upgrade-cap-actions button {
+  min-width: 0;
+  min-height: 58px;
+  padding: 12px 16px;
+  white-space: normal;
+}
+
+@media (max-width: 620px) {
+  .upgrade-cap-panel { padding: 28px 20px; }
+  .upgrade-cap-actions { grid-template-columns: minmax(0, 1fr); }
 }
 
 .choice-pairs {
@@ -2533,13 +2588,15 @@ img.icon {
 }
 
 .countdown-stack .skip-night-button,
+.countdown-stack .fort-pulse-button,
 .countdown-stack .threat-chip {
   position: relative;
   inset: auto;
   transform: none;
 }
 
-.countdown-stack .skip-night-button {
+.countdown-stack .skip-night-button,
+.countdown-stack .fort-pulse-button {
   margin-top: -1px;
   padding: 7px 11px;
 }

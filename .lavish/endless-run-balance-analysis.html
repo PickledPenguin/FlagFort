@@ -1,0 +1,460 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Flag Fort - Base and Endless Run Balance Analysis</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: "Trebuchet MS", "Arial Rounded MT Bold", Arial, sans-serif;
+      --ink: #fff8dc;
+      --muted: #b8c7b3;
+      --panel: rgba(12, 31, 22, .96);
+      --panel-light: rgba(33, 64, 44, .96);
+      --line: rgba(238, 246, 218, .22);
+      --green: #78f29f;
+      --green-dark: #1d6b3c;
+      --red: #ff695f;
+      --gold: #f7ca4b;
+      --purple: #a884ff;
+      --diamond: #57e5ef;
+      --orange: #ff9f53;
+      --shadow: 0 8px 0 rgba(3, 13, 8, .5), 0 18px 40px rgba(0, 0, 0, .35);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 12% 0%, rgba(120, 242, 159, .13), transparent 30rem),
+        radial-gradient(circle at 95% 18%, rgba(87, 229, 239, .08), transparent 34rem),
+        #06130d;
+      line-height: 1.5;
+    }
+    a { color: inherit; }
+    .shell { width: min(1180px, calc(100% - 32px)); margin: 0 auto; padding: 28px 0 70px; }
+    .hero {
+      position: relative;
+      padding: clamp(26px, 5vw, 58px);
+      border: 1px solid rgba(120, 242, 159, .35);
+      border-radius: 24px;
+      background: linear-gradient(135deg, rgba(18, 54, 35, .98), rgba(7, 25, 17, .98));
+      box-shadow: var(--shadow);
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 150px;
+      height: 150px;
+      right: 24px;
+      top: 24px;
+      border: 28px solid rgba(87, 229, 239, .08);
+      border-radius: 50%;
+    }
+    .eyebrow, .kicker {
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+    }
+    h1 { max-width: 870px; margin: 8px 0 14px; font-size: clamp(36px, 7vw, 72px); line-height: 1.08; letter-spacing: -.045em; }
+    .hero p { max-width: 850px; margin: 0; color: #d2dfce; font-size: clamp(16px, 2vw, 20px); }
+    .verdict {
+      display: inline-flex;
+      max-width: 100%;
+      margin-top: 26px;
+      padding: 11px 15px;
+      border: 1px solid rgba(255, 105, 95, .45);
+      border-radius: 12px;
+      color: #ffe1dc;
+      background: rgba(112, 28, 25, .46);
+      font-weight: 900;
+    }
+    .nav {
+      position: sticky;
+      z-index: 5;
+      top: 10px;
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      margin: 20px 0 38px;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(6, 19, 13, .9);
+      backdrop-filter: blur(12px);
+    }
+    .nav a { flex: 0 0 auto; padding: 7px 11px; border-radius: 8px; color: var(--muted); font-size: 12px; font-weight: 900; text-decoration: none; }
+    .nav a:hover { color: var(--ink); background: var(--panel-light); }
+    section { margin-top: 48px; scroll-margin-top: 80px; }
+    .section-head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(220px, 420px); gap: 20px; align-items: end; margin-bottom: 18px; }
+    h2 { margin: 4px 0 0; font-size: clamp(27px, 4vw, 42px); line-height: 1.16; letter-spacing: -.03em; }
+    h3 { margin: 0; font-size: 19px; line-height: 1.15; }
+    .section-head p, .muted { margin: 0; color: var(--muted); }
+    .grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 14px; }
+    .card {
+      min-width: 0;
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--panel);
+      box-shadow: 0 7px 22px rgba(0, 0, 0, .18);
+    }
+    .metric { grid-column: span 3; }
+    .metric strong { display: block; margin: 7px 0 2px; font-size: clamp(27px, 4vw, 42px); line-height: 1.16; }
+    .metric small { display: block; color: var(--muted); }
+    .metric.good strong { color: var(--green); }
+    .metric.bad strong { color: var(--red); }
+    .metric.diamond strong { color: var(--diamond); }
+    .comparison { grid-column: span 6; padding: 24px; }
+    .comparison.base { border-top: 4px solid var(--gold); }
+    .comparison.endless { border-top: 4px solid var(--red); }
+    .comparison ul, .priority ul { margin: 15px 0 0; padding-left: 20px; }
+    li + li { margin-top: 8px; }
+    .tag {
+      display: inline-block;
+      margin-bottom: 10px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      color: #06130d;
+      background: var(--gold);
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .tag.red { background: var(--red); }
+    .tag.green { background: var(--green); }
+    .chart-card { grid-column: span 12; padding: 20px 20px 14px; overflow: hidden; }
+    .chart-title { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
+    .legend { display: flex; flex-wrap: wrap; gap: 12px; color: var(--muted); font-size: 12px; }
+    .legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; margin-right: 6px; border-radius: 3px; background: var(--swatch); }
+    .chart { display: block; width: 100%; height: auto; min-height: 260px; overflow: visible; }
+    .axis { fill: #92a790; font: 10px "Trebuchet MS", sans-serif; }
+    .gridline { stroke: rgba(238, 246, 218, .1); stroke-width: 1; }
+    .annotation { fill: #fff8dc; font: 700 11px "Trebuchet MS", sans-serif; }
+    .formula { grid-column: span 4; }
+    .formula .big { margin: 12px 0 6px; color: var(--diamond); font-size: 29px; font-weight: 900; line-height: 1.18; }
+    .formula code { color: #d6faff; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; overflow-wrap: anywhere; }
+    .callout {
+      grid-column: span 12;
+      padding: 19px 22px;
+      border-left: 5px solid var(--orange);
+      border-radius: 10px;
+      background: rgba(98, 50, 18, .4);
+    }
+    .table-wrap { grid-column: span 12; overflow-x: auto; border: 1px solid var(--line); border-radius: 16px; background: var(--panel); }
+    table { width: 100%; border-collapse: collapse; min-width: 780px; }
+    th, td { padding: 14px 15px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { color: var(--green); background: rgba(25, 63, 42, .7); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+    tr:last-child td { border-bottom: 0; }
+    td strong { color: var(--ink); }
+    td { color: #d4dfd1; font-size: 14px; }
+    .severity { white-space: nowrap; font-weight: 900; }
+    .severity.critical { color: var(--red); }
+    .severity.high { color: var(--orange); }
+    .severity.medium { color: var(--gold); }
+    .priority { grid-column: span 4; position: relative; padding-top: 54px; }
+    .priority::before { content: attr(data-rank); position: absolute; left: 20px; top: 18px; color: var(--green); font-size: 13px; font-weight: 900; letter-spacing: .12em; }
+    .priority.p0 { border-color: rgba(255, 105, 95, .5); }
+    .priority.p0::before { color: var(--red); }
+    .priority p { color: var(--muted); }
+    .proposal-table td:nth-child(2) { color: #f3cf73; }
+    .proposal-table td:nth-child(3) { color: #bff9cf; font-weight: 800; }
+    .guardrail { grid-column: span 3; text-align: center; }
+    .guardrail strong { display: block; margin: 7px 0; color: var(--green); font-size: 28px; }
+    .guardrail.bad strong { color: var(--red); }
+    .note { grid-column: span 12; color: var(--muted); font-size: 13px; }
+    details { grid-column: span 12; padding: 16px 18px; border: 1px solid var(--line); border-radius: 12px; background: rgba(10, 29, 20, .8); }
+    summary { cursor: pointer; color: var(--green); font-weight: 900; }
+    footer { margin-top: 52px; padding-top: 20px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+    @media (max-width: 840px) {
+      .section-head { grid-template-columns: minmax(0, 1fr); }
+      .metric, .guardrail { grid-column: span 6; }
+      .comparison, .formula, .priority { grid-column: span 12; }
+      .chart { min-height: 220px; }
+    }
+    @media (max-width: 520px) {
+      .shell { width: min(100% - 18px, 1180px); padding-top: 9px; }
+      .hero { border-radius: 17px; }
+      .metric, .guardrail { grid-column: span 12; }
+      .card { padding: 17px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="hero">
+      <div class="eyebrow">Flag Fort playtest analysis - seed 3rbnwj-zyqvcn</div>
+      <h1>The campaign works. Endless mode stops fighting back.</h1>
+      <p>The first 10 nights create rising attrition and a credible boss climax. Endless mode then allows turret count, damage, fire rate, and range to stack together faster than enemy durability or composition can answer. The result is a portal-to-portal kill field, not a fort defense.</p>
+      <div class="verdict">Primary diagnosis: multiplicative turret scaling plus weak late-wave composition, amplified by a boss-wave correction bug.</div>
+    </header>
+
+    <nav class="nav" aria-label="Report sections">
+      <a href="#verdict">Run verdict</a>
+      <a href="#timeline">Collapse timeline</a>
+      <a href="#causes">Root causes</a>
+      <a href="#fixes">Recommended package</a>
+      <a href="#targets">Validation targets</a>
+    </nav>
+
+    <section id="verdict">
+      <div class="section-head">
+        <div><div class="kicker">Two-run comparison</div><h2>A healthy first act, then runaway automation</h2></div>
+        <p>The telemetry supports the playtest impression. The base run applies damage every night. The final 10 endless nights contain seven zero-damage nights and no player kills.</p>
+      </div>
+      <div class="grid">
+        <article class="card comparison base">
+          <span class="tag">Base run - nights 1-10</span>
+          <h3>Pressure rises and the boss lands</h3>
+          <ul>
+            <li><strong>15,073 incoming damage</strong>, with damage on all 10 nights.</li>
+            <li><strong>140 structures damaged and 44 destroyed.</strong> Rebuilding remains part of the loop.</li>
+            <li><strong>106 flag damage</strong>, concentrated on night 1 and the night 10 boss.</li>
+            <li>Turrets deliver <strong>52% of outgoing damage</strong> and 201 of 330 kills. Strong, but not exclusive.</li>
+            <li>Night 10 produces <strong>4,683 incoming damage</strong>, 31 damaged structures, 8 losses, and a 32.1 second boss kill.</li>
+          </ul>
+        </article>
+        <article class="card comparison endless">
+          <span class="tag red">Endless run - nights 11-47</span>
+          <h3>The fort becomes strategically solved</h3>
+          <ul>
+            <li><strong>Zero flag damage and zero flag-radius entries</strong> across all 37 logged endless nights.</li>
+            <li>Turrets deal <strong>717,832 damage, 95.4% of all outgoing damage</strong>, and record 8,866 kills.</li>
+            <li>The final 10 nights average only <strong>320 incoming damage</strong> despite spawning 3,704 enemies.</li>
+            <li><strong>24 diamond turrets</strong> finish the run with 133 unspent diamond and thousands of lower-tier resources.</li>
+            <li>Night 45's boss dies in <strong>1.75 seconds</strong>. Only 50 of 352 scheduled enemies spawn before the wave ends.</li>
+          </ul>
+        </article>
+        <article class="card metric good"><span class="kicker">Campaign</span><strong>0</strong><small>zero-damage nights out of 10</small></article>
+        <article class="card metric bad"><span class="kicker">Late endless</span><strong>7 / 10</strong><small>zero-damage nights, nights 38-47</small></article>
+        <article class="card metric diamond"><span class="kicker">Endless firepower</span><strong>95.4%</strong><small>outgoing damage caused by turrets</small></article>
+        <article class="card metric bad"><span class="kicker">Fort threat</span><strong>0</strong><small>flag-radius entries after campaign victory</small></article>
+      </div>
+    </section>
+
+    <section id="timeline">
+      <div class="section-head">
+        <div><div class="kicker">Progression timeline</div><h2>The decisive break happens at nights 19-22</h2></div>
+        <p>Five diamond turrets still permit meaningful attrition. The jump to 9-11 turrets collapses pressure, while ongoing capacity and stat picks ensure it never recovers.</p>
+      </div>
+      <div class="grid">
+        <article class="card chart-card">
+          <div class="chart-title">
+            <h3>Incoming damage versus diamond turret count</h3>
+            <div class="legend"><span style="--swatch:var(--red)">Incoming damage</span><span style="--swatch:var(--diamond)">Diamond turrets</span></div>
+          </div>
+          <svg id="timeline-chart" class="chart" viewBox="0 0 1080 340" role="img" aria-label="Night by night incoming damage and diamond turret count"></svg>
+        </article>
+        <article class="card chart-card">
+          <div class="chart-title">
+            <h3>Boss kill time reverses the intended escalation</h3>
+            <div class="legend"><span style="--swatch:var(--purple)">Boss kill time in seconds</span></div>
+          </div>
+          <svg id="boss-chart" class="chart" viewBox="0 0 1080 280" role="img" aria-label="Boss kill time by boss night"></svg>
+        </article>
+        <div class="callout"><strong>Telemetry trap on boss nights:</strong> killing the boss ends the night before all scheduled enemies spawn. Those never-spawned enemies depress clear rate, so the auto-corrective system can interpret an instant boss deletion as weak performance and reduce the next night's correction. Night 45 is the starkest example: 21 kills, 29 live survivors, 302 scheduled enemies never spawned, zero damage taken, then only +0.023 corrective pressure.</div>
+      </div>
+    </section>
+
+    <section id="causes">
+      <div class="section-head">
+        <div><div class="kicker">Root-cause model</div><h2>Four systems compound in the same direction</h2></div>
+        <p>Simply adding more zombies will not solve this. The current active-enemy cap and portal throughput make extra basic enemies a performance cost more than a tactical threat.</p>
+      </div>
+      <div class="grid">
+        <article class="card formula">
+          <h3>Per-turret DPS compounds</h3>
+          <div class="big">about 7x</div>
+          <code>damage 3.2x × fire rate 2.2x = 7.04x</code>
+          <p class="muted">Final temporary upgrades are +210% damage and +110% rate, plus the permanent +10% layer.</p>
+        </article>
+        <article class="card formula">
+          <h3>Turret count compounds again</h3>
+          <div class="big">3 → 24</div>
+          <code>starting capacity + 21 Expanded Arsenal picks</code>
+          <p class="muted">The full run offers turret capacity 21 times. Final count is eight times the starting capacity.</p>
+        </article>
+        <article class="card formula">
+          <h3>Range erases approach time</h3>
+          <div class="big">about 1,248</div>
+          <code>480 diamond range × (1 + 0.1 + 1.5)</code>
+          <p class="muted">Portals begin 1,180-1,570 units from the flag. Late turrets can engage near the closest portals.</p>
+        </article>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Failure mechanism</th><th>Evidence from this run</th><th>Why adaptation fails</th><th>Severity</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Unlimited synergistic upgrade stacks</strong></td><td>61 of 141 card picks are capacity, damage, rate, or range. Their effects multiply across axes.</td><td>Enemy adaptive health receives only 16% of the adaptive multiplier's excess, while wave count receives the full multiplier.</td><td class="severity critical">Critical</td></tr>
+              <tr><td><strong>Late waves become mostly fodder</strong></td><td>Night 43 has 370 basics in 402 scheduled enemies. Night 47 has 472 in 504.</td><td>Special per-wave caps remain nearly fixed, so growing budgets overflow into basics that turrets counter best.</td><td class="severity critical">Critical</td></tr>
+              <tr><td><strong>Adaptive score misses effective power</strong></td><td>By night 47 the fort score is only 3% above expected, even with 24 fully boosted diamond turrets.</td><td>Structure score counts tier and quantity, but not accumulated turret damage, rate, range, coverage, or upgrade synergy.</td><td class="severity high">High</td></tr>
+              <tr><td><strong>Seeded roster lacks a durable counter</strong></td><td>This run rolls gremlin, popper, and summoner. It never gains the archer that explicitly targets turrets.</td><td>A single seeded enemy per tier makes endless composition permanently solvable. No new tactical demand enters after night 10.</td><td class="severity high">High</td></tr>
+              <tr><td><strong>Boss does not scale with accumulated mutations</strong></td><td>Boss kill time falls from 32.1 seconds at night 10 to 1.75 at night 45.</td><td>The boss is outside the selected roster, so ordinary mutation layers do not apply. Adaptive health influence alone is far too small.</td><td class="severity critical">Critical</td></tr>
+              <tr><td><strong>Spawn throughput is capped</strong></td><td>Only 90 active enemies are allowed, and scheduled spawns are metered through portals.</td><td>Once portal-side DPS exceeds spawn throughput, larger wave budgets cannot build simultaneous pressure.</td><td class="severity high">High</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="fixes">
+      <div class="section-head">
+        <div><div class="kicker">Recommended balance package</div><h2>Cap the solved build, then add smarter pressure</h2></div>
+        <p>These changes are intended as one package. Enemy buffs alone would preserve the degenerate build and punish every other build more severely.</p>
+      </div>
+      <div class="grid">
+        <article class="card priority p0" data-rank="P0 - FIRST PASS">
+          <h3>Bound turret scaling</h3>
+          <p>Keep turrets powerful, but stop all four scaling axes from growing forever.</p>
+          <ul>
+            <li>Cap total turret capacity at <strong>8</strong> for the first tuning test.</li>
+            <li>Cap temporary turret damage at <strong>+90%</strong> and rate at <strong>+60%</strong>.</li>
+            <li>Cap temporary range at <strong>+60%</strong>, about 816 units with the current permanent bonus.</li>
+            <li>Remove capped cards from the offer pool instead of presenting dead choices.</li>
+          </ul>
+        </article>
+        <article class="card priority p0" data-rank="P0 - FIRST PASS">
+          <h3>Fix late-wave composition</h3>
+          <p>Spend endless threat budget on tactical pressure, not hundreds of identical basics.</p>
+          <ul>
+            <li>Scale special per-wave and simultaneous caps after night 10.</li>
+            <li>Reserve <strong>at least 30-40% of threat</strong> for non-basic enemies.</li>
+            <li>Deterministically add unused roster counters every five endless nights.</li>
+            <li>Prioritize archers and acidslingers when turret coverage or turret share is extreme.</li>
+          </ul>
+        </article>
+        <article class="card priority p0" data-rank="P0 - FIRST PASS">
+          <h3>Rebuild boss-night flow</h3>
+          <p>A boss should cap the assault, not cancel most of it.</p>
+          <ul>
+            <li>Spawn the boss after the ordinary assault is substantially deployed.</li>
+            <li>Require both the boss and scheduled wave to be cleared.</li>
+            <li>Give endless bosses an explicit cycle-based health and pressure curve.</li>
+            <li>Exclude never-spawned schedule entries from corrective performance telemetry.</li>
+          </ul>
+        </article>
+
+        <div class="table-wrap proposal-table">
+          <table>
+            <thead><tr><th>Lever</th><th>Current behavior</th><th>First test target</th><th>Design intent</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Turret capacity</strong></td><td>3 base, +21 available, hard max 24</td><td>Hard max 8</td><td>Preserve a meaningful automated defense without allowing a complete ring of overlapping fire.</td></tr>
+              <tr><td><strong>Turret damage stacks</strong></td><td>+15% indefinitely, +210% in this run</td><td>6 stacks, +90%</td><td>Campaign choices remain intact while endless cannot triple base shot damage.</td></tr>
+              <tr><td><strong>Turret rate stacks</strong></td><td>+10% indefinitely, +110% in this run</td><td>6 stacks, +60%</td><td>Retain satisfying speed gains but limit synergy with damage and capacity.</td></tr>
+              <tr><td><strong>Turret range stacks</strong></td><td>+10% indefinitely, +150% in this run</td><td>6 stacks, +60%</td><td>Enemies must cross visible ground before engagement. The base run's +50% remains valid.</td></tr>
+              <tr><td><strong>Special threat share</strong></td><td>Special caps stay nearly fixed; late waves exceed 92% basics</td><td>30-40% threat minimum</td><td>Make positioning, repairs, player movement, and target priority matter again.</td></tr>
+              <tr><td><strong>Boss time-to-kill</strong></td><td>32.1s at night 10, 1.75s at night 45</td><td>15-25s after each endless rebalance</td><td>Bosses stay readable and threatening without becoming inert health sponges.</td></tr>
+              <tr><td><strong>Adaptive power model</strong></td><td>Counts tiered structure value only</td><td>Include effective turret DPS and coverage bands</td><td>Recognize that 8 upgraded turrets are not equivalent to 8 unmodified turrets.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <article class="card priority" data-rank="P1 - AFTER REBASELINE">
+          <h3>Add deterministic endless escalation</h3>
+          <p>Every five nights, introduce one authored pressure rule: an added counter-enemy, elite affix, split portal assault, or boss modifier. Use purpose-specific seeded RNG so replay behavior stays stable.</p>
+        </article>
+        <article class="card priority" data-rank="P1 - AFTER REBASELINE">
+          <h3>Create resource sinks, not upkeep chores</h3>
+          <p>Thousands of banked resources show the economy also stops making decisions. Prefer optional high-cost emergency abilities, consumable fort powers, or mutually exclusive structure specializations over passive maintenance taxes.</p>
+        </article>
+        <article class="card priority" data-rank="P2 - POLISH">
+          <h3>Protect player agency</h3>
+          <p>Once turrets dominate, the player contributes zero kills and almost no building or gathering time. Add targets that reward active interruption, expose temporary weak points, or disable a defense lane until the player responds.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="targets">
+      <div class="section-head">
+        <div><div class="kicker">Validation plan</div><h2>Measure threat quality, not just enemy count</h2></div>
+        <p>Replay the same seed first, then use a small deterministic seed suite. The first pass succeeds only if pressure returns without breaking the campaign's night 1-10 curve.</p>
+      </div>
+      <div class="grid">
+        <article class="card guardrail"><span class="kicker">Campaign</span><strong>Preserve</strong><small>night 1-10 damage, loss, and boss shape near current values</small></article>
+        <article class="card guardrail"><span class="kicker">Rolling 10 nights</span><strong>&lt; 20%</strong><small>zero-damage nights after night 15</small></article>
+        <article class="card guardrail"><span class="kicker">Bosses</span><strong>15-25s</strong><small>target kill-time band after rebalance</small></article>
+        <article class="card guardrail"><span class="kicker">Composition</span><strong>30-40%</strong><small>minimum non-basic threat share in late endless</small></article>
+        <article class="card guardrail"><span class="kicker">Engagement</span><strong>Visible</strong><small>ordinary enemies regularly enter the player's camera region</small></article>
+        <article class="card guardrail"><span class="kicker">Fort pressure</span><strong>Recurring</strong><small>inner defenses or flag radius threatened in strong-build runs</small></article>
+        <article class="card guardrail"><span class="kicker">Automation</span><strong>Strong</strong><small>turrets remain a rewarding primary defense, not a trap choice</small></article>
+        <article class="card guardrail bad"><span class="kicker">Avoid</span><strong>500 basics</strong><small>do not use raw fodder count as the primary difficulty lever</small></article>
+        <details>
+          <summary>Evidence and interpretation notes</summary>
+          <p>This is one normal-difficulty seed and one highly turret-focused strategy, so exact tuning values are first-test targets rather than final balance constants. The diagnosis is still high confidence because the code and telemetry align: upgrade effects stack without general caps, special enemy caps remain fixed, the active-enemy cap is 90, adaptive health influence is low, and the selected roster excludes explicit turret-targeting archers.</p>
+          <p>Telemetry kill counts can exceed scheduled spawn counts because summons are included. Boss nights are also structurally different because killing the boss can end the run phase early. Night 47 is marked partial because the run was manually ended, even though all 504 spawned enemies were cleared.</p>
+        </details>
+        <div class="note">Recommended implementation order: cap turret scaling and correct card-pool behavior, then scale special composition and rebuild boss flow, then re-run this seed before tuning adaptive coefficients. Changing adaptive numbers first would hide the underlying multiplicative problem.</div>
+      </div>
+    </section>
+
+    <footer>
+      Sources: playtest logs ending 2026-08-04T17:34:45Z and 2026-08-04T19:56:49Z, plus current balance, modifier, wave, turret, and enemy-registry code. Report generated for local Lavish review.
+    </footer>
+  </main>
+
+  <script>
+    const nights = [
+      [1,158.3,0],[2,149.9,0],[3,483.6,0],[4,889.3,0],[5,1378.3,0],[6,2129.6,0],[7,1342.5,0],[8,2015.9,0],[9,1842.5,0],[10,4682.5,0],
+      [11,3597.2,0],[12,2691.6,2],[13,2365.7,2],[14,2196.5,2],[15,2023.0,5],[16,2774.2,5],[17,2606.6,5],[18,2809.4,5],[19,356.8,9],[20,1843.3,10],
+      [21,824.6,10],[22,1857.7,11],[23,2111.7,11],[24,1869.3,12],[25,1919.1,13],[26,1201.5,14],[27,1551.5,14],[28,2106.0,14],[29,3144.5,13],[30,714.9,13],
+      [31,651.9,16],[32,3982.7,17],[33,1715.6,16],[34,574.9,16],[35,35.3,17],[36,352.5,19],[37,1547.8,19],[38,0,20],[39,110.1,21],[40,0,22],
+      [41,0,22],[42,465.8,23],[43,0,24],[44,2625.4,24],[45,0,24],[46,0,24],[47,0,24]
+    ];
+    const bosses = [[10,32.1],[15,24.9],[20,17.2833],[25,20.0167],[30,24.9667],[35,12.9667],[40,8.1333],[45,1.75]];
+    const ns = "http://www.w3.org/2000/svg";
+    const el = (name, attrs = {}, text = "") => {
+      const node = document.createElementNS(ns, name);
+      Object.entries(attrs).forEach(([key, value]) => node.setAttribute(key, value));
+      if (text) node.textContent = text;
+      return node;
+    };
+    function timelineChart() {
+      const svg = document.getElementById("timeline-chart");
+      const x0 = 48, y0 = 22, width = 988, height = 260, maxDamage = 5000, maxTurrets = 24;
+      [0, 1000, 2000, 3000, 4000, 5000].forEach(value => {
+        const y = y0 + height - value / maxDamage * height;
+        svg.append(el("line", { x1:x0, x2:x0+width, y1:y, y2:y, class:"gridline" }));
+        svg.append(el("text", { x:12, y:y+4, class:"axis" }, value === 0 ? "0" : `${value/1000}k`));
+      });
+      [1,10,15,20,30,40,47].forEach(value => {
+        const x = x0 + (value - 1) / 46 * width;
+        svg.append(el("text", { x, y:306, class:"axis", "text-anchor":"middle" }, `N${value}`));
+      });
+      nights.forEach(([night, damage]) => {
+        const x = x0 + (night - 1) / 46 * width;
+        const h = damage / maxDamage * height;
+        svg.append(el("rect", { x:x-5, y:y0+height-h, width:10, height:h, rx:2, fill:"rgba(255,105,95,.7)" }));
+      });
+      const points = nights.map(([night,,turrets]) => `${x0 + (night-1)/46*width},${y0+height-turrets/maxTurrets*height}`).join(" ");
+      svg.append(el("polyline", { points, fill:"none", stroke:"#57e5ef", "stroke-width":4, "stroke-linejoin":"round" }));
+      svg.append(el("line", { x1:x0 + 18/46*width, x2:x0 + 18/46*width, y1:y0, y2:y0+height, stroke:"#f7ca4b", "stroke-width":2, "stroke-dasharray":"6 6" }));
+      svg.append(el("text", { x:x0 + 18/46*width + 8, y:38, class:"annotation" }, "N19: 9 turrets, damage collapses"));
+      svg.append(el("text", { x:x0+width-4, y:y0+12, class:"axis", "text-anchor":"end" }, "24 turrets"));
+    }
+    function bossChart() {
+      const svg = document.getElementById("boss-chart");
+      const x0=54, y0=18, width=976, height=205, max=35;
+      [0,10,20,30].forEach(value => {
+        const y=y0+height-value/max*height;
+        svg.append(el("line",{x1:x0,x2:x0+width,y1:y,y2:y,class:"gridline"}));
+        svg.append(el("text",{x:14,y:y+4,class:"axis"},`${value}s`));
+      });
+      const points=bosses.map(([night,value],i)=>`${x0+i/(bosses.length-1)*width},${y0+height-value/max*height}`).join(" ");
+      svg.append(el("polyline",{points,fill:"none",stroke:"#a884ff","stroke-width":5,"stroke-linecap":"round","stroke-linejoin":"round"}));
+      bosses.forEach(([night,value],i)=>{
+        const x=x0+i/(bosses.length-1)*width, y=y0+height-value/max*height;
+        svg.append(el("circle",{cx:x,cy:y,r:6,fill:"#fff8dc",stroke:"#a884ff","stroke-width":3}));
+        svg.append(el("text",{x,y:250,class:"axis","text-anchor":"middle"},`N${night}`));
+        svg.append(el("text",{x,y:y-12,class:"annotation","text-anchor":"middle"},`${value.toFixed(value<10?1:0)}s`));
+      });
+    }
+    timelineChart();
+    bossChart();
+  </script>
+</body>
+</html>

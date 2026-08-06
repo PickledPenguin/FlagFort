@@ -81,6 +81,17 @@ describe("auto-corrective difficulty", () => {
     expect(performanceDifficultyDelta(null).delta).toBe(0);
   });
 
+  it("can use the raised corrective ceiling after a completely dominant late night", () => {
+    const dominant = performanceDifficultyDelta(snapshot({
+      night: 4,
+      personalZombieKills: 20,
+    }));
+    expect(dominant.easyPerformance).toBe(1);
+    expect(dominant.pressurePenalty).toBe(0);
+    expect(dominant.delta).toBe(BALANCE.adaptive.autoCorrective.maximumDelta);
+    expect(dominant.delta).toBe(0.55);
+  });
+
   it("adds the finalized prior-night delta to Night 2 but never to Night 1", () => {
     const game = gameFixture();
     game.autoCorrectiveDelta = 0.2;
@@ -121,6 +132,88 @@ describe("auto-corrective difficulty", () => {
       totalZombieKills: 1,
     });
     expect(game.lastNightPerformance!.destroyedStructureValue).toBe(BALANCE.structureValues.wall.wood);
+  });
+});
+
+describe("playtest telemetry attribution", () => {
+  it("records cycle activity, population categories, damage attribution, and boss time", () => {
+    const game = gameFixture();
+    game.phase = "dawn";
+    game.choices = [{
+      id: "moveSpeed",
+      name: "Fleet Feet",
+      description: "Move faster",
+      mutationId: "waveSize",
+      mutationName: "Rising Dead",
+      mutationDescription: "More enemies",
+      kind: "upgrade",
+    }];
+    game.chooseDawn(0);
+    game.phase = "day";
+    game.selectedSlot = 4;
+    game.input.mouseDown = true;
+    const telemetry = game as unknown as {
+      trackPlaytestTime(dt: number): void;
+      recordStructureActivity(action: "built" | "upgraded" | "repaired" | "destroyed", kind: StructureKind, tier: "wood" | "stone" | "gold" | "diamond"): void;
+      recordResources(action: "gathered" | "spent" | "refunded", wallet: { wood: number; stone: number; gold: number; diamond: number }): void;
+      beginNight(): void;
+      spawnEnemy(point: { x: number; y: number }, kind: Enemy["kind"], summonedBy?: number, child?: boolean, countsTowardWave?: boolean): void;
+      damageEnemy(enemy: Enemy, amount: number, color: string, source: "player-melee" | "turret", ownerId: string | null): void;
+      applyIncomingDamage(target: Structure, amount: number, kind: Enemy["kind"], source: "enemy-arrow"): number;
+      finalizeNightPerformance(): void;
+    };
+    telemetry.trackPlaytestTime(2);
+    telemetry.recordStructureActivity("built", "turret", "diamond");
+    telemetry.recordStructureActivity("upgraded", "turret", "diamond");
+    telemetry.recordStructureActivity("repaired", "wall", "stone");
+    telemetry.recordResources("gathered", { wood: 12, stone: 3, gold: 0, diamond: 0 });
+    telemetry.recordResources("spent", { wood: 10, stone: 0, gold: 0, diamond: 0 });
+
+    const wall = structure(901, "wall", game.flag.x + 150, game.flag.y);
+    wall.tier = "stone";
+    wall.health = 10;
+    wall.maxHealth = 100;
+    game.structures = [wall];
+    telemetry.beginNight();
+    game.phaseElapsed = 7.25;
+    telemetry.trackPlaytestTime(3);
+    const point = { x: game.flag.x + 260, y: game.flag.y };
+    telemetry.spawnEnemy(point, "basic");
+    telemetry.spawnEnemy(point, "boss");
+    telemetry.spawnEnemy(point, "runner", 500, false, false);
+    telemetry.spawnEnemy(point, "splitter-child", 501, true);
+    const [scheduled, boss, summon, child] = game.enemies.slice(-4);
+    telemetry.damageEnemy(scheduled!, scheduled!.health, "#fff", "player-melee", game.player.id);
+    telemetry.damageEnemy(boss!, boss!.health, "#fff", "turret", game.player.id);
+    telemetry.damageEnemy(summon!, summon!.health, "#fff", "turret", game.player.id);
+    telemetry.damageEnemy(child!, child!.health, "#fff", "turret", game.player.id);
+    telemetry.applyIncomingDamage(wall, 20, "archer", "enemy-arrow");
+    telemetry.finalizeNightPerformance();
+
+    const analysis = game.devDifficultyLogs.at(-1)!.analysis;
+    expect(analysis.activity.cardsChosen).toMatchObject([{ id: "moveSpeed", afterNight: 1 }]);
+    expect(analysis.activity.structures.built).toEqual({ turret: { diamond: 1 } });
+    expect(analysis.activity.structures.destroyed).toEqual({ wall: { stone: 1 } });
+    expect(analysis.activity.resources.gathered).toEqual({ wood: 12, stone: 3, gold: 0, diamond: 0 });
+    expect(analysis.activity.timeSeconds).toMatchObject({ building: 2, fighting: 3 });
+    expect(analysis.population.spawned).toMatchObject({
+      scheduled: { basic: 1 }, boss: { boss: 1 }, summons: { runner: 1 },
+      children: { "splitter-child": 1 },
+    });
+    expect(analysis.population.killed).toEqual({
+      scheduled: { basic: 1 }, boss: { boss: 1 }, summons: {},
+      children: { "splitter-child": 1 },
+    });
+    expect(analysis.activity.outgoingDamageBySource).toMatchObject({
+      "player-melee": scheduled!.maxHealth,
+      turret: expect.any(Number),
+    });
+    expect(analysis.activity.incomingDamageBySource).toEqual({ "enemy-arrow": 10 });
+    expect(analysis.activity.enemyDamageByKindAndTarget)
+      .toEqual({ archer: { structures: { wall: 10 } } });
+    expect(analysis.bossKillTimeSeconds).toBe(7.25);
+    expect(analysis.structureInventory.start).toEqual({ wall: { stone: 1 } });
+    expect(analysis.structureInventory.end).toEqual({});
   });
 });
 

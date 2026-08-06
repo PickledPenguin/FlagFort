@@ -5,4 +5,5 @@ node_modules/
 !/Audio/manual/*.ogg
 !/public/audio
 /dist/audio/
+playtest-logs/
 *.zip

@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Flag Fort - Latest Playtest Comparison</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: "Trebuchet MS", "Arial Rounded MT Bold", Arial, sans-serif;
+      --ink: #fff8dc;
+      --muted: #b8c7b3;
+      --panel: rgba(12, 31, 22, .96);
+      --panel-2: rgba(28, 57, 39, .94);
+      --line: rgba(238, 246, 218, .22);
+      --green: #78f29f;
+      --red: #ff695f;
+      --gold: #f7ca4b;
+      --cyan: #57e5ef;
+      --orange: #ff9f53;
+      --purple: #a884ff;
+      --shadow: 0 8px 0 rgba(3, 13, 8, .5), 0 18px 40px rgba(0, 0, 0, .35);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 12% 0%, rgba(120, 242, 159, .13), transparent 30rem),
+        radial-gradient(circle at 94% 18%, rgba(87, 229, 239, .08), transparent 34rem),
+        #06130d;
+      line-height: 1.5;
+    }
+    .shell { width: min(1180px, calc(100% - 32px)); margin: 0 auto; padding: 28px 0 70px; }
+    .hero {
+      padding: clamp(25px, 5vw, 56px);
+      border: 1px solid rgba(255, 105, 95, .42);
+      border-radius: 24px;
+      background: linear-gradient(135deg, rgba(57, 26, 21, .98), rgba(7, 25, 17, .98));
+      box-shadow: var(--shadow);
+    }
+    .eyebrow { color: var(--green); font-size: 12px; font-weight: 900; letter-spacing: .13em; text-transform: uppercase; }
+    h1 { max-width: 950px; margin: 8px 0 14px; padding-bottom: 4px; font-size: clamp(36px, 7vw, 70px); line-height: 1.1; letter-spacing: -.045em; }
+    .hero p { max-width: 900px; margin: 0; color: #d2dfce; font-size: clamp(16px, 2vw, 20px); }
+    .verdict { display: inline-flex; margin-top: 24px; padding: 11px 15px; border: 1px solid rgba(255, 105, 95, .46); border-radius: 12px; color: #ffe1dc; background: rgba(112, 28, 25, .52); font-weight: 900; }
+    .nav { position: sticky; z-index: 4; top: 10px; display: flex; gap: 8px; overflow-x: auto; margin: 20px 0 38px; padding: 8px; border: 1px solid var(--line); border-radius: 14px; background: rgba(6, 19, 13, .91); backdrop-filter: blur(12px); }
+    .nav a { flex: 0 0 auto; padding: 7px 11px; border-radius: 8px; color: var(--muted); font-size: 12px; font-weight: 900; text-decoration: none; }
+    .nav a:hover { color: var(--ink); background: var(--panel-2); }
+    section { margin-top: 48px; scroll-margin-top: 85px; }
+    .section-head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(220px, 410px); gap: 20px; align-items: end; margin-bottom: 18px; }
+    h2 { margin: 4px 0 0; font-size: clamp(27px, 4vw, 42px); line-height: 1.15; letter-spacing: -.03em; }
+    h3 { margin: 0; font-size: 19px; line-height: 1.2; }
+    p { overflow-wrap: anywhere; }
+    .section-head p, .muted { margin: 0; color: var(--muted); }
+    .grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 14px; }
+    .card { min-width: 0; padding: 20px; border: 1px solid var(--line); border-radius: 16px; background: var(--panel); box-shadow: 0 7px 22px rgba(0,0,0,.18); }
+    .metric { grid-column: span 3; }
+    .metric strong { display: block; margin: 7px 0 2px; font-size: clamp(27px, 4vw, 40px); line-height: 1.1; }
+    .metric small { display: block; color: var(--muted); }
+    .good strong { color: var(--green); }
+    .bad strong { color: var(--red); }
+    .warn strong { color: var(--gold); }
+    .info strong { color: var(--cyan); }
+    .chapter { grid-column: span 4; border-top: 4px solid var(--gold); }
+    .chapter.implemented { border-color: var(--cyan); }
+    .chapter.live { border-color: var(--red); }
+    .tag { display: inline-block; margin-bottom: 10px; padding: 4px 8px; border-radius: 999px; color: #06130d; background: var(--gold); font-size: 10px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+    .tag.cyan { background: var(--cyan); }
+    .tag.red { background: var(--red); }
+    ul { margin: 14px 0 0; padding-left: 20px; }
+    li + li { margin-top: 8px; }
+    .table-wrap { grid-column: span 12; min-width: 0; overflow-x: auto; border: 1px solid var(--line); border-radius: 16px; background: var(--panel); }
+    table { width: 100%; min-width: 820px; border-collapse: collapse; }
+    th, td { padding: 13px 14px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { color: var(--green); background: rgba(25,63,42,.7); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+    tr:last-child td { border-bottom: 0; }
+    td { color: #d4dfd1; font-size: 14px; }
+    td strong { color: var(--ink); }
+    .delta-good { color: var(--green); font-weight: 900; }
+    .delta-bad { color: var(--red); font-weight: 900; }
+    .delta-warn { color: var(--gold); font-weight: 900; }
+    .timeline { grid-column: span 12; }
+    .chart-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; margin-bottom: 18px; }
+    .legend { display: flex; flex-wrap: wrap; gap: 12px; color: var(--muted); font-size: 12px; }
+    .legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; margin-right: 6px; border-radius: 3px; background: var(--swatch); }
+    .bars { display: grid; gap: 10px; }
+    .bar-row { display: grid; grid-template-columns: 54px minmax(0, 1fr) minmax(0, 1fr); gap: 10px; align-items: center; }
+    .night { color: var(--muted); font-size: 12px; font-weight: 900; }
+    .track { position: relative; min-width: 0; height: 25px; border-radius: 6px; background: rgba(255,255,255,.055); overflow: hidden; }
+    .bar { height: 100%; min-width: 2px; border-radius: 6px; background: linear-gradient(90deg, #b8952e, var(--gold)); }
+    .bar.new { background: linear-gradient(90deg, #b64039, var(--red)); }
+    .track > .value { position: absolute; inset: 3px auto auto 7px; display: block; max-width: calc(100% - 14px); overflow: hidden; color: var(--ink); font-size: 11px; font-weight: 900; white-space: nowrap; text-overflow: ellipsis; text-shadow: 0 1px 2px #06130d; }
+    .cause { grid-column: span 4; }
+    .cause strong { display: block; margin: 12px 0 6px; color: var(--orange); font-size: 28px; }
+    .callout { grid-column: span 12; padding: 19px 22px; border-left: 5px solid var(--orange); border-radius: 10px; background: rgba(98,50,18,.4); }
+    .priority { grid-column: span 4; padding-top: 18px; }
+    .priority .rank { color: var(--red); font-size: 12px; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
+    .priority h3 { margin-top: 8px; }
+    details { grid-column: span 12; padding: 16px 18px; border: 1px solid var(--line); border-radius: 12px; background: rgba(10,29,20,.8); }
+    summary { cursor: pointer; color: var(--green); font-weight: 900; }
+    code { color: #d6faff; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; overflow-wrap: anywhere; }
+    footer { margin-top: 52px; padding-top: 20px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+    @media (max-width: 840px) {
+      .section-head { grid-template-columns: minmax(0, 1fr); }
+      .metric { grid-column: span 6; }
+      .chapter, .cause, .priority { grid-column: span 12; }
+    }
+    @media (max-width: 560px) {
+      .shell { width: min(100% - 18px, 1180px); padding-top: 9px; }
+      .hero { border-radius: 17px; }
+      .metric { grid-column: span 12; }
+      .bar-row { grid-template-columns: 40px minmax(0, 1fr); }
+      .bar-row .track:last-child { grid-column: 2; }
+      .card { padding: 17px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="hero">
+      <div class="eyebrow">Flag Fort playtest follow-up - 2026-08-04 - normal campaign</div>
+      <h1>Endless remains unproven. Campaign preservation failed this run.</h1>
+      <p>The newest live test never reached endless mode. A stronger, better-equipped level 22 profile built a larger and higher-tier fort, but lost when night 10 drove the flag from 25.8 prior damage to effectively zero health. The fort itself held better than before, so the regression is concentrated assault pacing and damage routing, not general structural fragility.</p>
+      <div class="verdict">Recommendation: separate campaign pacing from the new endless pressure package before judging endless balance.</div>
+    </header>
+
+    <nav class="nav" aria-label="Report sections">
+      <a href="#story">Three-report story</a>
+      <a href="#scorecard">Scorecard</a>
+      <a href="#timeline">Night curve</a>
+      <a href="#diagnosis">Diagnosis</a>
+      <a href="#next">Next tuning pass</a>
+    </nav>
+
+    <section id="story">
+      <div class="section-head"><div><div class="eyebrow">Three-report story</div><h2>The diagnosis was sound, but one guardrail broke</h2></div><p>The first report called endless strategically solved. The implementation addressed that package. The new evidence tests only the campaign guardrail and finds it too harsh for this run.</p></div>
+      <div class="grid">
+        <article class="card chapter">
+          <span class="tag">Prior analysis</span><h3>Campaign healthy, endless solved</h3>
+          <ul><li>Campaign victory with rising attrition and a credible boss.</li><li>Endless later collapsed into 24-turret automation.</li><li>Explicit guardrail: preserve nights 1-10 near the prior damage, loss, and boss shape.</li></ul>
+        </article>
+        <article class="card chapter implemented">
+          <span class="tag cyan">Implemented package</span><h3>Bound scaling and smarter pressure</h3>
+          <ul><li>Turret cap 8, capped run upgrades, 35% endless special threat share.</li><li>Power-aware adaptation, full schedule deployment by 15 seconds, delayed bosses.</li><li>Automated and browser validation passed, but no post-change live endless telemetry was cited.</li></ul>
+        </article>
+        <article class="card chapter live">
+          <span class="tag red">Latest live test</span><h3>Campaign loss before endless</h3>
+          <ul><li>9 nights completed, night 10 partial, normal difficulty.</li><li>Flag took 124.2 damage on night 10 and 150.0 across the run.</li><li>The boss survived; the player took 100.6 damage during the final night.</li></ul>
+        </article>
+        <article class="card metric bad"><div class="eyebrow">Outcome</div><strong>Loss</strong><small>prior comparison run was a campaign victory</small></article>
+        <article class="card metric bad"><div class="eyebrow">Final-night flag</div><strong>124.2</strong><small>damage, versus 53.9 previously</small></article>
+        <article class="card metric info"><div class="eyebrow">Scheduled horde</div><strong>83</strong><small>night 10, versus 51 previously</small></article>
+        <article class="card metric good"><div class="eyebrow">Fort attrition</div><strong>-32%</strong><small>structures destroyed across nights 1-10</small></article>
+      </div>
+    </section>
+
+    <section id="scorecard">
+      <div class="section-head"><div><div class="eyebrow">Campaign comparison</div><h2>More enemies, less fort damage, much worse inner breach</h2></div><p>These runs use different deterministic seeds and slightly different profiles, so exact deltas are directional. The latest profile was stronger: level 22 versus 20, extra equipment, four diamond turrets, and seven diamond walls.</p></div>
+      <div class="grid"><div class="table-wrap">
+        <table>
+          <thead><tr><th>Signal</th><th>Prior campaign</th><th>Latest campaign</th><th>Change</th><th>Interpretation</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Result</strong></td><td>Victory, 10 complete</td><td>Loss, night 10 partial</td><td class="delta-bad">Guardrail failed</td><td>The latest test cannot reach the endless changes it was meant to exercise.</td></tr>
+            <tr><td><strong>Scheduled enemies</strong></td><td>336</td><td>474</td><td class="delta-bad">+41%</td><td>Adaptive and mutation pressure made the campaign much denser.</td></tr>
+            <tr><td><strong>All spawned population</strong></td><td>342</td><td>537</td><td class="delta-bad">+57%</td><td>Split children and boss summons widen the gap beyond scheduled count.</td></tr>
+            <tr><td><strong>Clear rate</strong></td><td>96.5%</td><td>89.4%</td><td class="delta-bad">-7.1 points</td><td>Survivors became recurring from night 3 onward.</td></tr>
+            <tr><td><strong>Total incoming damage</strong></td><td>15,073</td><td>13,034</td><td class="delta-good">-14%</td><td>The stronger fort absorbed the larger horde efficiently overall.</td></tr>
+            <tr><td><strong>Structures damaged</strong></td><td>140</td><td>99</td><td class="delta-good">-29%</td><td>Outer defense durability and placement performed better.</td></tr>
+            <tr><td><strong>Structures destroyed</strong></td><td>44</td><td>30</td><td class="delta-good">-32%</td><td>The run did not fail because the fort broadly disintegrated.</td></tr>
+            <tr><td><strong>Flag damage</strong></td><td>106.2</td><td>150.0</td><td class="delta-bad">+41%</td><td>Damage bypassed the stronger fort and reached the loss condition.</td></tr>
+            <tr><td><strong>Player damage</strong></td><td>218.1</td><td>221.4</td><td class="delta-warn">+2%</td><td>Total is similar, but 100.6 landed on night 10 alone.</td></tr>
+            <tr><td><strong>Turret damage share</strong></td><td>51.9%</td><td>47.3%</td><td class="delta-good">-4.6 points</td><td>Automation dominance eased. Spikes rose from 15.4% to 23.6%.</td></tr>
+            <tr><td><strong>Unspent diamond</strong></td><td>56, with 0 spent</td><td>20, after 58 spent</td><td class="delta-good">More decisions</td><td>The scarcity pass changed behavior without blocking diamond progression.</td></tr>
+          </tbody>
+        </table>
+      </div></div>
+    </section>
+
+    <section id="timeline">
+      <div class="section-head"><div><div class="eyebrow">Night-by-night incoming damage</div><h2>The curve is not globally inflated</h2></div><p>The latest fort usually takes similar or less damage despite the larger waves. The failure is the final assault's target mix and concurrency, not a simple increase in every damage number.</p></div>
+      <div class="grid"><article class="card timeline">
+        <div class="chart-head"><h3>Prior versus latest incoming damage</h3><div class="legend"><span style="--swatch:var(--gold)">Prior campaign</span><span style="--swatch:var(--red)">Latest campaign</span></div></div>
+        <div class="bars" aria-label="Incoming damage by night, prior and latest campaigns">
+          <div class="bar-row"><div class="night">N1</div><div class="track"><div class="bar" style="width:3.4%"></div><span class="value">158</span></div><div class="track"><div class="bar new" style="width:.5%"></div><span class="value">24</span></div></div>
+          <div class="bar-row"><div class="night">N2</div><div class="track"><div class="bar" style="width:3.2%"></div><span class="value">150</span></div><div class="track"><div class="bar new" style="width:1.1%"></div><span class="value">51</span></div></div>
+          <div class="bar-row"><div class="night">N3</div><div class="track"><div class="bar" style="width:10.3%"></div><span class="value">484</span></div><div class="track"><div class="bar new" style="width:9.6%"></div><span class="value">448</span></div></div>
+          <div class="bar-row"><div class="night">N4</div><div class="track"><div class="bar" style="width:19%"></div><span class="value">889</span></div><div class="track"><div class="bar new" style="width:25.8%"></div><span class="value">1,207</span></div></div>
+          <div class="bar-row"><div class="night">N5</div><div class="track"><div class="bar" style="width:29.4%"></div><span class="value">1,378</span></div><div class="track"><div class="bar new" style="width:26.2%"></div><span class="value">1,227</span></div></div>
+          <div class="bar-row"><div class="night">N6</div><div class="track"><div class="bar" style="width:45.5%"></div><span class="value">2,130</span></div><div class="track"><div class="bar new" style="width:40%"></div><span class="value">1,873</span></div></div>
+          <div class="bar-row"><div class="night">N7</div><div class="track"><div class="bar" style="width:28.7%"></div><span class="value">1,343</span></div><div class="track"><div class="bar new" style="width:39.6%"></div><span class="value">1,856</span></div></div>
+          <div class="bar-row"><div class="night">N8</div><div class="track"><div class="bar" style="width:43.1%"></div><span class="value">2,016</span></div><div class="track"><div class="bar new" style="width:24.5%"></div><span class="value">1,146</span></div></div>
+          <div class="bar-row"><div class="night">N9</div><div class="track"><div class="bar" style="width:39.3%"></div><span class="value">1,843</span></div><div class="track"><div class="bar new" style="width:39.6%"></div><span class="value">1,853</span></div></div>
+          <div class="bar-row"><div class="night">N10</div><div class="track"><div class="bar" style="width:100%"></div><span class="value">4,683</span></div><div class="track"><div class="bar new" style="width:71.5%"></div><span class="value">3,348</span></div></div>
+        </div>
+      </article></div>
+    </section>
+
+    <section id="diagnosis">
+      <div class="section-head"><div><div class="eyebrow">Causal diagnosis</div><h2>Three mechanics stack at the campaign climax</h2></div><p>The telemetry and implementation report line up on a concentrated pacing problem. Confidence is high on the mechanism, moderate on final tuning values because the seed and build differ.</p></div>
+      <div class="grid">
+        <article class="card cause"><h3>Adaptive pressure responds to a stronger fort</h3><strong>1.848x</strong><p class="muted">Night 10 adaptive multiplier, versus 1.374x in the prior campaign. Fort score was 3,362 against 2,081 expected, plus level and upgrade contributions.</p></article>
+        <article class="card cause"><h3>The horde is compressed into the opening</h3><strong>15 sec</strong><p class="muted">The implementation guarantees full schedule deployment by this cutoff. On night 10 that means 83 scheduled enemies, plus a boss, five summons, and seven children.</p></article>
+        <article class="card cause"><h3>Damage reaches inner loss conditions</h3><strong>124.2</strong><p class="muted">Night 10 flag damage: 75.9 from the boss and 48.3 from basics. The player also took 100.6 while only five structures were destroyed.</p></article>
+        <div class="callout"><strong>Important distinction:</strong> the new power-awareness term contributed only +0.126 to the night 10 multiplier. Most of the pressure came from the fort structure delta (+0.407), player level (+0.315), and mutation budget. The likely regression is not one isolated formula. It is the interaction between high campaign adaptation, a much larger schedule, and globally compressed spawn deployment.</div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Original goal</th><th>Latest evidence</th><th>Status</th><th>Conclusion</th></tr></thead>
+          <tbody>
+            <tr><td>Preserve campaign nights 1-10</td><td>Normal loss at night 10 with a stronger profile and fort</td><td class="delta-bad">Failed this run</td><td>Needs a campaign-specific pacing correction.</td></tr>
+            <tr><td>Reduce turret automation</td><td>Turret damage share fell from 51.9% to 47.3%; spikes gained share</td><td class="delta-good">Promising</td><td>Defense contribution is more distributed.</td></tr>
+            <tr><td>Make resources matter</td><td>58 diamond spent and 20 banked versus 0 spent and 56 banked</td><td class="delta-good">Improved</td><td>High-tier progression now asks for actual spending.</td></tr>
+            <tr><td>Restore endless pressure</td><td>Endless was never reached</td><td class="delta-warn">Unverified</td><td>No claim should be made yet about nights 11+.</td></tr>
+            <tr><td>Keep bosses threatening but readable</td><td>Boss alive when the flag fell after 32.35 seconds of fighting</td><td class="delta-bad">Over target</td><td>The campaign boss package is now too punishing in this scenario.</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+    </section>
+
+    <section id="next">
+      <div class="section-head"><div><div class="eyebrow">Recommended next tuning pass</div><h2>Protect the campaign, preserve the endless design</h2></div><p>The best correction is mode-aware pacing. Do not weaken the whole horde or undo the endless architecture based on a campaign-only test.</p></div>
+      <div class="grid">
+        <article class="card priority"><div class="rank">P0 - campaign pacing</div><h3>Scope the 15-second deployment cutoff to endless</h3><p>Distribute campaign schedules across the normal fight window, especially on night 10. Keep the fast guaranteed deployment for endless where portal throughput was the original failure.</p></article>
+        <article class="card priority"><div class="rank">P0 - campaign adaptation</div><h3>Add a campaign-specific pressure ceiling</h3><p>Target roughly 55-70 scheduled enemies on night 10 for a strong normal build, then tune from repeated seeds. Avoid allowing structure investment to turn the campaign boss wave into an 83-enemy rush.</p></article>
+        <article class="card priority"><div class="rank">P0 - boss concurrency</div><h3>Limit the overlap, not the boss identity</h3><p>Retain the delayed boss and full-clear concept, but prevent the boss, most scheduled enemies, and summons from arriving in the same narrow window during campaign night 10.</p></article>
+        <article class="card priority"><div class="rank">P1 - validation</div><h3>Replay two campaign seeds before endless</h3><p>Use the latest seed <code>i3xtc3-8h0mah</code> and prior seed <code>3rbnwj-zyqvcn</code>. Require normal victories with meaningful damage, a living threat to the flag, and a readable boss window.</p></article>
+        <article class="card priority"><div class="rank">P1 - endless evidence</div><h3>Then run the intended 11-25 test</h3><p>Measure zero-damage nights, special threat share, boss time-to-kill, flag-radius entries, turret damage share, and resource spending. The latest log says nothing about these post-campaign targets.</p></article>
+        <article class="card priority"><div class="rank">P1 - telemetry</div><h3>Add spawn-time concentration signals</h3><p>Record scheduled spawns by 5-second bucket and peak simultaneous population. That will make deployment compression directly measurable instead of inferred from configuration.</p></article>
+        <details><summary>Sources and comparison limits</summary><p>Latest telemetry: <code>playtest-logs/flagfort-2026-08-04t21-27-55-950z-i3xtc3-8h0mah.jsonl</code>. Prior campaign telemetry: <code>playtest-logs/flagfort-2026-08-04t17-34-45-764z-3rbnwj-zyqvcn.jsonl</code>. Compared Lavish reports: <code>.lavish/endless-run-balance-analysis.html</code> and <code>.lavish/endless-balance-implementation-report.html</code>. The two campaign runs differ in seed, profile level, equipment, offered choices, and build layout. Outcome and large directional shifts are meaningful; exact balance constants require deterministic replay across both seeds.</p></details>
+      </div>
+    </section>
+    <footer>Flag Fort playtest comparison generated from local telemetry and the two latest relevant Lavish reports. Design matched the existing Flag Fort dark green and cream report surfaces.</footer>
+  </main>
+</body>
+</html>

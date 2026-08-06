@@ -396,7 +396,8 @@ export const selections = [
   },
   {
     id: "summoner-cast",
-    source: source("Sonniss.com-GDC2026-GameAudioBundle2of5/Epic Stock Media - Fantasy Game 2 - Sound Kit for Enchanted Realms/MAGAngl_Magic Light Spell Enchantment Potion Effect Tonal Bright 03_ESM_FG2.wav"),
+    source: manual("summoner-cast"),
+    preserveSource: true,
     creator: "Epic Stock Media",
     pack: "Fantasy Game 2 - Sound Kit for Enchanted Realms",
     ...SONNISS_ROYALTY_FREE,

@@ -2,7 +2,7 @@ import { BALANCE, RESOURCE_ORDER, STRUCTURE_ORDER, TIER_ORDER } from "./config";
 import { actionBarActions } from "./action-bar";
 import { resolveChallengeModifiers, type ChallengeModifiers } from "./challenges";
 import { emitAudioCue, emitAudioSpatialState } from "./audio";
-import { applyUnlock, generateChoiceOfferings } from "./choices";
+import { availableUnlocks, availableUpgradeKeys, applyUnlock, generateChoiceOfferings } from "./choices";
 import { Input } from "./input";
 import { NavigationGrid, pathIntersectsObstacle } from "./pathfinding";
 import { browserStorage } from "./storage";
@@ -14,6 +14,8 @@ import {
   adaptiveDifficulty,
   applyMutation,
   applyUpgrade,
+  baseWaveThreatBudget,
+  endlessWaveThreatBudget,
   canAfford,
   createMutations,
   createUnlocks,
@@ -26,6 +28,7 @@ import {
   spend,
   structurePointValue,
   type AdaptiveDifficulty,
+  type AdaptivePowerInput,
   upgradeCost,
   type ResourceWallet,
 } from "./rules";
@@ -36,7 +39,12 @@ import {
   recyclingRate,
   swordStats,
 } from "./equipment";
-import { META_BALANCE, permanentUpgradePercent, type PermanentUpgradeId } from "./meta-balance";
+import {
+  EQUIPMENT_ORDER,
+  META_BALANCE,
+  permanentUpgradePercent,
+  type PermanentUpgradeId,
+} from "./meta-balance";
 import { resolveActionCooldown, resolveEffectiveStat } from "./modifiers";
 import {
   performanceDifficultyDelta,
@@ -47,8 +55,21 @@ import type { GamePlatform } from "./platform";
 import type { ProfileManager, RunSettlementResult } from "./profile";
 import { calculateXpRewards, settleCoinInvestment } from "./rewards";
 import {
+  emptyPlaytestActivity,
+  finishRunDifficultyLog,
+  summarizeNight,
+  type ChoiceSelectionLog,
+  type EnemyPopulationLog,
+  type NightDifficultyLog,
+  type PlaytestActivityLog,
+  type RunLoadoutLog,
+  type StructureTally,
+} from "./dev-run-telemetry";
+import {
   ENEMY_REGISTRY,
-  introducedRosterEnemies,
+  activeRosterEnemies,
+  endlessRosterAdditions,
+  endlessRosterMilestones,
   mutationWeightKey,
   rosterMilestones,
   selectEnemyRoster,
@@ -58,6 +79,7 @@ import type {
   ActionKind,
   AreaEffect,
   Choice,
+  DamageSource,
   Difficulty,
   Enemy,
   EnemyKind,
@@ -69,6 +91,7 @@ import type {
   Portal,
   Projectile,
   ResourceNode,
+  RosterEnemyKind,
   RunRecord,
   RunMode,
   RunStats,
@@ -86,12 +109,15 @@ interface NightPerformanceTracker {
   zombiesEnteringFlagRadius: number;
   playerDamageTaken: number;
   totalZombiesSpawned: number;
-  startingZombieKills: number;
-  startingPersonalKills: number;
+  waveEnemyIds: Set<number>;
+  personalWaveZombieKills: number;
   damagedStructureIds: Set<number>;
   destroyedStructureIds: Set<number>;
   structureValues: Map<number, number>;
   flagRadiusEnemyIds: Set<number>;
+  populationCategoryByEnemyId: Map<number, keyof EnemyPopulationLog["spawned"]>;
+  population: EnemyPopulationLog;
+  bossKillTimeSeconds: number | null;
 }
 
 export interface BuildPreview {
@@ -229,6 +255,7 @@ export class Game {
   lastNightPerformance: NightPerformanceSnapshot | null = null;
   performanceDifficulty: PerformanceDifficultyResult = performanceDifficultyDelta(null);
   autoCorrectiveDelta = 0;
+  devDifficultyLogs: NightDifficultyLog[] = [];
   debugNavigation = BALANCE.debug.navigation
     || (typeof location !== "undefined" && new URLSearchParams(location.search).has("navDebug"));
   debugAdaptive = BALANCE.debug.adaptiveHud
@@ -242,6 +269,10 @@ export class Game {
   flagPresent = true;
 
   private rng = new SeededRng("preview:gameplay");
+  private summonRng = new SeededRng("preview:summons");
+  private runTelemetryStartedAt = new Date().toISOString();
+  private cyclePlaytestActivity = emptyPlaytestActivity();
+  private runPlaytestActivity = emptyPlaytestActivity();
   private nextId = 1000;
   private toastQueue: Array<{ message: string; critical: boolean }> = [];
   private enemyHash = new SpatialHash<Enemy>(180);
@@ -253,6 +284,8 @@ export class Game {
   private nightWaveScheduled = false;
   private combatMode = false;
   private waveScheduleCursor = 0;
+  private bossSpawnedThisNight = false;
+  private fortPulseUsedNight = 0;
   private playerDamageWarned = false;
   private flagWarningCooldown = 0;
   private footstepCooldown = 0;
@@ -324,6 +357,7 @@ export class Game {
       this.runInvestment = this.profileManager.profile.pendingRunSettlement?.investment ?? 0;
     }
     this.rng = new SeededRng(`${this.seed}:gameplay:${difficulty}`);
+    this.summonRng = new SeededRng(`${this.seed}:summons:${difficulty}`);
     this.nextId = 1000;
     const challengeModifiers = this.getChallengeModifiers();
     this.world = generateWorld(this.seed, challengeModifiers.resourceNodeMultiplier);
@@ -397,6 +431,10 @@ export class Game {
     this.performanceDifficulty = performanceDifficultyDelta(null);
     this.autoCorrectiveDelta = 0;
     this.nightPerformance = null;
+    this.devDifficultyLogs = [];
+    this.runTelemetryStartedAt = new Date().toISOString();
+    this.cyclePlaytestActivity = emptyPlaytestActivity();
+    this.runPlaytestActivity = emptyPlaytestActivity();
     this.playerDamageWarned = false;
     this.flagWarningCooldown = 0;
     this.footstepCooldown = 0;
@@ -433,6 +471,10 @@ export class Game {
       nightsSurvived: 0,
     };
     this.directPlayerKills = emptyEnemyCounts();
+    this.devDifficultyLogs = [];
+    this.runTelemetryStartedAt = new Date().toISOString();
+    this.cyclePlaytestActivity = emptyPlaytestActivity();
+    this.runPlaytestActivity = emptyPlaytestActivity();
     this.lastSettlement = null;
     this.runInvestment = 0;
     this.runSettlementId = this.profileManager ? this.createSettlementId() : null;
@@ -752,7 +794,7 @@ export class Game {
   }
 
   togglePause(): void {
-    if (this.phase === "day" || this.phase === "night") {
+    if (this.phase === "day" || this.phase === "night" || this.phase === "dawn") {
       this.previousPhase = this.phase;
       this.phase = "paused";
       emitAudioCue({ cue: "ui-cancel" });
@@ -797,6 +839,17 @@ export class Game {
     if (this.phase !== "dawn") return;
     const choice = this.choices[index];
     if (!choice) return;
+    const choiceLog: ChoiceSelectionLog = {
+      afterNight: this.night,
+      screen: this.dawnScreen + 1,
+      id: choice.id,
+      name: choice.name,
+      kind: choice.kind,
+      mutationId: choice.mutationId,
+      mutationName: choice.mutationName,
+    };
+    this.cyclePlaytestActivity.cardsChosen.push(choiceLog);
+    this.runPlaytestActivity.cardsChosen.push(choiceLog);
     emitAudioCue({ cue: "card-select" });
     if (choice.kind === "unlock") {
       applyUnlock(this.unlocks, choice.id);
@@ -829,16 +882,7 @@ export class Game {
     this.dawnPicked.add(choice.id);
     this.dawnScreen += 1;
     if (this.dawnScreen >= 3) {
-      const nextNight = this.night + 1;
-      const introduced = rosterMilestones(this.enemyRoster)
-        .find((milestone) => milestone.night === nextNight && milestone.enemy !== "boss")?.enemy;
-      if (introduced) {
-        this.enemyWarning = introduced;
-        this.choices = [];
-        this.markUi(true);
-      } else {
-        this.beginNextDay();
-      }
+      this.beginNextDayWithWarning();
       return;
     }
     this.choices = generateChoiceOfferings(
@@ -852,6 +896,14 @@ export class Game {
       0,
       this.disabledDawnBenefits(),
       this.enemyRoster,
+      this.runMode === "endless"
+        ? endlessRosterAdditions(
+          this.seed,
+          this.enemyRoster,
+          this.night,
+          BALANCE.endless.rosterAdditionInterval,
+        )
+        : [],
     );
     this.markUi(true);
   }
@@ -878,7 +930,7 @@ export class Game {
     if (!this.rerollConfirmation || this.phase !== "dawn" || this.rerollsUsed >= BALANCE.reroll.limit) return;
     emitAudioCue({ cue: "card-reroll" });
     const discarded = new Set(this.choices.map((choice) => choice.id));
-    spend(this.resources, rerollCost(this.resources));
+    this.spendResources(rerollCost(this.resources));
     this.rerollsUsed += 1;
     this.rerollConfirmation = false;
     this.choices = generateChoiceOfferings(
@@ -892,6 +944,14 @@ export class Game {
       this.rerollsUsed,
       this.disabledDawnBenefits(),
       this.enemyRoster,
+      this.runMode === "endless"
+        ? endlessRosterAdditions(
+          this.seed,
+          this.enemyRoster,
+          this.night,
+          BALANCE.endless.rosterAdditionInterval,
+        )
+        : [],
     );
     if (this.choices.length < 3) {
       this.choices = generateChoiceOfferings(
@@ -900,11 +960,19 @@ export class Game {
         this.dawnScreen,
         this.unlocks,
         this.upgrades,
-      this.mutations,
-      this.dawnPicked,
-      this.rerollsUsed,
-      this.disabledDawnBenefits(),
-      this.enemyRoster,
+        this.mutations,
+        this.dawnPicked,
+        this.rerollsUsed,
+        this.disabledDawnBenefits(),
+        this.enemyRoster,
+        this.runMode === "endless"
+          ? endlessRosterAdditions(
+            this.seed,
+            this.enemyRoster,
+            this.night,
+            BALANCE.endless.rosterAdditionInterval,
+          )
+          : [],
       );
     }
     this.notify(`Reroll ${this.rerollsUsed} of ${BALANCE.reroll.limit}`);
@@ -950,6 +1018,7 @@ export class Game {
 
     if (!this.tutorialMode) {
       this.stats.elapsed += dt;
+      this.trackPlaytestTime(dt);
       this.timer = Math.max(0, this.timer - dt);
     }
     this.phaseElapsed += dt;
@@ -976,6 +1045,7 @@ export class Game {
     this.updateMeleeSwing(dt);
     this.updateStructures(dt);
     this.updatePortals(dt);
+    this.updateBossSpawn();
     this.updateEnemies(dt);
     this.trackFlagRadiusEntries();
     this.updateProjectiles(dt);
@@ -992,15 +1062,6 @@ export class Game {
     }
     if (this.tutorialMode) this.updateTutorialProgress();
 
-    if (this.phase === "night" && this.isBossNight()
-      && !this.enemies.some((enemy) => enemy.kind === "boss" && enemy.health > 0)) {
-      this.notify("Boss defeated", true);
-      emitAudioCue({ cue: "wave-cleared" });
-      this.completeBossNight();
-      this.input.endFrame();
-      return;
-    }
-
     if (this.combatMode && this.canLeaveCombatMode()) this.leaveCombatMode();
 
     if (this.tutorialMode) {
@@ -1011,6 +1072,11 @@ export class Game {
     else if (this.timer <= 0) {
       if (this.phase === "day") this.beginNight();
       else if (!this.isBossNight()) this.beginDawn();
+      else if (this.bossSpawnedThisNight
+        && !this.enemies.some((enemy) => enemy.kind === "boss" && enemy.health > 0)
+        && this.isNightWaveCleared()) {
+        this.completeBossNight();
+      }
     }
     this.input.endFrame();
   }
@@ -1269,8 +1335,9 @@ export class Game {
     const wrench = this.profileManager?.profile.equipment.wrench;
     const chance = freeRepairChance(wrench?.tier ?? null, wrench?.equipped ?? false);
     const free = chance > 0 && this.rng.next() < chance;
-    if (!free) spend(this.resources, preview.cost);
+    if (!free) this.spendResources(preview.cost);
     structure.health = structure.maxHealth;
+    this.recordStructureActivity("repaired", structure.kind, structure.tier);
     this.burst(structure.x, structure.y, "#74f3a5", 16, free ? "FREE REPAIR" : "FULL REPAIR");
     if (!free) this.floatWallet(structure.x, structure.y + 30, preview.cost, "-");
     emitAudioCue({ cue: "structure-repair", position: { x: structure.x, y: structure.y } });
@@ -1289,6 +1356,7 @@ export class Game {
       return;
     }
     addWallet(this.resources, preview.refund);
+    this.recordResources("refunded", preview.refund);
     this.structures = this.structures.filter((item) => item !== structure);
     this.invalidateStructureTargets(structure.id);
     this.recalculateStructureScore();
@@ -1492,7 +1560,7 @@ export class Game {
       emitAudioCue({ cue: "ui-invalid" });
       return;
     }
-    spend(this.resources, cost);
+    this.spendResources(cost);
     if (preview.upgrading) {
       const structure = preview.upgrading;
       const investedResources = this.structureInvestment(structure);
@@ -1506,6 +1574,7 @@ export class Game {
         structure.ownerId ?? this.player.id,
       );
       structure.health = structure.maxHealth * ratio;
+      this.recordStructureActivity("upgraded", structure.kind, structure.tier);
       this.burst(structure.x, structure.y, BALANCE.tierColors[preview.tier], 12, "UPGRADE");
       emitAudioCue({ cue: "structure-upgrade", position: { x: structure.x, y: structure.y } });
       this.recordTutorialEvent(`upgraded-${kind}`);
@@ -1529,6 +1598,7 @@ export class Game {
         flash: 0,
       });
       this.stats.structuresBuilt += 1;
+      this.recordStructureActivity("built", kind, preview.tier);
       this.burst(preview.x, preview.y, BALANCE.tierColors[preview.tier], 10, "BUILT");
       emitAudioCue({ cue: "structure-place", position: { x: preview.x, y: preview.y } });
       this.recordTutorialEvent(`placed-${kind}`);
@@ -1644,6 +1714,7 @@ export class Game {
     node.hitFlash = 0.16;
     this.resources[node.kind] += amount;
     this.stats.resourcesGathered += amount;
+    this.recordResources("gathered", { ...emptyWallet(), [node.kind]: amount });
     this.burst(node.x, node.y, BALANCE.tierColors[node.kind], 4);
     this.floatResource(node.x, node.y - 24, node.kind, `+${amount}`);
     const hitCue = `${node.kind}-hit` as "wood-hit" | "stone-hit" | "gold-hit" | "diamond-hit";
@@ -1661,11 +1732,9 @@ export class Game {
     for (const portal of this.portals) {
       portal.flash = Math.max(0, portal.flash - dt);
       if (this.phase !== "night" || this.timer <= 0 || portal.spawned >= portal.assignedSpawns) continue;
-      const frequencyBoost = 1 + Math.max(0, this.adaptiveState.multiplier - 1)
-        * BALANCE.adaptive.spawnFrequencyInfluence;
       const scheduleProgress = Math.min(
         1,
-        this.phaseElapsed * frequencyBoost / BALANCE.nightSpawnCutoff,
+        this.phaseElapsed / BALANCE.nightSpawnCutoff,
       );
       const scheduledCount = Math.min(
         portal.assignedSpawns,
@@ -1673,10 +1742,9 @@ export class Game {
       );
       let boundedWork = 0;
       while (portal.spawned < scheduledCount && boundedWork < portal.assignedSpawns) {
-        if (this.enemies.filter((enemy) => enemy.health > 0).length >= BALANCE.waveSafety.maximumActiveEnemies) break;
         let kind = this.waveSchedule[this.waveScheduleCursor] ?? "basic";
         const activeKind = this.enemies.filter((enemy) => enemy.health > 0 && enemy.kind === kind).length;
-        if (activeKind >= ENEMY_REGISTRY[kind].caps.simultaneous) kind = "basic";
+        if (activeKind >= this.getEnemySimultaneousCap(kind)) kind = "basic";
         portal.spawned += 1;
         this.waveScheduleCursor += 1;
         this.spawnEnemy(portal, kind);
@@ -1685,11 +1753,23 @@ export class Game {
     }
   }
 
+  private updateBossSpawn(): void {
+    if (this.phase !== "night" || !this.isBossNight() || this.bossSpawnedThisNight
+      || this.phaseElapsed < BALANCE.endless.bossSpawnDelay) return;
+    const portal = new SeededRng(`${this.seed}:boss-portal:${this.night}`).pick(this.portals);
+    this.spawnEnemy(portal, "boss");
+    this.bossSpawnedThisNight = true;
+    emitAudioCue({ cue: "portal-spawn", position: { x: portal.x, y: portal.y } });
+    this.notify("BOSS INCOMING", true);
+    emitAudioCue({ cue: "boss-roar", position: { x: portal.x, y: portal.y }, delayMs: 90 });
+    this.markUi(true);
+  }
+
   private isNightWaveCleared(): boolean {
     if (!this.nightWaveScheduled) return false;
     const scheduledWaveComplete = this.portals.every((portal) => portal.spawned >= portal.assignedSpawns);
     if (!scheduledWaveComplete) return false;
-    return !this.enemies.some((enemy) => enemy.health > 0);
+    return !this.enemies.some((enemy) => enemy.health > 0 && enemy.countsTowardWave !== false);
   }
 
   private canLeaveCombatMode(): boolean {
@@ -1706,7 +1786,13 @@ export class Game {
     this.markUi(true);
   }
 
-  private spawnEnemy(portal: Portal | Vec2, kind: EnemyKind, summonedBy?: number, child = false): void {
+  private spawnEnemy(
+    portal: Portal | Vec2,
+    kind: EnemyKind,
+    summonedBy?: number,
+    child = false,
+    countsTowardWave = true,
+  ): void {
     const base = BALANCE.enemy[kind];
     const difficulty = BALANCE.difficulty[this.difficulty];
     const challenges = this.getChallengeModifiers();
@@ -1714,9 +1800,8 @@ export class Game {
     const adaptiveHealth = 1 + (this.adaptiveState.multiplier - 1) * BALANCE.adaptive.healthInfluence;
     const adaptiveDamage = 1 + (this.adaptiveState.multiplier - 1) * BALANCE.adaptive.damageInfluence;
     const mutationParentKind = kind === "splitter-child" ? "splitter" : kind;
-    const mutationApplies = Object.values(this.enemyRoster).includes(
-      mutationParentKind as typeof this.enemyRoster[keyof typeof this.enemyRoster],
-    );
+    const mutationApplies = kind === "boss"
+      || this.getActiveRoster().includes(mutationParentKind as RosterEnemyKind);
     const mutation = mutationApplies ? this.mutations : createMutations();
     const attackSpeedMultiplier = resolveEffectiveStat({
       base: 1,
@@ -1724,11 +1809,22 @@ export class Game {
       mutation: mutation.attackSpeed,
       challenge: challenges.enemyAttackSpeedMultiplier - 1,
     });
+    const endlessIndex = this.runMode === "endless" ? Math.max(0, this.night - 10) : 0;
+    const bossCycle = kind === "boss" && this.runMode === "endless"
+      ? Math.max(0, Math.floor((this.night - 10) / 5))
+      : 0;
+    const endlessHealthMultiplier = kind === "boss"
+      ? Math.pow(BALANCE.endless.bossHealthGrowthPerCycle, bossCycle)
+      : Math.pow(BALANCE.endless.healthGrowthPerNight, endlessIndex);
+    const endlessDamageMultiplier = kind === "boss"
+      ? Math.pow(BALANCE.endless.bossDamageGrowthPerCycle, bossCycle)
+      : Math.pow(BALANCE.endless.damageGrowthPerNight, endlessIndex);
     const health = base.health
       * difficulty.enemyHealth
       * (1 + mutation.health)
       * adaptiveHealth
-      * challenges.enemyHealthMultiplier;
+      * challenges.enemyHealthMultiplier
+      * endlessHealthMultiplier;
     const angle = this.rng.range(0, Math.PI * 2);
     const radius = base.radius;
     this.enemies.push({
@@ -1747,11 +1843,13 @@ export class Game {
         * difficulty.enemyDamage
         * (1 + mutation.damage)
         * adaptiveDamage
-        * challenges.enemyDamageMultiplier,
+        * challenges.enemyDamageMultiplier
+        * endlessDamageMultiplier,
       structureDamage: base.structureDamage * difficulty.enemyDamage
         * (1 + mutation.structureDamage)
         * adaptiveDamage
-        * challenges.enemyDamageMultiplier,
+        * challenges.enemyDamageMultiplier
+        * endlessDamageMultiplier,
       attackRate: base.attackRate / Math.max(0.05, attackSpeedMultiplier),
       attackSpeedMultiplier,
       cooldown: 0,
@@ -1764,7 +1862,8 @@ export class Game {
       flash: 0,
       summonCooldown: this.rng.range(5, 8),
       summonedBy,
-      jumpCooldown: 0,
+      countsTowardWave,
+      jumpCooldown: kind === "jumper" ? BALANCE.jumper.jumpCooldown : 0,
       jumpTime: 0,
       bossSmashWindup: 0,
       bossSlamWave: 0,
@@ -1779,6 +1878,8 @@ export class Game {
       lastDamageSource: null,
       lastHitByPlayerId: null,
       stuckTime: 0,
+      fullyStuckTime: 0,
+      forcedBlockerId: null,
       routeCommitment: 0,
       routeIncludesStructures: false,
       routeStructureRevision: this.structureRevision,
@@ -1802,34 +1903,83 @@ export class Game {
     if (spawned) {
       this.constrainToTutorialArena(spawned);
       if (this.phase === "night" && this.nightPerformance) {
-        this.nightPerformance.totalZombiesSpawned += 1;
+        const category: keyof EnemyPopulationLog["spawned"] = child
+          ? "children"
+          : kind === "boss"
+            ? "boss"
+            : summonedBy !== undefined
+              ? "summons"
+              : "scheduled";
+        this.nightPerformance.populationCategoryByEnemyId.set(spawned.id, category);
+        this.incrementEnemyTally(this.nightPerformance.population.spawned[category], kind);
+        if (countsTowardWave) {
+          this.nightPerformance.totalZombiesSpawned += 1;
+          this.nightPerformance.waveEnemyIds.add(spawned.id);
+        }
       }
     }
+  }
+
+  private endlessMilestoneCount(): number {
+    return this.runMode === "endless"
+      ? Math.max(0, Math.floor((this.night - 10) / BALANCE.endless.rosterAdditionInterval))
+      : 0;
+  }
+
+  private getEnemyPerWaveCap(kind: EnemyKind): number {
+    if (kind === "basic" || kind === "boss" || kind === "splitter-child") {
+      return ENEMY_REGISTRY[kind].caps.perWave;
+    }
+    return Math.ceil(
+      ENEMY_REGISTRY[kind].caps.perWave
+        * (1 + this.endlessMilestoneCount() * BALANCE.endless.specialCapGrowthPerMilestone),
+    );
+  }
+
+  private getEnemySimultaneousCap(kind: EnemyKind): number {
+    if (kind === "basic" || kind === "boss" || kind === "splitter-child") {
+      return ENEMY_REGISTRY[kind].caps.simultaneous;
+    }
+    return Math.ceil(
+      ENEMY_REGISTRY[kind].caps.simultaneous
+        * (1 + this.endlessMilestoneCount() * BALANCE.endless.specialCapGrowthPerMilestone),
+    );
   }
 
   private rollEnemyKind(
     rng: SeededRng = this.rng,
     counts: ReadonlyMap<EnemyKind, number> = new Map(),
     budgetLeft = Number.POSITIVE_INFINITY,
+    specialsOnly = false,
   ): EnemyKind {
     const specialBoost = 1 + Math.max(0, this.adaptiveState.multiplier - 1)
       * BALANCE.adaptive.specialWeightInfluence;
     const eliteMultiplier = this.getChallengeModifiers().specialZombieWeightMultiplier;
-    const introduced = introducedRosterEnemies(this.enemyRoster, this.night);
+    const counterConfig = BALANCE.adaptive.powerAwareness.turretCounterWeights;
+    const extremeTurretPower = this.adaptiveState.turretCoverageRatio >= counterConfig.coverageThreshold
+      || this.adaptiveState.turretDps / Math.max(1, this.adaptiveState.expectedTurretDps)
+        >= counterConfig.dpsRatioThreshold;
+    const introduced = this.getActiveRoster();
     const entries = introduced.flatMap((kind) => {
       const definition = ENEMY_REGISTRY[kind];
       const count = counts.get(kind) ?? 0;
-      if (definition.threat > budgetLeft || count >= definition.caps.perWave) return [];
+      if (specialsOnly && kind === "basic") return [];
+      if (definition.threat > budgetLeft || count >= this.getEnemyPerWaveCap(kind)) return [];
       const mutation = this.mutations[mutationWeightKey(kind)];
       const special = definition.tier === 1 ? 1 : specialBoost * eliteMultiplier;
-      return [{ value: kind as EnemyKind, weight: Math.max(0, definition.spawnWeight + mutation) * special }];
+      const counterWeight = extremeTurretPower && kind === "archer"
+        ? counterConfig.archerMultiplier
+        : extremeTurretPower && kind === "acidslinger"
+          ? counterConfig.acidslingerMultiplier
+          : 1;
+      return [{ value: kind as EnemyKind, weight: Math.max(0, definition.spawnWeight + mutation) * special * counterWeight }];
     });
     return entries.length > 0 ? rng.weighted(entries) : "basic";
   }
 
   private buildWaveSchedule(threatBudget: number): EnemyKind[] {
     const rng = new SeededRng(`${this.seed}:wave:${this.night}:${this.difficulty}`);
-    const introduced = introducedRosterEnemies(this.enemyRoster, this.night);
+    const introduced = this.getActiveRoster();
     const guaranteedSpecials = introduced.filter((kind) => kind !== "basic");
     const result: EnemyKind[] = [];
     const counts = new Map<EnemyKind, number>();
@@ -1842,9 +1992,20 @@ export class Game {
       remaining -= definition.threat;
     }
     let guard = 0;
-    while (remaining >= ENEMY_REGISTRY.basic.threat && guard < 500) {
+    const specialThreatTarget = this.runMode === "endless"
+      ? threatBudget * BALANCE.endless.minimumSpecialThreatShare
+      : 0;
+    let specialThreat = result.reduce(
+      (sum, kind) => sum + (kind === "basic" ? 0 : ENEMY_REGISTRY[kind].threat),
+      0,
+    );
+    while (remaining >= ENEMY_REGISTRY.basic.threat
+      && guard < BALANCE.endless.maximumScheduledEnemies
+      && result.length < BALANCE.endless.maximumScheduledEnemies) {
       guard += 1;
-      let kind = this.rollEnemyKind(rng, counts, remaining);
+      const needsSpecial = specialThreat < specialThreatTarget;
+      let kind = this.rollEnemyKind(rng, counts, remaining, needsSpecial);
+      if (needsSpecial && kind === "basic") kind = this.rollEnemyKind(rng, counts, remaining);
       const definition = ENEMY_REGISTRY[kind];
       const justIntroduced = definition.introductionNight === this.night && definition.tier > 2;
       const introductionCap = Math.max(1, Math.floor(threatBudget * BALANCE.waveSafety.firstIntroductionShare / definition.threat));
@@ -1852,6 +2013,7 @@ export class Game {
       result.push(kind);
       counts.set(kind, (counts.get(kind) ?? 0) + 1);
       remaining -= ENEMY_REGISTRY[kind].threat;
+      if (kind !== "basic") specialThreat += ENEMY_REGISTRY[kind].threat;
     }
     return rng.shuffle(result);
   }
@@ -1921,18 +2083,23 @@ export class Game {
         this.enemyAttack(enemy, target, dt);
         continue;
       }
-      const blocker = this.firstBlockingStructure(enemy, target);
+      const movementTarget = enemy.path[enemy.pathIndex] ?? target;
+      const blocker = this.firstBlockingStructure(enemy, movementTarget);
       const blockerReach = enemy.kind === "boss" ? BALANCE.boss.obstacleAttackRange : 9;
       if (definition.movement.avoidStructures && enemy.routeIncludesStructures && enemy.path.length > 0) {
         this.moveEnemyToward(enemy, target, dt);
         continue;
       }
-      if (blocker && distance(enemy, blocker) <= enemy.radius + blocker.radius + blockerReach) {
-        if (enemy.kind === "jumper") {
-          if (enemy.jumpCooldown <= 0 && this.tryJumperLeap(enemy, blocker, target)) continue;
+      if (enemy.kind === "jumper") {
+        const jumpBlocker = blocker ?? this.firstBlockingResource(enemy, movementTarget);
+        if (jumpBlocker
+          && distance(enemy, jumpBlocker) <= enemy.radius + jumpBlocker.radius + blockerReach) {
+          if (enemy.jumpCooldown <= 0 && this.tryJumperLeap(enemy, jumpBlocker, target)) continue;
           this.moveEnemyToward(enemy, target, dt);
           continue;
         }
+      }
+      if (blocker && distance(enemy, blocker) <= enemy.radius + blocker.radius + blockerReach) {
         if (definition.attack.mode === "arrow" || definition.attack.mode === "acid") {
           this.enemyRangedAttack(enemy, blocker, dt, true);
         } else {
@@ -1990,8 +2157,14 @@ export class Game {
     );
     enemy.lastDamageSource = "sunlight";
     enemy.lastHitByPlayerId = null;
-    enemy.health -= damagePerSecond * dt;
-    if (enemy.health <= 0) enemy.deathReason = "sunlight";
+    const healthBefore = Math.max(0, enemy.health);
+    const requestedDamage = damagePerSecond * dt;
+    enemy.health -= requestedDamage;
+    this.recordOutgoingDamage("sunlight", Math.min(healthBefore, requestedDamage));
+    if (enemy.health <= 0) {
+      if (healthBefore > 0) this.recordEnemyKill(enemy, "sunlight");
+      enemy.deathReason = "sunlight";
+    }
     if (enemy.sunlightEffectCooldown <= 0) {
       enemy.sunlightEffectCooldown = BALANCE.sunlight.effectInterval;
       this.particles.push({
@@ -2011,6 +2184,15 @@ export class Game {
     if (this.tutorialMode && !this.flagPresent) {
       enemy.targetId = "tutorial";
       return;
+    }
+    if (enemy.forcedBlockerId) {
+      const blocker = this.structures.find((structure) =>
+        structure.id === enemy.forcedBlockerId && structure.health > 0);
+      if (blocker) {
+        enemy.targetId = blocker.id;
+        return;
+      }
+      enemy.forcedBlockerId = null;
     }
     const definition = ENEMY_REGISTRY[enemy.kind];
     if (definition.targeting.mode === "flag" || definition.targeting.mode === "rammer") {
@@ -2065,6 +2247,12 @@ export class Game {
   }
 
   private getEnemyTarget(enemy: Enemy): (Player | Flag | Structure | TutorialTarget) | null {
+    if (enemy.forcedBlockerId) {
+      const blocker = this.structures.find((structure) =>
+        structure.id === enemy.forcedBlockerId && structure.health > 0);
+      if (blocker) return blocker;
+      enemy.forcedBlockerId = null;
+    }
     if (enemy.targetId === "player") return this.player;
     if (enemy.targetId === "flag") return this.flagPresent ? this.flag : null;
     if (enemy.targetId === "tutorial") return this.tutorialTarget;
@@ -2082,6 +2270,8 @@ export class Game {
     enemy.routeCommitment = 0;
     enemy.routeIncludesStructures = false;
     enemy.stuckTime = 0;
+    enemy.fullyStuckTime = 0;
+    enemy.forcedBlockerId = null;
     enemy.attackWindup = 0;
     enemy.chargeProgress = 0;
   }
@@ -2110,7 +2300,7 @@ export class Game {
 
   private tryJumperLeap(
     enemy: Enemy,
-    blocker: Structure,
+    blocker: Pick<Structure, "x" | "y" | "radius">,
     target: Player | Flag | Structure,
   ): boolean {
     const angle = Math.atan2(target.y - enemy.y, target.x - enemy.x);
@@ -2143,7 +2333,8 @@ export class Game {
     }
     if (!landing) {
       enemy.jumpCooldown = BALANCE.jumper.failedRetryDelay;
-      this.setJumperRecoveryPath(enemy, blocker, target);
+      enemy.path = [];
+      enemy.pathIndex = 0;
       return false;
     }
     enemy.jumpTime = BALANCE.jumper.jumpDuration;
@@ -2175,25 +2366,9 @@ export class Game {
       enemy.path = [];
       enemy.pathIndex = 0;
       enemy.stuckTime = 0;
+      enemy.fullyStuckTime = 0;
       this.burst(enemy.x, enemy.y, "#b7ff8a", 7, "LAND");
     }
-  }
-
-  private setJumperRecoveryPath(
-    enemy: Enemy,
-    blocker: Structure,
-    target: Player | Flag | Structure,
-  ): void {
-    const toward = Math.atan2(target.y - enemy.y, target.x - enemy.x);
-    const side = enemy.id % 2 === 0 ? 1 : -1;
-    const distanceAround = blocker.radius + enemy.radius + BALANCE.jumper.recoveryDistance;
-    enemy.path = [{
-      x: blocker.x + Math.cos(toward + side * Math.PI / 2) * distanceAround,
-      y: blocker.y + Math.sin(toward + side * Math.PI / 2) * distanceAround,
-    }];
-    enemy.pathIndex = 0;
-    enemy.pathCooldown = BALANCE.jumper.failedRetryDelay;
-    enemy.routeCommitment = BALANCE.jumper.failedRetryDelay;
   }
 
   private enemyAttack(enemy: Enemy, target: Player | Flag | Structure, dt: number): void {
@@ -2206,7 +2381,7 @@ export class Game {
     const isStructure = "kind" in target && "tier" in target;
     const rawDamage = isStructure ? enemy.structureDamage : enemy.damage;
     const playerWasFull = target === this.player && this.player.health >= this.player.maxHealth;
-    const damage = this.applyIncomingDamage(target, rawDamage);
+    const damage = this.applyIncomingDamage(target, rawDamage, enemy.kind, "enemy");
     emitAudioCue({
       cue: (ENEMY_REGISTRY[enemy.kind].audio.attack ?? "zombie-attack") as import("./audio").SoundId,
       position: { x: enemy.x, y: enemy.y },
@@ -2254,7 +2429,11 @@ export class Game {
   }
 
   private moveEnemyToward(enemy: Enemy, target: { x: number; y: number }, dt: number): void {
-    this.refreshEnemyPath(enemy, target);
+    if (enemy.kind === "jumper") {
+      enemy.path = [];
+      enemy.pathIndex = 0;
+      enemy.routeIncludesStructures = false;
+    } else this.refreshEnemyPath(enemy, target);
     const waypoint = enemy.path[enemy.pathIndex] ?? target;
     if (distance(enemy, waypoint) < 34 && enemy.pathIndex < enemy.path.length - 1) enemy.pathIndex += 1;
     const active = enemy.path[enemy.pathIndex] ?? target;
@@ -2272,6 +2451,22 @@ export class Game {
     this.resolveResourceCollision(enemy);
     this.resolveEnemyStructureOverlap(enemy, dt);
     const moved = Math.hypot(enemy.x - beforeX, enemy.y - beforeY);
+    const completelyStuck = moved
+      <= BALANCE.navigation.fullyStuckMaximumProgressPerSecond * dt;
+    enemy.fullyStuckTime = completelyStuck ? (enemy.fullyStuckTime ?? 0) + dt : 0;
+    if ((enemy.fullyStuckTime ?? 0) >= BALANCE.navigation.fullyStuckAttackDelay) {
+      const forcedBlocker = this.findAdjacentStuckBlocker(enemy, target);
+      if (forcedBlocker) {
+        enemy.forcedBlockerId = forcedBlocker.id;
+        enemy.targetId = forcedBlocker.id;
+        enemy.path = [];
+        enemy.pathIndex = 0;
+        enemy.pathCooldown = 0;
+        enemy.routeCommitment = ENEMY_REGISTRY[enemy.kind].targeting.lockSeconds;
+        enemy.fullyStuckTime = 0;
+        this.burst(enemy.x, enemy.y, "#ffad3d", 6, "BLOCKED");
+      }
+    }
     if (moved < speed * dt * 0.18) enemy.stuckTime += dt;
     else enemy.stuckTime = Math.max(0, enemy.stuckTime - dt * 2);
     if (enemy.stuckTime >= BALANCE.navigation.stuckRepathTime) {
@@ -2280,6 +2475,23 @@ export class Game {
       enemy.path = [];
       enemy.pathIndex = 0;
     }
+  }
+
+  private findAdjacentStuckBlocker(
+    enemy: Enemy,
+    target: { x: number; y: number },
+  ): Structure | undefined {
+    const directBlocker = this.firstBlockingStructure(enemy, target);
+    const maximumGap = BALANCE.navigation.stuckBlockerSearchPadding;
+    if (directBlocker
+      && distance(enemy, directBlocker) <= enemy.radius + directBlocker.radius + maximumGap) {
+      return directBlocker;
+    }
+    return this.structures
+      .filter((structure) => structure.health > 0)
+      .filter((structure) =>
+        distance(enemy, structure) <= enemy.radius + structure.radius + maximumGap)
+      .sort((a, b) => distance(enemy, a) - distance(enemy, b) || a.id - b.id)[0];
   }
 
   private refreshEnemyPath(enemy: Enemy, target: { x: number; y: number }): void {
@@ -2340,6 +2552,23 @@ export class Game {
         ...structure,
         radius: structure.radius + enemy.radius
           * (enemy.kind === "boss" ? BALANCE.boss.obstaclePathWidth : 0.45),
+      }))
+      .sort((a, b) => {
+        const aTravel = ((a.x - enemy.x) * dx + (a.y - enemy.y) * dy) / lengthSquared;
+        const bTravel = ((b.x - enemy.x) * dx + (b.y - enemy.y) * dy) / lengthSquared;
+        return aTravel - bTravel || a.id - b.id;
+      })[0];
+  }
+
+  private firstBlockingResource(enemy: Enemy, target: { x: number; y: number }): ResourceNode | undefined {
+    const dx = target.x - enemy.x;
+    const dy = target.y - enemy.y;
+    const lengthSquared = Math.max(1, dx * dx + dy * dy);
+    return this.world.resources
+      .filter((resource) => !resource.destroyed)
+      .filter((resource) => segmentCircle(enemy.x, enemy.y, target.x, target.y, {
+        ...resource,
+        radius: resource.radius + enemy.radius * 0.45,
       }))
       .sort((a, b) => {
         const aTravel = ((a.x - enemy.x) * dx + (a.y - enemy.y) * dy) / lengthSquared;
@@ -2469,11 +2698,11 @@ export class Game {
         enemy.chargeHitIds.add(structure.id);
         const remainingHealth = Math.max(0, structure.health);
         if (enemy.chargeDamageLeft >= remainingHealth) {
-          this.applyIncomingDamage(structure, remainingHealth);
+          this.applyIncomingDamage(structure, remainingHealth, "rammer", "rammer-charge");
           enemy.chargeDamageLeft -= remainingHealth;
           this.burst(structure.x, structure.y, "#ff9a51", 18, "BREACH");
         } else {
-          this.applyIncomingDamage(structure, enemy.chargeDamageLeft);
+          this.applyIncomingDamage(structure, enemy.chargeDamageLeft, "rammer", "rammer-charge");
           enemy.chargeDamageLeft = 0;
         }
         structure.flash = 0.3;
@@ -2485,6 +2714,7 @@ export class Game {
       }
       if (resourceHit || enemy.chargeDamageLeft <= 0) {
         enemy.charging = false;
+        enemy.chargeTargetId = null;
         enemy.chargeDistanceLeft = 0;
         enemy.pathCooldown = 0;
         return true;
@@ -2492,7 +2722,18 @@ export class Game {
       enemy.x = end.x;
       enemy.y = end.y;
       enemy.chargeDistanceLeft -= travel;
-      if (enemy.chargeDistanceLeft <= 0) enemy.charging = false;
+      if (enemy.chargeDistanceLeft <= 0) {
+        enemy.charging = false;
+        enemy.chargeTargetId = null;
+      }
+      return true;
+    }
+    if (enemy.chargeTargetId !== null && enemy.chargeTargetId !== undefined
+      && enemy.chargeProgress > 0) {
+      enemy.chargeProgress += dt * (enemy.attackSpeedMultiplier ?? 1);
+      enemy.attackWindup = Math.min(1, enemy.chargeProgress / ram.loadSeconds);
+      if (enemy.chargeProgress < ram.loadSeconds) return true;
+      this.beginRammerCharge(enemy);
       return true;
     }
     const target = this.structures
@@ -2519,18 +2760,24 @@ export class Game {
     enemy.chargeProgress += dt * (enemy.attackSpeedMultiplier ?? 1);
     enemy.attackWindup = Math.min(1, enemy.chargeProgress / ram.loadSeconds);
     if (enemy.chargeProgress < ram.loadSeconds) return true;
+    this.beginRammerCharge(enemy);
+    return true;
+  }
+
+  private beginRammerCharge(enemy: Enemy): void {
+    const definition = ENEMY_REGISTRY.rammer;
+    const ram = definition.ram!;
     enemy.chargeProgress = 0;
     enemy.attackWindup = 0;
     enemy.charging = true;
     enemy.chargeDistanceLeft = ram.distance;
     enemy.chargeDamageLeft = ram.damage * (enemy.structureDamage / Math.max(1, definition.base.structureDamage));
-    enemy.chargeHitIds.clear();
+    (enemy.chargeHitIds ??= new Set()).clear();
     emitAudioCue({
       cue: (definition.audio.move ?? "zombie-attack") as import("./audio").SoundId,
       position: { x: enemy.x, y: enemy.y },
     });
     this.burst(enemy.x, enemy.y, "#ffb35c", 14, "CHARGE");
-    return true;
   }
 
   private resolveEnemyDeath(enemy: Enemy): void {
@@ -2538,7 +2785,7 @@ export class Game {
     enemy.deathResolved = true;
     const definition = ENEMY_REGISTRY[enemy.kind];
     const reason = enemy.deathReason ?? (enemy.lastDamageSource === "sunlight" ? "sunlight" : "combat");
-    if (definition.countsForKills && !enemy.deathCounted) {
+    if (definition.countsForKills && enemy.countsTowardWave !== false && !enemy.deathCounted) {
       enemy.deathCounted = true;
       this.stats.zombiesDefeated += 1;
       if (enemy.lastHitByPlayerId === this.player.id
@@ -2603,14 +2850,14 @@ export class Game {
     if (death.burstTargets?.includes("player")) {
       const damage = damageAt(this.player, (death.burstPlayerDamage ?? death.burstDamage ?? 30) * playerScale);
       if (damage > 0) {
-        this.applyIncomingDamage(this.player, damage);
+        this.applyIncomingDamage(this.player, damage, "popper", "popper-burst");
         this.player.hurtFlash = 0.25;
       }
     }
     if (this.flagPresent && death.burstTargets?.includes("flag")) {
       const damage = damageAt(this.flag, (death.burstFlagDamage ?? death.burstDamage ?? 30) * playerScale);
       if (damage > 0) {
-        this.applyIncomingDamage(this.flag, damage);
+        this.applyIncomingDamage(this.flag, damage, "popper", "popper-burst");
         this.flag.hurtFlash = 0.25;
         emitAudioCue({ cue: "flag-damaged" });
       }
@@ -2620,7 +2867,7 @@ export class Game {
       if (!death.burstTargets?.includes(structure.kind)) continue;
       const damage = damageAt(structure, (death.burstStructureDamage ?? death.burstDamage ?? 30) * structureScale);
       if (damage <= 0) continue;
-      this.applyIncomingDamage(structure, damage);
+      this.applyIncomingDamage(structure, damage, "popper", "popper-burst");
       structure.flash = 0.25;
     }
     const duration = death.burstWaveDuration ?? 0.38;
@@ -2630,6 +2877,7 @@ export class Game {
   }
 
   private updateSummoner(enemy: Enemy, dt: number): void {
+    if (enemy.countsTowardWave === false) return;
     enemy.summonCooldown -= dt * (enemy.attackSpeedMultiplier ?? 1);
     if (enemy.summonCooldown > 0) return;
     const living = this.enemies.filter((item) => item.summonedBy === enemy.id && item.health > 0).length;
@@ -2638,7 +2886,8 @@ export class Game {
       return;
     }
     enemy.summonCooldown = 4;
-    this.spawnEnemy(enemy, "basic", enemy.id);
+    const kind = this.rollEnemyKind(this.summonRng);
+    this.spawnEnemy(enemy, kind, enemy.id, false, false);
     emitAudioCue({ cue: "summoner-cast", position: { x: enemy.x, y: enemy.y } });
     this.burst(enemy.x, enemy.y, "#9d6bff", 14, "SUMMON");
   }
@@ -2685,6 +2934,8 @@ export class Game {
           this.player,
           BALANCE.boss.slam.playerDamage
             * (enemy.damage / Math.max(1, ENEMY_REGISTRY.boss.base.damage)),
+          "boss",
+          "enemy",
         );
         this.player.hurtFlash = 0.3;
         this.burst(this.player.x, this.player.y, "#ff6b55", 10, `-${Math.round(damage)}`);
@@ -2696,6 +2947,8 @@ export class Game {
             this.flag,
             BALANCE.boss.slam.flagDamage
               * (enemy.damage / Math.max(1, ENEMY_REGISTRY.boss.base.damage)),
+            "boss",
+            "enemy",
           );
           this.flag.hurtFlash = 0.3;
           emitAudioCue({ cue: "flag-damaged" });
@@ -2709,6 +2962,8 @@ export class Game {
             structure,
             BALANCE.boss.slam.structureDamage
               * (enemy.structureDamage / Math.max(1, ENEMY_REGISTRY.boss.base.structureDamage)),
+            "boss",
+            "enemy",
           );
           structure.flash = 0.3;
           emitAudioCue({ cue: "structure-damaged", position: { x: structure.x, y: structure.y } });
@@ -2780,13 +3035,21 @@ export class Game {
       if (!this.isInsideTutorialArena(projectile.x, projectile.y, projectile.radius)) continue;
       if (projectile.owner === "enemy-arrow" || projectile.owner === "enemy-acid") {
         const piercing = projectile.owner === "enemy-acid";
+        const projectileEnemyKind: EnemyKind = projectile.owner === "enemy-arrow" ? "archer" : "acidslinger";
+        const projectileDamageSource: DamageSource = projectile.damageSource
+          ?? (projectile.owner === "enemy-arrow" ? "enemy-arrow" : "enemy-acid");
         let impacted = false;
         const accepts = (id: number | "player" | "flag"): boolean =>
           piercing || projectile.intendedTargetId === id;
         if (accepts("player") && !projectile.hitIds.has("player")
           && segmentCircle(projectile.previousX, projectile.previousY, projectile.x, projectile.y, this.player)) {
           projectile.hitIds.add("player");
-          const damage = this.applyIncomingDamage(this.player, projectile.damage);
+          const damage = this.applyIncomingDamage(
+            this.player,
+            projectile.damage,
+            projectileEnemyKind,
+            projectileDamageSource,
+          );
           this.player.hurtFlash = 0.25;
           impacted = true;
           emitAudioCue({ cue: "player-hurt", position: { x: this.player.x, y: this.player.y } });
@@ -2795,7 +3058,12 @@ export class Game {
         if (this.flagPresent && accepts("flag") && !projectile.hitIds.has("flag")
           && segmentCircle(projectile.previousX, projectile.previousY, projectile.x, projectile.y, this.flag)) {
           projectile.hitIds.add("flag");
-          this.applyIncomingDamage(this.flag, projectile.damage);
+          this.applyIncomingDamage(
+            this.flag,
+            projectile.damage,
+            projectileEnemyKind,
+            projectileDamageSource,
+          );
           this.flag.hurtFlash = 0.25;
           impacted = true;
           emitAudioCue({ cue: "flag-damaged" });
@@ -2804,7 +3072,12 @@ export class Game {
           if (!accepts(structure.id) || projectile.hitIds.has(structure.id)) continue;
           if (!segmentCircle(projectile.previousX, projectile.previousY, projectile.x, projectile.y, structure)) continue;
           projectile.hitIds.add(structure.id);
-          this.applyIncomingDamage(structure, projectile.damage);
+          this.applyIncomingDamage(
+            structure,
+            projectile.damage,
+            projectileEnemyKind,
+            projectileDamageSource,
+          );
           structure.flash = 0.22;
           impacted = true;
           this.burst(structure.x, structure.y, projectile.color, 8);
@@ -2845,7 +3118,7 @@ export class Game {
           && segmentCircle(projectile.previousX, projectile.previousY, projectile.x, projectile.y, this.player)) {
           const wasFull = this.player.health >= this.player.maxHealth;
           projectile.hitIds.add("player");
-          const damage = this.applyIncomingDamage(this.player, projectile.damage);
+          const damage = this.applyIncomingDamage(this.player, projectile.damage, "boss", "boss-acid");
           this.player.hurtFlash = 0.25;
           emitAudioCue({ cue: "player-hurt", position: { x: this.player.x, y: this.player.y } });
           this.burst(this.player.x, this.player.y, "#b8ff3d", 12, `-${Math.round(damage)}`);
@@ -2859,7 +3132,7 @@ export class Game {
           if (projectile.hitIds.has(structure.id)) continue;
           if (!segmentCircle(projectile.previousX, projectile.previousY, projectile.x, projectile.y, structure)) continue;
           projectile.hitIds.add(structure.id);
-          this.applyIncomingDamage(structure, projectile.damage);
+          this.applyIncomingDamage(structure, projectile.damage, "boss", "boss-acid");
           structure.flash = 0.22;
           emitAudioCue({ cue: "structure-damaged", position: { x: structure.x, y: structure.y } });
           this.burst(structure.x, structure.y, "#9be739", 8);
@@ -2919,19 +3192,26 @@ export class Game {
   ): void {
     enemy.lastDamageSource = source;
     enemy.lastHitByPlayerId = ownerPlayerId;
+    const healthBefore = Math.max(0, enemy.health);
     enemy.health -= amount;
+    const appliedDamage = Math.min(healthBefore, Math.max(0, amount));
+    this.recordOutgoingDamage(source, appliedDamage);
     enemy.flash = 0.18;
     // No hurt sound, too distracting, not necessary
     //emitAudioCue({ cue: "zombie-hurt", position: { x: enemy.x, y: enemy.y } });
     this.burst(enemy.x, enemy.y, color, 6, `-${Math.round(amount)}`);
     if (enemy.health <= 0) {
+      if (healthBefore > 0) this.recordEnemyKill(enemy, source);
       enemy.deathReason = source === "sunlight" ? "sunlight" : "combat";
       const definition = ENEMY_REGISTRY[enemy.kind];
-      if (!enemy.deathCounted && definition.countsForKills) {
+      if (!enemy.deathCounted && definition.countsForKills && enemy.countsTowardWave !== false) {
         enemy.deathCounted = true;
         this.stats.zombiesDefeated += 1;
         if (ownerPlayerId === this.player.id && (source === "player-melee" || source === "player-bow")) {
           this.directPlayerKills[enemy.kind] += 1;
+          if (this.nightPerformance?.waveEnemyIds.has(enemy.id)) {
+            this.nightPerformance.personalWaveZombieKills += 1;
+          }
         }
       }
       this.burst(enemy.x, enemy.y, "#8fc75d", enemy.kind === "boss" ? 40 : 14, enemy.kind === "boss" ? "BOSS DOWN" : undefined);
@@ -2991,6 +3271,7 @@ export class Game {
     this.phaseTransitionImpact = 0.55;
     this.selectedSlot = 2;
     this.nightWaveScheduled = true;
+    this.bossSpawnedThisNight = false;
     this.nightPerformance = {
       night: this.night,
       totalIncomingDamage: 0,
@@ -2998,8 +3279,8 @@ export class Game {
       zombiesEnteringFlagRadius: 0,
       playerDamageTaken: 0,
       totalZombiesSpawned: 0,
-      startingZombieKills: this.stats.zombiesDefeated,
-      startingPersonalKills: Object.values(this.directPlayerKills).reduce((sum, value) => sum + value, 0),
+      waveEnemyIds: new Set(),
+      personalWaveZombieKills: 0,
       damagedStructureIds: new Set(),
       destroyedStructureIds: new Set(),
       structureValues: new Map(this.structures.map((structure) => [
@@ -3007,6 +3288,12 @@ export class Game {
         structurePointValue(structure.kind, structure.tier),
       ])),
       flagRadiusEnemyIds: new Set(),
+      populationCategoryByEnemyId: new Map(),
+      population: {
+        spawned: { scheduled: {}, boss: {}, summons: {}, children: {} },
+        killed: { scheduled: {}, boss: {}, summons: {}, children: {} },
+      },
+      bossKillTimeSeconds: null,
     };
     for (const enemy of this.enemies) enemy.burning = false;
     const difficulty = BALANCE.difficulty[this.difficulty];
@@ -3017,9 +3304,13 @@ export class Game {
       this.night,
       this.profileManager?.profile.playerLevel ?? 1,
       this.night > 1 ? [this.autoCorrectiveDelta] : [],
+      this.getAdaptivePowerInput(),
     );
+    const baseBudget = this.runMode === "endless"
+      ? endlessWaveThreatBudget(this.night)
+      : baseWaveThreatBudget(this.night);
     const total = Math.round(
-      (BALANCE.waveBase + (this.night - 1) * BALANCE.waveGrowth + this.mutations.waveSize)
+      (baseBudget + this.mutations.waveSize)
         * difficulty.spawnCount
         * this.adaptiveState.multiplier
         * challengeModifiers.ordinaryZombieCountMultiplier,
@@ -3027,6 +3318,42 @@ export class Game {
     this.waveSchedule = this.buildWaveSchedule(total);
     this.waveScheduleCursor = 0;
     const scheduledTotal = this.waveSchedule.length;
+    const roster = this.waveSchedule.reduce<Partial<Record<EnemyKind, number>>>((counts, kind) => {
+      counts[kind] = (counts[kind] ?? 0) + 1;
+      return counts;
+    }, {});
+    const nightLog: NightDifficultyLog = {
+      night: this.night,
+      status: "partial",
+      executiveSummary: "",
+      adaptive: { ...this.adaptiveState },
+      correctiveInput: {
+        sourceNight: this.lastNightPerformance?.night ?? null,
+        result: { ...this.performanceDifficulty },
+      },
+      wave: {
+        baseBudget,
+        mutationBonus: this.mutations.waveSize,
+        selectedDifficultyMultiplier: difficulty.spawnCount,
+        adaptiveMultiplier: this.adaptiveState.multiplier,
+        challengeMultiplier: challengeModifiers.ordinaryZombieCountMultiplier,
+        requestedThreatBudget: total,
+        scheduledEnemyCount: scheduledTotal,
+        scheduledThreat: this.waveSchedule.reduce(
+          (sum, kind) => sum + ENEMY_REGISTRY[kind].threat,
+          0,
+        ),
+        roster,
+      },
+      analysis: {
+        structureInventory: { start: this.structureInventory() },
+        activity: this.cyclePlaytestActivity,
+        population: this.nightPerformance.population,
+        bossKillTimeSeconds: null,
+      },
+    };
+    nightLog.executiveSummary = summarizeNight(nightLog);
+    this.devDifficultyLogs.push(nightLog);
     const perPortal = Math.floor(scheduledTotal / this.portals.length);
     let remainder = scheduledTotal % this.portals.length;
     for (const portal of this.portals) {
@@ -3034,17 +3361,42 @@ export class Game {
       portal.spawned = 0;
       portal.spawnCooldown = 0.2 + this.rng.range(0, 0.6);
     }
-    if (this.isBossNight()) {
-      const portal = this.rng.pick(this.portals);
-      this.spawnEnemy(portal, "boss");
-      emitAudioCue({ cue: "portal-spawn", position: { x: portal.x, y: portal.y } });
-      this.notify("BOSS INCOMING", true);
-      emitAudioCue({ cue: "boss-roar", position: { x: portal.x, y: portal.y }, delayMs: 90 });
-    } else {
-      this.notify(`Night ${this.night} has begun`);
-    }
+    this.notify(this.isBossNight()
+      ? `Night ${this.night}: boss arrives in ${BALANCE.endless.bossSpawnDelay} seconds`
+      : `Night ${this.night} has begun`);
     emitAudioCue({ cue: "night-start" });
     this.syncSpatialAudio(true);
+    this.markUi(true);
+  }
+
+  canUseFortPulse(): boolean {
+    return this.runMode === "endless"
+      && this.phase === "night"
+      && this.fortPulseUsedNight !== this.night
+      && canAfford(this.resources, BALANCE.endless.fortPulse.cost);
+  }
+
+  useFortPulse(): void {
+    if (!this.canUseFortPulse()) {
+      this.notify(this.fortPulseUsedNight === this.night
+        ? "Fort Pulse already used this night"
+        : "Fort Pulse requires 24 gold and 8 diamond");
+      return;
+    }
+    spend(this.resources, BALANCE.endless.fortPulse.cost);
+    this.fortPulseUsedNight = this.night;
+    let hitCount = 0;
+    for (const enemy of this.enemies) {
+      if (enemy.health <= 0 || enemy.kind === "basic" || enemy.kind === "boss"
+        || distance(enemy, this.player) > BALANCE.endless.fortPulse.radius) continue;
+      const damage = BALANCE.endless.fortPulse.baseDamage
+        + enemy.maxHealth * BALANCE.endless.fortPulse.maximumHealthDamage;
+      this.damageEnemy(enemy, damage, "#57e5ef", "player-melee", this.player.id);
+      hitCount += 1;
+    }
+    this.burst(this.player.x, this.player.y, "#57e5ef", 34, "FORT PULSE");
+    this.notify(hitCount > 0 ? `Fort Pulse hit ${hitCount} special enemies` : "Fort Pulse discharged");
+    this.shake = Math.max(this.shake, 8);
     this.markUi(true);
   }
 
@@ -3064,12 +3416,12 @@ export class Game {
       this.player.health = this.player.maxHealth;
     }
     for (const node of this.world.resources) if (!node.destroyed) node.health = node.maxHealth;
-    this.dawnScreen = 0;
+    this.dawnScreen = availableUnlocks(this.unlocks).length > 0 ? 0 : 1;
     this.dawnPicked = new Set();
     this.choices = generateChoiceOfferings(
       this.seed,
       this.night,
-      0,
+      this.dawnScreen,
       this.unlocks,
       this.upgrades,
       this.mutations,
@@ -3077,6 +3429,14 @@ export class Game {
       0,
       this.disabledDawnBenefits(),
       this.enemyRoster,
+      this.runMode === "endless"
+        ? endlessRosterAdditions(
+          this.seed,
+          this.enemyRoster,
+          this.night,
+          BALANCE.endless.rosterAdditionInterval,
+        )
+        : [],
     );
     this.notify("Dawn restored every resource node");
     emitAudioCue({ cue: "dawn-start" });
@@ -3098,6 +3458,19 @@ export class Game {
     this.notify(`Day ${this.night}: build before the count reaches zero`);
     this.syncSpatialAudio(true);
     this.markUi(true);
+  }
+
+  private beginNextDayWithWarning(): void {
+    const nextNight = this.night + 1;
+    const introduced = this.getRosterMilestones()
+      .find((milestone) => milestone.night === nextNight && milestone.enemy !== "boss")?.enemy;
+    if (introduced) {
+      this.enemyWarning = introduced;
+      this.choices = [];
+      this.markUi(true);
+      return;
+    }
+    this.beginNextDay();
   }
 
   private igniteOrdinaryZombies(): void {
@@ -3271,13 +3644,14 @@ export class Game {
 
   private endRun(victory: boolean, reason: string): void {
     if (this.phase === "victory" || this.phase === "defeat") return;
+    if (this.nightPerformance) this.finalizeNightPerformance(victory ? "complete" : "partial");
     this.phase = victory ? "victory" : "defeat";
     this.syncSpatialAudio(false);
     if (!victory && reason === "You fell to the horde.") {
       emitAudioCue({ cue: "player-death", position: { x: this.player.x, y: this.player.y } });
     }
     this.defeatReason = reason;
-    if (victory) this.stats.nightsSurvived = 10;
+    if (victory && this.runMode === "campaign") this.stats.nightsSurvived = 10;
     this.recalculateStructureScore();
     if (this.runSettlementId && this.profileManager) {
       const xp = calculateXpRewards({
@@ -3316,6 +3690,22 @@ export class Game {
     this.platform?.reportProgress(victory ? 100 : Math.min(90, this.stats.nightsSurvived * 10));
     if (victory) this.platform?.happytime();
     this.platform?.clearGameContext();
+    finishRunDifficultyLog({
+      schema: "flagfort-dev-run-v2",
+      seed: this.seed,
+      difficulty: this.difficulty,
+      mode: this.runMode,
+      startedAt: this.runTelemetryStartedAt,
+      endedAt: new Date().toISOString(),
+      victory,
+      nights: this.devDifficultyLogs,
+      final: {
+        structureInventory: this.structureInventory(),
+        resourcesUnspent: { ...this.resources },
+        activity: this.runPlaytestActivity,
+        loadout: this.playtestLoadout(),
+      },
+    });
     this.markUi(true);
   }
 
@@ -3405,8 +3795,51 @@ export class Game {
   getCapacity(kind: "turret" | "harvester"): { current: number; maximum: number } {
     return {
       current: this.structures.filter((structure) => structure.kind === kind && structure.health > 0).length,
-      maximum: BALANCE.structure.startingCapacity[kind] + this.upgrades[`${kind}Capacity`],
+      maximum: Math.min(
+        BALANCE.structure.maximumCapacity[kind],
+        BALANCE.structure.startingCapacity[kind] + this.upgrades[`${kind}Capacity`],
+      ),
     };
+  }
+
+  getActiveRoster(night = this.night) {
+    return activeRosterEnemies(
+      this.seed,
+      this.enemyRoster,
+      night,
+      this.runMode === "endless",
+      BALANCE.endless.rosterAdditionInterval,
+    );
+  }
+
+  getRosterMilestones(): Array<{ night: number; enemy: EnemyKind; label: string }> {
+    const campaign = rosterMilestones(this.enemyRoster);
+    if (this.runMode !== "endless") return campaign;
+    return [
+      ...campaign,
+      ...endlessRosterMilestones(
+        this.seed,
+        this.enemyRoster,
+        BALANCE.endless.rosterAdditionInterval,
+      ),
+    ];
+  }
+
+  isUpgradeSelectionExhausted(): boolean {
+    return this.phase === "dawn"
+      && !this.enemyWarning
+      && this.choices.length === 0
+      && availableUpgradeKeys(this.upgrades, this.dawnPicked, this.disabledDawnBenefits()).length === 0;
+  }
+
+  continueWithoutUpgrade(): void {
+    if (!this.isUpgradeSelectionExhausted()) return;
+    this.beginNextDayWithWarning();
+  }
+
+  endRunAtUpgradeCap(): void {
+    if (!this.isUpgradeSelectionExhausted()) return;
+    this.endRun(true, "Run completed after reaching every upgrade cap.");
   }
 
   isBossNight(): boolean {
@@ -3453,7 +3886,12 @@ export class Game {
     }
   }
 
-  private applyIncomingDamage(target: Player | Flag | Structure, rawDamage: number): number {
+  private applyIncomingDamage(
+    target: Player | Flag | Structure,
+    rawDamage: number,
+    enemyKind?: EnemyKind,
+    source: DamageSource = "enemy",
+  ): number {
     const damage = target === this.player ? this.mitigateIncomingDamage(rawDamage) : Math.max(0, rawDamage);
     const before = Math.max(0, target.health);
     target.health -= damage;
@@ -3461,21 +3899,23 @@ export class Game {
     const tracker = this.nightPerformance;
     if (!tracker || this.phase !== "night" || applied <= 0) return damage;
     tracker.totalIncomingDamage += applied;
+    this.recordIncomingDamage(source, enemyKind, target, applied);
     if (target === this.player) tracker.playerDamageTaken += applied;
     else if (target === this.flag) tracker.flagDamage += applied;
     else if ("kind" in target && "tier" in target) {
       tracker.damagedStructureIds.add(target.id);
       tracker.structureValues.set(target.id, structurePointValue(target.kind, target.tier));
-      if (before > 0 && target.health <= 0) tracker.destroyedStructureIds.add(target.id);
+      if (before > 0 && target.health <= 0) {
+        tracker.destroyedStructureIds.add(target.id);
+        this.recordStructureActivity("destroyed", target.kind, target.tier);
+      }
     }
     return damage;
   }
 
-  private finalizeNightPerformance(): void {
+  private finalizeNightPerformance(status: "complete" | "partial" = "complete"): void {
     const tracker = this.nightPerformance;
     if (!tracker) return;
-    const personalKills = Object.values(this.directPlayerKills).reduce((sum, value) => sum + value, 0)
-      - tracker.startingPersonalKills;
     const valueOf = (ids: ReadonlySet<number>): number => [...ids]
       .reduce((sum, id) => sum + (tracker.structureValues.get(id) ?? 0), 0);
     this.lastNightPerformance = {
@@ -3488,16 +3928,157 @@ export class Game {
       flagDamage: tracker.flagDamage,
       flagMaximumHealth: this.flag.maxHealth,
       zombiesEnteringFlagRadius: tracker.zombiesEnteringFlagRadius,
-      personalZombieKills: Math.max(0, personalKills),
+      personalZombieKills: tracker.personalWaveZombieKills,
       playerDamageTaken: tracker.playerDamageTaken,
       playerMaximumHealth: this.player.maxHealth,
-      totalZombieKills: Math.max(0, this.stats.zombiesDefeated - tracker.startingZombieKills),
+      totalZombieKills: Math.max(0, tracker.totalZombiesSpawned
+        - this.enemies.filter((enemy) =>
+          enemy.health > 0 && tracker.waveEnemyIds.has(enemy.id)).length),
       totalZombiesSpawned: tracker.totalZombiesSpawned,
-      survivingZombiesAtDawn: this.enemies.filter((enemy) => enemy.health > 0).length,
+      survivingZombiesAtDawn: this.enemies
+        .filter((enemy) => enemy.health > 0 && tracker.waveEnemyIds.has(enemy.id)).length,
     };
     this.performanceDifficulty = performanceDifficultyDelta(this.lastNightPerformance);
     this.autoCorrectiveDelta = this.performanceDifficulty.delta;
+    const nightLog = this.devDifficultyLogs.find((entry) => entry.night === tracker.night);
+    if (nightLog) {
+      nightLog.status = status;
+      nightLog.outcome = {
+        ...this.lastNightPerformance,
+        correctiveForNextNight: { ...this.performanceDifficulty },
+      };
+      nightLog.analysis.structureInventory.end = this.structureInventory();
+      nightLog.analysis.resourcesUnspent = { ...this.resources };
+      nightLog.analysis.bossKillTimeSeconds = tracker.bossKillTimeSeconds;
+      nightLog.executiveSummary = summarizeNight(nightLog);
+    }
     this.nightPerformance = null;
+    this.cyclePlaytestActivity = emptyPlaytestActivity();
+  }
+
+  private trackPlaytestTime(dt: number): void {
+    let category: keyof PlaytestActivityLog["timeSeconds"] | null = null;
+    if (this.phase === "night") category = "fighting";
+    else {
+      const action = this.getSelectedAction();
+      if (action === "fists" && this.input.mouseDown) category = "gathering";
+      else if (action === "tool" && this.input.mouseDown) category = "repairing";
+      else if (this.input.mouseDown && STRUCTURE_ORDER.includes(action as StructureKind)) category = "building";
+    }
+    if (!category) return;
+    this.cyclePlaytestActivity.timeSeconds[category] += dt;
+    this.runPlaytestActivity.timeSeconds[category] += dt;
+  }
+
+  private incrementStructureTally(
+    tally: StructureTally,
+    kind: StructureKind,
+    tier: Tier,
+  ): void {
+    const byTier = tally[kind] ??= {};
+    byTier[tier] = (byTier[tier] ?? 0) + 1;
+  }
+
+  private recordStructureActivity(
+    action: keyof PlaytestActivityLog["structures"],
+    kind: StructureKind,
+    tier: Tier,
+  ): void {
+    this.incrementStructureTally(this.cyclePlaytestActivity.structures[action], kind, tier);
+    this.incrementStructureTally(this.runPlaytestActivity.structures[action], kind, tier);
+  }
+
+  private recordResources(
+    action: keyof PlaytestActivityLog["resources"],
+    wallet: ResourceWallet,
+  ): void {
+    for (const kind of RESOURCE_ORDER) {
+      this.cyclePlaytestActivity.resources[action][kind] += wallet[kind];
+      this.runPlaytestActivity.resources[action][kind] += wallet[kind];
+    }
+  }
+
+  private spendResources(cost: ResourceWallet): void {
+    spend(this.resources, cost);
+    this.recordResources("spent", cost);
+  }
+
+  private incrementDamageTally(
+    tally: PlaytestActivityLog["outgoingDamageBySource"],
+    source: DamageSource,
+    amount: number,
+  ): void {
+    if (amount <= 0) return;
+    tally[source] = (tally[source] ?? 0) + amount;
+  }
+
+  private recordOutgoingDamage(source: DamageSource, amount: number): void {
+    this.incrementDamageTally(this.cyclePlaytestActivity.outgoingDamageBySource, source, amount);
+    this.incrementDamageTally(this.runPlaytestActivity.outgoingDamageBySource, source, amount);
+  }
+
+  private recordIncomingDamage(
+    source: DamageSource,
+    enemyKind: EnemyKind | undefined,
+    target: Player | Flag | Structure,
+    amount: number,
+  ): void {
+    for (const activity of [this.cyclePlaytestActivity, this.runPlaytestActivity]) {
+      this.incrementDamageTally(activity.incomingDamageBySource, source, amount);
+      if (!enemyKind) continue;
+      const targets = activity.enemyDamageByKindAndTarget[enemyKind] ??= {};
+      if (target === this.player) targets.player = (targets.player ?? 0) + amount;
+      else if (target === this.flag) targets.flag = (targets.flag ?? 0) + amount;
+      else if ("kind" in target && "tier" in target) {
+        const structures = targets.structures ??= {};
+        structures[target.kind] = (structures[target.kind] ?? 0) + amount;
+      }
+    }
+  }
+
+  private incrementEnemyTally(
+    tally: Partial<Record<EnemyKind, number>>,
+    kind: EnemyKind,
+  ): void {
+    tally[kind] = (tally[kind] ?? 0) + 1;
+  }
+
+  private recordEnemyKill(enemy: Enemy, source: DamageSource): void {
+    if (enemy.countsTowardWave === false) return;
+    for (const activity of [this.cyclePlaytestActivity, this.runPlaytestActivity]) {
+      this.incrementDamageTally(activity.killsBySource, source, 1);
+    }
+    const tracker = this.nightPerformance;
+    if (!tracker) return;
+    const category = tracker.populationCategoryByEnemyId.get(enemy.id);
+    if (category) this.incrementEnemyTally(tracker.population.killed[category], enemy.kind);
+    if (enemy.kind === "boss" && tracker.bossKillTimeSeconds === null) {
+      tracker.bossKillTimeSeconds = this.phaseElapsed;
+    }
+  }
+
+  private structureInventory(): StructureTally {
+    const inventory: StructureTally = {};
+    for (const structure of this.structures) {
+      if (structure.health <= 0 || !this.isOwnedByPlayer(structure, this.player.id)) continue;
+      this.incrementStructureTally(inventory, structure.kind, structure.tier);
+    }
+    return inventory;
+  }
+
+  private playtestLoadout(): RunLoadoutLog {
+    const profile = this.profileManager?.profile;
+    const equipment = Object.fromEntries(EQUIPMENT_ORDER.map((kind) => {
+      const item = profile?.equipment[kind];
+      return [kind, { tier: item?.tier ?? null, equipped: item?.equipped ?? false }];
+    }));
+    return {
+      playerLevel: profile?.playerLevel ?? 1,
+      permanentUpgrades: { ...(profile?.permanentUpgrades ?? {}) },
+      equipment,
+      temporaryUpgrades: { ...this.upgrades },
+      mutations: { ...this.mutations },
+    };
   }
 
   private createSettlementId(): string {
@@ -3518,6 +4099,38 @@ export class Game {
       .reduce((total, structure) => total + structurePointValue(structure.kind, structure.tier), 0);
   }
 
+  private getAdaptivePowerInput(): AdaptivePowerInput {
+    const turrets = this.structures.filter((structure) =>
+      structure.kind === "turret"
+        && structure.health > 0
+        && this.isOwnedByPlayer(structure, this.player.id));
+    const turretDps = turrets.reduce((total, turret) => {
+      const tierIndex = BALANCE.tierIndex[turret.tier];
+      const damage = resolveEffectiveStat({
+        base: BALANCE.structure.turretDamage[tierIndex] ?? 8,
+        permanent: this.getPermanentPercent("turretDamage", turret.ownerId ?? this.player.id),
+        temporary: this.upgrades.turretDamage,
+      });
+      const cooldown = Math.max(0.16, resolveActionCooldown(
+        BALANCE.structure.turretRate[tierIndex] ?? 1,
+        {
+          permanent: this.getPermanentPercent("turretRate", turret.ownerId ?? this.player.id),
+          temporary: this.upgrades.turretRate,
+        },
+      ));
+      return total + damage / cooldown;
+    }, 0);
+    const maximumRange = turrets.reduce(
+      (range, turret) => Math.max(range, this.getTurretRange(turret.tier, turret.ownerId ?? this.player.id)),
+      0,
+    );
+    return {
+      turretDps,
+      turretCoverageRatio: maximumRange / Math.max(1, BALANCE.portal.edgeMin),
+      upgrades: { ...this.upgrades },
+    };
+  }
+
   getAdaptiveThreat(): AdaptiveDifficulty {
     return this.phase === "day"
       ? adaptiveDifficulty(
@@ -3525,6 +4138,7 @@ export class Game {
         this.night,
         this.profileManager?.profile.playerLevel ?? 1,
         this.night > 1 ? [this.autoCorrectiveDelta] : [],
+        this.getAdaptivePowerInput(),
       )
       : this.adaptiveState;
   }
@@ -3554,6 +4168,8 @@ export class Game {
 
   private completeBossNight(): void {
     if (this.phase !== "night") return;
+    this.notify("Boss and horde defeated", true);
+    emitAudioCue({ cue: "wave-cleared" });
     if (this.runMode === "endless") {
       this.beginDawn();
       return;

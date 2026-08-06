@@ -1,4 +1,4 @@
-import type { Difficulty, EnemyKind, ResourceKind, StructureKind, Tier } from "./types";
+import type { Difficulty, EnemyKind, ResourceKind, StructureKind, Tier, Upgrades } from "./types";
 import { ENEMY_REGISTRY } from "./enemy-registry";
 
 const ENEMY_BASE_STATS = Object.fromEntries(
@@ -74,6 +74,9 @@ export const BALANCE = {
     targetRepathCooldown: 0.18,
     targetHysteresis: 1.12,
     overlapResolveSpeed: 210,
+    fullyStuckAttackDelay: 1.5,
+    fullyStuckMaximumProgressPerSecond: 0.25,
+    stuckBlockerSearchPadding: 12,
   },
   ui: {
     messageDuration: 2.8,
@@ -102,8 +105,8 @@ export const BALANCE = {
   },
   resource: {
     radius: { wood: 42, stone: 35, gold: 30, diamond: 27 } satisfies Record<ResourceKind, number>,
-    health: { wood: 18, stone: 24, gold: 30, diamond: 36 } satisfies Record<ResourceKind, number>,
-    counts: { wood: 105, stone: 58, gold: 26, diamond: 13 } satisfies Record<ResourceKind, number>,
+    health: { wood: 18, stone: 22, gold: 18, diamond: 12 } satisfies Record<ResourceKind, number>,
+    counts: { wood: 105, stone: 58, gold: 18, diamond: 8 } satisfies Record<ResourceKind, number>,
     minimumBoundarySeparation: 78,
     generationRetries: 6,
     validationPortalDistance: 1420,
@@ -151,7 +154,7 @@ export const BALANCE = {
   } satisfies Record<StructureKind, Record<Tier, Record<ResourceKind, number>>>,
   structure: {
     startingCapacity: { turret: 3, harvester: 3 },
-    maximumCapacity: { turret: 24, harvester: 24 },
+    maximumCapacity: { turret: 8, harvester: 8 },
     radius: { wall: 34, door: 34, spikes: 34, harvester: 39, turret: 36 } satisfies Record<StructureKind, number>,
     health: {
       wall: [150, 260, 400, 580],
@@ -196,13 +199,12 @@ export const BALANCE = {
   },
   jumper: {
     jumpRange: 180,
-    jumpCooldown: 2.5,
+    jumpCooldown: 0,
     jumpDuration: 0.55,
     telegraphDuration: 0.22,
     arcHeight: 36,
     landingClearance: 10,
     failedRetryDelay: 0.6,
-    recoveryDistance: 110,
   },
   punchHands: ["right", "left"] as const,
   harvester: {
@@ -228,6 +230,26 @@ export const BALANCE = {
   },
   waveBase: 8,
   waveGrowth: 4,
+  waveGrowthExponent: 1.08,
+  endless: {
+    firstNight: 11,
+    rosterAdditionInterval: 5,
+    waveGrowthPerNight: 1.085,
+    maximumScheduledEnemies: 900,
+    minimumSpecialThreatShare: 0.35,
+    specialCapGrowthPerMilestone: 0.5,
+    healthGrowthPerNight: 1.045,
+    damageGrowthPerNight: 1.025,
+    bossSpawnDelay: 12,
+    bossHealthGrowthPerCycle: 1.55,
+    bossDamageGrowthPerCycle: 1.16,
+    fortPulse: {
+      cost: { wood: 0, stone: 0, gold: 24, diamond: 8 },
+      radius: 520,
+      baseDamage: 90,
+      maximumHealthDamage: 0.12,
+    },
+  },
   /**
    * Canonical fort value used by adaptive difficulty.
    *
@@ -242,42 +264,89 @@ export const BALANCE = {
     door: { wood: 10, stone: 20, gold: 35, diamond: 52 },
     spikes: { wood: 13, stone: 26, gold: 45, diamond: 68 },
     harvester: { wood: 26, stone: 51, gold: 84, diamond: 123 },
-    turret: { wood: 36, stone: 79, gold: 149, diamond: 262 },
+    turret: { wood: 36, stone: 84, gold: 180, diamond: 380 },
   } satisfies Record<StructureKind, Record<Tier, number>>,
   adaptive: {
-    expectedByNight: [126, 266, 455, 700, 1015, 1400, 1890, 2485, 3185, 2030],
-    endlessGrowthPerNight: 287,
-    endlessGrowthExponent: 0.82,
+    expectedFortification: {
+      startingPoints: 126,
+      growthPerNight: 140,
+      growthExponent: 1.2,
+    },
     safeExpectedMinimum: 63,
     structure: {
       curve: "dead-zone-linear" as const,
       sensitivity: 0.72,
       deadZone: 0.05,
       minimumMultiplier: 0.5,
-      maximumMultiplier: 1.5,
+      maximumMultiplier: 1.85,
     },
     level: {
       curve: "linear" as const,
       baselineLevel: 1,
       deltaPerLevel: 0.015,
       minimumMultiplier: 1,
-      maximumMultiplier: 1.35,
+      maximumMultiplier: 1.6,
     },
     effective: {
       baseMultiplier: 1,
       minimumMultiplier: 0.5,
-      maximumMultiplier: 2,
+      // Power awareness adds effective DPS, range coverage, and capped player-upgrade progress.
+      maximumMultiplier: 4,
     },
     healthInfluence: 0.16,
     damageInfluence: 0.1,
     specialWeightInfluence: 0.35,
     spawnFrequencyInfluence: 0.25,
+    powerAwareness: {
+      turretDps: {
+        expectedStartingDps: 120,
+        expectedGrowthPerNight: 20,
+        expectedGrowthExponent: 1.05,
+        deadZone: 0.1,
+        sensitivity: 0.45,
+        maximumDelta: 0.5,
+      },
+      turretCoverageThresholds: [
+        { ratio: 0.45, delta: 0.05 },
+        { ratio: 0.65, delta: 0.12 },
+        { ratio: 0.85, delta: 0.22 },
+        { ratio: 1.05, delta: 0.35 },
+      ],
+      turretCounterWeights: {
+        coverageThreshold: 0.85,
+        dpsRatioThreshold: 1.5,
+        archerMultiplier: 2.5,
+        acidslingerMultiplier: 2,
+      },
+      playerUpgrades: {
+        maximumDelta: 0.45,
+        weights: {
+          moveSpeed: 1,
+          maxHealth: 1,
+          punchRate: 1,
+          punchDamage: 1,
+          bowRate: 1,
+          bowDamage: 1,
+          harvestRate: 0.5,
+          repairEfficiency: 0.7,
+          structureDurability: 0.8,
+          costReduction: 0.5,
+          turretDamage: 0,
+          turretRate: 0,
+          turretRange: 0,
+          harvesterSpeed: 0.4,
+          flagHealth: 0.8,
+          turretCapacity: 0,
+          harvesterCapacity: 0.4,
+        } satisfies Record<keyof Upgrades, number>,
+      },
+    },
     pressureIndicator: {
       belowMaximum: 0.92,
       aboveMinimum: 1.08,
     },
     autoCorrective: {
-      maximumDelta: 0.32,
+      maximumDelta: 0.55,
       startingStrength: 0.35,
       fullStrengthAfterNight: 4,
       performanceWeights: {
@@ -342,6 +411,25 @@ export const BALANCE = {
     turretCapacity: { name: "Expanded Arsenal", amount: 1 },
     harvesterCapacity: { name: "Expanded Workshop", amount: 1 },
   },
+  upgradeCaps: {
+    moveSpeed: 0.4,
+    maxHealth: 100,
+    punchRate: 0.6,
+    punchDamage: 30,
+    bowRate: 0.48,
+    bowDamage: 24,
+    harvestRate: 0.6,
+    repairEfficiency: 1,
+    structureDurability: 0.72,
+    costReduction: 0.4,
+    turretDamage: 0.9,
+    turretRate: 0.6,
+    turretRange: 0.6,
+    harvesterSpeed: 0.9,
+    flagHealth: 100,
+    turretCapacity: 5,
+    harvesterCapacity: 5,
+  } satisfies Record<keyof Upgrades, number>,
   mutations: {
     basicWeight: { name: "Shambling Crowd", amount: 12 },
     runnerWeight: { name: "Running Pack", amount: 10 },

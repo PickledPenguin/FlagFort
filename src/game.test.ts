@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { BALANCE } from "./config";
 import { generateChoiceOfferings, mutationText } from "./choices";
-import { introducedRosterEnemies } from "./enemy-registry";
+import { ENEMY_REGISTRY, introducedRosterEnemies } from "./enemy-registry";
 import { Game } from "./game";
 import type { Input } from "./input";
 import { NavigationGrid, pathIntersectsObstacle } from "./pathfinding";
@@ -254,7 +254,7 @@ describe("repairs, unlocks, upgrades, and mutations", () => {
     applyUpgrade(upgrades, "punchDamage");
     expect(upgrades.punchDamage).toBe(BALANCE.upgrades.punchDamage.amount * 2);
     for (let i = 0; i < 20; i += 1) applyUpgrade(upgrades, "costReduction");
-    expect(upgrades.costReduction).toBe(0.6);
+    expect(upgrades.costReduction).toBe(BALANCE.upgradeCaps.costReduction);
   });
 
   it("stacks mutations", () => {
@@ -579,6 +579,130 @@ describe("phase and run rules", () => {
     expect(jumper.targetId).toBe("flag");
   });
 
+  it("lets jumpers chain obstacle jumps without pathfinding around barriers", () => {
+    const game = new Game(fakeInput());
+    game.startRun("normal", "jumper-chain");
+    game.phase = "night";
+    const wall = testStructure({
+      id: 511,
+      x: game.flag.x + 160,
+      y: game.flag.y,
+    });
+    const jumper = testEnemy({
+      id: 711,
+      kind: "jumper",
+      x: wall.x + wall.radius + BALANCE.enemy.jumper.radius + 1,
+      y: wall.y,
+      radius: BALANCE.enemy.jumper.radius,
+      speed: BALANCE.enemy.jumper.speed,
+      jumpCooldown: 0,
+      targetId: "flag",
+    });
+    game.structures = [wall];
+    game.enemies = [jumper];
+
+    game.update(BALANCE.fixedStep);
+
+    expect(jumper.jumpTime).toBeGreaterThan(0);
+    expect(jumper.path).toEqual([]);
+    expect(jumper.jumpCooldown).toBe(0);
+  });
+
+  it("locks a rammer windup direction through target destruction and knockback", () => {
+    const game = new Game(fakeInput());
+    game.startRun("normal", "rammer-lock");
+    game.phase = "night";
+    const wall = testStructure({
+      id: 512,
+      x: game.flag.x + 120,
+      y: game.flag.y,
+      health: 500,
+      maxHealth: 500,
+    });
+    const rammer = testEnemy({
+      id: 712,
+      kind: "rammer",
+      x: wall.x + 180,
+      y: wall.y,
+      radius: BALANCE.enemy.rammer.radius,
+      structureDamage: BALANCE.enemy.rammer.structureDamage,
+      targetId: "flag",
+    });
+    game.structures = [wall];
+    game.enemies = [rammer];
+    const updateRammer = (dt: number) => (game as unknown as {
+      updateRammer(enemy: Enemy, dt: number): boolean;
+    }).updateRammer(rammer, dt);
+
+    expect(updateRammer(0.2)).toBe(true);
+    const lockedAngle = rammer.angle;
+    wall.health = 0;
+    game.structures = [];
+    rammer.x += 70;
+    rammer.y -= 35;
+    game.player.x = rammer.x + rammer.radius;
+    game.player.y = rammer.y;
+    updateRammer(ENEMY_REGISTRY.rammer.ram!.loadSeconds);
+
+    expect(rammer.angle).toBe(lockedAngle);
+    expect(rammer.charging).toBe(true);
+    expect(rammer.chargeDistanceLeft).toBe(ENEMY_REGISTRY.rammer.ram!.distance);
+  });
+
+  it("summons roster-aware specials without adding them to wave accounting", () => {
+    const game = new Game(fakeInput());
+    game.startRun("normal", "summoner-roster");
+    game.phase = "night";
+    game.night = 7;
+    game.enemyRoster = {
+      1: "basic", 2: "runner", 3: "breaker", 5: "jumper", 7: "summoner",
+    };
+    game.mutations.basicWeight = -100;
+    game.mutations.runnerWeight = -100;
+    game.mutations.breakerWeight = -100;
+    game.mutations.jumperWeight = -100;
+    game.mutations.summonerWeight = 100;
+    const summoner = testEnemy({
+      id: 713,
+      kind: "summoner",
+      summonCooldown: 0,
+      countsTowardWave: true,
+    });
+    game.enemies = [summoner];
+
+    (game as unknown as { updateSummoner(enemy: Enemy, dt: number): void })
+      .updateSummoner(summoner, BALANCE.fixedStep);
+
+    const summoned = game.enemies.find((enemy) => enemy.summonedBy === summoner.id);
+    expect(summoned?.kind).toBe("summoner");
+    expect(summoned?.countsTowardWave).toBe(false);
+    const defeatedBefore = game.stats.zombiesDefeated;
+    if (summoned) {
+      (game as unknown as {
+        damageEnemy(enemy: Enemy, damage: number, color: string, source: "player-melee", owner: string): void;
+      }).damageEnemy(summoned, summoned.health, "#fff", "player-melee", game.player.id);
+    }
+    expect(game.stats.zombiesDefeated).toBe(defeatedBefore);
+    if (summoned) summoned.health = 1;
+    game.enemies = summoned ? [summoned] : [];
+    for (const portal of game.portals) portal.spawned = portal.assignedSpawns;
+    (game as unknown as { nightWaveScheduled: boolean }).nightWaveScheduled = true;
+    expect((game as unknown as { isNightWaveCleared(): boolean }).isNightWaveCleared()).toBe(true);
+  });
+
+  it("pauses and resumes from dawn choice screens", () => {
+    const game = new Game(fakeInput());
+    game.startRun("normal", "pause-dawn");
+    game.phase = "dawn";
+
+    game.togglePause();
+    expect(game.phase).toBe("paused");
+    expect(game.previousPhase).toBe("dawn");
+
+    game.togglePause();
+    expect(game.phase).toBe("dawn");
+  });
+
   it("escalates sunlight damage while the new day continues", () => {
     const game = new Game(fakeInput());
     game.startRun("normal", "sunlight-damage-seed");
@@ -594,13 +718,18 @@ describe("phase and run rules", () => {
     expect(secondDamage).toBeGreaterThan(firstDamage);
   });
 
-  it("completes the boss night as soon as the complete wave is eliminated", () => {
+  it("keeps the boss night for the full timer and completes after the complete wave is eliminated", () => {
     const game = new Game(fakeInput());
     game.startRun("normal", "boss-seed");
     game.phase = "night";
     game.night = 10;
-    game.timer = 0;
-    (game as unknown as { nightWaveScheduled: boolean }).nightWaveScheduled = true;
+    game.timer = 10;
+    const bossState = game as unknown as {
+      nightWaveScheduled: boolean;
+      bossSpawnedThisNight: boolean;
+    };
+    bossState.nightWaveScheduled = true;
+    bossState.bossSpawnedThisNight = true;
     game.enemies.push({
       id: 999,
       kind: "boss",
@@ -646,7 +775,10 @@ describe("phase and run rules", () => {
     for (const portal of game.portals) portal.spawned = portal.assignedSpawns;
     game.update(0.02);
     expect(game.phase).toBe("night");
-    for (const enemy of game.enemies) enemy.health = 0;
+    game.enemies = [];
+    game.update(0.02);
+    expect(game.phase).toBe("night");
+    game.timer = 0;
     game.update(0.02);
     expect(game.phase).toBe("victory");
   });
@@ -676,11 +808,14 @@ describe("phase and run rules", () => {
     game.timer = 0;
     game.update(0.02);
     expect(game.phase).toBe("night");
+    game.phaseElapsed = BALANCE.endless.bossSpawnDelay;
+    game.update(BALANCE.fixedStep);
     expect(game.enemies.some((enemy) => enemy.kind === "boss")).toBe(true);
     const boss = game.enemies.find((enemy) => enemy.kind === "boss");
     if (!boss) throw new Error("Night 10 boss was not created");
     for (const portal of game.portals) portal.spawned = portal.assignedSpawns;
-    for (const enemy of game.enemies) enemy.health = 0;
+    game.enemies = [];
+    game.timer = 0;
     game.update(0.02);
     expect(game.phase).toBe("victory");
     expect(game.stats.nightsSurvived).toBe(10);

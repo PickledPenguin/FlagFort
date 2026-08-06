@@ -109,9 +109,177 @@ describe("Gremlin target recovery", () => {
     }
     expect(blocker.health).toBeLessThan(blocker.maxHealth);
   });
+
+  it("attacks a blocker on its fallback route when no structure-safe path exists", () => {
+    const game = createGame();
+    const target = harvester(62, game.flag.x + 320, game.flag.y + 180);
+    const blocker = {
+      ...harvester(63, game.flag.x, game.flag.y + 110),
+      kind: "wall" as const,
+      radius: BALANCE.structure.radius.wall,
+    };
+    game.structures = [target, blocker];
+    const gremlin = spawn(
+      game,
+      "gremlin",
+      blocker.x,
+      blocker.y + blocker.radius + ENEMY_REGISTRY.gremlin.base.radius + 2,
+    );
+    gremlin.targetId = target.id;
+    gremlin.scanCooldown = 10;
+    gremlin.pathCooldown = 10;
+    gremlin.routeCommitment = 10;
+    gremlin.routeIncludesStructures = false;
+    gremlin.path = [{ x: blocker.x, y: blocker.y - 140 }];
+    gremlin.pathIndex = 0;
+    const healthBefore = blocker.health;
+
+    for (let index = 0; index < 90; index += 1) {
+      (game as unknown as { updateEnemies(dt: number): void }).updateEnemies(BALANCE.fixedStep);
+    }
+
+    expect(blocker.health).toBeLessThan(healthBefore);
+    expect(gremlin.targetId).toBe(target.id);
+  });
+
+  it("forces a completely stuck zombie to destroy the adjacent blocking structure", () => {
+    const game = createGame();
+    const target = harvester(64, game.flag.x + 420, game.flag.y);
+    const blocker = {
+      ...harvester(65, game.flag.x + 160, game.flag.y),
+      kind: "spikes" as const,
+      radius: BALANCE.structure.radius.spikes,
+    };
+    game.structures = [target, blocker];
+    const zombie = spawn(
+      game,
+      "gremlin",
+      blocker.x - blocker.radius - ENEMY_REGISTRY.gremlin.base.radius - 1,
+      blocker.y,
+    );
+    zombie.targetId = target.id;
+    zombie.speed = 0;
+    const move = game as unknown as {
+      moveEnemyToward(enemy: Enemy, target: { x: number; y: number }, dt: number): void;
+      updateEnemies(dt: number): void;
+    };
+    const frames = Math.ceil(BALANCE.navigation.fullyStuckAttackDelay / BALANCE.fixedStep) + 2;
+    for (let index = 0; index < frames; index += 1) {
+      move.moveEnemyToward(zombie, target, BALANCE.fixedStep);
+    }
+    expect(zombie.forcedBlockerId).toBe(blocker.id);
+    expect(zombie.targetId).toBe(blocker.id);
+    const healthBefore = blocker.health;
+    for (let index = 0; index < 120; index += 1) move.updateEnemies(BALANCE.fixedStep);
+    expect(blocker.health).toBeLessThan(healthBefore);
+  });
+
+  it("never treats a slowly moving zombie as completely stuck", () => {
+    const game = createGame();
+    const blocker = {
+      ...harvester(66, game.flag.x + 160, game.flag.y + 80),
+      kind: "spikes" as const,
+      radius: BALANCE.structure.radius.spikes,
+    };
+    game.structures = [blocker];
+    const zombie = spawn(game, "basic", blocker.x - 120, blocker.y);
+    zombie.speed = 1;
+    const target = { x: blocker.x + 500, y: blocker.y };
+    const move = game as unknown as {
+      moveEnemyToward(enemy: Enemy, target: { x: number; y: number }, dt: number): void;
+    };
+    const startX = zombie.x;
+    const frames = Math.ceil((BALANCE.navigation.fullyStuckAttackDelay + 0.5) / BALANCE.fixedStep);
+    for (let index = 0; index < frames; index += 1) {
+      move.moveEnemyToward(zombie, target, BALANCE.fixedStep);
+    }
+    expect(zombie.x).toBeGreaterThan(startX);
+    expect(zombie.forcedBlockerId).toBeFalsy();
+  });
 });
 
 describe("combat and roster playtest fixes", () => {
+  it("skips the unlock slide after all unlocks and offers the capped-run decision", () => {
+    const game = createGame();
+    game.unlocks.gloves.push("stone", "gold", "diamond");
+    for (const tiers of Object.values(game.unlocks.structures)) tiers.push("gold", "diamond");
+    game.night = 8;
+    (game as unknown as { beginDawn(): void }).beginDawn();
+    expect(game.dawnScreen).toBe(1);
+    expect(game.choices.every((choice) => choice.kind === "upgrade")).toBe(true);
+
+    for (const key of Object.keys(BALANCE.upgradeCaps) as Array<keyof typeof game.upgrades>) {
+      game.upgrades[key] = BALANCE.upgradeCaps[key];
+    }
+    (game as unknown as { beginDawn(): void }).beginDawn();
+    expect(game.isUpgradeSelectionExhausted()).toBe(true);
+    const ui = new Ui(
+      game,
+      document.querySelector("#hud")!,
+      document.querySelector("#overlay")!,
+      document.querySelector("#toast")!,
+    );
+    ui.render(true);
+    expect(document.querySelector("#overlay")!.textContent).toContain("Every available upgrade is maximized");
+    expect(document.querySelector("#overlay")!.textContent).toContain("End run and collect rewards");
+    expect(document.querySelector("#overlay")!.textContent).toContain("Continue without upgrades");
+    game.continueWithoutUpgrade();
+    expect(game.phase).toBe("day");
+    expect(game.night).toBe(9);
+  });
+
+  it("lets a fully capped endless run end as a completed run without losing its night count", () => {
+    const game = createGame();
+    game.runMode = "endless";
+    game.night = 32;
+    game.unlocks.gloves.push("stone", "gold", "diamond");
+    for (const tiers of Object.values(game.unlocks.structures)) tiers.push("gold", "diamond");
+    for (const key of Object.keys(BALANCE.upgradeCaps) as Array<keyof typeof game.upgrades>) {
+      game.upgrades[key] = BALANCE.upgradeCaps[key];
+    }
+    (game as unknown as { beginDawn(): void }).beginDawn();
+    game.endRunAtUpgradeCap();
+    expect(game.phase).toBe("victory");
+    expect(game.stats.nightsSurvived).toBe(32);
+  });
+
+  it("spawns the entire exponential endless schedule by the 15-second cutoff", () => {
+    const game = createGame();
+    game.runMode = "endless";
+    game.phase = "day";
+    game.night = 47;
+    (game as unknown as { beginNight(): void }).beginNight();
+    expect(game.waveSchedule.length).toBeGreaterThan(BALANCE.waveSafety.maximumActiveEnemies);
+    game.phaseElapsed = BALANCE.nightSpawnCutoff;
+    (game as unknown as { updatePortals(dt: number): void }).updatePortals(BALANCE.fixedStep);
+    expect(game.portals.every((portal) => portal.spawned === portal.assignedSpawns)).toBe(true);
+    expect(game.enemies).toHaveLength(game.waveSchedule.length);
+    const totalThreat = game.waveSchedule.reduce((sum, kind) => sum + ENEMY_REGISTRY[kind].threat, 0);
+    const specialThreat = game.waveSchedule.reduce(
+      (sum, kind) => sum + (kind === "basic" ? 0 : ENEMY_REGISTRY[kind].threat),
+      0,
+    );
+    expect(specialThreat / totalThreat).toBeGreaterThanOrEqual(BALANCE.endless.minimumSpecialThreatShare - 0.01);
+  });
+
+  it("spends scarce resources on one player-positioned Fort Pulse per endless night", () => {
+    const game = createGame();
+    game.runMode = "endless";
+    game.phase = "night";
+    game.night = 18;
+    game.resources = { wood: 0, stone: 0, gold: 48, diamond: 16 };
+    const runner = spawn(game, "runner", game.player.x + 100, game.player.y);
+    const basic = spawn(game, "basic", game.player.x + 100, game.player.y + 50);
+    const runnerHealth = runner.health;
+    const basicHealth = basic.health;
+    game.useFortPulse();
+    expect(runner.health).toBeLessThan(runnerHealth);
+    expect(basic.health).toBe(basicHealth);
+    expect(game.resources).toMatchObject({ gold: 24, diamond: 8 });
+    game.useFortPulse();
+    expect(game.resources).toMatchObject({ gold: 24, diamond: 8 });
+  });
+
   it("preserves the manually tuned special-zombie render sizes", () => {
     expect(ENEMY_REGISTRY.gremlin.render).toMatchObject({ width: 60, height: 39 });
     expect(ENEMY_REGISTRY.splitter.render).toMatchObject({ width: 70, height: 50 });
@@ -151,6 +319,9 @@ describe("combat and roster playtest fixes", () => {
     game.night = 10;
     (game as unknown as { beginNight(): void }).beginNight();
     expect(game.waveSchedule.length).toBeGreaterThan(0);
+    expect(game.enemies.filter((enemy) => enemy.kind === "boss")).toHaveLength(0);
+    game.phaseElapsed = BALANCE.endless.bossSpawnDelay;
+    game.update(BALANCE.fixedStep);
     expect(game.enemies.filter((enemy) => enemy.kind === "boss")).toHaveLength(1);
     expect(game.portals.reduce((sum, portal) => sum + portal.assignedSpawns, 0))
       .toBe(game.waveSchedule.length);

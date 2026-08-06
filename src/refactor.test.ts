@@ -90,7 +90,7 @@ describe("foundational refactor", () => {
     expect(CHALLENGES.every((challenge) => challenge.nightDuration === 30)).toBe(true);
   });
 
-  it("keeps boss night active until the boss dies, regardless of ordinary zombies", () => {
+  it("keeps boss night active through the timer and until every counted enemy dies", () => {
     const game = new Game(input());
     game.startRun("normal", "boss-overtime");
     const boss = enemy("boss", 9001);
@@ -99,6 +99,13 @@ describe("foundational refactor", () => {
     game.night = 10;
     game.timer = 10;
     game.enemies = [boss, ordinary];
+    const bossState = game as unknown as {
+      nightWaveScheduled: boolean;
+      bossSpawnedThisNight: boolean;
+    };
+    bossState.nightWaveScheduled = true;
+    bossState.bossSpawnedThisNight = true;
+    for (const portal of game.portals) portal.spawned = portal.assignedSpawns;
     game.update(0.02);
     expect(game.phase).toBe("night");
     expect(game.timer).toBeLessThan(10);
@@ -106,8 +113,13 @@ describe("foundational refactor", () => {
     expect(ordinary.sunlightExposure).toBe(0);
     boss.health = 0;
     game.update(0.02);
+    expect(game.phase).toBe("night");
+    game.timer = 0;
+    game.update(0.02);
+    expect(game.phase).toBe("night");
+    ordinary.health = 0;
+    game.update(0.02);
     expect(game.phase).toBe("victory");
-    expect(ordinary.burning).toBe(true);
   });
 
   it("lets the boss cross a resource without targeting or damaging it", () => {
@@ -210,9 +222,9 @@ describe("foundational refactor", () => {
 
   it("uses centralized structure points and a clamped expected progression curve", () => {
     expect(structurePointValue("wall", "wood")).toBe(10);
-    expect(structurePointValue("turret", "diamond")).toBe(262);
-    expect(expectedStructurePoints(10)).toBe(2030);
-    expect(expectedStructurePoints(15)).toBeGreaterThan(2030);
+    expect(structurePointValue("turret", "diamond")).toBe(380);
+    expect(expectedStructurePoints(10)).toBe(2081);
+    expect(expectedStructurePoints(15)).toBeGreaterThan(2081);
     expect(adaptiveDifficulty(0, 10).multiplier).toBe(BALANCE.adaptive.effective.minimumMultiplier);
     expect(adaptiveDifficulty(10_000, 1).multiplier).toBe(BALANCE.adaptive.structure.maximumMultiplier);
   });

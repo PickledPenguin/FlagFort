@@ -119,15 +119,29 @@ export function structurePointValue(kind: StructureKind, tier: Tier): number {
   return BALANCE.structureValues[kind][tier];
 }
 
-export function expectedStructurePoints(night: number): number {
-  const configured = BALANCE.adaptive.expectedByNight[night - 1];
-  if (configured !== undefined) return configured;
-  const endlessNight = Math.max(1, night - BALANCE.adaptive.expectedByNight.length);
-  const last = BALANCE.adaptive.expectedByNight.at(-1) ?? BALANCE.adaptive.safeExpectedMinimum;
+export function baseWaveThreatBudget(night: number): number {
+  const nightIndex = Math.max(0, Math.floor(night) - 1);
   return Math.round(
-    last
-    + BALANCE.adaptive.endlessGrowthPerNight
-      * Math.pow(endlessNight, BALANCE.adaptive.endlessGrowthExponent),
+    BALANCE.waveBase
+    + BALANCE.waveGrowth * Math.pow(nightIndex, BALANCE.waveGrowthExponent),
+  );
+}
+
+export function endlessWaveThreatBudget(night: number): number {
+  const firstEndlessNight = BALANCE.endless.firstNight;
+  const campaignFinalBudget = baseWaveThreatBudget(firstEndlessNight - 1);
+  const endlessIndex = Math.max(1, Math.floor(night) - firstEndlessNight + 1);
+  return Math.round(
+    campaignFinalBudget * Math.pow(BALANCE.endless.waveGrowthPerNight, endlessIndex),
+  );
+}
+
+export function expectedStructurePoints(night: number): number {
+  const nightIndex = Math.max(0, Math.floor(night) - 1);
+  const curve = BALANCE.adaptive.expectedFortification;
+  return Math.round(
+    curve.startingPoints
+    + curve.growthPerNight * Math.pow(nightIndex, curve.growthExponent),
   );
 }
 
@@ -144,10 +158,21 @@ export interface AdaptiveDifficulty {
   levelRawMultiplier: number;
   levelMultiplier: number;
   levelDelta: number;
+  turretDps: number;
+  expectedTurretDps: number;
+  turretCoverageRatio: number;
+  playerUpgradeFraction: number;
+  powerDelta: number;
   otherDelta: number;
   rawMultiplier: number;
   multiplier: number;
   indicator: "Low fortification" | "Expected fortification" | "Advanced fortification" | "Horde adapting";
+}
+
+export interface AdaptivePowerInput {
+  turretDps: number;
+  turretCoverageRatio: number;
+  upgrades: Upgrades;
 }
 
 function clamp(value: number, minimum: number, maximum: number): number {
@@ -159,6 +184,7 @@ export function adaptiveDifficulty(
   night: number,
   playerLevel = 1,
   otherAdditiveDeltas: readonly number[] = [],
+  power?: AdaptivePowerInput,
 ): AdaptiveDifficulty {
   const expected = expectedStructurePoints(night);
   const difference = actual - expected;
@@ -183,13 +209,46 @@ export function adaptiveDifficulty(
     BALANCE.adaptive.level.minimumMultiplier,
     BALANCE.adaptive.level.maximumMultiplier,
   );
+  const powerConfig = BALANCE.adaptive.powerAwareness;
+  const nightIndex = Math.max(0, Math.floor(night) - 1);
+  const expectedTurretDps = powerConfig.turretDps.expectedStartingDps
+    + powerConfig.turretDps.expectedGrowthPerNight
+      * Math.pow(nightIndex, powerConfig.turretDps.expectedGrowthExponent);
+  const turretDps = Math.max(0, power?.turretDps ?? 0);
+  const turretDpsDifference = turretDps / Math.max(1, expectedTurretDps) - 1;
+  const turretDpsDelta = clamp(
+    Math.max(0, turretDpsDifference - powerConfig.turretDps.deadZone)
+      * powerConfig.turretDps.sensitivity,
+    0,
+    powerConfig.turretDps.maximumDelta,
+  );
+  const turretCoverageRatio = Math.max(0, power?.turretCoverageRatio ?? 0);
+  const coverageDelta = powerConfig.turretCoverageThresholds.reduce(
+    (delta, threshold) => turretCoverageRatio >= threshold.ratio
+      ? Math.max(delta, threshold.delta)
+      : delta,
+    0,
+  );
+  const upgradeWeights = powerConfig.playerUpgrades.weights;
+  const totalUpgradeWeight = (Object.keys(upgradeWeights) as Array<keyof Upgrades>)
+    .reduce((sum, key) => sum + upgradeWeights[key], 0);
+  const weightedUpgradeProgress = (Object.keys(upgradeWeights) as Array<keyof Upgrades>)
+    .reduce((sum, key) => {
+      const fraction = clamp((power?.upgrades[key] ?? 0) / Math.max(1e-9, BALANCE.upgradeCaps[key]), 0, 1);
+      return sum + fraction * upgradeWeights[key];
+    }, 0);
+  const playerUpgradeFraction = totalUpgradeWeight > 0
+    ? weightedUpgradeProgress / totalUpgradeWeight
+    : 0;
+  const playerUpgradeDelta = playerUpgradeFraction * powerConfig.playerUpgrades.maximumDelta;
+  const powerDelta = turretDpsDelta + coverageDelta + playerUpgradeDelta;
   const baseMultiplier = BALANCE.adaptive.effective.baseMultiplier;
   const structureDelta = structureMultiplier - baseMultiplier;
   const levelDelta = levelMultiplier - baseMultiplier;
   const otherDelta = otherAdditiveDeltas
     .filter((value) => Number.isFinite(value))
     .reduce((total, value) => total + value, 0);
-  const rawMultiplier = baseMultiplier + structureDelta + levelDelta + otherDelta;
+  const rawMultiplier = baseMultiplier + structureDelta + levelDelta + powerDelta + otherDelta;
   const multiplier = clamp(
     rawMultiplier,
     BALANCE.adaptive.effective.minimumMultiplier,
@@ -215,6 +274,11 @@ export function adaptiveDifficulty(
     levelRawMultiplier,
     levelMultiplier,
     levelDelta,
+    turretDps,
+    expectedTurretDps,
+    turretCoverageRatio,
+    playerUpgradeFraction,
+    powerDelta,
     otherDelta,
     rawMultiplier,
     multiplier,
@@ -295,8 +359,10 @@ export function createMutations(): Mutations {
 }
 
 export function applyUpgrade(upgrades: Upgrades, key: keyof Upgrades): void {
-  upgrades[key] += BALANCE.upgrades[key].amount;
-  if (key === "costReduction") upgrades[key] = Math.min(0.6, upgrades[key]);
+  upgrades[key] = Math.min(
+    BALANCE.upgradeCaps[key],
+    upgrades[key] + BALANCE.upgrades[key].amount,
+  );
 }
 
 export function applyMutation(mutations: Mutations, key: keyof Mutations): void {
