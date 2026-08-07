@@ -44,8 +44,9 @@ describe("browser and HUD requirements", () => {
     }
   });
 
-  it("positions an independent toast layer below the countdown controls", () => {
-    expect(stylesSource).toMatch(/#toast-layer\s*\{[\s\S]*padding:\s*clamp\(224px/);
+  it("positions the timer below resources and the independent toast below run progress", () => {
+    expect(uiSource).toMatch(/class="resource-stack"[\s\S]*class="resources"[\s\S]*data-clock-panel/);
+    expect(stylesSource).toMatch(/#toast-layer\s*\{[\s\S]*padding:\s*56px 16px 0/);
     expect(stylesSource).toMatch(/#toast-layer \.toast\s*\{[\s\S]*overflow-wrap:\s*anywhere/);
     expect(indexSource).toContain('<div id="toast-layer" aria-live="assertive"></div>');
   });

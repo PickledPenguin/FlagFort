@@ -132,6 +132,52 @@ describe("event-driven HUD interaction", () => {
     expect(hud.querySelector('[data-action="skip-night"]')).not.toBeNull();
   });
 
+  it("keeps the clock informational and places End Day beside the build toolbar", () => {
+    const { hud } = createHarness();
+    const clock = hud.querySelector<HTMLElement>("[data-clock-panel]")!;
+    const endDay = hud.querySelector<HTMLButtonElement>('[data-action="skip-night"]')!;
+
+    expect(clock.querySelector("[data-night]")).toBeNull();
+    expect(clock.textContent).toContain("DAY");
+    expect(clock.textContent).not.toContain("1 / 10");
+    expect(endDay.parentElement?.classList.contains("bottom-command-deck")).toBe(true);
+    expect(endDay.nextElementSibling?.classList.contains("toolbar")).toBe(true);
+    expect(endDay.textContent).toContain("End Day");
+    expect(endDay.querySelector<HTMLImageElement>("img")?.getAttribute("src")).toBe("./images/ui/sun.svg");
+    expect(hud.querySelector('.countdown-stack [data-action="skip-night"]')).toBeNull();
+    expect(clock.parentElement?.classList.contains("resource-stack")).toBe(true);
+    expect(clock.previousElementSibling?.classList.contains("resources")).toBe(true);
+    expect(hud.querySelector(".countdown-stack [data-clock-panel]")).toBeNull();
+  });
+
+  it("fades the clock continuously as the canvas pointer approaches it", () => {
+    const { hud, input, ui } = createHarness();
+    const clock = hud.querySelector<HTMLElement>("[data-clock-panel]")!;
+    hud.getBoundingClientRect = () => ({
+      bottom: 540, height: 540, left: 0, right: 960, top: 0, width: 960, x: 0, y: 0, toJSON: () => ({}),
+    });
+    clock.getBoundingClientRect = () => ({
+      bottom: 129, height: 119, left: 405, right: 555, top: 10, width: 150, x: 405, y: 10, toJSON: () => ({}),
+    });
+    const patchClock = (ui as unknown as {
+      patchClockProximity(clockPanel: HTMLElement): void;
+    }).patchClockProximity.bind(ui);
+
+    input.mouse = { x: BALANCE.logicalWidth / 2, y: 96 };
+    patchClock(clock);
+    expect(clock.style.getPropertyValue("--clock-proximity-opacity")).toBe("0.140");
+
+    input.mouse = { x: BALANCE.logicalWidth / 2, y: 180 };
+    patchClock(clock);
+    const nearbyOpacity = Number(clock.style.getPropertyValue("--clock-proximity-opacity"));
+    expect(nearbyOpacity).toBeGreaterThan(0.14);
+    expect(nearbyOpacity).toBeLessThan(1);
+
+    input.mouse = { x: 50, y: 400 };
+    patchClock(clock);
+    expect(clock.style.getPropertyValue("--clock-proximity-opacity")).toBe("1.000");
+  });
+
   it("shows the equipped sword in combat slot one instead of fists", () => {
     const { game, hud, ui } = createHarness((manager) => {
       manager.profile.equipment.sword = { tier: "gold", equipped: true };
@@ -314,6 +360,35 @@ describe("event-driven HUD interaction", () => {
     expect(dawn.querySelector("h2")?.id).toBe("dawn-title");
     expect(dawn.tabIndex).toBe(-1);
     expect(document.activeElement).toBe(dawn);
+  });
+
+  it("shows concise upgrade amounts and current-to-upgraded values", () => {
+    const { game, overlay, ui } = createHarness((manager) => {
+      manager.profile.permanentUpgrades.bowRate = 5;
+    });
+    game.phase = "dawn";
+    game.upgrades.maxHealth = 20;
+    game.choices = [
+      {
+        id: "bowRate", name: "Quick Draw", description: "Long rate explanation",
+        mutationId: "health", mutationName: "Thick Skulls", mutationDescription: "More health",
+        kind: "upgrade",
+      },
+      {
+        id: "maxHealth", name: "Heartwood", description: "Long health explanation",
+        mutationId: "damage", mutationName: "Vicious Claws", mutationDescription: "More damage",
+        kind: "upgrade",
+      },
+    ];
+
+    ui.render(true);
+
+    const cards = overlay.querySelectorAll<HTMLElement>(".benefit-card");
+    expect(cards[0]?.querySelector(".upgrade-summary")?.textContent).toBe("+8% bow speed");
+    expect(cards[0]?.querySelector(".upgrade-comparison")?.textContent).toBe("50% -> 58%");
+    expect(cards[1]?.querySelector(".upgrade-summary")?.textContent).toBe("+20 max health");
+    expect(cards[1]?.querySelector(".upgrade-comparison")?.textContent).toBe("120 -> 140");
+    expect(cards[0]?.textContent).not.toContain("Long rate explanation");
   });
 
   it("contains keyboard focus in the new threat warning", () => {

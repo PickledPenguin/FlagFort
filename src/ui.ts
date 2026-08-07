@@ -4,7 +4,6 @@ import { generateSeed } from "./rng";
 import type { Game } from "./game";
 import { canAfford } from "./rules";
 import { browserStorage } from "./storage";
-import { resolveActionCooldown, resolveEffectiveStat } from "./modifiers";
 import { buildBarIcon, costIcons, gameSymbol, icon, resourceIcon } from "./ui-icons";
 import { CARD_DEFINITIONS, TUTORIAL_SECTIONS } from "./content";
 import { CHALLENGES, challengeXpBonusPercent, resolveChallengeModifiers } from "./challenges";
@@ -12,7 +11,7 @@ import { challengeIcon } from "./challenge-icons";
 import { audioManager, type AudioVolumeChannel } from "./audio";
 import { ASSETS } from "./assets";
 import { ENEMY_REGISTRY } from "./enemy-registry";
-import type { ActionKind, Choice, Difficulty, EnemyKind, StructureKind, Tier } from "./types";
+import type { ActionKind, Choice, Difficulty, EnemyKind, StructureKind, Tier, Upgrades } from "./types";
 import {
   EQUIPMENT_ORDER,
   EQUIPMENT_TIER_ORDER,
@@ -29,7 +28,6 @@ import {
   equipmentStatDefinitions,
   equipmentUpgradePrice,
   nextEquipmentTier,
-  swordStats,
   type EquipmentState,
   type EquipmentStatDefinition,
 } from "./equipment";
@@ -58,6 +56,57 @@ function prefersReducedMotion(): boolean {
   return typeof window.matchMedia === "function"
     && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
+
+const CLOCK_PROXIMITY_FADE_RADIUS = 96;
+const CLOCK_MINIMUM_OPACITY = 0.14;
+
+const UPGRADE_PERMANENT_IDS: Partial<Record<keyof Upgrades, PermanentUpgradeId>> = {
+  bowDamage: "bowDamage",
+  bowRate: "bowRate",
+  punchDamage: "punchDamage",
+  moveSpeed: "moveSpeed",
+  harvestRate: "harvestRate",
+  structureDurability: "structureHealth",
+  turretDamage: "turretDamage",
+  turretRate: "turretRate",
+  turretRange: "turretRange",
+  harvesterSpeed: "harvesterSpeed",
+};
+
+const UPGRADE_LABELS: Record<keyof Upgrades, string> = {
+  moveSpeed: "movement speed",
+  maxHealth: "max health",
+  punchRate: "punch speed",
+  punchDamage: "punch damage",
+  bowRate: "bow speed",
+  bowDamage: "bow damage",
+  harvestRate: "harvest speed",
+  repairEfficiency: "repair efficiency",
+  structureDurability: "structure durability",
+  costReduction: "structure cost reduction",
+  turretDamage: "turret damage",
+  turretRate: "turret speed",
+  turretRange: "turret range",
+  harvesterSpeed: "harvester speed",
+  flagHealth: "flag health",
+  turretCapacity: "turret capacity",
+  harvesterCapacity: "harvester capacity",
+};
+
+const PERCENT_UPGRADE_IDS = new Set<keyof Upgrades>([
+  "moveSpeed", "punchRate", "bowRate", "harvestRate", "repairEfficiency",
+  "structureDurability", "costReduction", "turretDamage", "turretRate",
+  "turretRange", "harvesterSpeed",
+]);
+
+const UPGRADE_BASE_VALUES: Partial<Record<keyof Upgrades, number>> = {
+  maxHealth: BALANCE.player.maxHealth,
+  punchDamage: BALANCE.player.punchDamage,
+  bowDamage: BALANCE.bow.damage,
+  flagHealth: BALANCE.flag.health,
+  turretCapacity: BALANCE.structure.startingCapacity.turret,
+  harvesterCapacity: BALANCE.structure.startingCapacity.harvester,
+};
 
 const enemyInfo = Object.fromEntries(Object.values(ENEMY_REGISTRY).map((entry) => [entry.id, {
   title: entry.displayName, text: entry.description, tell: entry.tell,
@@ -825,7 +874,7 @@ export class Ui {
 
   private choicePair(choice: Choice, index: number): string {
     return `<button class="choice-pair" data-choice="${index}" aria-label="${choice.name} and ${choice.mutationName}">
-      <article class="benefit-card"><span class="card-art">${this.choiceIcon(choice)}</span><small>${choice.kind}</small><h3>${choice.name}</h3><p>${this.choiceDescription(choice)}</p></article>
+      <article class="benefit-card"><span class="card-art">${this.choiceIcon(choice)}</span><small>${choice.kind}</small><h3>${choice.name}</h3><p class="${choice.kind === "upgrade" ? "upgrade-card-copy" : ""}">${this.choiceDescription(choice)}</p></article>
       <span class="choice-connector"><i></i><b>AND</b><i></i></span>
       <article class="mutation-card"><span class="card-art mutation-art">${this.mutationIcon(choice)}</span><small>mutation</small><h3>${choice.mutationName}</h3><p>${choice.mutationDescription}</p></article>
       <span class="pair-select">${buildBarIcon("selected-tier")} Apply both</span>
@@ -833,48 +882,31 @@ export class Ui {
   }
 
   private choiceDescription(choice: Choice): string {
-    const permanent = this.game.profileManager?.profile.permanentUpgrades[
-      choice.id as PermanentUpgradeId
-    ];
-    const rateKey = choice.id as "punchRate" | "bowRate" | "harvestRate" | "turretRate" | "harvesterSpeed";
-    if (["punchRate", "bowRate", "harvestRate", "turretRate", "harvesterSpeed"].includes(rateKey)) {
-      const profile = this.game.profileManager?.profile;
-      const permanentFor = (id: PermanentUpgradeId): number =>
-        permanentUpgradePercent(profile?.permanentUpgrades[id] ?? 0);
-      const permanentForRate = (id: typeof rateKey): number =>
-        id === "punchRate" ? 0 : permanentFor(id);
-      const added = BALANCE.upgrades[rateKey].amount;
-      const temporary = this.game.upgrades[rateKey];
-      const sword = profile?.equipment.sword;
-      const swordCooldown = sword?.equipped ? swordStats(sword.tier)?.cooldownMultiplier ?? 1 : 1;
-      let currentRate: number;
-      let resultingRate: number;
-      if (rateKey === "harvesterSpeed") {
-        const tier = this.game.selectedTiers.harvester;
-        const base = BALANCE.structure.harvesterSpeed[BALANCE.tierIndex[tier]] ?? 0.8;
-        currentRate = resolveEffectiveStat({ base, permanent: permanentForRate(rateKey), temporary });
-        resultingRate = resolveEffectiveStat({ base, permanent: permanentForRate(rateKey), temporary: temporary + added });
-      } else {
-        const base = rateKey === "bowRate"
-          ? BALANCE.bow.rate
-          : rateKey === "turretRate"
-            ? BALANCE.structure.turretRate[BALANCE.tierIndex[this.game.selectedTiers.turret]] ?? 1
-            : BALANCE.player.punchRate;
-        const sharedPunchTemporary = rateKey === "harvestRate" ? this.game.upgrades.punchRate : 0;
-        const layers = {
-          permanent: permanentForRate(rateKey),
-          temporary: temporary + sharedPunchTemporary,
-        };
-        const multipliers = rateKey === "punchRate" || rateKey === "harvestRate" ? [swordCooldown] : [];
-        currentRate = 1 / resolveActionCooldown(base, layers, multipliers);
-        resultingRate = 1 / resolveActionCooldown(base, { ...layers, temporary: layers.temporary + added }, multipliers);
-      }
-      return `${choice.description} Current ${currentRate.toFixed(2)}/s; resulting ${resultingRate.toFixed(2)}/s.`;
+    if (choice.kind !== "upgrade") return choice.description;
+    const id = choice.id as keyof Upgrades;
+    const amount = BALANCE.upgrades[id].amount;
+    const permanentId = UPGRADE_PERMANENT_IDS[id];
+    const permanent = permanentId
+      ? permanentUpgradePercent(this.game.profileManager?.profile.permanentUpgrades[permanentId] ?? 0)
+      : 0;
+    const temporary = this.game.upgrades[id];
+    const compact = (value: number): string => `${Number(value.toFixed(2))}`;
+    let summary: string;
+    let current: number;
+    let upgraded: number;
+    let suffix = "";
+    if (PERCENT_UPGRADE_IDS.has(id)) {
+      summary = `+${compact(amount * 100)}% ${UPGRADE_LABELS[id]}`;
+      current = (permanent + temporary) * 100;
+      upgraded = current + amount * 100;
+      suffix = "%";
+    } else {
+      summary = `+${compact(amount)} ${UPGRADE_LABELS[id]}`;
+      const base = UPGRADE_BASE_VALUES[id] ?? 0;
+      current = base * (1 + permanent) + temporary;
+      upgraded = current + amount;
     }
-    if (choice.kind !== "upgrade" || permanent === undefined || permanent <= 0) {
-      return choice.description;
-    }
-    return `${choice.description} Permanent bonus: +${Math.round(permanentUpgradePercent(permanent) * 100)}%; valid percentages combine before being applied once.`;
+    return `<span class="upgrade-summary">${summary}</span><span class="upgrade-comparison">${compact(current)}${suffix} -&gt; ${compact(upgraded)}${suffix}</span>`;
   }
 
   private dawnHeading(): string {
@@ -1012,19 +1044,23 @@ export class Ui {
       </div>
       <div class="countdown-stack">
         ${this.runProgressMarkup()}
-        <div class="clock" data-clock-panel><div class="clock-face"><strong data-clock></strong></div><small data-night></small><span data-phase-label></span></div>
-        ${this.game.phase === "day" && !this.game.isCombatMode() && !this.game.tutorialMode ? `<button class="skip-night-button" data-action="skip-night" aria-label="Skip to Night">${icon("skip")}<span>Skip to Night</span><span class="tooltip">End the day early with no reward</span></button>` : ""}
         ${this.game.runMode === "endless" && this.game.phase === "night" ? `<button class="fort-pulse-button" data-action="fort-pulse" ${this.game.canUseFortPulse() ? "" : "disabled"} aria-label="Fort Pulse">
           <span>FORT PULSE</span><small>24 gold + 8 diamond - once per night</small><span class="tooltip">Damage nearby special enemies</span>
         </button>` : ""}
-    </div>
+      </div>
       ${this.game.debugAdaptive ? this.adaptiveDebugMarkup() : ""}
-      <aside class="resources" aria-label="Resources">${RESOURCE_ORDER.map((resource) =>
-        `<div title="${resource}">${resourceIcon(resource, true)}<b data-resource="${resource}">0</b></div>`).join("")}</aside>
+      <div class="resource-stack">
+        <aside class="resources" aria-label="Resources">${RESOURCE_ORDER.map((resource) =>
+          `<div title="${resource}">${resourceIcon(resource, true)}<b data-resource="${resource}">0</b></div>`).join("")}</aside>
+        <div class="clock" data-clock-panel><div class="clock-face"><strong data-clock></strong></div><span data-phase-label></span></div>
+      </div>
       ${this.openTierPanel ? this.tierPanelMarkup(this.openTierPanel) : ""}
       <div class="context-readout" data-context></div>
-      <div class="toolbar" role="toolbar" aria-label="Actions">
-        ${this.actionBarMarkup()}
+      <div class="bottom-command-deck">
+        ${this.game.phase === "day" && !this.game.isCombatMode() && !this.game.tutorialMode ? `<button class="skip-night-button" data-action="skip-night" aria-label="End Day and skip to night">${icon("sun")}<span class="skip-night-label">End Day</span><span class="tooltip">End the day early with no reward</span></button>` : ""}
+        <div class="toolbar" role="toolbar" aria-label="Actions">
+          ${this.actionBarMarkup()}
+        </div>
       </div>`;
   }
 
@@ -1139,7 +1175,6 @@ export class Ui {
     if (healthBar) healthBar.style.width = `${healthRatio}%`;
     if (healthValue) healthValue.textContent = `${Math.ceil(this.game.player.health)}`;
     this.setText("[data-clock]", `${clock}`);
-    this.setText("[data-night]", `${this.game.night} / 10`);
     this.setText("[data-phase-label]", this.game.isBossNight() && clock === 0
       ? "BOSS"
       : this.game.phase === "night" ? "NIGHT" : "DAY");
@@ -1149,6 +1184,7 @@ export class Ui {
     clockPanel?.classList.toggle("urgent", clock <= 10);
     clockPanel?.classList.toggle("overtime", this.game.phase === "night" && clock === 0);
     clockPanel?.classList.toggle("transition-impact", this.game.phaseTransitionImpact > 0);
+    this.patchClockProximity(clockPanel);
     if (clock <= 10 && clock !== this.lastClockSecond) {
       clockPanel?.classList.remove("second-impact", "zero-impact");
       void clockPanel?.offsetWidth;
@@ -1220,6 +1256,30 @@ export class Ui {
         this.setHtml(context, "");
       }
     }
+  }
+
+  private patchClockProximity(clockPanel: HTMLElement | null): void {
+    if (!clockPanel) return;
+    const hudRect = this.hud.getBoundingClientRect();
+    const clockRect = clockPanel.getBoundingClientRect();
+    if (hudRect.width <= 0 || hudRect.height <= 0 || clockRect.width <= 0 || clockRect.height <= 0) {
+      clockPanel.style.setProperty("--clock-proximity-opacity", "1");
+      return;
+    }
+    const logicalScaleX = BALANCE.logicalWidth / hudRect.width;
+    const logicalScaleY = BALANCE.logicalHeight / hudRect.height;
+    const pointerX = this.game.input.mouse.x;
+    const pointerY = this.game.input.mouse.y;
+    const left = (clockRect.left - hudRect.left) * logicalScaleX;
+    const right = (clockRect.right - hudRect.left) * logicalScaleX;
+    const top = (clockRect.top - hudRect.top) * logicalScaleY;
+    const bottom = (clockRect.bottom - hudRect.top) * logicalScaleY;
+    const distanceX = Math.max(left - pointerX, 0, pointerX - right);
+    const distanceY = Math.max(top - pointerY, 0, pointerY - bottom);
+    const normalizedDistance = Math.min(1, Math.hypot(distanceX, distanceY) / CLOCK_PROXIMITY_FADE_RADIUS);
+    const easedDistance = normalizedDistance * normalizedDistance * (3 - 2 * normalizedDistance);
+    const opacity = CLOCK_MINIMUM_OPACITY + (1 - CLOCK_MINIMUM_OPACITY) * easedDistance;
+    clockPanel.style.setProperty("--clock-proximity-opacity", opacity.toFixed(3));
   }
 
   private setText(selector: string, value: string): void {

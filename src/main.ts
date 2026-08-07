@@ -70,7 +70,7 @@ async function bootstrap(): Promise<void> {
     if (swordPreview && tiers.includes(swordPreview)) {
       profileManager.profile.equipment.sword = { tier: swordPreview, equipped: true };
       game.startRun("normal", "flagfall-sword-preview", [], true, { settle: false });
-      game.phase = "night";
+      (game as unknown as { beginNight(): void }).beginNight();
       game.selectedSlot = 1;
       input.mouse.x = 830;
       input.mouse.y = 480;
@@ -144,7 +144,7 @@ async function bootstrap(): Promise<void> {
       ] satisfies Choice[];
     } else if (preview.has("toastPreview")) {
       game.startRun("normal", "flagfall-toast-preview", [], true, { settle: false });
-      game.toast = "A long gameplay message remains below the timer and Skip Night controls.";
+      game.toast = "A long gameplay message remains below the timer and End Day control.";
       game.toastTime = 600;
     } else if (preview.has("rewardPreview")) {
       const outcome = preview.get("rewardPreview");

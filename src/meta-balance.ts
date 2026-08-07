@@ -121,8 +121,6 @@ export const META_BALANCE = {
       sweepOpacity: 0.34,
       gripX: 35,
       gripY: -10,
-      offHandX: 27,
-      offHandY: 11,
       bladeRotationOffset: 0.885,
     },
   },

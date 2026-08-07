@@ -16,6 +16,24 @@ const resourceColors = {
 };
 
 const center = BALANCE.mapSize / 2;
+
+const SWORD_SPRITE_BOUNDS = { x: -18, y: -72, width: 72, height: 79 } as const;
+const SWORD_ASSET_VIEW_BOX = { x: -14, y: -48, width: 88, height: 96 } as const;
+const SWORD_HANDLE_POINTS = [
+  { x: 10.015, y: 22.044 },
+  { x: -3.104, y: 36.908 },
+] as const;
+
+function swordHandlePoint(point: (typeof SWORD_HANDLE_POINTS)[number]): { x: number; y: number } {
+  return {
+    x: SWORD_SPRITE_BOUNDS.x
+      + (point.x - SWORD_ASSET_VIEW_BOX.x) / SWORD_ASSET_VIEW_BOX.width * SWORD_SPRITE_BOUNDS.width,
+    y: SWORD_SPRITE_BOUNDS.y
+      + (point.y - SWORD_ASSET_VIEW_BOX.y) / SWORD_ASSET_VIEW_BOX.height * SWORD_SPRITE_BOUNDS.height,
+  };
+}
+
+const SWORD_HAND_CENTERS = SWORD_HANDLE_POINTS.map(swordHandlePoint);
 const structureSpriteSize = {
   wall: 84,
   door: 86,
@@ -779,19 +797,26 @@ export class Renderer {
       ctx.save();
       ctx.translate(gripX, gripY);
       ctx.rotate(swingRotation);
-      this.drawSprite(handSprite, -15, 4, 21, 21, flashing);
       ctx.rotate(animation.bladeRotationOffset);
-      this.drawSprite(META_BALANCE.assets.equipment.sword[swordItem.tier], -18, -72, 72, 79, flashing);
-      ctx.restore();
-      ctx.save();
-      ctx.translate(animation.offHandX, animation.offHandY);
-      ctx.rotate(swingRotation);
-      this.drawSprite(handSprite, -10.5, -10.5, 21, 21, flashing);
+      this.drawSprite(
+        META_BALANCE.assets.equipment.sword[swordItem.tier],
+        SWORD_SPRITE_BOUNDS.x,
+        SWORD_SPRITE_BOUNDS.y,
+        SWORD_SPRITE_BOUNDS.width,
+        SWORD_SPRITE_BOUNDS.height,
+        flashing,
+      );
+      for (const hand of SWORD_HAND_CENTERS) {
+        this.drawSprite(handSprite, hand.x - 10.5, hand.y - 10.5, 21, 21, flashing);
+      }
       ctx.restore();
     }
     const helmet = equipment?.helmet;
     if (helmet?.equipped && helmet.tier) {
+      ctx.save();
+      ctx.rotate(-Math.PI / 2);
       this.drawSprite(META_BALANCE.assets.equipment.helmet[helmet.tier], -30, -37, 60, 55, flashing);
+      ctx.restore();
     }
     ctx.restore();
   }
@@ -946,7 +971,14 @@ export class Renderer {
     const ctx = this.ctx;
     const size = 158;
     const x = BALANCE.logicalWidth - size - 23;
-    const y = BALANCE.logicalHeight - size - 118;
+    const compactHud = this.canvas.clientWidth <= 980 || this.canvas.clientHeight <= 620;
+    const toolbarBottomInset = compactHud ? 5 : 13;
+    const cssToLogicalScale = this.canvas.clientHeight > 0
+      ? BALANCE.logicalHeight / this.canvas.clientHeight
+      : 1;
+    const panelBottomInset = toolbarBottomInset * cssToLogicalScale;
+    const panelBottomPadding = 8;
+    const y = BALANCE.logicalHeight - size - panelBottomPadding - panelBottomInset;
     const scale = size / BALANCE.mapSize;
     ctx.save();
     ctx.fillStyle = "rgba(8,24,17,.9)";

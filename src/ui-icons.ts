@@ -6,7 +6,7 @@ import type { ActionKind, ResourceKind, StructureKind, Tier } from "./types";
 
 type GenericIcon = "heart" | "timer" | "settings" | "play"
   | "book" | "maximize" | "shuffle" | "restart" | "close" | "arrow-left"
-  | "arrow-right" | "skip" | "copy" | "pause" | "info" | "mouse"
+  | "arrow-right" | "skip" | "sun" | "copy" | "pause" | "info" | "mouse"
   | "gamepad-2" | "trophy" | "sliders-horizontal" | "upgrade-node"
   | "calendar" | "daily-claimed" | "pressure-low" | "pressure-normal" | "pressure-high";
 
