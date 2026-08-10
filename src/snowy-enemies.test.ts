@@ -1,0 +1,210 @@
+// @vitest-environment jsdom
+
+import { describe, expect, it } from "vitest";
+import { BALANCE } from "./config";
+import { Game } from "./game";
+import { Input } from "./input";
+import { applySlow, isSlowed, updateStatuses } from "./status-effects";
+import type { DamageSource, Enemy, PlayerId, Structure, StructureKind } from "./types";
+
+function gameFixture(): Game {
+  document.body.innerHTML = "<canvas></canvas>";
+  const game = new Game(new Input(document.querySelector("canvas")!));
+  game.startRun("normal", "snowy-enemy-tests", [], true, {
+    settle: false,
+    campaignTierId: "snowy",
+  });
+  return game;
+}
+
+function spawn(game: Game, kind: Enemy["kind"], x: number, y: number): Enemy {
+  (game as unknown as {
+    spawnEnemy(point: { x: number; y: number }, enemyKind: Enemy["kind"]): void;
+  }).spawnEnemy({ x, y }, kind);
+  const enemy = game.enemies.at(-1)!;
+  enemy.x = x;
+  enemy.y = y;
+  return enemy;
+}
+
+function structure(id: number, kind: StructureKind, x: number, y: number): Structure {
+  return {
+    id,
+    kind,
+    tier: "wood",
+    x,
+    y,
+    radius: BALANCE.structure.radius[kind],
+    health: 200,
+    maxHealth: 200,
+    cooldown: 0,
+    angle: 0,
+    lastArmAngle: 0,
+    harvesterHitResourceIds: new Set(),
+    flash: 0,
+  };
+}
+
+function damageEnemy(
+  game: Game,
+  enemy: Enemy,
+  amount: number,
+  source: DamageSource,
+  owner: PlayerId | null = game.player.id,
+): void {
+  (game as unknown as {
+    damageEnemy(target: Enemy, damage: number, color: string, damageSource: DamageSource, ownerId: PlayerId | null): void;
+  }).damageEnemy(enemy, amount, "#fff", source, owner);
+}
+
+describe("shared snowy slow status", () => {
+  it("refreshes one slow timer without stacking and expires cleanly", () => {
+    const target: { statuses?: Structure["statuses"] } = {};
+    applySlow(target, 2);
+    updateStatuses(target, 0.75);
+    applySlow(target, 2);
+    expect(target.statuses?.slow?.remaining).toBe(2);
+    updateStatuses(target, 1.99);
+    expect(isSlowed(target)).toBe(true);
+    updateStatuses(target, 0.02);
+    expect(target.statuses).toBeUndefined();
+  });
+
+  it("slows player movement and active player and turret cooldown clocks", () => {
+    const game = gameFixture();
+    const internals = game as unknown as {
+      updatePlayer(dt: number): void;
+      updateStructures(dt: number): void;
+    };
+    applySlow(game.player, 3);
+    game.input.keys.add("KeyD");
+    const xBefore = game.player.x;
+    internals.updatePlayer(0.1);
+    expect(game.player.x - xBefore).toBeCloseTo(
+      BALANCE.player.speed * BALANCE.snowyEnemies.slow.movementMultiplier * 0.1,
+    );
+
+    const turret = structure(700, "turret", game.player.x + 300, game.player.y);
+    turret.cooldown = 1;
+    applySlow(turret, 3);
+    game.structures = [turret];
+    game.phase = "day";
+    internals.updateStructures(1);
+    expect(turret.cooldown).toBeCloseTo(1 - BALANCE.snowyEnemies.slow.attackSpeedMultiplier);
+
+    game.player.cooldown = 1;
+    game.player.toolCooldown = 1;
+    game.input.keys.clear();
+    game.update(1);
+    expect(game.player.cooldown).toBeCloseTo(1 - BALANCE.snowyEnemies.slow.attackSpeedMultiplier);
+    expect(game.player.toolCooldown).toBeCloseTo(1 - BALANCE.snowyEnemies.slow.attackSpeedMultiplier);
+  });
+
+  it("applies Frostbiter's longer slow only to the player and turrets", () => {
+    const game = gameFixture();
+    const frostbiter = spawn(game, "frostbite", game.player.x - 50, game.player.y);
+    frostbiter.attackWindup = 0.99;
+    (game as unknown as {
+      enemyAttack(enemy: Enemy, target: typeof game.player, dt: number): void;
+    }).enemyAttack(frostbiter, game.player, 0.1);
+    expect(game.player.statuses?.slow?.remaining).toBe(BALANCE.snowyEnemies.slow.frostbiterDuration);
+    expect(game.particles.some((particle) => particle.text === "Slowed"
+      && particle.color === BALANCE.snowyEnemies.slow.tint)).toBe(true);
+
+    const wall = structure(710, "wall", frostbiter.x, frostbiter.y);
+    frostbiter.cooldown = 0;
+    frostbiter.attackWindup = 0.99;
+    (game as unknown as {
+      enemyAttack(enemy: Enemy, target: Structure, dt: number): void;
+    }).enemyAttack(frostbiter, wall, 0.1);
+    expect(wall.statuses).toBeUndefined();
+
+    const turret = structure(711, "turret", frostbiter.x, frostbiter.y);
+    frostbiter.cooldown = 0;
+    frostbiter.attackWindup = 0.99;
+    (game as unknown as {
+      enemyAttack(enemy: Enemy, target: Structure, dt: number): void;
+    }).enemyAttack(frostbiter, turret, 0.1);
+    expect(turret.statuses?.slow?.remaining).toBe(BALANCE.snowyEnemies.slow.frostbiterDuration);
+  });
+
+  it("lets a Snowballer shot pass resources and walls, then slows its player target", () => {
+    const game = gameFixture();
+    const startX = game.player.x - 160;
+    const node = game.world.resources[0]!;
+    node.x = startX + 45;
+    node.y = game.player.y;
+    const wall = structure(720, "wall", startX + 90, game.player.y);
+    game.structures = [wall];
+    game.projectiles = [{
+      id: 9001,
+      owner: "enemy-arrow",
+      sourceEnemyKind: "snowballer",
+      appearance: "snowball",
+      slowDuration: BALANCE.snowyEnemies.slow.snowballerDuration,
+      intendedTargetId: "player",
+      x: startX,
+      y: game.player.y,
+      previousX: startX,
+      previousY: game.player.y,
+      vx: 1000,
+      vy: 0,
+      radius: 7,
+      damage: 9,
+      rangeLeft: 620,
+      lifetime: 1,
+      hitIds: new Set(),
+      color: "#dff8ff",
+    }];
+    (game as unknown as { updateProjectiles(dt: number): void }).updateProjectiles(0.2);
+    expect(game.player.health).toBe(game.player.maxHealth - 9);
+    expect(wall.health).toBe(wall.maxHealth);
+    expect(node.health).toBe(node.maxHealth);
+    expect(game.player.statuses?.slow?.remaining).toBe(BALANCE.snowyEnemies.slow.snowballerDuration);
+    expect(game.player.statuses!.slow!.remaining).toBeLessThan(BALANCE.snowyEnemies.slow.frostbiterDuration);
+    expect(game.projectiles).toHaveLength(0);
+    expect(game.particles.filter((particle) => particle.color === BALANCE.snowyEnemies.slow.tint).length)
+      .toBeGreaterThan(8);
+  });
+});
+
+describe("Icebound armor", () => {
+  it("spawns with configured armor and routes melee damage to armor before health", () => {
+    const game = gameFixture();
+    const icebound = spawn(game, "icebound", game.player.x + 100, game.player.y);
+    expect(icebound.iceArmor).toBe(BALANCE.snowyEnemies.icebound.armorHealth);
+    expect(icebound.maxIceArmor).toBe(BALANCE.snowyEnemies.icebound.armorHealth);
+    const healthBefore = icebound.health;
+    damageEnemy(game, icebound, 20, "player-melee");
+    expect(icebound.iceArmor).toBe(BALANCE.snowyEnemies.icebound.armorHealth - 20);
+    expect(icebound.health).toBe(healthBefore);
+  });
+
+  it("reduces projectile damage only while armor remains", () => {
+    const game = gameFixture();
+    const icebound = spawn(game, "icebound", game.player.x + 100, game.player.y);
+    damageEnemy(game, icebound, 20, "turret");
+    expect(icebound.iceArmor).toBe(
+      BALANCE.snowyEnemies.icebound.armorHealth
+        - 20 * (1 - BALANCE.snowyEnemies.icebound.projectileResistance),
+    );
+    icebound.iceArmor = 0;
+    const healthBefore = icebound.health;
+    damageEnemy(game, icebound, 20, "player-bow");
+    expect(icebound.health).toBe(healthBefore - 20);
+  });
+
+  it("breaks once, removes armor, spills excess damage into health, and never regenerates", () => {
+    const game = gameFixture();
+    const icebound = spawn(game, "icebound", game.player.x + 100, game.player.y);
+    const armor = icebound.iceArmor!;
+    const healthBefore = icebound.health;
+    damageEnemy(game, icebound, armor + 25, "player-melee");
+    expect(icebound.iceArmor).toBe(0);
+    expect(icebound.health).toBe(healthBefore - 25);
+    expect(game.particles.filter((particle) => particle.text === "Break")).toHaveLength(1);
+    damageEnemy(game, icebound, 5, "player-melee");
+    expect(icebound.iceArmor).toBe(0);
+    expect(game.particles.filter((particle) => particle.text === "Break")).toHaveLength(1);
+  });
+});

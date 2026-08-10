@@ -1,4 +1,5 @@
 import { BALANCE } from "./config";
+import { isSlowed } from "./status-effects";
 import { allAssetPaths, ASSETS } from "./assets";
 import { BUILD_BAR_ICON_PATHS } from "./build-bar-icons";
 import { ENEMY_REGISTRY } from "./enemy-registry";
@@ -283,7 +284,23 @@ export class Renderer {
       ctx.save();
       ctx.translate(projectile.x, projectile.y);
       ctx.rotate(Math.atan2(projectile.vy, projectile.vx));
-      if (projectile.owner === "enemy-arrow") {
+      if (projectile.appearance === "snowball") {
+        ctx.fillStyle = "rgba(184,239,255,.35)";
+        ctx.beginPath();
+        ctx.arc(-projectile.radius * 1.4, 0, projectile.radius * 1.35, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#f5ffff";
+        ctx.strokeStyle = "#8fc8d8";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(0, 0, projectile.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = "rgba(255,255,255,.9)";
+        ctx.beginPath();
+        ctx.arc(-projectile.radius * 0.25, -projectile.radius * 0.3, projectile.radius * 0.25, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (projectile.owner === "enemy-arrow") {
         ctx.strokeStyle = "#101214";
         ctx.lineWidth = 3;
         ctx.lineCap = "round";
@@ -438,6 +455,9 @@ export class Renderer {
     const ctx = this.ctx;
     ctx.save();
     ctx.translate(structure.x, structure.y);
+    if (structure.kind === "turret" && isSlowed(structure)) {
+      ctx.filter = "sepia(1) saturate(1.8) hue-rotate(155deg) brightness(1.08)";
+    }
     if (structure.kind === "door") {
       const proximity = Math.max(0, Math.min(1,
         (BALANCE.ui.doorFadeRadius - Math.hypot(player.x - structure.x, player.y - structure.y)) / 30));
@@ -680,9 +700,22 @@ export class Renderer {
     if (fullSpriteKinds.includes(enemy.kind)) {
       const height = ENEMY_REGISTRY[enemy.kind].render?.height ?? 80;
       const width = ENEMY_REGISTRY[enemy.kind].render?.width ?? height;
-      this.drawSprite(ASSETS.enemies[enemy.kind], -width / 2, -height / 2, width, height, enemy.flash > 0);
+      const sprite = enemy.kind === "icebound" && (enemy.iceArmor ?? 0) <= 0
+        ? ASSETS.iceboundBroken
+        : ASSETS.enemies[enemy.kind];
+      this.drawSprite(sprite, -width / 2, -height / 2, width, height, enemy.flash > 0);
       ctx.restore();
-      this.healthBar(enemy.x, enemy.y - enemy.radius - 12, enemy.kind === "rammer" ? 72 : 55, enemy.health / enemy.maxHealth, "#d2574e");
+      if (enemy.kind === "icebound" && (enemy.iceArmor ?? 0) > 0) {
+        this.healthBar(
+          enemy.x,
+          enemy.y - enemy.radius - 12,
+          72,
+          (enemy.iceArmor ?? 0) / Math.max(1, enemy.maxIceArmor ?? 1),
+          BALANCE.snowyEnemies.icebound.armorBarColor,
+        );
+      } else {
+        this.healthBar(enemy.x, enemy.y - enemy.radius - 12, enemy.kind === "rammer" ? 72 : 55, enemy.health / enemy.maxHealth, "#d2574e");
+      }
       return;
     }
     const handReach = enemy.radius + 11 + enemy.attackWindup * 10;
@@ -739,6 +772,9 @@ export class Renderer {
     ctx.save();
     ctx.translate(player.x, player.y);
     ctx.rotate(angle);
+    if (isSlowed(player)) {
+      ctx.filter = "sepia(1) saturate(1.8) hue-rotate(155deg) brightness(1.08)";
+    }
     const action = game.getSelectedAction();
     const gloveTier = game.getBestGlove();
     const swordItem = equipment?.sword;

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="-60 -60 120 120"
+   role="img"
+   aria-labelledby="title desc"
+   version="1.1"
+   id="svg-icebound-broken"
+   sodipodi:docname="icebound-zombie-broken.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs id="defs-icebound-broken" />
+  <sodipodi:namedview
+     id="namedview-icebound-broken"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:current-layer="icebound-zombie-broken" />
+  <title id="title">Icebound Crusher without ice armor</title>
+  <desc id="desc">The massive blue zombie exposed after its angular ice shell shatters.</desc>
+  <g
+     id="icebound-zombie-broken"
+     stroke="#173746"
+     stroke-width="5"
+     stroke-linejoin="round">
+    <circle id="body" r="37" fill="#4f8797" />
+    <path
+       id="upper-fist"
+       d="m29-23 20-11 9 13-11 17-17-2Z"
+       fill="#4f8797" />
+    <path
+       id="lower-fist"
+       d="m34 19 19 8-4 17-22-1-4-15Z"
+       fill="#4f8797" />
+  </g>
+  <g id="face" fill="#f8ffff">
+    <ellipse cx="9" cy="-11" rx="8" ry="6" id="upper-eye" />
+    <ellipse cx="9" cy="11" rx="8" ry="6" id="lower-eye" />
+  </g>
+  <g id="pupils" fill="#163d55">
+    <circle cx="13" cy="-10" r="3" id="upper-pupil" />
+    <circle cx="13" cy="10" r="3" id="lower-pupil" />
+  </g>
+  <path d="M-7.228-18.652 5.084-4.779" fill="none" stroke="#173746" stroke-width="5" id="upper-brow" />
+  <path d="M-3.934 17.502 5.472 3.992" fill="none" stroke="#173746" stroke-width="5" id="lower-brow" />
+</svg>

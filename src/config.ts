@@ -58,6 +58,24 @@ export const BALANCE = {
     maximumDamage: 24,
     effectInterval: 0.16,
   },
+  snowyEnemies: {
+    slow: {
+      movementMultiplier: 0.65,
+      attackSpeedMultiplier: 0.65,
+      frostbiterDuration: 3,
+      snowballerDuration: 1.75,
+      tint: "#a8e8ff",
+    },
+    snowballer: {
+      attackRange: 350,
+    },
+    icebound: {
+      armorHealth: 90,
+      projectileResistance: 0.5,
+      armorBarColor: "#79dced",
+      breakColor: "#b9f5ff",
+    },
+  },
   navigation: {
     cellSize: 72,
     obstacleMargin: 10,

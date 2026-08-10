@@ -46,6 +46,7 @@ import {
   type PermanentUpgradeId,
 } from "./meta-balance";
 import { resolveActionCooldown, resolveEffectiveStat } from "./modifiers";
+import { applySlow, isSlowed, updateStatuses } from "./status-effects";
 import {
   performanceDifficultyDelta,
   type NightPerformanceSnapshot,
@@ -630,6 +631,7 @@ export class Game {
     this.player.health = this.player.maxHealth;
     this.player.cooldown = 0;
     this.player.toolCooldown = 0;
+    this.player.statuses = undefined;
     this.player.punchHand = "left";
     this.player.punchSerial = 0;
     this.camera = { x: center, y: center };
@@ -1042,8 +1044,10 @@ export class Game {
     this.phaseElapsed += dt;
     this.footstepCooldown = Math.max(0, this.footstepCooldown - dt);
     this.audioSpatialCooldown = Math.max(0, this.audioSpatialCooldown - dt);
-    this.player.cooldown = Math.max(0, this.player.cooldown - dt);
-    this.player.toolCooldown = Math.max(0, this.player.toolCooldown - dt);
+    const playerAttackSpeed = this.statusAttackSpeedMultiplier(this.player);
+    this.player.cooldown = Math.max(0, this.player.cooldown - dt * playerAttackSpeed);
+    this.player.toolCooldown = Math.max(0, this.player.toolCooldown - dt * playerAttackSpeed);
+    updateStatuses(this.player, dt);
     this.player.hurtFlash = Math.max(0, this.player.hurtFlash - dt);
     if (this.flagPresent) this.flag.hurtFlash = Math.max(0, this.flag.hurtFlash - dt);
     this.flagWarningCooldown = Math.max(0, this.flagWarningCooldown - dt);
@@ -1117,6 +1121,7 @@ export class Game {
       base: BALANCE.player.speed,
       permanent: this.getPermanentPercent("moveSpeed"),
       temporary: this.upgrades.moveSpeed,
+      contextual: this.statusMovementMultiplier(this.player) - 1,
     });
     const moveX = (x / length) * speed * dt;
     const moveY = (y / length) * speed * dt;
@@ -1632,7 +1637,11 @@ export class Game {
 
   private updateStructures(dt: number): void {
     for (const structure of this.structures) {
-      structure.cooldown = Math.max(0, structure.cooldown - dt);
+      structure.cooldown = Math.max(
+        0,
+        structure.cooldown - dt * this.statusAttackSpeedMultiplier(structure),
+      );
+      updateStatuses(structure, dt);
       structure.flash = Math.max(0, structure.flash - dt);
       if (structure.kind === "turret" && (this.phase === "night" || this.tutorialMode || this.enemies.some((enemy) => enemy.burning))) {
         this.updateTurret(structure);
@@ -1916,6 +1925,8 @@ export class Game {
       chargeDistanceLeft: 0,
       chargeDamageLeft: 0,
       chargeHitIds: new Set(),
+      iceArmor: kind === "icebound" ? BALANCE.snowyEnemies.icebound.armorHealth : undefined,
+      maxIceArmor: kind === "icebound" ? BALANCE.snowyEnemies.icebound.armorHealth : undefined,
     });
     const spawned = this.enemies.at(-1);
     if (spawned) {
@@ -2087,7 +2098,7 @@ export class Game {
       enemy.angle = Math.atan2(target.y - enemy.y, target.x - enemy.x);
       if (definition.movement.avoidStructures) this.refreshEnemyPath(enemy, target);
       if ((definition.attack.mode === "arrow" || definition.attack.mode === "acid")
-        && targetDistance <= definition.targeting.attackRange) {
+        && targetDistance <= this.enemyAttackRange(enemy)) {
         this.enemyRangedAttack(enemy, target, dt);
         continue;
       }
@@ -2119,7 +2130,11 @@ export class Game {
       }
       if (blocker && distance(enemy, blocker) <= enemy.radius + blocker.radius + blockerReach) {
         if (definition.attack.mode === "arrow" || definition.attack.mode === "acid") {
-          this.enemyRangedAttack(enemy, blocker, dt, true);
+          if (enemy.kind === "snowballer" && blocker.kind !== "turret") {
+            this.moveEnemyToward(enemy, target, dt);
+          } else {
+            this.enemyRangedAttack(enemy, blocker, dt, true);
+          }
         } else {
           this.enemyAttack(enemy, blocker, dt);
         }
@@ -2177,8 +2192,8 @@ export class Game {
     enemy.lastHitByPlayerId = null;
     const healthBefore = Math.max(0, enemy.health);
     const requestedDamage = damagePerSecond * dt;
-    enemy.health -= requestedDamage;
-    this.recordOutgoingDamage("sunlight", Math.min(healthBefore, requestedDamage));
+    const appliedDamage = this.routeEnemyDamage(enemy, requestedDamage, "sunlight");
+    this.recordOutgoingDamage("sunlight", appliedDamage);
     if (enemy.health <= 0) {
       if (healthBefore > 0) this.recordEnemyKill(enemy, "sunlight");
       enemy.deathReason = "sunlight";
@@ -2400,6 +2415,11 @@ export class Game {
     const rawDamage = isStructure ? enemy.structureDamage : enemy.damage;
     const playerWasFull = target === this.player && this.player.health >= this.player.maxHealth;
     const damage = this.applyIncomingDamage(target, rawDamage, enemy.kind, "enemy");
+    if (enemy.kind === "frostbite" && target === this.player) {
+      this.applySlowStatus(this.player, BALANCE.snowyEnemies.slow.frostbiterDuration);
+    } else if (enemy.kind === "frostbite" && isStructure && "kind" in target && target.kind === "turret") {
+      this.applySlowStatus(target, BALANCE.snowyEnemies.slow.frostbiterDuration);
+    }
     emitAudioCue({
       cue: (ENEMY_REGISTRY[enemy.kind].audio.attack ?? "zombie-attack") as import("./audio").SoundId,
       position: { x: enemy.x, y: enemy.y },
@@ -2637,6 +2657,25 @@ export class Game {
     }
   }
 
+  private enemyAttackRange(enemy: Enemy): number {
+    return enemy.kind === "snowballer"
+      ? BALANCE.snowyEnemies.snowballer.attackRange
+      : ENEMY_REGISTRY[enemy.kind].targeting.attackRange;
+  }
+
+  private statusMovementMultiplier(target: Player | Structure): number {
+    return isSlowed(target) ? BALANCE.snowyEnemies.slow.movementMultiplier : 1;
+  }
+
+  private statusAttackSpeedMultiplier(target: Player | Structure): number {
+    return isSlowed(target) ? BALANCE.snowyEnemies.slow.attackSpeedMultiplier : 1;
+  }
+
+  private applySlowStatus(target: Player | Structure, duration: number): void {
+    applySlow(target, duration);
+    this.burst(target.x, target.y, BALANCE.snowyEnemies.slow.tint, 8, "Slowed");
+  }
+
   private enemyRangedAttack(
     enemy: Enemy,
     target: Player | Flag | Structure,
@@ -2672,6 +2711,11 @@ export class Game {
       damage: obstacleFallback ? enemy.structureDamage : enemy.damage,
       rangeLeft: projectile.range, lifetime: projectile.lifetime,
       hitIds: new Set(), color: projectile.color,
+      sourceEnemyKind: enemy.kind,
+      appearance: enemy.kind === "snowballer" ? "snowball" : "arrow",
+      slowDuration: enemy.kind === "snowballer"
+        ? BALANCE.snowyEnemies.slow.snowballerDuration
+        : undefined,
     });
     emitAudioCue({
       cue: (definition.audio.projectile ?? "zombie-attack") as import("./audio").SoundId,
@@ -3053,7 +3097,8 @@ export class Game {
       if (!this.isInsideTutorialArena(projectile.x, projectile.y, projectile.radius)) continue;
       if (projectile.owner === "enemy-arrow" || projectile.owner === "enemy-acid") {
         const piercing = projectile.owner === "enemy-acid";
-        const projectileEnemyKind: EnemyKind = projectile.owner === "enemy-arrow" ? "archer" : "acidslinger";
+        const projectileEnemyKind: EnemyKind = projectile.sourceEnemyKind
+          ?? (projectile.owner === "enemy-arrow" ? "archer" : "acidslinger");
         const projectileDamageSource: DamageSource = projectile.damageSource
           ?? (projectile.owner === "enemy-arrow" ? "enemy-arrow" : "enemy-acid");
         let impacted = false;
@@ -3070,6 +3115,7 @@ export class Game {
           );
           this.player.hurtFlash = 0.25;
           impacted = true;
+          if (projectile.slowDuration) this.applySlowStatus(this.player, projectile.slowDuration);
           emitAudioCue({ cue: "player-hurt", position: { x: this.player.x, y: this.player.y } });
           this.burst(this.player.x, this.player.y, projectile.color, 10, `-${Math.round(damage)}`);
         }
@@ -3098,12 +3144,13 @@ export class Game {
           );
           structure.flash = 0.22;
           impacted = true;
+          if (projectile.slowDuration && structure.kind === "turret") {
+            this.applySlowStatus(structure, projectile.slowDuration);
+          }
           this.burst(structure.x, structure.y, projectile.color, 8);
         }
         if (impacted) {
-          const projectileDefinition = projectile.owner === "enemy-arrow"
-            ? ENEMY_REGISTRY.archer
-            : ENEMY_REGISTRY.acidslinger;
+          const projectileDefinition = ENEMY_REGISTRY[projectileEnemyKind];
           emitAudioCue({
             cue: (projectileDefinition.audio.impact ?? "structure-damaged") as import("./audio").SoundId,
             position: { x: projectile.x, y: projectile.y },
@@ -3115,6 +3162,9 @@ export class Game {
         }
         const inWorld = projectile.x >= -projectile.radius && projectile.y >= -projectile.radius
           && projectile.x <= BALANCE.mapSize + projectile.radius && projectile.y <= BALANCE.mapSize + projectile.radius;
+        if (impacted && projectile.appearance === "snowball") {
+          this.burst(projectile.x, projectile.y, BALANCE.snowyEnemies.slow.tint, 14);
+        }
         if ((!impacted || piercing) && projectile.rangeLeft > 0 && projectile.lifetime > 0 && inWorld) survivors.push(projectile);
         else if (projectile.owner === "enemy-acid") this.burst(projectile.x, projectile.y, projectile.color, 12, "SPLASH");
         continue;
@@ -3211,13 +3261,13 @@ export class Game {
     enemy.lastDamageSource = source;
     enemy.lastHitByPlayerId = ownerPlayerId;
     const healthBefore = Math.max(0, enemy.health);
-    enemy.health -= amount;
-    const appliedDamage = Math.min(healthBefore, Math.max(0, amount));
+    const appliedDamage = this.routeEnemyDamage(enemy, amount, source);
     this.recordOutgoingDamage(source, appliedDamage);
     enemy.flash = 0.18;
     // No hurt sound, too distracting, not necessary
     //emitAudioCue({ cue: "zombie-hurt", position: { x: enemy.x, y: enemy.y } });
-    this.burst(enemy.x, enemy.y, color, 6, `-${Math.round(amount)}`);
+    const displayedDamage = enemy.kind === "icebound" ? appliedDamage : amount;
+    this.burst(enemy.x, enemy.y, color, 6, `-${Math.round(displayedDamage)}`);
     if (enemy.health <= 0) {
       if (healthBefore > 0) this.recordEnemyKill(enemy, source);
       enemy.deathReason = source === "sunlight" ? "sunlight" : "combat";
@@ -3234,6 +3284,35 @@ export class Game {
       }
       this.burst(enemy.x, enemy.y, "#8fc75d", this.isBossEnemyKind(enemy.kind) ? 40 : 14, this.isBossEnemyKind(enemy.kind) ? "BOSS DOWN" : undefined);
     }
+  }
+
+  private routeEnemyDamage(enemy: Enemy, requestedAmount: number, source: DamageSource): number {
+    let remaining = Math.max(0, requestedAmount);
+    let applied = 0;
+    if (enemy.kind === "icebound" && (enemy.iceArmor ?? 0) > 0) {
+      if (source === "player-bow" || source === "turret") {
+        remaining *= 1 - BALANCE.snowyEnemies.icebound.projectileResistance;
+      }
+      const armorDamage = Math.min(enemy.iceArmor ?? 0, remaining);
+      enemy.iceArmor = Math.max(0, (enemy.iceArmor ?? 0) - armorDamage);
+      remaining -= armorDamage;
+      applied += armorDamage;
+      if (enemy.iceArmor <= 0) {
+        this.burst(
+          enemy.x,
+          enemy.y,
+          BALANCE.snowyEnemies.icebound.breakColor,
+          28,
+          "Break",
+        );
+      }
+    }
+    if (remaining > 0) {
+      const healthBefore = Math.max(0, enemy.health);
+      enemy.health -= remaining;
+      applied += Math.min(healthBefore, remaining);
+    }
+    return applied;
   }
 
   private updateParticles(dt: number): void {

@@ -47,6 +47,14 @@ export interface Circle extends Vec2 {
   radius: number;
 }
 
+export interface TimedStatusEffect {
+  remaining: number;
+}
+
+export interface EntityStatuses {
+  slow?: TimedStatusEffect;
+}
+
 export interface Player extends Circle {
   id: PlayerId;
   health: number;
@@ -57,6 +65,7 @@ export interface Player extends Circle {
   hurtFlash: number;
   punchHand: "right" | "left";
   punchSerial: number;
+  statuses?: EntityStatuses;
 }
 
 export interface Flag extends Circle {
@@ -98,6 +107,7 @@ export interface Structure extends Circle {
   lastArmAngle: number;
   harvesterHitResourceIds: Set<number>;
   flash: number;
+  statuses?: EntityStatuses;
 }
 
 export interface Enemy extends Circle {
@@ -156,6 +166,8 @@ export interface Enemy extends Circle {
   chargeDistanceLeft?: number;
   chargeDamageLeft?: number;
   chargeHitIds?: Set<number>;
+  iceArmor?: number;
+  maxIceArmor?: number;
 }
 
 export interface Projectile extends Circle {
@@ -175,6 +187,9 @@ export interface Projectile extends Circle {
   hitIds: Set<number | "player" | "flag">;
   intendedTargetId?: number | "player" | "flag";
   color: string;
+  sourceEnemyKind?: EnemyKind;
+  appearance?: "arrow" | "snowball";
+  slowDuration?: number;
 }
 
 export interface Particle extends Vec2 {
