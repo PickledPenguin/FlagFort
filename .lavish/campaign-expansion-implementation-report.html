@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FlagFort Campaign Expansion</title>
+  <style>
+    :root { color-scheme: dark; --ink:#fff8dc; --muted:#b8c7b3; --panel:#0c2116; --line:rgba(238,246,218,.22); --green:#78f29f; --snow:#8fe8ff; --gold:#f7ca4b; --red:#ff695f; }
+    * { box-sizing:border-box; }
+    html { background:#06130d; }
+    body { margin:0; color:var(--ink); background:radial-gradient(circle at 80% 5%,rgba(120,242,159,.13),transparent 28%),#06130d; font-family:"Trebuchet MS",Arial,sans-serif; }
+    main { width:min(1220px,calc(100% - 28px)); margin:0 auto; padding:42px 0 70px; }
+    h1,h2,h3 { margin:0; font-family:Impact,"Arial Narrow Bold",sans-serif; text-transform:uppercase; letter-spacing:.025em; }
+    h1 { padding-block:7px; font-size:clamp(48px,8vw,90px); line-height:1.12; text-shadow:0 6px #092417; }
+    h1 span { color:var(--green); }
+    h2 { font-size:clamp(28px,4vw,44px); }
+    p { color:var(--muted); line-height:1.55; }
+    .eyebrow { margin:0 0 8px; color:var(--green); font-size:11px; font-weight:900; letter-spacing:.17em; }
+    .hero { display:grid; grid-template-columns:minmax(0,1.45fr) minmax(280px,.75fr); gap:22px; align-items:end; padding:28px; border:3px solid rgba(120,242,159,.45); border-radius:24px; background:linear-gradient(145deg,rgba(27,73,45,.9),rgba(7,25,15,.98)); box-shadow:0 9px #031009; }
+    .hero > *,.grid > *,.shots > * { min-width:0; }
+    .hero-summary { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:9px; }
+    .metric { padding:13px; border:2px solid var(--line); border-radius:13px; background:rgba(0,0,0,.2); }
+    .metric b { display:block; padding-block:2px; color:var(--green); font:900 28px/1.15 Impact,sans-serif; }
+    .metric span { color:var(--muted); font-size:9px; font-weight:900; text-transform:uppercase; }
+    section { margin-top:38px; }
+    .shots { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+    figure { margin:0; overflow:hidden; border:2px solid var(--line); border-radius:18px; background:var(--panel); box-shadow:0 6px #031009; }
+    figure img { display:block; width:100%; aspect-ratio:16/9; object-fit:cover; }
+    figcaption { padding:12px 14px; color:var(--muted); font-size:11px; line-height:1.4; }
+    figcaption b { color:var(--ink); }
+    .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+    .card { min-width:0; padding:18px; border:2px solid var(--line); border-radius:18px; background:rgba(12,33,22,.94); }
+    .card.snow { border-color:rgba(143,232,255,.5); }
+    .card.gold { border-color:rgba(247,202,75,.48); }
+    ul { margin:12px 0 0; padding-left:20px; color:var(--muted); line-height:1.6; }
+    li::marker { color:var(--green); }
+    .diagram { padding:20px; overflow:auto; border:2px solid var(--line); border-radius:18px; background:#091b12; }
+    .mermaid { min-width:760px; }
+    table { width:100%; border-collapse:separate; border-spacing:0; overflow:hidden; border:2px solid var(--line); border-radius:16px; background:rgba(12,33,22,.94); font-size:12px; }
+    th,td { min-width:0; padding:12px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; overflow-wrap:anywhere; }
+    th { color:var(--green); background:rgba(120,242,159,.07); font-size:9px; letter-spacing:.1em; text-transform:uppercase; }
+    tr:last-child td { border-bottom:0; }
+    .pass { color:var(--green); font-weight:900; }
+    code { color:#d9f8df; font:10px/1.5 ui-monospace,SFMono-Regular,monospace; overflow-wrap:anywhere; }
+    .footer-note { margin-top:30px; padding:16px; border-left:4px solid var(--gold); background:rgba(247,202,75,.07); }
+    @media(max-width:800px){ .hero,.shots,.grid{grid-template-columns:minmax(0,1fr)} .hero-summary{grid-template-columns:repeat(3,minmax(0,1fr))} main{width:min(100% - 18px,1220px);padding-top:18px} }
+  </style>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({startOnLoad:true,theme:'base',themeVariables:{background:'#091b12',primaryColor:'#163e28',primaryTextColor:'#fff8dc',primaryBorderColor:'#78f29f',lineColor:'#8fe8ff',secondaryColor:'#153340',tertiaryColor:'#3d3210',fontFamily:'Trebuchet MS'}});
+  </script>
+</head>
+<body>
+<main>
+  <header class="hero">
+    <div><p class="eyebrow">IMPLEMENTATION COMPLETE</p><h1>FLAGFORT <span>CAMPAIGN</span></h1><p>The proven ten-night loop now sits inside an extensible tier ladder with persistent unlocks, configurable rewards, distinct biomes, guaranteed tier threats, and tier-owned bosses.</p></div>
+    <div class="hero-summary"><div class="metric"><b>2</b><span>play modes</span></div><div class="metric"><b>2</b><span>campaign tiers</span></div><div class="metric"><b>281</b><span>tests passing</span></div></div>
+  </header>
+
+  <section><p class="eyebrow">VERIFIED IN THE REAL GAME</p><h2>Four player-facing states</h2><div class="shots">
+    <figure><img src="campaign-menu.png" alt="FlagFort menu showing the campaign and disabled multiplayer cards"><figcaption><b>Mode choice:</b> the single generic run button is replaced by two legible cards. Multiplayer is explicitly marked Coming Soon and cannot be activated.</figcaption></figure>
+    <figure><img src="campaign-ladder.png" alt="Campaign ladder showing Snowbound requirements and enemy previews"><figcaption><b>Bottom-up ladder:</b> each tier exposes its level gate, previous-clear gate, milestone rewards, special enemies, and boss artwork.</figcaption></figure>
+    <figure><img src="snowbound-night.png" alt="Snowbound gameplay with active snowfall"><figcaption><b>Snowbound gameplay:</b> seeded resource snow, pale ground treatment, active night snowfall, Snowbound minimap label, and a roster populated with Frostbite, Snowballer, Icebound Crusher, and Frost Warden.</figcaption></figure>
+    <figure><img src="tier-unlock.png" alt="Animated Snowbound tier unlock celebration on the result screen"><figcaption><b>High-impact unlock:</b> the run result announces the newly available tier with a medal entrance, rotating rays, flash burst, glow, and claimed ladder rewards.</figcaption></figure>
+  </div></section>
+
+  <section><p class="eyebrow">FOUNDATION FOR MANY MORE TIERS</p><h2>One definition drives every consumer</h2><div class="diagram"><pre class="mermaid">flowchart TD
+    T["CampaignTierDefinition\nidentity, order, unlocks, rewards"] --> U["Menu and ladder UI"]
+    T --> P["Profile migration and progression"]
+    T --> G["Game run configuration"]
+    T --> R["Seeded roster selection"]
+    T --> W["Biome and weather rendering"]
+    T --> B["Tier-specific boss"]
+    P --> S["Atomic run settlement"]
+    S --> C["Unlock celebration and reward claim"]
+    R --> E["Enemy registry stats, behavior, SVG assets"]
+    G --> D["Deterministic purpose-specific seeds"]</pre></div></section>
+
+  <section><p class="eyebrow">SYSTEM BEHAVIOR</p><h2>Forest stays familiar, Snowbound changes the run</h2><div class="grid">
+    <article class="card"><h3>Forest Frontier</h3><ul><li>Base game visuals and existing roster selection remain intact.</li><li>Available at Level 1 without a prerequisite.</li><li>The original boss remains the tier boss.</li><li>Level 2 and 3 coin milestones reward early progress.</li></ul></article>
+    <article class="card snow"><h3>Snowbound Keep</h3><ul><li>Requires Level 4 and at least one Forest Frontier victory.</li><li>Guarantees Frostbite on Night 3, Snowballer on Night 5, and Icebound Crusher on Night 7.</li><li>Uses Frost Warden as the Night 10 boss.</li><li>Night snowfall fades in, then fades out at dawn. Resource caps are assigned by a stable tier-specific seed.</li></ul></article>
+    <article class="card gold"><h3>Reward safety</h3><ul><li>Rewards use a discriminated union ready for coins, cosmetics, and gameplay benefits.</li><li>Claimed milestone IDs persist and prevent duplicate grants.</li><li>Unlock detection compares pre-settlement and post-settlement profile state.</li></ul></article>
+    <article class="card"><h3>HUD refinement</h3><ul><li>END DAY now sits directly below the countdown clock.</li><li>The build bar is centered and visually independent.</li><li>Both 1280×720 and 960×540 browser checks passed after compact-layout adjustments.</li></ul></article>
+  </div></section>
+
+  <section><p class="eyebrow">VERIFICATION</p><h2>Automated and browser evidence</h2><table><thead><tr><th>Check</th><th>Result</th><th>What it covers</th></tr></thead><tbody>
+    <tr><td><code>npm test</code></td><td class="pass">PASS - 281 tests</td><td>Existing gameplay plus new tier definitions, dual unlock gates, one-time rewards, deterministic snow, and guaranteed Snowbound roster slots.</td></tr>
+    <tr><td><code>npm run build</code></td><td class="pass">PASS</td><td>Strict TypeScript and production Vite bundle.</td></tr>
+    <tr><td><code>npm run visual:validate</code></td><td class="pass">PASS</td><td>248 editable SVGs and all registered gameplay assets.</td></tr>
+    <tr><td>Browser at 1280×720</td><td class="pass">PASS</td><td>Menu cards, ladder, Snowbound day and night, unlock celebration, and console health.</td></tr>
+    <tr><td>Browser at 960×540</td><td class="pass">PASS</td><td>CrazyGames compact fit, modal scrolling, Daily Rewards spacing, and bottom controls.</td></tr>
+  </tbody></table></section>
+
+  <aside class="footer-note"><b>Design source:</b> this report deliberately uses FlagFort’s own dark forest panels, cream display type, green progression accent, snow-blue tier accent, gold rewards, rounded borders, and hard lower shadows so it reads like part of the product rather than a generic report.</aside>
+</main>
+</body>
+</html>

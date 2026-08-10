@@ -17,6 +17,13 @@ import {
 import type { KeyValueStore } from "./platform";
 import type { CoinSettlement, XpRewardBreakdown } from "./rewards";
 import type { RunRecord } from "./types";
+import type { CampaignTierId } from "./types";
+import {
+  CAMPAIGN_TIERS,
+  earnedCampaignMilestones,
+  isCampaignTierUnlocked,
+  type CampaignMilestone,
+} from "./campaign";
 
 export interface PendingRunSettlement {
   id: string;
@@ -45,6 +52,10 @@ export interface PlayerProfile {
   playerColor: string;
   eyeStyle: EyeStyle;
   progress: ProfileProgress;
+  campaign: {
+    defeatedTierIds: CampaignTierId[];
+    claimedRewardIds: string[];
+  };
   pendingRunSettlement: PendingRunSettlement | null;
   completedSettlementIds: string[];
   recentRuns: RunRecord[];
@@ -78,12 +89,15 @@ export interface RunSettlementResult {
   newCoins: number;
   previousLevel: number;
   newLevel: number;
+  newlyUnlockedTierIds?: CampaignTierId[];
+  grantedCampaignRewards?: CampaignMilestone[];
 }
 
 export interface RunSettlementProgress {
   nightsSurvived: number;
   victory: boolean;
   structureScore: number;
+  campaignTierId?: CampaignTierId;
 }
 
 export interface PermanentUpgradePurchase {
@@ -154,6 +168,10 @@ export function createDefaultProfile(): PlayerProfile {
       campaignWins: 0,
       totalRuns: 0,
       bestStructureScore: 0,
+    },
+    campaign: {
+      defeatedTierIds: [],
+      claimedRewardIds: [],
     },
     pendingRunSettlement: null,
     completedSettlementIds: [],
@@ -235,6 +253,7 @@ export function migrateProfile(raw: unknown): PlayerProfile {
   const permanentSource = recordObject(source.permanentUpgrades);
   const equipmentSource = recordObject(source.equipment);
   const progressSource = recordObject(source.progress);
+  const campaignSource = recordObject(source.campaign);
   const lifetimeXp = finiteNonNegative(source.lifetimeXp);
   const spendableXp = Math.min(lifetimeXp, finiteNonNegative(source.spendableXp, lifetimeXp));
 
@@ -305,6 +324,16 @@ export function migrateProfile(raw: unknown): PlayerProfile {
     knownRecentNights,
     finiteNonNegative(progressSource.highestNight),
   );
+  const defeatedTierIds: CampaignTierId[] = Array.isArray(campaignSource.defeatedTierIds)
+    ? [...new Set(campaignSource.defeatedTierIds.filter(
+      (id): id is CampaignTierId => id === "forest" || id === "snowy",
+    ))]
+    : finiteNonNegative(progressSource.campaignWins) > 0 ? ["forest" as const] : [];
+  const claimedRewardIds = Array.isArray(campaignSource.claimedRewardIds)
+    ? [...new Set(campaignSource.claimedRewardIds.filter(
+      (id): id is string => typeof id === "string",
+    ))].slice(-200)
+    : [];
 
   return {
     schemaVersion: META_BALANCE.profileSchemaVersion,
@@ -335,6 +364,7 @@ export function migrateProfile(raw: unknown): PlayerProfile {
       totalRuns: finiteNonNegative(progressSource.totalRuns),
       bestStructureScore: finiteNonNegative(progressSource.bestStructureScore),
     },
+    campaign: { defeatedTierIds, claimedRewardIds },
     pendingRunSettlement,
     completedSettlementIds: Array.isArray(source.completedSettlementIds)
       ? [...new Set(source.completedSettlementIds
@@ -484,6 +514,11 @@ export class ProfileManager {
     const previousSpendableXp = this.profile.spendableXp;
     const previousCoins = this.profile.coins;
     const previousLevel = derivePlayerLevel(previousLifetimeXp);
+    const previouslyUnlocked = new Set(CAMPAIGN_TIERS.filter((tier) =>
+      isCampaignTierUnlocked(tier, {
+        level: previousLevel,
+        defeatedTierIds: this.profile.campaign.defeatedTierIds,
+      })).map((tier) => tier.id));
     this.profile.lifetimeXp += xp.total;
     this.profile.spendableXp += xp.total;
     this.profile.coins += coins.totalReturn;
@@ -499,6 +534,27 @@ export class ProfileManager {
       this.profile.progress.bestStructureScore,
       progress.structureScore,
     );
+    if (progress.victory && progress.campaignTierId
+      && !this.profile.campaign.defeatedTierIds.includes(progress.campaignTierId)) {
+      this.profile.campaign.defeatedTierIds.push(progress.campaignTierId);
+    }
+    const grantedCampaignRewards = progress.campaignTierId
+      ? earnedCampaignMilestones(
+          this.profile.playerLevel,
+          this.profile.campaign.claimedRewardIds,
+        )
+      : [];
+    for (const milestone of grantedCampaignRewards) {
+      if (milestone.reward.kind === "coins") this.profile.coins += milestone.reward.amount;
+      this.profile.campaign.claimedRewardIds.push(milestone.id);
+    }
+    this.profile.campaign.claimedRewardIds = [...new Set(this.profile.campaign.claimedRewardIds)].slice(-200);
+    const newlyUnlockedTierIds = CAMPAIGN_TIERS.filter((tier) =>
+      !previouslyUnlocked.has(tier.id)
+      && isCampaignTierUnlocked(tier, {
+        level: this.profile.playerLevel,
+        defeatedTierIds: this.profile.campaign.defeatedTierIds,
+      })).map((tier) => tier.id);
     this.profile.pendingRunSettlement = null;
     this.completeSettlementId(id);
     this.commit();
@@ -515,6 +571,8 @@ export class ProfileManager {
       newCoins: this.profile.coins,
       previousLevel,
       newLevel: this.profile.playerLevel,
+      newlyUnlockedTierIds,
+      grantedCampaignRewards,
     };
   }
 

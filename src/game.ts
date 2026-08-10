@@ -53,6 +53,7 @@ import {
 } from "./performance-difficulty";
 import type { GamePlatform } from "./platform";
 import type { ProfileManager, RunSettlementResult } from "./profile";
+import { campaignTier } from "./campaign";
 import { calculateXpRewards, settleCoinInvestment } from "./rewards";
 import {
   emptyPlaytestActivity,
@@ -79,6 +80,7 @@ import type {
   ActionKind,
   AreaEffect,
   Choice,
+  CampaignTierId,
   DamageSource,
   Difficulty,
   Enemy,
@@ -173,6 +175,7 @@ export class Game {
   previousPhase: Phase = "day";
   difficulty: Difficulty = "normal";
   runMode: RunMode = "campaign";
+  activeCampaignTierId: CampaignTierId = "forest";
   runStartNight = 1;
   seed = "";
   enemyRoster: EnemyRoster = selectEnemyRoster("preview");
@@ -333,18 +336,19 @@ export class Game {
     requestedSeed: string,
     challengeIds: readonly string[] = [],
     suppressPortalAudio = false,
-    runOptions: { investment?: number; settle?: boolean; settlementId?: string } = {},
+    runOptions: { investment?: number; settle?: boolean; settlementId?: string; campaignTierId?: CampaignTierId } = {},
   ): boolean {
     this.tutorialMode = false;
     this.flagPresent = true;
     this.difficulty = difficulty;
     this.runMode = "campaign";
+    this.activeCampaignTierId = runOptions.campaignTierId ?? "forest";
     this.runStartNight = 1;
     this.activeChallenges = new Set(
       challengeIds.map((id) => id === "fifty-percent-days" ? "short-days" : id),
     );
     this.seed = requestedSeed.trim() || generateSeed();
-    this.enemyRoster = selectEnemyRoster(this.seed);
+    this.enemyRoster = selectEnemyRoster(this.seed, this.activeCampaignTierId);
     const shouldSettle = runOptions.settle !== false && !this.tutorialMode;
     this.runSettlementId = shouldSettle
       ? runOptions.settlementId ?? this.createSettlementId()
@@ -356,11 +360,11 @@ export class Game {
       if (!this.profileManager.beginRunSettlement(this.runSettlementId, requestedInvestment)) return false;
       this.runInvestment = this.profileManager.profile.pendingRunSettlement?.investment ?? 0;
     }
-    this.rng = new SeededRng(`${this.seed}:gameplay:${difficulty}`);
-    this.summonRng = new SeededRng(`${this.seed}:summons:${difficulty}`);
+    this.rng = new SeededRng(`${this.seed}:gameplay:${difficulty}:${this.activeCampaignTierId}`);
+    this.summonRng = new SeededRng(`${this.seed}:summons:${difficulty}:${this.activeCampaignTierId}`);
     this.nextId = 1000;
     const challengeModifiers = this.getChallengeModifiers();
-    this.world = generateWorld(this.seed, challengeModifiers.resourceNodeMultiplier);
+    this.world = generateWorld(this.seed, challengeModifiers.resourceNodeMultiplier, this.activeCampaignTierId);
     this.night = 1;
     this.timer = this.getDayDuration();
     this.phaseElapsed = 0;
@@ -454,7 +458,21 @@ export class Game {
   }
 
   restart(sameSeed: boolean): void {
-    this.startRun(this.difficulty, sameSeed ? this.seed : "", [...this.activeChallenges]);
+    this.startRun(this.difficulty, sameSeed ? this.seed : "", [...this.activeChallenges], false, {
+      campaignTierId: this.activeCampaignTierId,
+    });
+  }
+
+  getCampaignTier() {
+    return campaignTier(this.activeCampaignTierId);
+  }
+
+  getBossKind(): EnemyKind {
+    return this.getCampaignTier().boss;
+  }
+
+  isBossEnemyKind(kind: EnemyKind): boolean {
+    return kind === "boss" || kind === "frost-warden";
   }
 
   continueIntoEndless(): boolean {
@@ -1073,7 +1091,7 @@ export class Game {
       if (this.phase === "day") this.beginNight();
       else if (!this.isBossNight()) this.beginDawn();
       else if (this.bossSpawnedThisNight
-        && !this.enemies.some((enemy) => enemy.kind === "boss" && enemy.health > 0)
+        && !this.enemies.some((enemy) => this.isBossEnemyKind(enemy.kind) && enemy.health > 0)
         && this.isNightWaveCleared()) {
         this.completeBossNight();
       }
@@ -1757,7 +1775,7 @@ export class Game {
     if (this.phase !== "night" || !this.isBossNight() || this.bossSpawnedThisNight
       || this.phaseElapsed < BALANCE.endless.bossSpawnDelay) return;
     const portal = new SeededRng(`${this.seed}:boss-portal:${this.night}`).pick(this.portals);
-    this.spawnEnemy(portal, "boss");
+    this.spawnEnemy(portal, this.getBossKind());
     this.bossSpawnedThisNight = true;
     emitAudioCue({ cue: "portal-spawn", position: { x: portal.x, y: portal.y } });
     this.notify("BOSS INCOMING", true);
@@ -1800,7 +1818,7 @@ export class Game {
     const adaptiveHealth = 1 + (this.adaptiveState.multiplier - 1) * BALANCE.adaptive.healthInfluence;
     const adaptiveDamage = 1 + (this.adaptiveState.multiplier - 1) * BALANCE.adaptive.damageInfluence;
     const mutationParentKind = kind === "splitter-child" ? "splitter" : kind;
-    const mutationApplies = kind === "boss"
+    const mutationApplies = this.isBossEnemyKind(kind)
       || this.getActiveRoster().includes(mutationParentKind as RosterEnemyKind);
     const mutation = mutationApplies ? this.mutations : createMutations();
     const attackSpeedMultiplier = resolveEffectiveStat({
@@ -1810,13 +1828,13 @@ export class Game {
       challenge: challenges.enemyAttackSpeedMultiplier - 1,
     });
     const endlessIndex = this.runMode === "endless" ? Math.max(0, this.night - 10) : 0;
-    const bossCycle = kind === "boss" && this.runMode === "endless"
+    const bossCycle = this.isBossEnemyKind(kind) && this.runMode === "endless"
       ? Math.max(0, Math.floor((this.night - 10) / 5))
       : 0;
-    const endlessHealthMultiplier = kind === "boss"
+    const endlessHealthMultiplier = this.isBossEnemyKind(kind)
       ? Math.pow(BALANCE.endless.bossHealthGrowthPerCycle, bossCycle)
       : Math.pow(BALANCE.endless.healthGrowthPerNight, endlessIndex);
-    const endlessDamageMultiplier = kind === "boss"
+    const endlessDamageMultiplier = this.isBossEnemyKind(kind)
       ? Math.pow(BALANCE.endless.bossDamageGrowthPerCycle, bossCycle)
       : Math.pow(BALANCE.endless.damageGrowthPerNight, endlessIndex);
     const health = base.health
@@ -1868,7 +1886,7 @@ export class Game {
       bossSmashWindup: 0,
       bossSlamWave: 0,
       bossHalfSummoned: false,
-      acidCooldown: kind === "boss" ? BALANCE.boss.acidAttackInterval : 0,
+      acidCooldown: this.isBossEnemyKind(kind) ? BALANCE.boss.acidAttackInterval : 0,
       acidWindup: 0,
       acidAimAngle: 0,
       burning: false,
@@ -1905,7 +1923,7 @@ export class Game {
       if (this.phase === "night" && this.nightPerformance) {
         const category: keyof EnemyPopulationLog["spawned"] = child
           ? "children"
-          : kind === "boss"
+          : this.isBossEnemyKind(kind)
             ? "boss"
             : summonedBy !== undefined
               ? "summons"
@@ -1927,7 +1945,7 @@ export class Game {
   }
 
   private getEnemyPerWaveCap(kind: EnemyKind): number {
-    if (kind === "basic" || kind === "boss" || kind === "splitter-child") {
+    if (kind === "basic" || this.isBossEnemyKind(kind) || kind === "splitter-child") {
       return ENEMY_REGISTRY[kind].caps.perWave;
     }
     return Math.ceil(
@@ -1937,7 +1955,7 @@ export class Game {
   }
 
   private getEnemySimultaneousCap(kind: EnemyKind): number {
-    if (kind === "basic" || kind === "boss" || kind === "splitter-child") {
+    if (kind === "basic" || this.isBossEnemyKind(kind) || kind === "splitter-child") {
       return ENEMY_REGISTRY[kind].caps.simultaneous;
     }
     return Math.ceil(
@@ -2049,7 +2067,7 @@ export class Game {
         continue;
       }
       if (enemy.kind === "summoner") this.updateSummoner(enemy, dt);
-      if (enemy.kind === "boss") this.updateBoss(enemy, dt);
+      if (this.isBossEnemyKind(enemy.kind)) this.updateBoss(enemy, dt);
       if (enemy.scanCooldown <= 0) {
         enemy.scanCooldown = 0.35 + this.rng.range(0, 0.15);
         this.selectEnemyTarget(enemy);
@@ -2085,7 +2103,7 @@ export class Game {
       }
       const movementTarget = enemy.path[enemy.pathIndex] ?? target;
       const blocker = this.firstBlockingStructure(enemy, movementTarget);
-      const blockerReach = enemy.kind === "boss" ? BALANCE.boss.obstacleAttackRange : 9;
+      const blockerReach = this.isBossEnemyKind(enemy.kind) ? BALANCE.boss.obstacleAttackRange : 9;
       if (definition.movement.avoidStructures && enemy.routeIncludesStructures && enemy.path.length > 0) {
         this.moveEnemyToward(enemy, target, dt);
         continue;
@@ -2146,7 +2164,7 @@ export class Game {
   }
 
   private updateSunlight(enemy: Enemy, dt: number): void {
-    if (!enemy.burning || enemy.kind === "boss") return;
+    if (!enemy.burning || this.isBossEnemyKind(enemy.kind)) return;
     const sunlightActive = this.phase === "day";
     if (!sunlightActive) return;
     enemy.sunlightExposure += dt;
@@ -2424,8 +2442,8 @@ export class Game {
         target.ownerId ?? this.player.id,
       );
     }
-    this.shake = Math.max(this.shake, enemy.kind === "boss" ? 10 : 3);
-    this.burst(target.x, target.y, "#ff695f", enemy.kind === "boss" ? 14 : 6, `-${Math.round(damage)}`);
+    this.shake = Math.max(this.shake, this.isBossEnemyKind(enemy.kind) ? 10 : 3);
+    this.burst(target.x, target.y, "#ff695f", this.isBossEnemyKind(enemy.kind) ? 14 : 6, `-${Math.round(damage)}`);
   }
 
   private moveEnemyToward(enemy: Enemy, target: { x: number; y: number }, dt: number): void {
@@ -2530,7 +2548,7 @@ export class Game {
       const radiusKey = Math.ceil(enemy.radius);
       let navigation = this.navigationFields.get(radiusKey);
       if (!navigation) {
-        const naturalObstacles = enemy.kind === "boss"
+        const naturalObstacles = this.isBossEnemyKind(enemy.kind)
           ? []
           : this.world.resources.filter((node) => !node.destroyed);
         navigation = new NavigationGrid(naturalObstacles, radiusKey);
@@ -2551,7 +2569,7 @@ export class Game {
       .filter((structure) => segmentCircle(enemy.x, enemy.y, target.x, target.y, {
         ...structure,
         radius: structure.radius + enemy.radius
-          * (enemy.kind === "boss" ? BALANCE.boss.obstaclePathWidth : 0.45),
+          * (this.isBossEnemyKind(enemy.kind) ? BALANCE.boss.obstaclePathWidth : 0.45),
       }))
       .sort((a, b) => {
         const aTravel = ((a.x - enemy.x) * dx + (a.y - enemy.y) * dy) / lengthSquared;
@@ -2588,7 +2606,7 @@ export class Game {
   }
 
   private resolveResourceCollision(enemy: Enemy): void {
-    if (enemy.kind === "boss") return;
+    if (this.isBossEnemyKind(enemy.kind)) return;
     for (const item of this.obstacleHash.query(enemy.x, enemy.y, enemy.radius + 70)) {
       if ("tier" in item || item.destroyed) continue;
       const node = item;
@@ -2933,7 +2951,7 @@ export class Game {
         const damage = this.applyIncomingDamage(
           this.player,
           BALANCE.boss.slam.playerDamage
-            * (enemy.damage / Math.max(1, ENEMY_REGISTRY.boss.base.damage)),
+            * (enemy.damage / Math.max(1, ENEMY_REGISTRY[enemy.kind].base.damage)),
           "boss",
           "enemy",
         );
@@ -2946,7 +2964,7 @@ export class Game {
           this.applyIncomingDamage(
             this.flag,
             BALANCE.boss.slam.flagDamage
-              * (enemy.damage / Math.max(1, ENEMY_REGISTRY.boss.base.damage)),
+              * (enemy.damage / Math.max(1, ENEMY_REGISTRY[enemy.kind].base.damage)),
             "boss",
             "enemy",
           );
@@ -2961,7 +2979,7 @@ export class Game {
           this.applyIncomingDamage(
             structure,
             BALANCE.boss.slam.structureDamage
-              * (enemy.structureDamage / Math.max(1, ENEMY_REGISTRY.boss.base.structureDamage)),
+              * (enemy.structureDamage / Math.max(1, ENEMY_REGISTRY[enemy.kind].base.structureDamage)),
             "boss",
             "enemy",
           );
@@ -3214,7 +3232,7 @@ export class Game {
           }
         }
       }
-      this.burst(enemy.x, enemy.y, "#8fc75d", enemy.kind === "boss" ? 40 : 14, enemy.kind === "boss" ? "BOSS DOWN" : undefined);
+      this.burst(enemy.x, enemy.y, "#8fc75d", this.isBossEnemyKind(enemy.kind) ? 40 : 14, this.isBossEnemyKind(enemy.kind) ? "BOSS DOWN" : undefined);
     }
   }
 
@@ -3387,7 +3405,7 @@ export class Game {
     this.fortPulseUsedNight = this.night;
     let hitCount = 0;
     for (const enemy of this.enemies) {
-      if (enemy.health <= 0 || enemy.kind === "basic" || enemy.kind === "boss"
+      if (enemy.health <= 0 || enemy.kind === "basic" || this.isBossEnemyKind(enemy.kind)
         || distance(enemy, this.player) > BALANCE.endless.fortPulse.radius) continue;
       const damage = BALANCE.endless.fortPulse.baseDamage
         + enemy.maxHealth * BALANCE.endless.fortPulse.maximumHealthDamage;
@@ -3463,7 +3481,7 @@ export class Game {
   private beginNextDayWithWarning(): void {
     const nextNight = this.night + 1;
     const introduced = this.getRosterMilestones()
-      .find((milestone) => milestone.night === nextNight && milestone.enemy !== "boss")?.enemy;
+      .find((milestone) => milestone.night === nextNight && !this.isBossEnemyKind(milestone.enemy))?.enemy;
     if (introduced) {
       this.enemyWarning = introduced;
       this.choices = [];
@@ -3475,7 +3493,7 @@ export class Game {
 
   private igniteOrdinaryZombies(): void {
     for (const enemy of this.enemies) {
-      if (enemy.kind === "boss" || enemy.burning) continue;
+      if (this.isBossEnemyKind(enemy.kind) || enemy.burning) continue;
       enemy.burning = true;
       enemy.sunlightExposure = 0;
       enemy.sunlightEffectCooldown = 0;
@@ -3671,6 +3689,7 @@ export class Game {
           nightsSurvived: this.stats.nightsSurvived,
           victory,
           structureScore: this.structureScore,
+          campaignTierId: this.runMode === "campaign" ? this.activeCampaignTierId : undefined,
         },
       );
     }
@@ -3679,6 +3698,7 @@ export class Game {
       seed: this.seed,
       difficulty: this.difficulty,
       mode: this.runMode,
+      campaignTierId: this.activeCampaignTierId,
       challengeIds: [...this.activeChallenges],
       victory,
       date: new Date().toISOString(),
@@ -3813,7 +3833,7 @@ export class Game {
   }
 
   getRosterMilestones(): Array<{ night: number; enemy: EnemyKind; label: string }> {
-    const campaign = rosterMilestones(this.enemyRoster);
+    const campaign = rosterMilestones(this.enemyRoster, this.getCampaignTier().boss);
     if (this.runMode !== "endless") return campaign;
     return [
       ...campaign,
@@ -4052,7 +4072,7 @@ export class Game {
     if (!tracker) return;
     const category = tracker.populationCategoryByEnemyId.get(enemy.id);
     if (category) this.incrementEnemyTally(tracker.population.killed[category], enemy.kind);
-    if (enemy.kind === "boss" && tracker.bossKillTimeSeconds === null) {
+    if (this.isBossEnemyKind(enemy.kind) && tracker.bossKillTimeSeconds === null) {
       tracker.bossKillTimeSeconds = this.phaseElapsed;
     }
   }

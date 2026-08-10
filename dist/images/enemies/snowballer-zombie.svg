@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-55 -55 110 110" role="img" aria-labelledby="title desc">
+  <title id="title">Snowballer zombie</title><desc id="desc">A bundled blue zombie holding a large packed snowball.</desc>
+  <g id="snowballer-zombie" stroke="#173746" stroke-width="4" stroke-linejoin="round">
+    <circle id="body" r="28" fill="#72b4c5"/>
+    <path id="scarf" d="M-24-16Q3-2 27-12l2 12Q2 12-26-4Z" fill="#e66156"/>
+    <path id="wool-cap" d="M-24-19Q0-48 25-19L14-12h-30Z" fill="#375c82"/>
+    <circle id="pom" cy="-43" r="8" fill="#f2fbff"/>
+    <circle id="snowball" cx="39" cy="-19" r="18" fill="#f5ffff" stroke="#9bcbd5"/>
+    <circle id="throwing-hand" cx="24" cy="-9" r="8" fill="#72b4c5"/>
+    <circle id="lower-hand" cx="31" cy="18" r="8" fill="#72b4c5"/>
+  </g>
+  <g id="face" fill="#f8ffff"><ellipse cx="7" cy="-8" rx="7" ry="5"/><ellipse cx="7" cy="9" rx="7" ry="5"/></g>
+  <g id="pupils" fill="#263c51"><circle cx="11" cy="-8" r="3"/><circle cx="11" cy="9" r="3"/></g>
+  <path id="brows" d="M-5-14 11-12M-4 14 12 11" fill="none" stroke="#173746" stroke-width="4"/>
+</svg>

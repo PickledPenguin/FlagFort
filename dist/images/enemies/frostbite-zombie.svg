@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-50 -50 100 100" role="img" aria-labelledby="title desc">
+  <title id="title">Frostbite zombie</title><desc id="desc">A quick blue zombie with icy claws and a trailing frost crest.</desc>
+  <g id="frostbite-zombie" stroke="#173746" stroke-width="4" stroke-linejoin="round">
+    <path id="frost-trail" d="M-40 0-25-14-27-3-12-20-15-3" fill="#b9f3ff" opacity=".9"/>
+    <circle id="body" r="27" fill="#66bed1"/>
+    <path id="ice-crest" d="m-17-22 6-20 8 17L8-44l4 23 17-12-8 21" fill="#dffaff"/>
+    <path id="upper-claw" d="m20-15 22-13-9 13 15-3-18 16" fill="#bff5ff"/>
+    <path id="lower-claw" d="m22 14 21 14-9-14 15 4L30 2" fill="#bff5ff"/>
+  </g>
+  <g id="face" fill="#f8ffff"><ellipse cx="9" cy="-9" rx="8" ry="6"/><ellipse cx="9" cy="9" rx="8" ry="6"/></g>
+  <g id="pupils" fill="#19455f"><circle cx="13" cy="-8" r="3"/><circle cx="13" cy="8" r="3"/></g>
+  <path id="brows" d="M-4-15 13-12M-3 15 14 11" fill="none" stroke="#173746" stroke-width="4"/>
+</svg>

@@ -11,7 +11,14 @@ import { challengeIcon } from "./challenge-icons";
 import { audioManager, type AudioVolumeChannel } from "./audio";
 import { ASSETS } from "./assets";
 import { ENEMY_REGISTRY } from "./enemy-registry";
-import type { ActionKind, Choice, Difficulty, EnemyKind, StructureKind, Tier, Upgrades } from "./types";
+import type { ActionKind, CampaignTierId, Choice, Difficulty, EnemyKind, StructureKind, Tier, Upgrades } from "./types";
+import {
+  CAMPAIGN_TIERS,
+  campaignTier,
+  campaignUnlockRequirementText,
+  isCampaignTierUnlocked,
+  type CampaignReward,
+} from "./campaign";
 import {
   EQUIPMENT_ORDER,
   EQUIPMENT_TIER_ORDER,
@@ -133,6 +140,8 @@ export class Ui {
   private seedDraft = "";
   private selectedChallenges = new Set<string>();
   private investmentOpen = false;
+  private campaignOpen = false;
+  private selectedCampaignTierId: CampaignTierId = "forest";
   private investmentDraft = 0;
   private profileColorDraft: string;
   private profileEyeDraft: EyeStyle;
@@ -242,10 +251,13 @@ export class Ui {
     else if (this.game.phase === "victory" || this.game.phase === "defeat") this.overlay.innerHTML = this.resultMarkup();
     else this.overlay.innerHTML = "";
     this.decorateMenuPanel();
+    this.syncCampaignLadderScroll();
     if (this.tutorialOpen && !this.tutorialExitConfirmation) {
       this.overlay.querySelector<HTMLElement>(".tutorial-guide-card")?.focus();
     } else if (this.dailyRewardVisible && this.game.phase === "menu") {
       this.focusDialog(".daily-rewards-modal");
+    } else if (this.campaignOpen && this.game.phase === "menu") {
+      this.focusDialog(".campaign-ladder-modal");
     } else if (this.game.phase === "paused" && !this.runExitConfirmation) {
       this.focusDialog(".pause-card");
     } else if (this.game.enemyWarning) {
@@ -255,6 +267,17 @@ export class Ui {
     } else if (this.game.phase === "victory" || this.game.phase === "defeat") {
       this.overlay.querySelector<HTMLElement>(".result-card")?.focus();
     }
+  }
+
+  private syncCampaignLadderScroll(): void {
+    if (!this.campaignOpen) return;
+    const viewport = this.overlay.querySelector<HTMLElement>(".campaign-ladder-viewport");
+    const selected = this.overlay.querySelector<HTMLElement>(".campaign-tier-node.selected");
+    if (!viewport || !selected) return;
+    const tier = campaignTier(this.selectedCampaignTierId);
+    viewport.scrollTop = tier.order === 0
+      ? viewport.scrollHeight
+      : Math.max(0, selected.offsetTop - 8);
   }
 
   private overlayKey(): string {
@@ -277,6 +300,8 @@ export class Ui {
       this.game.rerollsUsed,
       this.game.skipNightConfirmation,
       this.investmentOpen,
+      this.campaignOpen,
+      this.selectedCampaignTierId,
       this.investmentDraft,
       this.dailyRewardVisible,
       this.game.profileManager
@@ -330,7 +355,19 @@ export class Ui {
             <button class="icon-button seed-random" data-action="random-seed" aria-label="Randomize seed">${icon("shuffle")}<span class="tooltip">Randomize seed</span></button>
           </div>
       <button class="primary start-button tutorial-start-button" data-action="tutorial-menu">${icon("book")}<span>Tutorial</span></button>
-      <button class="primary start-button" data-action="start">${icon("play")}<span>Start run</span></button>
+      <div class="play-mode-grid" aria-label="Play modes">
+        <article class="play-mode-card campaign-mode-card">
+          <img src="./images/campaign/campaign-mode.svg" alt="" aria-hidden="true">
+          <div><small>PLAY MODE</small><h2>Single-Player Campaign</h2><p>Climb the XP ladder, unlock new biomes, and conquer a unique boss in every tier.</p></div>
+          <button class="primary" data-action="open-campaign">${icon("play")} Play Campaign</button>
+        </article>
+        <article class="play-mode-card multiplayer-mode-card" aria-disabled="true">
+          <span class="coming-soon-badge">COMING SOON!</span>
+          <img src="./images/campaign/multiplayer-mode.svg" alt="" aria-hidden="true">
+          <div><small>PLAY MODE</small><h2>Multiplayer</h2><p>Raise the standard alongside other defenders in a future update.</p></div>
+          <button class="primary" disabled aria-disabled="true">${icon("play")} Play Multiplayer</button>
+        </article>
+      </div>
       <nav class="menu-actions" aria-label="Game options">
             <button data-action="controls">${icon("gamepad-2")}<span>Controls</span><span class="tooltip">Controls</span></button>
             <button data-action="challenges">${icon("trophy")}<span>Challenges${this.selectedChallenges.size ? ` (${this.selectedChallenges.size})` : ""}</span><span class="tooltip">Challenges</span></button>
@@ -346,8 +383,60 @@ export class Ui {
         </main>
         ${this.dailyRewardSummaryMarkup()}
         ${this.dailyRewardVisible ? this.dailyRewardModalMarkup() : ""}
+        ${this.campaignOpen ? this.campaignLadderMarkup() : ""}
         ${this.menuPanel ? this.menuPanelMarkup() : ""}
       </section>`;
+  }
+
+  private campaignProgress() {
+    const profile = this.game.profileManager?.profile;
+    return {
+      level: profile?.playerLevel ?? 1,
+      defeatedTierIds: profile?.campaign.defeatedTierIds ?? [],
+    };
+  }
+
+  private rewardMarkup(reward: CampaignReward): string {
+    if (reward.kind === "coins") return `${coinAmount(reward.amount)} Coins`;
+    return reward.label;
+  }
+
+  private campaignLadderMarkup(): string {
+    const progress = this.campaignProgress();
+    const profile = this.game.profileManager?.profile;
+    const claimed = new Set(profile?.campaign.claimedRewardIds ?? []);
+    const selected = campaignTier(this.selectedCampaignTierId);
+    const selectedUnlocked = isCampaignTierUnlocked(selected, progress);
+    const tiers = [...CAMPAIGN_TIERS].reverse().map((tier) => {
+      const unlocked = isCampaignTierUnlocked(tier, progress);
+      const defeated = progress.defeatedTierIds.includes(tier.id);
+      const active = tier.id === selected.id;
+      const requirements = campaignUnlockRequirementText(tier, progress);
+      return `<article class="campaign-tier-node ${unlocked ? "unlocked" : "locked"} ${defeated ? "defeated" : ""} ${active ? "selected" : ""}" style="--tier-accent:${tier.accent}">
+        <button data-action="select-campaign-tier" data-campaign-tier="${tier.id}" aria-pressed="${active}" aria-label="${tier.name}${unlocked ? " unlocked" : " locked"}">
+          <img class="tier-backdrop" src="${tier.backdrop}" alt="">
+          <span class="tier-medallion"><img src="${tier.icon}" alt=""></span>
+          <span class="tier-node-copy"><small>TIER ${tier.order + 1}</small><b>${tier.name}</b><em>${tier.subtitle}</em></span>
+          <span class="tier-state">${defeated ? "CLEARED" : unlocked ? "READY" : `LEVEL ${tier.unlock.level}`}</span>
+        </button>
+        <div class="tier-details">
+          <p>${tier.description}</p>
+          <div class="tier-requirements">${requirements.map((requirement) => `<span class="${requirement.startsWith("Complete") ? "met" : "unmet"}">${requirement}</span>`).join("")}</div>
+          <div class="tier-enemies"><strong>Tier threats</strong>${tier.specialEnemies.length
+            ? tier.specialEnemies.map((kind) => `<span><img src="${ASSETS.enemies[kind]}" alt=""><b>${ENEMY_REGISTRY[kind].displayName}</b><small>Night ${ENEMY_REGISTRY[kind].introductionNight}</small></span>`).join("")
+            : `<span><img src="${ASSETS.enemies.basic}" alt=""><b>Classic Horde</b><small>Base roster</small></span>`}
+            <span class="boss"><img src="${ASSETS.enemies[tier.boss]}" alt=""><b>${ENEMY_REGISTRY[tier.boss].displayName}</b><small>Boss</small></span>
+          </div>
+          <div class="tier-milestones">${tier.milestones.map((milestone) => `<span class="${claimed.has(milestone.id) ? "claimed" : progress.level >= milestone.level ? "earned" : ""}"><small>LEVEL ${milestone.level}</small><b>${this.rewardMarkup(milestone.reward)}</b></span>`).join("")}</div>
+        </div>
+      </article>`;
+    }).join("");
+    return `<section class="screen modal-screen campaign-ladder-screen"><div class="campaign-ladder-modal" role="dialog" aria-modal="true" aria-labelledby="campaign-ladder-title">
+      <header><div><p class="eyebrow">SINGLE-PLAYER CAMPAIGN</p><h2 id="campaign-ladder-title">Raise Your Standard</h2><p>Climb with XP, claim rewards, and clear each tier to unlock the next.</p></div><span class="campaign-level">LEVEL <b>${progress.level}</b></span><button class="icon-button" data-action="close-campaign" aria-label="Close">${icon("close")}</button></header>
+      <div class="campaign-ladder-viewport"><div class="campaign-ladder-rail">${tiers}</div></div>
+      <footer><div><small>SELECTED TIER</small><b>${selected.name}</b><span>${selectedUnlocked ? "Ready to defend" : "Complete every requirement to unlock"}</span></div>
+        <button class="primary" data-action="start-campaign-tier" ${selectedUnlocked ? "" : "disabled"}>${icon("play")} ${selectedUnlocked ? `Play ${selected.name}` : "Tier Locked"}</button></footer>
+    </div></section>`;
   }
 
   private profileChipMarkup(): string {
@@ -964,10 +1053,19 @@ export class Ui {
         ...(settlement.xp.victory > 0 ? [["Victory Bonus", settlement.xp.victory] as const] : []),
         ...(settlement.xp.challenge > 0 ? [["Challenge Bonus", settlement.xp.challenge] as const] : []),
       ] as const;
+      const unlockedTierId = settlement.newlyUnlockedTierIds?.at(-1);
+      const unlockedTier = unlockedTierId ? campaignTier(unlockedTierId) : null;
+      const campaignRewards = settlement.grantedCampaignRewards ?? [];
       return `<section class="screen result-screen ${victory ? "won" : "lost"}"><div class="result-card reward-result-card" role="region" aria-labelledby="result-title" tabindex="-1">
         <p class="eyebrow">${victory ? "FINAL COUNT CLEARED" : "COUNT ENDED"}</p>
-        <h2 id="result-title">${victory ? "Forest defended" : "Run settled"}</h2>
+        <h2 id="result-title">${victory ? `${this.game.getCampaignTier().name} defended` : "Run settled"}</h2>
         ${this.game.defeatReason ? `<p class="result-reason">${this.game.defeatReason}</p>` : ""}
+        ${unlockedTier ? `<aside class="tier-unlock-celebration" style="--tier-accent:${unlockedTier.accent}" aria-live="assertive">
+          <span class="unlock-rays" aria-hidden="true"></span><span class="unlock-burst" aria-hidden="true"></span>
+          <p>NEW CAMPAIGN TIER</p><img src="${unlockedTier.icon}" alt=""><h3>${unlockedTier.name}</h3><strong>UNLOCKED!</strong>
+          <small>${unlockedTier.subtitle} is ready to play</small>
+        </aside>` : ""}
+        ${campaignRewards.length ? `<div class="campaign-rewards-earned"><strong>LADDER REWARDS CLAIMED</strong>${campaignRewards.map((milestone) => `<span>${this.rewardMarkup(milestone.reward)}</span>`).join("")}</div>` : ""}
         <div class="reward-body"><div class="reward-list"><div class="reward-categories">${categories.map(([label, value], index) => `<div class="reward-line" style="--reveal-index:${index}">
           <span ${label === "Challenge Bonus" ? `title="${this.escapeAttribute(this.challengeRewardDetails())}"` : ""}>${label}</span><b>+${value} XP</b></div>`).join("")}</div>
         <button class="reward-skip" data-action="reveal-rewards">Show totals now</button>
@@ -999,7 +1097,7 @@ export class Ui {
     }
     return `<section class="screen result-screen ${victory ? "won" : "lost"}"><div class="result-card" role="region" aria-labelledby="result-title" tabindex="-1">
       <p class="eyebrow">${victory ? "FINAL COUNT CLEARED" : "COUNT ENDED"}</p>
-      <h2 id="result-title">${victory ? "Forest defended" : "Run defeated"}</h2>
+      <h2 id="result-title">${victory ? `${this.game.getCampaignTier().name} defended` : "Run defeated"}</h2>
       ${this.game.defeatReason ? `<p class="result-reason">${this.game.defeatReason}</p>` : ""}
       <div class="night-result"><strong>${this.game.stats.nightsSurvived}</strong><span>NIGHTS</span></div>
       <div class="record-grid">
@@ -1053,11 +1151,11 @@ export class Ui {
         <aside class="resources" aria-label="Resources">${RESOURCE_ORDER.map((resource) =>
           `<div title="${resource}">${resourceIcon(resource, true)}<b data-resource="${resource}">0</b></div>`).join("")}</aside>
         <div class="clock" data-clock-panel><div class="clock-face"><strong data-clock></strong></div><span data-phase-label></span></div>
+        ${this.game.phase === "day" && !this.game.isCombatMode() && !this.game.tutorialMode ? `<button class="skip-night-button clock-end-day" data-action="skip-night" aria-label="End Day and skip to night">${icon("sun")}<span class="skip-night-label">End Day</span><span class="tooltip">End the day early with no reward</span></button>` : ""}
       </div>
       ${this.openTierPanel ? this.tierPanelMarkup(this.openTierPanel) : ""}
       <div class="context-readout" data-context></div>
       <div class="bottom-command-deck">
-        ${this.game.phase === "day" && !this.game.isCombatMode() && !this.game.tutorialMode ? `<button class="skip-night-button" data-action="skip-night" aria-label="End Day and skip to night">${icon("sun")}<span class="skip-night-label">End Day</span><span class="tooltip">End the day early with no reward</span></button>` : ""}
         <div class="toolbar" role="toolbar" aria-label="Actions">
           ${this.actionBarMarkup()}
         </div>
@@ -1357,14 +1455,33 @@ export class Ui {
     }
     this.playUiActivation(action);
     switch (action) {
-      case "start": {
+      case "open-campaign":
+        this.dailyRewardVisible = false;
+        this.campaignOpen = true;
+        break;
+      case "close-campaign":
+        this.campaignOpen = false;
+        break;
+      case "select-campaign-tier": {
+        const tierId = target.dataset.campaignTier as CampaignTierId | undefined;
+        if (tierId && CAMPAIGN_TIERS.some((tier) => tier.id === tierId)) {
+          this.selectedCampaignTierId = tierId;
+        }
+        break;
+      }
+      case "start-campaign-tier": {
+        const tier = campaignTier(this.selectedCampaignTierId);
+        if (!isCampaignTierUnlocked(tier, this.campaignProgress())) break;
         const input = this.overlay.querySelector<HTMLInputElement>("#seed-input");
         this.seedDraft = input?.value ?? this.seedDraft;
+        this.campaignOpen = false;
         if (this.game.profileManager) {
           this.investmentDraft = 0;
           this.investmentOpen = true;
         } else {
-          this.game.startRun(this.difficulty, this.seedDraft, [...this.selectedChallenges]);
+          this.game.startRun(this.difficulty, this.seedDraft, [...this.selectedChallenges], false, {
+            campaignTierId: this.selectedCampaignTierId,
+          });
         }
         break;
       }
@@ -1374,7 +1491,7 @@ export class Ui {
           this.seedDraft,
           [...this.selectedChallenges],
           false,
-          { investment: this.investmentDraft },
+          { investment: this.investmentDraft, campaignTierId: this.selectedCampaignTierId },
         );
         if (started) this.investmentOpen = false;
         break;
@@ -1521,12 +1638,14 @@ export class Ui {
         break;
       case "restart-same":
         this.seedDraft = this.game.seed;
+        this.selectedCampaignTierId = this.game.activeCampaignTierId;
         this.game.returnToMenu();
         this.investmentDraft = 0;
         this.investmentOpen = true;
         break;
       case "restart-new":
         this.seedDraft = "";
+        this.selectedCampaignTierId = this.game.activeCampaignTierId;
         this.game.returnToMenu();
         this.investmentDraft = 0;
         this.investmentOpen = true;
@@ -1537,6 +1656,7 @@ export class Ui {
       case "menu":
         this.game.modalLock = false;
         this.tutorialOpen = false;
+        this.campaignOpen = false;
         if (this.game.phase === "paused" && !this.game.tutorialMode) {
           this.game.endRunVoluntarily();
         } else this.game.returnToMenu();
@@ -1551,13 +1671,13 @@ export class Ui {
       this.overlay.querySelector<HTMLElement>('[data-action="reroll"]')?.focus();
     }
     if (this.investmentOpen && (
-      action === "start"
+      action === "start-campaign-tier"
       || action === "restart-same"
       || action === "restart-new"
     )) {
       this.focusDialog(".investment-modal");
     } else if (action === "cancel-investment") {
-      this.overlay.querySelector<HTMLElement>('[data-action="start"]')?.focus();
+      this.overlay.querySelector<HTMLElement>('[data-action="open-campaign"]')?.focus();
     } else if (action === "resume") {
       this.hud.querySelector<HTMLElement>('[data-action="pause"]')?.focus();
     } else if (action === "cancel-skip-night") {
@@ -1745,6 +1865,10 @@ export class Ui {
       this.trapDialogFocus(event, ".investment-modal");
       return;
     }
+    if (this.campaignOpen && event.code === "Tab") {
+      this.trapDialogFocus(event, ".campaign-ladder-modal");
+      return;
+    }
     if (this.tutorialExitConfirmation && event.code === "Tab") {
       this.trapDialogFocus(event, ".tutorial-exit-modal");
       return;
@@ -1773,7 +1897,16 @@ export class Ui {
       event.preventDefault();
       this.invalidate();
       this.render(true);
-      this.overlay.querySelector<HTMLElement>('[data-action="start"]')?.focus();
+      this.overlay.querySelector<HTMLElement>('[data-action="open-campaign"]')?.focus();
+      return;
+    }
+    if (this.campaignOpen && event.code === "Escape") {
+      this.campaignOpen = false;
+      this.game.input.escapePressed = false;
+      event.preventDefault();
+      this.invalidate();
+      this.render(true);
+      this.overlay.querySelector<HTMLElement>('[data-action="open-campaign"]')?.focus();
       return;
     }
     if (this.menuPanel && event.code === "Tab") {
@@ -1878,7 +2011,7 @@ export class Ui {
   private playUiActivation(action?: string): void {
     if (!action || action === "pause" || action === "resume") return;
     const confirmActions = new Set([
-      "start",
+      "start-campaign-tier",
       "confirm-reroll",
       "confirm-skip-night",
       "confirm-tutorial-exit",

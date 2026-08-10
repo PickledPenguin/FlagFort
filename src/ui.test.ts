@@ -132,7 +132,7 @@ describe("event-driven HUD interaction", () => {
     expect(hud.querySelector('[data-action="skip-night"]')).not.toBeNull();
   });
 
-  it("keeps the clock informational and places End Day beside the build toolbar", () => {
+  it("keeps the clock informational and places End Day below the countdown", () => {
     const { hud } = createHarness();
     const clock = hud.querySelector<HTMLElement>("[data-clock-panel]")!;
     const endDay = hud.querySelector<HTMLButtonElement>('[data-action="skip-night"]')!;
@@ -140,11 +140,11 @@ describe("event-driven HUD interaction", () => {
     expect(clock.querySelector("[data-night]")).toBeNull();
     expect(clock.textContent).toContain("DAY");
     expect(clock.textContent).not.toContain("1 / 10");
-    expect(endDay.parentElement?.classList.contains("bottom-command-deck")).toBe(true);
-    expect(endDay.nextElementSibling?.classList.contains("toolbar")).toBe(true);
+    expect(endDay.parentElement?.classList.contains("resource-stack")).toBe(true);
+    expect(endDay.previousElementSibling).toBe(clock);
     expect(endDay.textContent).toContain("End Day");
     expect(endDay.querySelector<HTMLImageElement>("img")?.getAttribute("src")).toBe("./images/ui/sun.svg");
-    expect(hud.querySelector('.countdown-stack [data-action="skip-night"]')).toBeNull();
+    expect(hud.querySelector('.bottom-command-deck [data-action="skip-night"]')).toBeNull();
     expect(clock.parentElement?.classList.contains("resource-stack")).toBe(true);
     expect(clock.previousElementSibling?.classList.contains("resources")).toBe(true);
     expect(hud.querySelector(".countdown-stack [data-clock-panel]")).toBeNull();

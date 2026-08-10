@@ -1,5 +1,6 @@
 export type Difficulty = "easy" | "normal" | "hard" | "extreme";
 export type RunMode = "campaign" | "endless";
+export type CampaignTierId = "forest" | "snowy";
 export type Phase = "menu" | "day" | "night" | "dawn" | "paused" | "victory" | "defeat";
 export type ResourceKind = "wood" | "stone" | "gold" | "diamond";
 export type Tier = ResourceKind;
@@ -17,8 +18,12 @@ export type RosterEnemyKind =
   | "archer"
   | "summoner"
   | "acidslinger"
-  | "rammer";
-export type EnemyKind = RosterEnemyKind | "splitter-child" | "boss";
+  | "rammer"
+  | "frostbite"
+  | "snowballer"
+  | "icebound";
+export type BossEnemyKind = "boss" | "frost-warden";
+export type EnemyKind = RosterEnemyKind | "splitter-child" | BossEnemyKind;
 export type PlayerId = string;
 export type DamageSource =
   | "player-melee"
@@ -67,6 +72,7 @@ export interface ResourceNode extends Circle {
   maxHealth: number;
   hitFlash: number;
   destroyed?: boolean;
+  snowCovered?: boolean;
 }
 
 export interface Portal extends Circle {
@@ -215,6 +221,7 @@ export interface RunRecord extends RunStats {
   seed: string;
   difficulty: Difficulty;
   mode?: RunMode;
+  campaignTierId?: CampaignTierId;
   challengeIds: string[];
   victory: boolean;
   date: string;

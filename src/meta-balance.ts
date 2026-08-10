@@ -39,7 +39,7 @@ export const PERMANENT_UPGRADES: readonly PermanentUpgradeDefinition[] = [
 ] as const;
 
 export const META_BALANCE = {
-  profileSchemaVersion: 4,
+  profileSchemaVersion: 5,
   profileStorageKey: "flagfort-profile-v2",
   legacyRecordsKey: "countdown-forest-records",
   coinSafetyMinimum: 10,
@@ -78,7 +78,11 @@ export const META_BALANCE = {
       summoner: 8,
       acidslinger: 10,
       rammer: 12,
+      frostbite: 3,
+      snowballer: 6,
+      icebound: 12,
       boss: 80,
+      "frost-warden": 90,
     } satisfies Record<EnemyKind, number>,
     cumulativeNightXp: [0, 7, 28, 63, 112, 175, 252, 343, 448, 567, 700],
     campaignVictoryBonus: 300,

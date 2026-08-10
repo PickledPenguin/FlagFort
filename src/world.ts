@@ -3,6 +3,8 @@ import { NavigationGrid } from "./pathfinding";
 import { SeededRng } from "./rng";
 import { SpatialHash, distance, overlaps, segmentCircle } from "./spatial";
 import type { Circle, ResourceKind, ResourceNode, Vec2, World } from "./types";
+import type { CampaignTierId } from "./types";
+import { campaignTier } from "./campaign";
 
 const center = BALANCE.mapSize / 2;
 const ordinaryZombieRadius = Math.max(
@@ -162,7 +164,11 @@ function fallbackResources(seed: string, resourceMultiplier: number): ResourceNo
   return resources;
 }
 
-export function generateWorld(seed: string, resourceMultiplier = 1): World {
+export function generateWorld(
+  seed: string,
+  resourceMultiplier = 1,
+  campaignTierId: CampaignTierId = "forest",
+): World {
   let selectedResources: ResourceNode[] | null = null;
   let selectedNavigation: World["navigation"] | null = null;
   let attempts = 0;
@@ -186,6 +192,9 @@ export function generateWorld(seed: string, resourceMultiplier = 1): World {
   }
   selectedNavigation.attempts = attempts;
   const sceneryRng = new SeededRng(`${seed}:world:scenery`);
+  const snowRng = new SeededRng(`${seed}:world:resource-snow:${campaignTierId}`);
+  const snowChance = campaignTier(campaignTierId).biome.resourceSnowChance;
+  for (const node of selectedResources) node.snowCovered = snowRng.next() < snowChance;
   const clearings = createClearings(sceneryRng);
   const foliage = Array.from({ length: 260 }, () => {
     const x = sceneryRng.range(30, BALANCE.mapSize - 30);

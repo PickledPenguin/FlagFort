@@ -428,8 +428,10 @@ describe("currency and reward presentation", () => {
     game.returnToMenu();
     ui.render(true);
 
-    const start = overlay.querySelector<HTMLElement>('[data-action="start"]')!;
-    start.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    overlay.querySelector<HTMLElement>('[data-action="open-campaign"]')!
+      .dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    overlay.querySelector<HTMLElement>('[data-action="start-campaign-tier"]')!
+      .dispatchEvent(new MouseEvent("click", { bubbles: true }));
     const dialog = overlay.querySelector<HTMLElement>('[role="dialog"]')!;
     const close = dialog.querySelector<HTMLElement>('[data-action="cancel-investment"]')!;
     const confirm = dialog.querySelector<HTMLElement>('[data-action="confirm-investment"]')!;
@@ -448,7 +450,7 @@ describe("currency and reward presentation", () => {
 
     window.dispatchEvent(new KeyboardEvent("keydown", { code: "Escape" }));
     expect(overlay.querySelector('[role="dialog"]')).toBeNull();
-    expect(document.activeElement).toBe(overlay.querySelector('[data-action="start"]'));
+    expect(document.activeElement).toBe(overlay.querySelector('[data-action="open-campaign"]'));
   });
 
   it("updates the native whole-coin investment range continuously and accessibly", () => {
@@ -458,8 +460,10 @@ describe("currency and reward presentation", () => {
     const ui = new Ui(game, document.querySelector("#hud")!, overlay, document.querySelector("#toast")!);
     game.returnToMenu();
     ui.render(true);
-    overlay.querySelector<HTMLElement>('[data-action="start"]')
-      ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    overlay.querySelector<HTMLElement>('[data-action="open-campaign"]')!
+      .dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    overlay.querySelector<HTMLElement>('[data-action="start-campaign-tier"]')!
+      .dispatchEvent(new MouseEvent("click", { bubbles: true }));
     const range = overlay.querySelector<HTMLInputElement>("[data-investment]")!;
     expect(range.type).toBe("range");
     expect(range.getAttribute("aria-label")).toBe("Run investment in whole coins");

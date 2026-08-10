@@ -89,7 +89,8 @@ describe("production controls and challenge accessibility", () => {
     (overlay.querySelector('[data-action="close-panel"]') as HTMLElement).click();
     expect(overlay.textContent).toContain("30s DAY · 30s NIGHT · 10 NIGHTS · 12 CHALLENGES");
     expect(overlay.textContent).toContain("+175% VICTORY XP");
-    (overlay.querySelector('[data-action="start"]') as HTMLElement).click();
+    (overlay.querySelector('[data-action="open-campaign"]') as HTMLElement).click();
+    (overlay.querySelector('[data-action="start-campaign-tier"]') as HTMLElement).click();
     expect(hud.querySelector<HTMLButtonElement>('[aria-label="Repair"]')?.disabled).toBe(true);
   });
 

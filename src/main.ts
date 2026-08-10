@@ -67,7 +67,15 @@ async function bootstrap(): Promise<void> {
     const enemyKinds = Object.keys(ENEMY_REGISTRY) as EnemyKind[];
     const swordPreview = preview.get("swordPreview") as Tier | null;
     const tiers: Tier[] = ["wood", "stone", "gold", "diamond"];
-    if (swordPreview && tiers.includes(swordPreview)) {
+    if (preview.has("snowPreview")) {
+      game.startRun("normal", "flagfall-snow-preview", [], true, {
+        settle: false,
+        campaignTierId: "snowy",
+      });
+      if (preview.get("snowPreview") !== "day") {
+        (game as unknown as { beginNight(): void }).beginNight();
+      }
+    } else if (swordPreview && tiers.includes(swordPreview)) {
       profileManager.profile.equipment.sword = { tier: swordPreview, equipped: true };
       game.startRun("normal", "flagfall-sword-preview", [], true, { settle: false });
       (game as unknown as { beginNight(): void }).beginNight();
@@ -146,8 +154,9 @@ async function bootstrap(): Promise<void> {
       game.startRun("normal", "flagfall-toast-preview", [], true, { settle: false });
       game.toast = "A long gameplay message remains below the timer and End Day control.";
       game.toastTime = 600;
-    } else if (preview.has("rewardPreview")) {
-      const outcome = preview.get("rewardPreview");
+    } else if (preview.has("rewardPreview") || preview.has("unlockPreview")) {
+      const unlockPreview = preview.has("unlockPreview");
+      const outcome = unlockPreview ? "win" : preview.get("rewardPreview");
       const challengeRewardPreview = outcome === "challenge";
       const profitOrLoss = outcome === "loss" ? -100 : outcome === "break-even" ? 0 : 100;
       const totalReturn = 100 + profitOrLoss;
@@ -188,6 +197,12 @@ async function bootstrap(): Promise<void> {
         newCoins: Math.max(0, 15 + totalReturn),
         previousLevel: 5,
         newLevel: game.phase === "victory" ? 7 : 6,
+        newlyUnlockedTierIds: unlockPreview ? ["snowy"] : [],
+        grantedCampaignRewards: unlockPreview ? [{
+          id: "forest-level-3-coins",
+          level: 3,
+          reward: { kind: "coins", amount: 35 },
+        }] : [],
       } satisfies RunSettlementResult;
     }
   }

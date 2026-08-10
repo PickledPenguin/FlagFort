@@ -53,6 +53,7 @@ export class Renderer {
   private readonly images = new Map<string, HTMLImageElement>();
   private readonly tintedSprites = new Map<string, HTMLCanvasElement>();
   private time = 0;
+  private snowIntensity = 0;
 
   constructor(private readonly canvas: HTMLCanvasElement) {
     const ctx = canvas.getContext("2d");
@@ -146,7 +147,8 @@ export class Renderer {
     const ctx = this.ctx;
     ctx.save();
     ctx.clearRect(0, 0, BALANCE.logicalWidth, BALANCE.logicalHeight);
-    ctx.fillStyle = game.tutorialMode ? "#000000" : "#173f2a";
+    const snowy = game.getCampaignTier().biome.ground === "snow" && !game.tutorialMode;
+    ctx.fillStyle = game.tutorialMode ? "#000000" : snowy ? "#b9d6db" : "#173f2a";
     ctx.fillRect(0, 0, BALANCE.logicalWidth, BALANCE.logicalHeight);
 
     const shakeX = game.tutorialMode ? 0 : Math.sin(this.time * 71) * game.shake;
@@ -166,6 +168,7 @@ export class Renderer {
     if (game.tutorialMode) this.drawTutorialArenaBoundary();
     else {
       this.drawVignette(game);
+      this.drawSnowWeather(game, dt);
       this.drawMinimap(game);
     }
   }
@@ -192,12 +195,13 @@ export class Renderer {
 
   private drawWorld(game: Game): void {
     const ctx = this.ctx;
-    ctx.fillStyle = "#1a4b30";
+    const snowy = game.getCampaignTier().biome.ground === "snow" && !game.tutorialMode;
+    ctx.fillStyle = snowy ? "#d7e7e8" : "#1a4b30";
     ctx.fillRect(0, 0, BALANCE.mapSize, BALANCE.mapSize);
     for (const clearing of game.world.clearings) {
       const gradient = ctx.createRadialGradient(clearing.x, clearing.y, 0, clearing.x, clearing.y, clearing.radius);
-      gradient.addColorStop(0, "#315c36");
-      gradient.addColorStop(1, "#1c4930");
+      gradient.addColorStop(0, snowy ? "#f1f6f4" : "#315c36");
+      gradient.addColorStop(1, snowy ? "#c7dcdd" : "#1c4930");
       ctx.fillStyle = gradient;
       ctx.beginPath();
       ctx.arc(clearing.x, clearing.y, clearing.radius, 0, Math.PI * 2);
@@ -205,7 +209,9 @@ export class Renderer {
     }
     for (const foliage of game.world.foliage) {
       if (!this.visible(game, foliage.x, foliage.y, foliage.radius)) continue;
-      ctx.fillStyle = ["#113b26", "#17452a", "#214f2c", "#285932"][foliage.shade] ?? "#18472b";
+      ctx.fillStyle = snowy
+        ? (["#acc7c9", "#b9d0d0", "#c5d9d8", "#d0e2e0"][foliage.shade] ?? "#b9d0d0")
+        : (["#113b26", "#17452a", "#214f2c", "#285932"][foliage.shade] ?? "#18472b");
       ctx.beginPath();
       ctx.arc(foliage.x, foliage.y, foliage.radius, 0, Math.PI * 2);
       ctx.fill();
@@ -289,7 +295,7 @@ export class Renderer {
       ctx.restore();
     }
     for (const enemy of game.enemies) {
-      if (this.visible(game, enemy.x, enemy.y, enemy.radius + 40)) this.drawEnemy(enemy);
+      if (this.visible(game, enemy.x, enemy.y, enemy.radius + 40)) this.drawEnemy(enemy, game);
     }
     this.drawPlayer(game);
     if ((game.phase === "day" || game.phase === "night") && game.player.health < game.player.maxHealth) {
@@ -337,6 +343,16 @@ export class Renderer {
       if (node.hitFlash > 0) ctx.globalAlpha = 0.6;
       const size = node.radius * 2.55;
       ctx.drawImage(sprite, -size / 2, -size / 2, size, size);
+      if (node.snowCovered && !depleted) {
+        ctx.globalAlpha = node.hitFlash > 0 ? 0.45 : 0.94;
+        ctx.fillStyle = "#f7ffff";
+        ctx.strokeStyle = "#b7d7df";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.ellipse(0, -node.radius * 0.7, node.radius * 0.72, node.radius * 0.25, -0.08, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      }
       ctx.restore();
     }
     if (node.health > 0 && node.health < node.maxHealth) {
@@ -572,7 +588,7 @@ export class Renderer {
     );
   }
 
-  private drawEnemy(enemy: Enemy): void {
+  private drawEnemy(enemy: Enemy, game: Game): void {
     const ctx = this.ctx;
     const angle = enemy.angle ?? Math.atan2(center - enemy.y, center - enemy.x);
     ctx.save();
@@ -595,7 +611,7 @@ export class Renderer {
       ctx.arc(0, 0, enemy.radius + 11, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * enemy.attackWindup);
       ctx.stroke();
     }
-    if (enemy.kind === "boss" && enemy.bossSmashWindup > 0) {
+    if (game.isBossEnemyKind(enemy.kind) && enemy.bossSmashWindup > 0) {
       const slamProgress = Math.min(
         1,
         enemy.bossSmashWindup / BALANCE.boss.slam.chargeDuration,
@@ -618,7 +634,7 @@ export class Renderer {
         -Math.PI / 2 + Math.PI * 2 * slamProgress);
       ctx.stroke();
     }
-    if (enemy.kind === "boss" && enemy.acidWindup > 0) {
+    if (game.isBossEnemyKind(enemy.kind) && enemy.acidWindup > 0) {
       ctx.strokeStyle = "#cfff4c";
       ctx.lineWidth = 6;
       ctx.beginPath();
@@ -632,9 +648,9 @@ export class Renderer {
       ctx.fill();
       ctx.rotate(-enemy.acidAimAngle);
     }
-    if (enemy.kind === "boss") {
+    if (game.isBossEnemyKind(enemy.kind)) {
       const size = enemy.radius * 2.65;
-      this.drawSprite(ASSETS.enemyBodies.boss, -size / 2, -size / 2, size, size, enemy.flash > 0);
+      this.drawSprite(ASSETS.enemyBodies[enemy.kind], -size / 2, -size / 2, size, size, enemy.flash > 0);
       ctx.restore();
       this.healthBar(enemy.x, enemy.y - enemy.radius - 12, 160, enemy.health / enemy.maxHealth, "#85cd5d");
       const segments = Math.max(0, Math.ceil((enemy.health / enemy.maxHealth) * 10));
@@ -660,7 +676,7 @@ export class Renderer {
       ctx.restore();
     }
     ctx.rotate(angle);
-    const fullSpriteKinds: Enemy["kind"][] = ["gremlin", "splitter", "splitter-child", "popper", "archer", "acidslinger", "rammer"];
+    const fullSpriteKinds: Enemy["kind"][] = ["gremlin", "splitter", "splitter-child", "popper", "archer", "acidslinger", "rammer", "frostbite", "snowballer", "icebound"];
     if (fullSpriteKinds.includes(enemy.kind)) {
       const height = ENEMY_REGISTRY[enemy.kind].render?.height ?? 80;
       const width = ENEMY_REGISTRY[enemy.kind].render?.width ?? height;
@@ -989,7 +1005,7 @@ export class Renderer {
     ctx.fillStyle = "#d7e2ce";
     ctx.font = "800 11px system-ui";
     ctx.textAlign = "left";
-    ctx.fillText("FOREST MAP", x, y - 9);
+    ctx.fillText(game.getCampaignTier().biome.minimapLabel, x, y - 9);
     ctx.globalAlpha = 0.52;
     for (const node of game.world.resources) {
       if (node.destroyed) continue;
@@ -1005,8 +1021,9 @@ export class Renderer {
     }
     if (game.isCombatMode()) {
       for (const enemy of game.enemies) {
-        ctx.fillStyle = enemy.kind === "boss" ? "#ff5149" : "#8ac95e";
-        ctx.fillRect(x + enemy.x * scale - 1, y + enemy.y * scale - 1, enemy.kind === "boss" ? 6 : 3, enemy.kind === "boss" ? 6 : 3);
+        const boss = game.isBossEnemyKind(enemy.kind);
+        ctx.fillStyle = boss ? "#ff5149" : "#8ac95e";
+        ctx.fillRect(x + enemy.x * scale - 1, y + enemy.y * scale - 1, boss ? 6 : 3, boss ? 6 : 3);
       }
     }
     if (game.hasActiveFlag()) {
@@ -1019,6 +1036,30 @@ export class Renderer {
     ctx.beginPath();
     ctx.arc(x + game.player.x * scale, y + game.player.y * scale, 4, 0, Math.PI * 2);
     ctx.fill();
+    ctx.restore();
+  }
+
+  private drawSnowWeather(game: Game, dt: number): void {
+    const weather = game.getCampaignTier().biome.weather;
+    const target = weather?.kind === "snow" && game.phase === "night" ? 1 : 0;
+    const fadeSeconds = weather?.fadeSeconds ?? 1;
+    this.snowIntensity += Math.sign(target - this.snowIntensity)
+      * Math.min(Math.abs(target - this.snowIntensity), dt / Math.max(0.1, fadeSeconds));
+    if (!weather || this.snowIntensity <= 0.002) return;
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.globalAlpha = this.snowIntensity;
+    ctx.fillStyle = "#f7ffff";
+    for (let index = 0; index < weather.particleCount; index += 1) {
+      const lane = (index * 73) % (BALANCE.logicalWidth + 80) - 40;
+      const speed = 42 + (index % 11) * 7;
+      const y = (index * 97 + this.time * speed) % (BALANCE.logicalHeight + 50) - 25;
+      const x = lane + Math.sin(this.time * 0.8 + index * 1.7) * (7 + index % 9);
+      const radius = 1.2 + (index % 5) * 0.48;
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
     ctx.restore();
   }
 }
