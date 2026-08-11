@@ -87,6 +87,7 @@ import type {
   Enemy,
   EnemyKind,
   Flag,
+  IcicleStrike,
   Particle,
   Phase,
   Player,
@@ -215,6 +216,7 @@ export class Game {
   projectiles: Projectile[] = [];
   particles: Particle[] = [];
   areaEffects: AreaEffect[] = [];
+  icicleStrikes: IcicleStrike[] = [];
   selectedSlot = 1;
   selectedTiers: Record<StructureKind, Tier> = {
     wall: "wood",
@@ -406,6 +408,7 @@ export class Game {
     this.projectiles = [];
     this.particles = [];
     this.areaEffects = [];
+    this.icicleStrikes = [];
     this.navigationFields.clear();
     this.structureRevision = 0;
     this.nightWaveScheduled = false;
@@ -1069,6 +1072,7 @@ export class Game {
     this.updatePortals(dt);
     this.updateBossSpawn();
     this.updateEnemies(dt);
+    this.updateIcicleStrikes(dt);
     this.trackFlagRadiusEntries();
     this.updateProjectiles(dt);
     this.updateParticles(dt);
@@ -1895,7 +1899,7 @@ export class Game {
       bossSmashWindup: 0,
       bossSlamWave: 0,
       bossHalfSummoned: false,
-      acidCooldown: this.isBossEnemyKind(kind) ? BALANCE.boss.acidAttackInterval : 0,
+      acidCooldown: kind === "boss" ? BALANCE.boss.acidAttackInterval : 0,
       acidWindup: 0,
       acidAimAngle: 0,
       burning: false,
@@ -1925,8 +1929,20 @@ export class Game {
       chargeDistanceLeft: 0,
       chargeDamageLeft: 0,
       chargeHitIds: new Set(),
-      iceArmor: kind === "icebound" ? BALANCE.snowyEnemies.icebound.armorHealth : undefined,
-      maxIceArmor: kind === "icebound" ? BALANCE.snowyEnemies.icebound.armorHealth : undefined,
+      iceArmor: kind === "icebound"
+        ? BALANCE.snowyEnemies.icebound.armorHealth
+        : kind === "frost-warden"
+          ? BALANCE.snowyEnemies.frostWarden.armorHealth * health / Math.max(1, base.health)
+          : undefined,
+      maxIceArmor: kind === "icebound"
+        ? BALANCE.snowyEnemies.icebound.armorHealth
+        : kind === "frost-warden"
+          ? BALANCE.snowyEnemies.frostWarden.armorHealth * health / Math.max(1, base.health)
+          : undefined,
+      icicleCooldown: kind === "frost-warden"
+        ? BALANCE.snowyEnemies.frostWarden.icicle.initialCooldown
+        : undefined,
+      icicleAttackSerial: kind === "frost-warden" ? 0 : undefined,
     });
     const spawned = this.enemies.at(-1);
     if (spawned) {
@@ -2955,6 +2971,10 @@ export class Game {
   }
 
   private updateBoss(enemy: Enemy, dt: number): void {
+    if (enemy.kind === "frost-warden") {
+      this.updateFrostWarden(enemy, dt);
+      return;
+    }
     if (!this.flagPresent) return;
     enemy.targetId = "flag";
     const attackSpeed = enemy.attackSpeedMultiplier ?? 1;
@@ -3043,6 +3063,90 @@ export class Game {
       this.shake = 14;
       emitAudioCue({ cue: "breaker-smash", position: { x: enemy.x, y: enemy.y } });
     }
+  }
+
+  private updateFrostWarden(enemy: Enemy, dt: number): void {
+    if (!this.flagPresent) return;
+    enemy.targetId = "flag";
+    if (distance(enemy, this.player) > BALANCE.snowyEnemies.frostWarden.icicle.activationRadius) return;
+    enemy.icicleCooldown = Math.max(
+      0,
+      (enemy.icicleCooldown ?? 0) - dt * (enemy.attackSpeedMultiplier ?? 1),
+    );
+    if (enemy.icicleCooldown > 0) return;
+    enemy.icicleCooldown = BALANCE.snowyEnemies.frostWarden.icicle.cooldown;
+    this.createIcicleAttack(enemy);
+  }
+
+  private createIcicleAttack(enemy: Enemy): void {
+    const config = BALANCE.snowyEnemies.frostWarden.icicle;
+    const serial = enemy.icicleAttackSerial ?? 0;
+    enemy.icicleAttackSerial = serial + 1;
+    const rng = new SeededRng(`${this.seed}:frost-warden:icicles:${enemy.id}:${serial}`);
+    const baseAngle = rng.range(0, Math.PI * 2);
+    for (let index = 0; index < config.count; index += 1) {
+      const placementAngle = baseAngle + index / config.count * Math.PI * 2 + rng.range(-0.38, 0.38);
+      const placementRadius = rng.range(config.placementMinimumRadius, config.placementSpread);
+      this.icicleStrikes.push({
+        id: this.nextId++,
+        x: Math.max(config.radius, Math.min(BALANCE.mapSize - config.radius,
+          this.player.x + Math.cos(placementAngle) * placementRadius)),
+        y: Math.max(config.radius, Math.min(BALANCE.mapSize - config.radius,
+          this.player.y + Math.sin(placementAngle) * placementRadius)),
+        radius: config.radius,
+        angle: rng.range(-0.22, 0.22),
+        warningRemaining: config.warningDuration,
+        warningDuration: config.warningDuration,
+        eruptionRemaining: config.eruptionDuration,
+        eruptionDuration: config.eruptionDuration,
+      });
+    }
+  }
+
+  private updateIcicleStrikes(dt: number): void {
+    const survivors: IcicleStrike[] = [];
+    for (const strike of this.icicleStrikes) {
+      if (strike.warningRemaining > 0) {
+        strike.warningRemaining = Math.max(0, strike.warningRemaining - dt);
+        if (strike.warningRemaining === 0) this.resolveIcicleStrike(strike);
+        survivors.push(strike);
+        continue;
+      }
+      strike.eruptionRemaining = Math.max(0, strike.eruptionRemaining - dt);
+      if (strike.eruptionRemaining > 0) survivors.push(strike);
+    }
+    this.icicleStrikes = survivors;
+  }
+
+  private resolveIcicleStrike(strike: IcicleStrike): void {
+    const config = BALANCE.snowyEnemies.frostWarden.icicle;
+    if (distance(strike, this.player) <= strike.radius + this.player.radius) {
+      const damage = this.applyIncomingDamage(
+        this.player,
+        config.damage * this.getChallengeModifiers().enemyDamageMultiplier,
+        "frost-warden",
+        "frost-warden",
+      );
+      this.player.hurtFlash = 0.3;
+      this.applySlowStatus(this.player, config.slowDuration);
+      emitAudioCue({ cue: "player-hurt", position: { x: this.player.x, y: this.player.y } });
+      this.burst(this.player.x, this.player.y, BALANCE.snowyEnemies.frostWarden.breakColor, 8, `-${Math.round(damage)}`);
+    }
+    for (const structure of this.structures) {
+      if (distance(strike, structure) > strike.radius + structure.radius) continue;
+      this.applyIncomingDamage(
+        structure,
+        config.structureDamage * this.getChallengeModifiers().enemyDamageMultiplier,
+        "frost-warden",
+        "frost-warden",
+      );
+      structure.flash = 0.28;
+      if (structure.kind === "turret") this.applySlowStatus(structure, config.slowDuration);
+      emitAudioCue({ cue: "structure-damaged", position: { x: structure.x, y: structure.y } });
+    }
+    this.iceShardBurst(strike.x, strike.y, 22);
+    this.shake = Math.max(this.shake, 9);
+    emitAudioCue({ cue: "ice-shatter", position: { x: strike.x, y: strike.y } });
   }
 
   private fireBossAcid(enemy: Enemy): void {
@@ -3266,7 +3370,9 @@ export class Game {
     enemy.flash = 0.18;
     // No hurt sound, too distracting, not necessary
     //emitAudioCue({ cue: "zombie-hurt", position: { x: enemy.x, y: enemy.y } });
-    const displayedDamage = enemy.kind === "icebound" ? appliedDamage : amount;
+    const displayedDamage = enemy.kind === "icebound" || enemy.kind === "frost-warden"
+      ? appliedDamage
+      : amount;
     this.burst(enemy.x, enemy.y, color, 6, `-${Math.round(displayedDamage)}`);
     if (enemy.health <= 0) {
       if (healthBefore > 0) this.recordEnemyKill(enemy, source);
@@ -3289,22 +3395,20 @@ export class Game {
   private routeEnemyDamage(enemy: Enemy, requestedAmount: number, source: DamageSource): number {
     let remaining = Math.max(0, requestedAmount);
     let applied = 0;
-    if (enemy.kind === "icebound" && (enemy.iceArmor ?? 0) > 0) {
+    if ((enemy.kind === "icebound" || enemy.kind === "frost-warden")
+      && (enemy.iceArmor ?? 0) > 0) {
       if (source === "player-bow" || source === "turret") {
-        remaining *= 1 - BALANCE.snowyEnemies.icebound.projectileResistance;
+        const resistance = enemy.kind === "icebound"
+          ? BALANCE.snowyEnemies.icebound.projectileResistance
+          : BALANCE.snowyEnemies.frostWarden.armorProjectileResistance;
+        remaining *= 1 - resistance;
       }
       const armorDamage = Math.min(enemy.iceArmor ?? 0, remaining);
       enemy.iceArmor = Math.max(0, (enemy.iceArmor ?? 0) - armorDamage);
       remaining -= armorDamage;
       applied += armorDamage;
       if (enemy.iceArmor <= 0) {
-        this.burst(
-          enemy.x,
-          enemy.y,
-          BALANCE.snowyEnemies.icebound.breakColor,
-          28,
-          "Break",
-        );
+        this.shatterIceArmor(enemy);
       }
     }
     if (remaining > 0) {
@@ -3313,6 +3417,38 @@ export class Game {
       applied += Math.min(healthBefore, remaining);
     }
     return applied;
+  }
+
+  private shatterIceArmor(enemy: Enemy): void {
+    this.iceShardBurst(enemy.x, enemy.y, enemy.kind === "frost-warden" ? 58 : 34, "Break");
+    emitAudioCue({ cue: "ice-shatter", position: { x: enemy.x, y: enemy.y } });
+    if (enemy.kind === "frost-warden") {
+      this.shake = Math.max(this.shake, BALANCE.snowyEnemies.frostWarden.armorBreakShake);
+      this.triggerFrostSlam(enemy);
+    } else {
+      this.shake = Math.max(this.shake, 8);
+    }
+  }
+
+  private triggerFrostSlam(enemy: Enemy): void {
+    const config = BALANCE.snowyEnemies.frostWarden.slam;
+    if (distance(enemy, this.player) <= config.radius + this.player.radius) {
+      this.applySlowStatus(this.player, config.slowDuration);
+    }
+    for (const structure of this.structures) {
+      if (structure.kind !== "turret") continue;
+      if (distance(enemy, structure) > config.radius + structure.radius) continue;
+      this.applySlowStatus(structure, config.slowDuration);
+    }
+    this.areaEffects.push({
+      kind: "frost-slam",
+      x: enemy.x,
+      y: enemy.y,
+      radius: config.radius,
+      remaining: config.waveDuration,
+      duration: config.waveDuration,
+    });
+    this.burst(enemy.x, enemy.y, BALANCE.snowyEnemies.frostWarden.breakColor, 30, "FROST SLAM");
   }
 
   private updateParticles(dt: number): void {
@@ -3700,6 +3836,38 @@ export class Game {
     }
     if (text) {
       this.particles.push({ x, y: y - 24, vx: 0, vy: -38, life: 0.9, maxLife: 0.9, radius: 0, color, text });
+    }
+  }
+
+  private iceShardBurst(x: number, y: number, count: number, text?: string): void {
+    for (let index = 0; index < count; index += 1) {
+      const angle = this.rng.range(0, Math.PI * 2);
+      const speed = this.rng.range(90, 260);
+      const life = this.rng.range(0.48, 0.95);
+      this.particles.push({
+        x,
+        y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        life,
+        maxLife: life,
+        radius: this.rng.range(3, 8),
+        color: this.rng.next() < 0.45 ? "#ffffff" : "#b9f5ff",
+        shape: "shard",
+      });
+    }
+    if (text) {
+      this.particles.push({
+        x,
+        y: y - 30,
+        vx: 0,
+        vy: -42,
+        life: 1,
+        maxLife: 1,
+        radius: 0,
+        color: BALANCE.snowyEnemies.frostWarden.breakColor,
+        text,
+      });
     }
   }
 

@@ -52,6 +52,7 @@ export const ASSETS = {
   } satisfies Record<ResourceKind, Record<"active" | "depleted", string>>,
   enemies: Object.fromEntries(Object.values(ENEMY_REGISTRY).map((entry) => [entry.id, image(entry.assets.portrait)])) as Record<EnemyKind, string>,
   iceboundBroken: image("enemies/icebound-zombie-broken"),
+  frostWardenBroken: image("enemies/frost-warden-broken"),
   enemyBodies: Object.fromEntries(Object.values(ENEMY_REGISTRY).map((entry) => [entry.id, image(entry.assets.body)])) as Record<EnemyKind, string>,
   enemyHands: Object.fromEntries(Object.values(ENEMY_REGISTRY).map((entry) => [entry.id, image(entry.assets.hand)])) as Record<EnemyKind, string>,
   player: {

@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-08-04T20:56:58.757Z",
+  "generatedAt": "2026-08-10T21:34:16.212Z",
   "sourceFoldersSearched": [
     "/Users/aiagents/Documents/GMTK/Audio"
   ],
-  "canonicalSoundCount": 62,
-  "assignedSoundCount": 62,
+  "canonicalSoundCount": 63,
+  "assignedSoundCount": 63,
   "missingSounds": [],
   "licenses": {
     "kenney": "CC0 1.0; credit appreciated but not required",
@@ -1635,6 +1635,44 @@
         "channels": 2,
         "duration": 1.247375,
         "bytes": 14329
+      }
+    },
+    {
+      "canonicalFilename": "ice-shatter.ogg",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/Sonniss.com-GDC2026-GameAudioBundle2of5/Alexander Kopeikin - 100 kHz Designed Ice/ice, block of ice crushed, heavy-015.wav",
+      "originalFilename": "ice, block of ice crushed, heavy-015.wav",
+      "creator": "Alexander Kopeikin",
+      "pack": "100 kHz Designed Ice",
+      "license": "Sonniss GDC Game Audio Bundle Part 9 royalty-free license",
+      "sourceSha256": "daf4e7d3087ab4cff41985396f51751637e1980648b07b404c939d797d38f69a",
+      "modifications": [
+        "Trimmed leading and trailing digital silence below -55 dB",
+        "Limited to the clean first 2.5 seconds",
+        "-4.9 dB fixed gain normalization without dynamic-range compression",
+        "Resampled to 48 kHz stereo",
+        "Encoded as OGG Opus at 80 kbps variable bitrate"
+      ],
+      "gameplayEvents": [
+        "Icebound armor breaks",
+        "Frost Warden armor breaks"
+      ],
+      "sourceTechnical": {
+        "codec": "pcm_s24le",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 2.835729,
+        "bytes": 822678,
+        "integratedLufs": -13.1,
+        "truePeakDbfs": -0.3,
+        "meanDbfs": -20,
+        "maxDbfs": -0.7
+      },
+      "outputTechnical": {
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 2,
+        "duration": 2.272771,
+        "bytes": 22160
       }
     },
     {

@@ -36,6 +36,7 @@ export type DamageSource =
   | "enemy-acid"
   | "popper-burst"
   | "rammer-charge"
+  | "frost-warden"
   | "enemy";
 
 export interface Vec2 {
@@ -168,6 +169,8 @@ export interface Enemy extends Circle {
   chargeHitIds?: Set<number>;
   iceArmor?: number;
   maxIceArmor?: number;
+  icicleCooldown?: number;
+  icicleAttackSerial?: number;
 }
 
 export interface Projectile extends Circle {
@@ -201,13 +204,24 @@ export interface Particle extends Vec2 {
   color: string;
   text?: string;
   resource?: ResourceKind;
+  shape?: "shard";
 }
 
 export interface AreaEffect extends Vec2 {
-  kind: "boss-slam" | "popper-acid";
+  kind: "boss-slam" | "frost-slam" | "popper-acid";
   radius: number;
   remaining: number;
   duration: number;
+}
+
+export interface IcicleStrike extends Vec2 {
+  id: number;
+  radius: number;
+  angle: number;
+  warningRemaining: number;
+  warningDuration: number;
+  eruptionRemaining: number;
+  eruptionDuration: number;
 }
 
 export interface World {

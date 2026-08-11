@@ -90,6 +90,62 @@ async function bootstrap(): Promise<void> {
         input.mouseDown = false;
         game.modalLock = true;
       }
+    } else if (preview.has("frostWardenPreview")) {
+      game.startRun("normal", "flagfall-frost-warden-preview", [], true, {
+        settle: false,
+        campaignTierId: "snowy",
+      });
+      game.phase = "night";
+      game.timer = 999;
+      game.player.x = game.flag.x;
+      game.player.y = game.flag.y + 135;
+      const bossPosition = { x: game.flag.x + 255, y: game.flag.y + 25 };
+      (game as unknown as {
+        spawnEnemy(position: { x: number; y: number }, kind: EnemyKind): void;
+      }).spawnEnemy(bossPosition, "frost-warden");
+      const warden = game.enemies.at(-1);
+      if (warden) {
+        warden.x = bossPosition.x;
+        warden.y = bossPosition.y;
+        const turret = {
+          id: 999_001,
+          ownerId: game.player.id,
+          kind: "turret" as const,
+          tier: "diamond" as const,
+          x: game.flag.x - 120,
+          y: game.flag.y + 35,
+          radius: BALANCE.structure.radius.turret,
+          health: 200,
+          maxHealth: 200,
+          cooldown: 1,
+          angle: 0.2,
+          lastArmAngle: 0,
+          harvesterHitResourceIds: new Set<number>(),
+          flash: 0,
+        };
+        game.structures.push(turret);
+        (game as unknown as { applySlowStatus(target: typeof turret, duration: number): void })
+          .applySlowStatus(turret, 5);
+        (game as unknown as { createIcicleAttack(enemy: typeof warden): void })
+          .createIcicleAttack(warden);
+        for (const strike of game.icicleStrikes) {
+          strike.warningRemaining = strike.warningDuration * 0.45;
+        }
+        if (preview.get("frostWardenPreview") === "eruption") {
+          for (const strike of game.icicleStrikes) {
+            strike.warningRemaining = 0;
+            strike.eruptionRemaining = strike.eruptionDuration * 0.72;
+          }
+        } else if (preview.get("frostWardenPreview") === "slam") {
+          (game as unknown as {
+            damageEnemy(enemy: typeof warden, amount: number, color: string, source: "player-melee", ownerId: string): void;
+          }).damageEnemy(warden, warden.iceArmor ?? 0, "#fff", "player-melee", game.player.id);
+          warden.flash = 0;
+          const slam = game.areaEffects.find((effect) => effect.kind === "frost-slam");
+          if (slam) slam.remaining = slam.duration * 0.6;
+        }
+      }
+      game.modalLock = true;
     } else if (preview.has("bossSlamPreview")) {
       game.startRun("normal", "flagfall-boss-slam-preview", [], true, { settle: false });
       game.phase = "night";

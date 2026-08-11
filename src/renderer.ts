@@ -7,7 +7,8 @@ import type { Game } from "./game";
 import { META_BALANCE } from "./meta-balance";
 import { affordability, type ResourceWallet } from "./rules";
 import { costLayoutRows } from "./cost-layout";
-import type { Enemy, Player, ResourceNode, Structure } from "./types";
+import { projectileVisualColor } from "./projectile-visuals";
+import type { Enemy, IcicleStrike, Player, ResourceNode, Structure } from "./types";
 
 const resourceColors = {
   wood: "#315f37",
@@ -268,6 +269,7 @@ export class Renderer {
       if (this.visible(game, structure.x, structure.y, structure.radius + 140)) this.drawStructure(structure, game.player);
     }
     for (const effect of game.areaEffects) this.drawAreaEffect(effect);
+    for (const strike of game.icicleStrikes) this.drawIcicleStrike(strike);
     if (game.buildPreview) this.drawBuildPreview(game);
     for (const projectile of game.projectiles) {
       if (projectile.owner === "boss-acid" || projectile.owner === "enemy-acid") {
@@ -307,7 +309,14 @@ export class Renderer {
         ctx.beginPath(); ctx.moveTo(-18, 0); ctx.lineTo(10, 0); ctx.stroke();
         ctx.beginPath(); ctx.moveTo(5, -5); ctx.lineTo(11, 0); ctx.lineTo(5, 5); ctx.stroke();
       } else {
-        this.drawTintedSprite(ASSETS.projectiles.arrow, projectile.color, -20, -4, 24, 8);
+        this.drawTintedSprite(
+          ASSETS.projectiles.arrow,
+          projectileVisualColor(projectile, game.activeCampaignTierId),
+          -20,
+          -4,
+          24,
+          8,
+        );
       }
       ctx.restore();
     }
@@ -337,6 +346,18 @@ export class Renderer {
         } else {
           ctx.fillText(particle.text, particle.x, particle.y);
         }
+      } else if (particle.shape === "shard") {
+        ctx.save();
+        ctx.translate(particle.x, particle.y);
+        ctx.rotate(Math.atan2(particle.vy, particle.vx));
+        ctx.fillStyle = particle.color;
+        ctx.beginPath();
+        ctx.moveTo(particle.radius * 1.8, 0);
+        ctx.lineTo(-particle.radius, particle.radius * 0.55);
+        ctx.lineTo(-particle.radius * 0.45, -particle.radius * 0.55);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
       } else {
         ctx.fillStyle = particle.color;
         ctx.beginPath();
@@ -456,7 +477,7 @@ export class Renderer {
     ctx.save();
     ctx.translate(structure.x, structure.y);
     if (structure.kind === "turret" && isSlowed(structure)) {
-      ctx.filter = "sepia(1) saturate(1.8) hue-rotate(155deg) brightness(1.08)";
+      ctx.filter = "saturate(.68) brightness(1.1) contrast(.94)";
     }
     if (structure.kind === "door") {
       const proximity = Math.max(0, Math.min(1,
@@ -473,6 +494,7 @@ export class Renderer {
       structure.flash > 0,
     );
     if (structure.kind === "turret") {
+      ctx.save();
       ctx.rotate(structure.angle);
       this.drawSprite(
         ASSETS.structureParts.turretBarrels[structure.tier],
@@ -482,7 +504,9 @@ export class Renderer {
         40,
         structure.flash > 0,
       );
+      ctx.restore();
     } else if (structure.kind === "harvester") {
+      ctx.save();
       ctx.rotate(structure.angle);
       this.drawSprite(
         ASSETS.structureParts.harvesterArms[structure.tier],
@@ -492,8 +516,35 @@ export class Renderer {
         30,
         structure.flash > 0,
       );
+      ctx.restore();
     }
     this.drawStructureCracks(structure);
+    if (structure.kind === "turret" && isSlowed(structure)) {
+      ctx.filter = "none";
+      this.drawFrostAccumulation(structure.radius);
+    }
+    ctx.restore();
+  }
+
+  private drawFrostAccumulation(radius: number): void {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.fillStyle = "rgba(248,255,255,.86)";
+    ctx.strokeStyle = "rgba(190,222,228,.82)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.ellipse(-radius * 0.18, -radius * 0.66, radius * 0.62, radius * 0.2, -0.08, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    for (const [x, y, size] of [
+      [-0.6, -0.2, 0.1],
+      [0.52, -0.08, 0.08],
+      [0.2, -0.5, 0.07],
+    ] as const) {
+      ctx.beginPath();
+      ctx.arc(radius * x, radius * y, radius * size, 0, Math.PI * 2);
+      ctx.fill();
+    }
     ctx.restore();
   }
 
@@ -631,7 +682,7 @@ export class Renderer {
       ctx.arc(0, 0, enemy.radius + 11, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * enemy.attackWindup);
       ctx.stroke();
     }
-    if (game.isBossEnemyKind(enemy.kind) && enemy.bossSmashWindup > 0) {
+    if (enemy.kind === "boss" && enemy.bossSmashWindup > 0) {
       const slamProgress = Math.min(
         1,
         enemy.bossSmashWindup / BALANCE.boss.slam.chargeDuration,
@@ -654,7 +705,7 @@ export class Renderer {
         -Math.PI / 2 + Math.PI * 2 * slamProgress);
       ctx.stroke();
     }
-    if (game.isBossEnemyKind(enemy.kind) && enemy.acidWindup > 0) {
+    if (enemy.kind === "boss" && enemy.acidWindup > 0) {
       ctx.strokeStyle = "#cfff4c";
       ctx.lineWidth = 6;
       ctx.beginPath();
@@ -670,8 +721,43 @@ export class Renderer {
     }
     if (game.isBossEnemyKind(enemy.kind)) {
       const size = enemy.radius * 2.65;
-      this.drawSprite(ASSETS.enemyBodies[enemy.kind], -size / 2, -size / 2, size, size, enemy.flash > 0);
+      const armored = enemy.kind === "frost-warden" && (enemy.iceArmor ?? 0) > 0;
+      const bossSprite = enemy.kind === "frost-warden" && !armored
+        ? ASSETS.frostWardenBroken
+        : ASSETS.enemyBodies[enemy.kind];
+      this.drawSprite(bossSprite, -size / 2, -size / 2, size, size, enemy.flash > 0);
+      if (armored) {
+        ctx.fillStyle = "rgba(174,239,250,.22)";
+        ctx.strokeStyle = "rgba(225,252,255,.92)";
+        ctx.lineWidth = 5;
+        for (let index = 0; index < 8; index += 1) {
+          const shardAngle = index / 8 * Math.PI * 2;
+          const inner = enemy.radius * 0.78;
+          const outer = enemy.radius * (1.08 + (index % 2) * 0.08);
+          ctx.beginPath();
+          ctx.moveTo(Math.cos(shardAngle - 0.24) * inner, Math.sin(shardAngle - 0.24) * inner);
+          ctx.lineTo(Math.cos(shardAngle) * outer, Math.sin(shardAngle) * outer);
+          ctx.lineTo(Math.cos(shardAngle + 0.24) * inner, Math.sin(shardAngle + 0.24) * inner);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+        }
+      }
       ctx.restore();
+      if (armored) {
+        this.healthBar(
+          enemy.x,
+          enemy.y - enemy.radius - 12,
+          160,
+          (enemy.iceArmor ?? 0) / Math.max(1, enemy.maxIceArmor ?? 1),
+          BALANCE.snowyEnemies.frostWarden.armorBarColor,
+        );
+        ctx.fillStyle = "#e9fdff";
+        ctx.font = "900 11px system-ui";
+        ctx.textAlign = "center";
+        ctx.fillText("ICE ARMOR", enemy.x, enemy.y - enemy.radius - 22);
+        return;
+      }
       this.healthBar(enemy.x, enemy.y - enemy.radius - 12, 160, enemy.health / enemy.maxHealth, "#85cd5d");
       const segments = Math.max(0, Math.ceil((enemy.health / enemy.maxHealth) * 10));
       ctx.fillStyle = "#fff0c2";
@@ -752,14 +838,83 @@ export class Renderer {
       && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     const progress = Math.max(0, Math.min(1, 1 - effect.remaining / effect.duration));
     const radius = reducedMotion ? effect.radius : effect.radius * progress;
-    const path = effect.kind === "boss-slam"
-      ? ASSETS.effects.bossSlamWave
-      : ASSETS.effects.popperAcidBurst;
+    if (effect.kind === "frost-slam") {
+      const ctx = this.ctx;
+      ctx.save();
+      ctx.globalAlpha = Math.max(0.2, 0.78 - progress * 0.48);
+      const gradient = ctx.createRadialGradient(effect.x, effect.y, 0, effect.x, effect.y, radius);
+      gradient.addColorStop(0, "rgba(255,255,255,.08)");
+      gradient.addColorStop(0.72, "rgba(214,249,255,.18)");
+      gradient.addColorStop(1, "rgba(173,231,241,.7)");
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(effect.x, effect.y, radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "rgba(239,253,255,.92)";
+      ctx.lineWidth = 8;
+      ctx.stroke();
+      ctx.restore();
+      return;
+    }
+    const path = effect.kind === "boss-slam" ? ASSETS.effects.bossSlamWave : ASSETS.effects.popperAcidBurst;
     const size = radius * 2;
     this.ctx.save();
     this.ctx.globalAlpha = reducedMotion ? 0.72 : Math.max(0.24, 1 - progress * 0.58);
     this.drawSprite(path, effect.x - radius, effect.y - radius, size, size);
     this.ctx.restore();
+  }
+
+  private drawIcicleStrike(strike: IcicleStrike): void {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.translate(strike.x, strike.y);
+    if (strike.warningRemaining > 0) {
+      const progress = 1 - strike.warningRemaining / strike.warningDuration;
+      ctx.fillStyle = "rgba(124,190,205,.16)";
+      ctx.strokeStyle = "rgba(67,117,129,.9)";
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(0, 0, strike.radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.strokeStyle = "rgba(241,254,255,.96)";
+      ctx.lineWidth = 8;
+      ctx.beginPath();
+      ctx.arc(0, 0, strike.radius - 7, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * progress);
+      ctx.stroke();
+      ctx.fillStyle = `rgba(229,251,255,${0.12 + progress * 0.24})`;
+      ctx.beginPath();
+      ctx.arc(0, 0, strike.radius * progress, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+      return;
+    }
+    const progress = 1 - strike.eruptionRemaining / strike.eruptionDuration;
+    const rise = Math.min(1, progress / 0.38);
+    const fade = progress > 0.72 ? 1 - (progress - 0.72) / 0.28 : 1;
+    ctx.globalAlpha = Math.max(0, fade);
+    ctx.rotate(strike.angle);
+    ctx.fillStyle = "rgba(121,190,205,.2)";
+    ctx.beginPath();
+    ctx.ellipse(0, 8, strike.radius * 0.8, strike.radius * 0.28, 0, 0, Math.PI * 2);
+    ctx.fill();
+    const height = strike.radius * 2.3 * rise;
+    const width = strike.radius * 0.65;
+    const gradient = ctx.createLinearGradient(-width / 2, 0, width / 2, 0);
+    gradient.addColorStop(0, "#6eb4c5");
+    gradient.addColorStop(0.48, "#f7ffff");
+    gradient.addColorStop(1, "#9cecff");
+    ctx.fillStyle = gradient;
+    ctx.strokeStyle = "#4d91a3";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(0, -height);
+    ctx.lineTo(width / 2, 5);
+    ctx.lineTo(-width / 2, 5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
   }
 
   private drawPlayer(game: Game): void {
@@ -773,7 +928,7 @@ export class Renderer {
     ctx.translate(player.x, player.y);
     ctx.rotate(angle);
     if (isSlowed(player)) {
-      ctx.filter = "sepia(1) saturate(1.8) hue-rotate(155deg) brightness(1.08)";
+      ctx.filter = "saturate(.7) brightness(1.08) contrast(.95)";
     }
     const action = game.getSelectedAction();
     const gloveTier = game.getBestGlove();
@@ -869,6 +1024,11 @@ export class Renderer {
       ctx.rotate(-Math.PI / 2);
       this.drawSprite(META_BALANCE.assets.equipment.helmet[helmet.tier], -30, -37, 60, 55, flashing);
       ctx.restore();
+    }
+    if (isSlowed(player)) {
+      ctx.filter = "none";
+      ctx.rotate(-angle);
+      this.drawFrostAccumulation(player.radius);
     }
     ctx.restore();
   }

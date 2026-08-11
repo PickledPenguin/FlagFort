@@ -5,6 +5,7 @@ import { BALANCE } from "./config";
 import { Game } from "./game";
 import { Input } from "./input";
 import { applySlow, isSlowed, updateStatuses } from "./status-effects";
+import { projectileVisualColor, SNOW_ARROW_COLOR } from "./projectile-visuals";
 import type { DamageSource, Enemy, PlayerId, Structure, StructureKind } from "./types";
 
 function gameFixture(): Game {
@@ -206,5 +207,106 @@ describe("Icebound armor", () => {
     damageEnemy(game, icebound, 5, "player-melee");
     expect(icebound.iceArmor).toBe(0);
     expect(game.particles.filter((particle) => particle.text === "Break")).toHaveLength(1);
+  });
+});
+
+describe("Frost Warden", () => {
+  it("shows armor as its first durability layer, then triggers Frost Slam exactly once", () => {
+    const game = gameFixture();
+    const warden = spawn(game, "frost-warden", game.player.x + 120, game.player.y);
+    const firstBoss = spawn(game, "boss", game.player.x + 600, game.player.y);
+    const turret = structure(730, "turret", warden.x + 80, warden.y);
+    const wall = structure(731, "wall", warden.x + 80, warden.y + 40);
+    game.structures = [turret, wall];
+
+    expect(warden.health).toBeLessThan(firstBoss.health);
+    expect(warden.maxIceArmor! + warden.maxHealth).toBeGreaterThan(firstBoss.maxHealth);
+    const healthBefore = warden.health;
+    damageEnemy(game, warden, warden.iceArmor!, "player-melee");
+
+    expect(warden.iceArmor).toBe(0);
+    expect(warden.health).toBe(healthBefore);
+    expect(game.player.statuses?.slow?.remaining).toBe(BALANCE.snowyEnemies.frostWarden.slam.slowDuration);
+    expect(turret.statuses?.slow?.remaining).toBe(BALANCE.snowyEnemies.frostWarden.slam.slowDuration);
+    expect(wall.statuses).toBeUndefined();
+    expect(game.areaEffects.filter((effect) => effect.kind === "frost-slam")).toHaveLength(1);
+    expect(game.shake).toBe(BALANCE.snowyEnemies.frostWarden.armorBreakShake);
+
+    damageEnemy(game, warden, 5, "player-melee");
+    expect(game.areaEffects.filter((effect) => effect.kind === "frost-slam")).toHaveLength(1);
+  });
+
+  it("generates the same safe, organic icicle warnings from the same run seed", () => {
+    const first = gameFixture();
+    const second = gameFixture();
+    const firstWarden = spawn(first, "frost-warden", first.player.x + 400, first.player.y);
+    const secondWarden = spawn(second, "frost-warden", second.player.x + 400, second.player.y);
+    const firstInternals = first as unknown as { createIcicleAttack(enemy: Enemy): void };
+    const secondInternals = second as unknown as { createIcicleAttack(enemy: Enemy): void };
+
+    firstInternals.createIcicleAttack(firstWarden);
+    secondInternals.createIcicleAttack(secondWarden);
+
+    expect(first.icicleStrikes.map(({ x, y, angle }) => ({ x, y, angle })))
+      .toEqual(second.icicleStrikes.map(({ x, y, angle }) => ({ x, y, angle })));
+    expect(first.icicleStrikes).toHaveLength(BALANCE.snowyEnemies.frostWarden.icicle.count);
+    for (const strike of first.icicleStrikes) {
+      expect(Math.hypot(strike.x - first.player.x, strike.y - first.player.y))
+        .toBeGreaterThanOrEqual(BALANCE.snowyEnemies.frostWarden.icicle.placementMinimumRadius);
+      expect(Math.abs(strike.angle)).toBeLessThanOrEqual(0.22);
+    }
+  });
+
+  it("damages and slows caught defenders when an icicle erupts", () => {
+    const game = gameFixture();
+    const config = BALANCE.snowyEnemies.frostWarden.icicle;
+    const turret = structure(740, "turret", game.player.x + 20, game.player.y);
+    const wall = structure(741, "wall", game.player.x - 20, game.player.y);
+    game.structures = [turret, wall];
+    game.icicleStrikes = [{
+      id: 9002,
+      x: game.player.x,
+      y: game.player.y,
+      radius: config.radius,
+      angle: 0.1,
+      warningRemaining: 0.01,
+      warningDuration: config.warningDuration,
+      eruptionRemaining: config.eruptionDuration,
+      eruptionDuration: config.eruptionDuration,
+    }];
+
+    (game as unknown as { updateIcicleStrikes(dt: number): void }).updateIcicleStrikes(0.02);
+
+    expect(game.player.health).toBeLessThan(game.player.maxHealth);
+    expect(game.player.statuses?.slow?.remaining).toBe(config.slowDuration);
+    expect(turret.health).toBeLessThan(turret.maxHealth);
+    expect(turret.statuses?.slow?.remaining).toBe(config.slowDuration);
+    expect(wall.health).toBeLessThan(wall.maxHealth);
+    expect(wall.statuses).toBeUndefined();
+    expect(game.particles.some((particle) => particle.shape === "shard")).toBe(true);
+  });
+
+  it("never uses the first boss acid or charged ground slam attacks", () => {
+    const game = gameFixture();
+    const warden = spawn(game, "frost-warden", game.player.x + 200, game.player.y);
+    warden.acidCooldown = 0;
+    warden.summonCooldown = 0;
+    (game as unknown as { updateBoss(enemy: Enemy, dt: number): void }).updateBoss(warden, 2);
+    expect(game.projectiles.some((projectile) => projectile.owner === "boss-acid")).toBe(false);
+    expect(warden.acidWindup).toBe(0);
+    expect(warden.bossSmashWindup).toBe(0);
+  });
+});
+
+describe("snow projectile visuals", () => {
+  const projectile = { owner: "player" as const, color: "#f6e2a8" };
+
+  it("uses a centralized brown override for player and turret arrows only in snow", () => {
+    expect(projectileVisualColor(projectile, "snowy")).toBe(SNOW_ARROW_COLOR);
+    expect(projectileVisualColor({ owner: "turret", color: "#42c9d4" }, "snowy"))
+      .toBe(SNOW_ARROW_COLOR);
+    expect(projectileVisualColor(projectile, "forest")).toBe(projectile.color);
+    expect(projectileVisualColor({ owner: "enemy-arrow", color: "#111" }, "snowy"))
+      .toBe("#111");
   });
 });

@@ -385,6 +385,15 @@ export const selections = [
     events: ["A breaker performs its heavy attack"],
   },
   {
+    id: "ice-shatter",
+    source: source("Sonniss.com-GDC2026-GameAudioBundle2of5/Alexander Kopeikin - 100 kHz Designed Ice/ice, block of ice crushed, heavy-015.wav"),
+    creator: "Alexander Kopeikin",
+    pack: "100 kHz Designed Ice",
+    ...SONNISS_ROYALTY_FREE,
+    maxDuration: 2.5,
+    events: ["Icebound armor breaks", "Frost Warden armor breaks"],
+  },
+  {
     id: "jumper-jump",
     source: manual("jumper-jump"),
     preserveSource: true,
