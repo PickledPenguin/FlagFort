@@ -110,7 +110,7 @@ describe("shared snowy slow status", () => {
     }).enemyAttack(frostbiter, game.player, 0.1);
     expect(game.player.statuses?.slow?.remaining).toBe(BALANCE.snowyEnemies.slow.frostbiterDuration);
     expect(game.particles.some((particle) => particle.text === "Slowed"
-      && particle.color === BALANCE.snowyEnemies.slow.tint)).toBe(true);
+      && particle.color === BALANCE.snowyEnemies.slow.popupTextColor)).toBe(true);
 
     const wall = structure(710, "wall", frostbiter.x, frostbiter.y);
     frostbiter.cooldown = 0;
@@ -249,12 +249,26 @@ describe("Frost Warden", () => {
 
     expect(first.icicleStrikes.map(({ x, y, angle }) => ({ x, y, angle })))
       .toEqual(second.icicleStrikes.map(({ x, y, angle }) => ({ x, y, angle })));
-    expect(first.icicleStrikes).toHaveLength(BALANCE.snowyEnemies.frostWarden.icicle.count);
-    for (const strike of first.icicleStrikes) {
+    expect(first.icicleStrikes).toHaveLength(BALANCE.snowyEnemies.frostWarden.icicle.count + 1);
+    const targeted = first.icicleStrikes.find((strike) =>
+      strike.x === first.player.x && strike.y === first.player.y);
+    expect(targeted).toBeDefined();
+    expect(targeted?.warningRemaining).toBe(
+      BALANCE.snowyEnemies.frostWarden.icicle.warningDuration,
+    );
+    for (const strike of first.icicleStrikes.filter((candidate) => candidate !== targeted)) {
       expect(Math.hypot(strike.x - first.player.x, strike.y - first.player.y))
         .toBeGreaterThanOrEqual(BALANCE.snowyEnemies.frostWarden.icicle.placementMinimumRadius);
       expect(Math.abs(strike.angle)).toBeLessThanOrEqual(0.22);
     }
+  });
+
+  it("uses the frosty blue popup color for slows and armor breaks", () => {
+    const game = gameFixture();
+    (game as unknown as { applySlowStatus(target: typeof game.player, duration: number): void })
+      .applySlowStatus(game.player, 1);
+    expect(game.particles.find((particle) => particle.text === "Slowed")?.color)
+      .toBe(BALANCE.snowyEnemies.slow.popupTextColor);
   });
 
   it("damages and slows caught defenders when an icicle erupts", () => {

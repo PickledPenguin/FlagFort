@@ -127,10 +127,12 @@ export const SOUND_CONFIG: Record<SoundId, SoundConfig> = {
   "sword-swing": effect(0.48, {
     cooldown: 0.1,
     positioning: "centered",
+    variation: { pitch: 0.035, volume: 0 },
   }),
   "sword-hit": effect(0.7, {
     cooldown: 0.055,
     positioning: "spatial",
+    variation: { pitch: 0.035, volume: 0 },
   }),
   "player-hurt": effect(0.92, { cooldown: 0.09, positioning: "centered" }),
   "player-heal": effect(0.55, { cooldown: 0.8, positioning: "centered" }),
@@ -248,6 +250,7 @@ export interface AudioCueDetail {
   position?: Vec2;
   delayMs?: number;
   volumeMultiplier?: number;
+  playbackChannel?: "default" | "player-harvest" | "harvester-harvest";
 }
 
 export interface AudioSpatialStateDetail {
@@ -353,7 +356,7 @@ export function selectAudiblePortals(
 
 interface ActivePlayback {
   source: AudioBufferSourceNode;
-  group?: ConcurrencyGroup;
+  groupKey?: string;
 }
 
 interface ActiveLoop {
@@ -396,8 +399,8 @@ export class AudioManager {
   private platformMuted = false;
   private encoded = new Map<SoundId, Promise<ArrayBuffer | null>>();
   private buffers = new Map<SoundId, Promise<AudioBuffer | null>>();
-  private cooldowns = new Map<SoundId, number>();
-  private activeByGroup = new Map<ConcurrencyGroup, Set<ActivePlayback>>();
+  private cooldowns = new Map<string, number>();
+  private activeByGroup = new Map<string, Set<ActivePlayback>>();
   private loops = new Map<string, ActiveLoop>();
   private pending: AudioCueDetail[] = [];
   private listener: Vec2 = { x: 0, y: 0 };
@@ -584,13 +587,18 @@ export class AudioManager {
     if (!context || context.state !== "running") return;
     const config = SOUND_CONFIG[detail.cue];
     const now = context.currentTime;
-    const availableAt = this.cooldowns.get(detail.cue) ?? 0;
+    const channel = detail.playbackChannel ?? "default";
+    const cooldownKey = `${channel}:${detail.cue}`;
+    const groupKey = config.concurrencyGroup ? `${channel}:${config.concurrencyGroup}` : undefined;
+    const availableAt = this.cooldowns.get(cooldownKey) ?? 0;
     if (now < availableAt) return;
-    if (config.cooldown) this.cooldowns.set(detail.cue, now + config.cooldown);
-    if (config.concurrencyGroup && !this.hasConcurrency(config.concurrencyGroup)) return;
+    if (config.cooldown) this.cooldowns.set(cooldownKey, now + config.cooldown);
+    if (config.concurrencyGroup && groupKey
+      && !this.hasConcurrency(groupKey, config.concurrencyGroup)) return;
     const buffer = await this.getBuffer(detail.cue);
     if (!buffer || !this.context || this.context !== context) return;
-    if (config.concurrencyGroup && !this.hasConcurrency(config.concurrencyGroup)) return;
+    if (config.concurrencyGroup && groupKey
+      && !this.hasConcurrency(groupKey, config.concurrencyGroup)) return;
     const source = context.createBufferSource();
     const gain = context.createGain();
     source.buffer = buffer;
@@ -612,11 +620,11 @@ export class AudioManager {
     } else {
       gain.connect(bus);
     }
-    const playback: ActivePlayback = { source, group: config.concurrencyGroup };
-    if (config.concurrencyGroup) {
-      const active = this.activeByGroup.get(config.concurrencyGroup) ?? new Set();
+    const playback: ActivePlayback = { source, groupKey };
+    if (groupKey) {
+      const active = this.activeByGroup.get(groupKey) ?? new Set();
       active.add(playback);
-      this.activeByGroup.set(config.concurrencyGroup, active);
+      this.activeByGroup.set(groupKey, active);
     }
     source.addEventListener("ended", () => this.removePlayback(playback), { once: true });
     source.start();
@@ -624,16 +632,16 @@ export class AudioManager {
     this.updateDebug();
   }
 
-  private hasConcurrency(group: ConcurrencyGroup): boolean {
-    const active = this.activeByGroup.get(group);
+  private hasConcurrency(groupKey: string, group: ConcurrencyGroup): boolean {
+    const active = this.activeByGroup.get(groupKey);
     return !active || active.size < AUDIO_CONCURRENCY_LIMITS[group];
   }
 
   private removePlayback(playback: ActivePlayback): void {
-    if (!playback.group) return;
-    const active = this.activeByGroup.get(playback.group);
+    if (!playback.groupKey) return;
+    const active = this.activeByGroup.get(playback.groupKey);
     active?.delete(playback);
-    if (active?.size === 0) this.activeByGroup.delete(playback.group);
+    if (active?.size === 0) this.activeByGroup.delete(playback.groupKey);
   }
 
   private createSpatialNodes(position: Vec2): {

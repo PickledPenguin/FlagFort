@@ -64,12 +64,12 @@ export const DEFAULT_CHALLENGE_MODIFIERS: Readonly<ChallengeModifiers> = {
 
 export const CHALLENGES = ([
   {
-    id: "expensive-construction",
-    title: "Expensive Construction",
-    description: "Building and structure upgrades cost 50% more.",
-    icon: "hammer",
+    id: "mortal-defender",
+    title: "Mortal Defender",
+    description: "Flag healing and automatic dawn healing are disabled.",
+    icon: "heart-off",
     xpBonusPercent: 5,
-    modifiers: { constructionCostMultiplier: 1.5 },
+    modifiers: { disablesPlayerHealing: true, disablesDawnPlayerHealing: true },
   },
   {
     id: "resource-drought",
@@ -104,12 +104,12 @@ export const CHALLENGES = ([
     modifiers: { specialZombieWeightMultiplier: 2 },
   },
   {
-    id: "mortal-defender",
-    title: "Mortal Defender",
-    description: "Flag healing and automatic dawn healing are disabled.",
-    icon: "heart-off",
+    id: "expensive-construction",
+    title: "Expensive Construction",
+    description: "Building and structure upgrades cost 50% more.",
+    icon: "hammer",
     xpBonusPercent: 15,
-    modifiers: { disablesPlayerHealing: true, disablesDawnPlayerHealing: true },
+    modifiers: { constructionCostMultiplier: 1.5 },
   },
   {
     id: "portal-swarm",

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-10T21:34:16.212Z",
+  "generatedAt": "2026-08-11T04:21:44.854Z",
   "sourceFoldersSearched": [
     "/Users/aiagents/Documents/GMTK/Audio"
   ],
@@ -1639,16 +1639,15 @@
     },
     {
       "canonicalFilename": "ice-shatter.ogg",
-      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/Sonniss.com-GDC2026-GameAudioBundle2of5/Alexander Kopeikin - 100 kHz Designed Ice/ice, block of ice crushed, heavy-015.wav",
-      "originalFilename": "ice, block of ice crushed, heavy-015.wav",
-      "creator": "Alexander Kopeikin",
-      "pack": "100 kHz Designed Ice",
-      "license": "Sonniss GDC Game Audio Bundle Part 9 royalty-free license",
-      "sourceSha256": "daf4e7d3087ab4cff41985396f51751637e1980648b07b404c939d797d38f69a",
+      "originalSourcePath": "/Users/aiagents/Documents/GMTK/Audio/kenney_impact-sounds/Audio/impactGlass_heavy_001.ogg",
+      "originalFilename": "impactGlass_heavy_001.ogg",
+      "creator": "Kenney",
+      "pack": "Impact Sounds",
+      "license": "CC0 1.0",
+      "sourceSha256": "58686e0e562612cc566791844a10e269f8d1921f4766c14ba43976fd0a429f4e",
       "modifications": [
         "Trimmed leading and trailing digital silence below -55 dB",
-        "Limited to the clean first 2.5 seconds",
-        "-4.9 dB fixed gain normalization without dynamic-range compression",
+        "-0.2 dB fixed gain normalization without dynamic-range compression",
         "Resampled to 48 kHz stereo",
         "Encoded as OGG Opus at 80 kbps variable bitrate"
       ],
@@ -1657,22 +1656,22 @@
         "Frost Warden armor breaks"
       ],
       "sourceTechnical": {
-        "codec": "pcm_s24le",
-        "sampleRate": 48000,
+        "codec": "vorbis",
+        "sampleRate": 44100,
         "channels": 2,
-        "duration": 2.835729,
-        "bytes": 822678,
-        "integratedLufs": -13.1,
-        "truePeakDbfs": -0.3,
-        "meanDbfs": -20,
-        "maxDbfs": -0.7
+        "duration": 0.429002,
+        "bytes": 8946,
+        "integratedLufs": -24.6,
+        "truePeakDbfs": -1,
+        "meanDbfs": -25.3,
+        "maxDbfs": -1
       },
       "outputTechnical": {
         "codec": "opus",
         "sampleRate": 48000,
         "channels": 2,
-        "duration": 2.272771,
-        "bytes": 22160
+        "duration": 0.435542,
+        "bytes": 5486
       }
     },
     {

@@ -51,12 +51,12 @@ describe("challenge configuration", () => {
 
   it("keeps challenge XP in the requested balance and display order", () => {
     expect(CHALLENGES.map(({ title, xpBonusPercent }) => [title, xpBonusPercent])).toEqual([
-      ["Expensive Construction", 5],
+      ["Mortal Defender", 5],
       ["Resource Drought", 10],
       ["Short Days", 10],
       ["Horde Night", 10],
       ["Elite Invasion", 10],
-      ["Mortal Defender", 15],
+      ["Expensive Construction", 15],
       ["Portal Swarm", 15],
       ["Glass Defenses", 15],
       ["Accelerated Horde", 20],

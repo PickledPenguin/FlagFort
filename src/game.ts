@@ -895,7 +895,9 @@ export class Game {
       }
       if (key === "flagHealth") {
         if (!this.getChallengeModifiers().disablesFlagHealthUpgrades) {
-          this.flag.maxHealth = oldFlagMax + BALANCE.upgrades.flagHealth.amount;
+          const increase = BALANCE.upgrades.flagHealth.amount;
+          this.flag.maxHealth = oldFlagMax + increase;
+          this.flag.health = Math.min(this.flag.maxHealth, this.flag.health + increase);
         }
       }
     }
@@ -1286,7 +1288,7 @@ export class Game {
         ? Math.max(0, harvestInterval - this.meleeSwingElapsed)
         : harvestInterval;
       this.meleeSwingDuration = harvestInterval;
-      this.harvestNode(node, this.getBestGlove(), 1);
+      this.harvestNode(node, this.getBestGlove(), 1, "player");
     }
     else this.burst(
       this.player.x + Math.cos(this.player.angle) * 65,
@@ -1368,6 +1370,7 @@ export class Game {
     this.burst(structure.x, structure.y, "#74f3a5", 16, free ? "FREE REPAIR" : "FULL REPAIR");
     if (!free) this.floatWallet(structure.x, structure.y + 30, preview.cost, "-");
     emitAudioCue({ cue: "structure-repair", position: { x: structure.x, y: structure.y } });
+    if (free) emitAudioCue({ cue: "resource-collected" });
     this.recordTutorialEvent(`repaired-${structure.kind}`);
   }
 
@@ -1725,7 +1728,7 @@ export class Game {
       const node = item;
       if (node.health > 0 && overlaps(tip, node) && !structure.harvesterHitResourceIds.has(node.id)) {
         structure.harvesterHitResourceIds.add(node.id);
-        this.harvestNode(node, structure.tier, 0.2);
+        this.harvestNode(node, structure.tier, 0.2, "harvester");
         if (this.tutorialMode) {
           this.tutorialHarvestedNodeIds.add(node.id);
           if (this.tutorialHarvestedNodeIds.size >= 2) this.recordTutorialEvent("harvested-two-nodes");
@@ -1734,7 +1737,12 @@ export class Game {
     }
   }
 
-  private harvestNode(node: ResourceNode, tier: Tier, damageScale: number): void {
+  private harvestNode(
+    node: ResourceNode,
+    tier: Tier,
+    damageScale: number,
+    audioOrigin: "player" | "harvester" = "player",
+  ): void {
     if (node.health <= 0) return;
     const amount = BALANCE.harvest[tier][node.kind];
     if (amount <= 0) {
@@ -1749,7 +1757,11 @@ export class Game {
     this.burst(node.x, node.y, BALANCE.tierColors[node.kind], 4);
     this.floatResource(node.x, node.y - 24, node.kind, `+${amount}`);
     const hitCue = `${node.kind}-hit` as "wood-hit" | "stone-hit" | "gold-hit" | "diamond-hit";
-    emitAudioCue({ cue: hitCue, position: { x: node.x, y: node.y } });
+    emitAudioCue({
+      cue: hitCue,
+      position: audioOrigin === "harvester" ? { x: node.x, y: node.y } : undefined,
+      playbackChannel: audioOrigin === "harvester" ? "harvester-harvest" : "player-harvest",
+    });
     // No resource collected audio, muddles the specific resource hit sounds and not necessary
     //emitAudioCue({ cue: "resource-collected", position: { x: node.x, y: node.y } });
     if (node.health <= 0) {
@@ -2126,6 +2138,9 @@ export class Game {
       }
       if (targetDistance <= reach) {
         this.enemyAttack(enemy, target, dt);
+        if (target === this.player && enemy.attackWindup > 0) {
+          this.moveEnemyToward(enemy, target, dt, true);
+        }
         continue;
       }
       const movementTarget = enemy.path[enemy.pathIndex] ?? target;
@@ -2482,7 +2497,12 @@ export class Game {
     this.burst(target.x, target.y, "#ff695f", this.isBossEnemyKind(enemy.kind) ? 14 : 6, `-${Math.round(damage)}`);
   }
 
-  private moveEnemyToward(enemy: Enemy, target: { x: number; y: number }, dt: number): void {
+  private moveEnemyToward(
+    enemy: Enemy,
+    target: { x: number; y: number },
+    dt: number,
+    preserveMeleeWindup = false,
+  ): void {
     if (enemy.kind === "jumper") {
       enemy.path = [];
       enemy.pathIndex = 0;
@@ -2493,11 +2513,12 @@ export class Game {
     const active = enemy.path[enemy.pathIndex] ?? target;
     const angle = Math.atan2(active.y - enemy.y, active.x - enemy.x);
     const attackMode = ENEMY_REGISTRY[enemy.kind].attack.mode;
-    if (attackMode === "melee" || attackMode === "boss") {
+    if (!preserveMeleeWindup && (attackMode === "melee" || attackMode === "boss")) {
       enemy.attackWindup = Math.max(0, enemy.attackWindup - dt * 2.5);
     }
     const sunlightMultiplier = enemy.burning && this.phase === "day" ? BALANCE.sunlight.movementMultiplier : 1;
-    const speed = enemy.speed * sunlightMultiplier * (enemy.attackWindup > 0 ? 0.2 : 1);
+    const windupMovementMultiplier = preserveMeleeWindup ? 1 : enemy.attackWindup > 0 ? 0.2 : 1;
+    const speed = enemy.speed * sunlightMultiplier * windupMovementMultiplier;
     const beforeX = enemy.x;
     const beforeY = enemy.y;
     enemy.x += Math.cos(angle) * speed * dt;
@@ -2689,7 +2710,14 @@ export class Game {
 
   private applySlowStatus(target: Player | Structure, duration: number): void {
     applySlow(target, duration);
-    this.burst(target.x, target.y, BALANCE.snowyEnemies.slow.tint, 8, "Slowed");
+    this.burst(
+      target.x,
+      target.y,
+      BALANCE.snowyEnemies.slow.tint,
+      8,
+      "Slowed",
+      BALANCE.snowyEnemies.slow.popupTextColor,
+    );
   }
 
   private enemyRangedAttack(
@@ -3101,6 +3129,17 @@ export class Game {
         eruptionDuration: config.eruptionDuration,
       });
     }
+    this.icicleStrikes.push({
+      id: this.nextId++,
+      x: this.player.x,
+      y: this.player.y,
+      radius: config.radius,
+      angle: rng.range(-0.22, 0.22),
+      warningRemaining: config.warningDuration,
+      warningDuration: config.warningDuration,
+      eruptionRemaining: config.eruptionDuration,
+      eruptionDuration: config.eruptionDuration,
+    });
   }
 
   private updateIcicleStrikes(dt: number): void {
@@ -3130,7 +3169,14 @@ export class Game {
       this.player.hurtFlash = 0.3;
       this.applySlowStatus(this.player, config.slowDuration);
       emitAudioCue({ cue: "player-hurt", position: { x: this.player.x, y: this.player.y } });
-      this.burst(this.player.x, this.player.y, BALANCE.snowyEnemies.frostWarden.breakColor, 8, `-${Math.round(damage)}`);
+      this.burst(
+        this.player.x,
+        this.player.y,
+        BALANCE.snowyEnemies.frostWarden.breakColor,
+        8,
+        `-${Math.round(damage)}`,
+        BALANCE.snowyEnemies.slow.popupTextColor,
+      );
     }
     for (const structure of this.structures) {
       if (distance(strike, structure) > strike.radius + structure.radius) continue;
@@ -3221,7 +3267,14 @@ export class Game {
           impacted = true;
           if (projectile.slowDuration) this.applySlowStatus(this.player, projectile.slowDuration);
           emitAudioCue({ cue: "player-hurt", position: { x: this.player.x, y: this.player.y } });
-          this.burst(this.player.x, this.player.y, projectile.color, 10, `-${Math.round(damage)}`);
+          this.burst(
+            this.player.x,
+            this.player.y,
+            projectile.color,
+            10,
+            `-${Math.round(damage)}`,
+            projectile.slowDuration ? BALANCE.snowyEnemies.slow.popupTextColor : projectile.color,
+          );
         }
         if (this.flagPresent && accepts("flag") && !projectile.hitIds.has("flag")
           && segmentCircle(projectile.previousX, projectile.previousY, projectile.x, projectile.y, this.flag)) {
@@ -3420,7 +3473,12 @@ export class Game {
   }
 
   private shatterIceArmor(enemy: Enemy): void {
-    this.iceShardBurst(enemy.x, enemy.y, enemy.kind === "frost-warden" ? 58 : 34, "Break");
+    this.iceShardBurst(
+      enemy.x,
+      enemy.y,
+      enemy.kind === "frost-warden" ? 58 : 34,
+      enemy.kind === "frost-warden" ? undefined : "Break",
+    );
     emitAudioCue({ cue: "ice-shatter", position: { x: enemy.x, y: enemy.y } });
     if (enemy.kind === "frost-warden") {
       this.shake = Math.max(this.shake, BALANCE.snowyEnemies.frostWarden.armorBreakShake);
@@ -3448,7 +3506,15 @@ export class Game {
       remaining: config.waveDuration,
       duration: config.waveDuration,
     });
-    this.burst(enemy.x, enemy.y, BALANCE.snowyEnemies.frostWarden.breakColor, 30, "FROST SLAM");
+    this.burst(
+      enemy.x,
+      enemy.y,
+      BALANCE.snowyEnemies.frostWarden.breakColor,
+      30,
+      "FROST SLAM",
+      BALANCE.snowyEnemies.slow.popupTextColor,
+      -enemy.radius - 58,
+    );
   }
 
   private updateParticles(dt: number): void {
@@ -3819,7 +3885,15 @@ export class Game {
     for (const structure of this.structures) this.obstacleHash.insert(structure);
   }
 
-  private burst(x: number, y: number, color: string, count: number, text?: string): void {
+  private burst(
+    x: number,
+    y: number,
+    color: string,
+    count: number,
+    text?: string,
+    textColor = color,
+    textOffsetY = -24,
+  ): void {
     for (let i = 0; i < count; i += 1) {
       const angle = this.rng.range(0, Math.PI * 2);
       const speed = this.rng.range(25, 120);
@@ -3835,7 +3909,10 @@ export class Game {
       });
     }
     if (text) {
-      this.particles.push({ x, y: y - 24, vx: 0, vy: -38, life: 0.9, maxLife: 0.9, radius: 0, color, text });
+      this.particles.push({
+        x, y: y + textOffsetY, vx: 0, vy: -38, life: 0.9, maxLife: 0.9, radius: 0,
+        color: textColor, text,
+      });
     }
   }
 
@@ -3865,7 +3942,7 @@ export class Game {
         life: 1,
         maxLife: 1,
         radius: 0,
-        color: BALANCE.snowyEnemies.frostWarden.breakColor,
+        color: BALANCE.snowyEnemies.slow.popupTextColor,
         text,
       });
     }
@@ -3911,6 +3988,7 @@ export class Game {
     if (this.phase === "victory" || this.phase === "defeat") return;
     if (this.nightPerformance) this.finalizeNightPerformance(victory ? "complete" : "partial");
     this.phase = victory ? "victory" : "defeat";
+    this.shake = 0;
     this.syncSpatialAudio(false);
     if (!victory && reason === "You fell to the horde.") {
       emitAudioCue({ cue: "player-death", position: { x: this.player.x, y: this.player.y } });

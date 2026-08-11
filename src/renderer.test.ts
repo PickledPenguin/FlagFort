@@ -1,6 +1,18 @@
 import { describe, expect, it, vi } from "vitest";
 import { ASSETS } from "./assets";
-import { Renderer } from "./renderer";
+import { createSnowField, Renderer } from "./renderer";
+
+describe("world-space snow", () => {
+  it("builds varied deterministic fields from purpose-specific visual seeds", () => {
+    const first = createSnowField("snow-run", 120);
+    const second = createSnowField("snow-run", 120);
+    expect(first).toEqual(second);
+    expect(createSnowField("other-run", 120)).not.toEqual(first);
+    expect(new Set(first.map((particle) => particle.y)).size).toBe(120);
+    expect(new Set(first.map((particle) => particle.fallSpeed.toFixed(3))).size).toBeGreaterThan(110);
+    expect(new Set(first.map((particle) => particle.radius.toFixed(3))).size).toBeGreaterThan(100);
+  });
+});
 
 describe("player appearance rendering", () => {
   it("composes the saved body color, body details, and selected eyes", () => {

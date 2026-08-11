@@ -10,6 +10,7 @@ import { dismantleRefund, emptyWallet } from "./rules";
 import type { Enemy, Structure } from "./types";
 import { Ui } from "./ui";
 import { costIcons } from "./ui-icons";
+import type { AudioCueDetail } from "./audio";
 
 function input(): Input {
   const state = {
@@ -282,6 +283,11 @@ describe("night, economy, and tutorial refinements", () => {
     }];
     const harvester = structure("harvester", game.player.x, game.player.y);
     game.structures = [harvester];
+    const cues: AudioCueDetail[] = [];
+    const onCue = (event: Event): void => {
+      cues.push((event as CustomEvent<AudioCueDetail>).detail);
+    };
+    window.addEventListener("flagfall-audio-cue", onCue);
     (game as unknown as { rebuildSpatial: () => void }).rebuildSpatial();
     const update = (game as unknown as { updateHarvester: (s: Structure, dt: number) => void }).updateHarvester.bind(game);
     update(harvester, 0.001);
@@ -290,16 +296,32 @@ describe("night, economy, and tutorial refinements", () => {
     expect(game.resources.wood).toBe(first);
     harvester.angle = Math.PI * 2 - 0.001;
     update(harvester, 0.01);
+    window.removeEventListener("flagfall-audio-cue", onCue);
     expect(game.resources.wood).toBeGreaterThan(first);
+    expect(cues.some((cue) => cue.cue === "wood-hit"
+      && cue.playbackChannel === "harvester-harvest"
+      && cue.position !== undefined)).toBe(true);
   });
 
   it("uses icon particles for gains and health-adjusted recycling", () => {
     const game = new Game(input());
     game.startRun("normal", "icons");
     const node = game.world.resources.find((item) => item.kind === "wood")!;
+    let playerHarvestCue: AudioCueDetail | undefined;
+    const onCue = (event: Event): void => {
+      const cue = (event as CustomEvent<AudioCueDetail>).detail;
+      if (cue.cue === "wood-hit") playerHarvestCue = cue;
+    };
+    window.addEventListener("flagfall-audio-cue", onCue);
     (game as unknown as { harvestNode: (n: typeof node, tier: "wood", scale: number) => void })
       .harvestNode(node, "wood", 1);
+    window.removeEventListener("flagfall-audio-cue", onCue);
     expect(game.particles.some((particle) => particle.resource === "wood" && particle.text?.startsWith("+"))).toBe(true);
+    expect(playerHarvestCue).toMatchObject({
+      cue: "wood-hit",
+      playbackChannel: "player-harvest",
+      position: undefined,
+    });
     expect(dismantleRefund({ wood: 10, stone: 0, gold: 0, diamond: 0 }, 0.25, 150, 150).wood).toBe(2);
     expect(dismantleRefund({ wood: 10, stone: 0, gold: 0, diamond: 0 }, 0.25, 75, 150).wood).toBe(1);
     expect(dismantleRefund({ wood: 10, stone: 0, gold: 0, diamond: 0 }, 0.25, 0, 150)).toEqual(emptyWallet());

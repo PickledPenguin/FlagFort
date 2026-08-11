@@ -198,6 +198,26 @@ describe("Gremlin target recovery", () => {
   });
 });
 
+describe("melee windup movement", () => {
+  it("keeps moving toward an in-range player while charging, then cancels after escape", () => {
+    const game = createGame();
+    game.player.x = game.flag.x + 700;
+    game.player.y = game.flag.y;
+    const zombie = spawn(game, "basic", game.player.x - 50, game.player.y);
+    zombie.targetId = "player";
+    zombie.scanCooldown = 10;
+    const beforeX = zombie.x;
+    (game as unknown as { updateEnemies(dt: number): void }).updateEnemies(0.1);
+    expect(zombie.attackWindup).toBeGreaterThan(0);
+    expect(zombie.x).toBeGreaterThan(beforeX);
+
+    const charged = zombie.attackWindup;
+    game.player.x += 300;
+    (game as unknown as { updateEnemies(dt: number): void }).updateEnemies(0.1);
+    expect(zombie.attackWindup).toBeLessThan(charged);
+  });
+});
+
 describe("combat and roster playtest fixes", () => {
   it("skips the unlock slide after all unlocks and offers the capped-run decision", () => {
     const game = createGame();
@@ -379,6 +399,60 @@ describe("combat and roster playtest fixes", () => {
 describe("progression safety and presentation", () => {
   beforeEach(() => {
     document.body.innerHTML = '<canvas id="game-canvas"></canvas><div id="hud"></div><div id="overlay"></div><div id="toast"></div>';
+  });
+
+  it("preserves upgrade and shop scroll while replaying the card purchase feedback", () => {
+    const manager = new ProfileManager(new TestStore());
+    manager.profile.lifetimeXp = 20_000;
+    manager.profile.spendableXp = 20_000;
+    manager.profile.coins = 1_000;
+    const game = new Game(new Input(document.querySelector("canvas")!), manager);
+    const ui = new Ui(
+      game,
+      document.querySelector("#hud")!,
+      document.querySelector("#overlay")!,
+      document.querySelector("#toast")!,
+    );
+    game.returnToMenu();
+    ui.render(true);
+
+    document.querySelector<HTMLElement>('[data-action="upgrades"]')!.click();
+    const upgradeModal = document.querySelector<HTMLElement>(".progression-modal")!;
+    upgradeModal.scrollTop = 333;
+    document.querySelector<HTMLElement>('[data-action="buy-upgrade"][data-upgrade="bowDamage"]')!.click();
+    expect(document.querySelector<HTMLElement>(".progression-modal")!.scrollTop).toBe(333);
+    expect(document.querySelector('[data-upgrade="bowDamage"].upgrade-feedback')).not.toBeNull();
+    expect(document.querySelectorAll('[data-upgrade="bowDamage"].upgrade-feedback .choice-spark'))
+      .toHaveLength(12);
+
+    document.querySelector<HTMLElement>('[data-action="close-panel"]')!.click();
+    document.querySelector<HTMLElement>('[data-action="shop"]')!.click();
+    const shopModal = document.querySelector<HTMLElement>(".shop-modal")!;
+    shopModal.scrollTop = 245;
+    document.querySelector<HTMLElement>('[data-action="buy-equipment"][data-equipment="helmet"]')!.click();
+    expect(document.querySelector<HTMLElement>(".shop-modal")!.scrollTop).toBe(245);
+    expect(document.querySelector('[data-equipment-item="helmet"].upgrade-feedback')).not.toBeNull();
+  });
+
+  it("opens Campaign on the highest unlocked expanded tier with simple rewards", () => {
+    const manager = new ProfileManager(new TestStore());
+    manager.profile.playerLevel = 4;
+    manager.profile.campaign.defeatedTierIds = ["forest"];
+    const game = new Game(new Input(document.querySelector("canvas")!), manager);
+    const ui = new Ui(
+      game,
+      document.querySelector("#hud")!,
+      document.querySelector("#overlay")!,
+      document.querySelector("#toast")!,
+    );
+    game.returnToMenu();
+    ui.render(true);
+    document.querySelector<HTMLElement>('[data-action="open-campaign"]')!.click();
+    const snowy = document.querySelector<HTMLElement>('[data-campaign-tier="snowy"]')!
+      .closest(".campaign-tier-node");
+    expect(snowy?.classList.contains("selected")).toBe(true);
+    expect(snowy?.querySelector(".tier-details")).not.toBeNull();
+    expect(document.querySelector(".tier-milestones > span > b")).toBeNull();
   });
 
   it("keeps the coin floor for migration, settlement, and shop purchases", () => {

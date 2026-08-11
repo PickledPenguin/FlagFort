@@ -176,9 +176,16 @@ describe("effective stats and equipment", () => {
       reason: "",
     };
     (game as unknown as { rng: { next(): number } }).rng.next = () => 0.1;
+    const cues: AudioCueDetail[] = [];
+    const onCue = (event: Event): void => {
+      cues.push((event as CustomEvent<AudioCueDetail>).detail);
+    };
+    window.addEventListener("flagfall-audio-cue", onCue);
     (game as unknown as { repair(): void }).repair();
+    window.removeEventListener("flagfall-audio-cue", onCue);
     expect(game.resources.wood).toBe(10);
     expect(structure.health).toBe(100);
+    expect(cues.filter(({ cue }) => cue === "resource-collected")).toHaveLength(1);
   });
 
   it("cleaves each target once and credits direct melee ownership", () => {

@@ -386,11 +386,9 @@ export const selections = [
   },
   {
     id: "ice-shatter",
-    source: source("Sonniss.com-GDC2026-GameAudioBundle2of5/Alexander Kopeikin - 100 kHz Designed Ice/ice, block of ice crushed, heavy-015.wav"),
-    creator: "Alexander Kopeikin",
-    pack: "100 kHz Designed Ice",
-    ...SONNISS_ROYALTY_FREE,
-    maxDuration: 2.5,
+    source: source("kenney_impact-sounds/Audio/impactGlass_heavy_001.ogg"),
+    ...KENNEY_CC0,
+    pack: "Impact Sounds",
     events: ["Icebound armor breaks", "Frost Warden armor breaks"],
   },
   {

@@ -50,7 +50,7 @@ All source paths are absolute in `public/audio/audio-attribution.json`. This tab
 | zombie-hurt.ogg | HMNBrth_Construction Kit Male Screeching Breath Inhale Weak Squeal 05_ESM_HC4.wav | Epic Stock Media / Humanoid Creatures Vol 4 | Sonniss GDC Game Audio Bundle Part 9 royalty-free license |
 | zombie-death.ogg | zombie-death.ogg | Epic Stock Media / Humanoid Creatures Vol 4 | Sonniss GDC Game Audio Bundle Part 9 royalty-free license |
 | breaker-smash.ogg | GORESplt_Gore Designed Transient Heavy Impact Smash 01_ESM_HALG.wav | Epic Stock Media / Halloween Game - Haunted House and Horror Audio Scare Kit | Sonniss GDC Game Audio Bundle Part 9 royalty-free license |
-| ice-shatter.ogg | ice, block of ice crushed, heavy-015.wav | Alexander Kopeikin / 100 kHz Designed Ice | Sonniss GDC Game Audio Bundle Part 9 royalty-free license |
+| ice-shatter.ogg | impactGlass_heavy_001.ogg | Kenney / Impact Sounds | CC0 1.0 |
 | jumper-jump.ogg | jumper-jump.ogg | 344 Audio / Air Designed | Sonniss GDC Game Audio Bundle Part 9 royalty-free license |
 | summoner-cast.ogg | summoner-cast.ogg | Epic Stock Media / Fantasy Game 2 - Sound Kit for Enchanted Realms | Sonniss GDC Game Audio Bundle Part 9 royalty-free license |
 | gremlin-sabotage.ogg | impactMetal_heavy_003.ogg | Kenney / Impact Sounds | CC0 1.0 |

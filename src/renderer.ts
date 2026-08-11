@@ -8,6 +8,7 @@ import { META_BALANCE } from "./meta-balance";
 import { affordability, type ResourceWallet } from "./rules";
 import { costLayoutRows } from "./cost-layout";
 import { projectileVisualColor } from "./projectile-visuals";
+import { SeededRng } from "./rng";
 import type { Enemy, IcicleStrike, Player, ResourceNode, Structure } from "./types";
 
 const resourceColors = {
@@ -18,6 +19,31 @@ const resourceColors = {
 };
 
 const center = BALANCE.mapSize / 2;
+
+export interface SnowParticleDefinition {
+  x: number;
+  y: number;
+  fallSpeed: number;
+  radius: number;
+  driftAmplitude: number;
+  driftSpeed: number;
+  phase: number;
+  spawnGap: number;
+}
+
+export function createSnowField(seed: string, count: number): SnowParticleDefinition[] {
+  const rng = new SeededRng(`${seed}:visual:snow-weather`);
+  return Array.from({ length: count }, () => ({
+    x: rng.range(0, BALANCE.mapSize),
+    y: rng.range(0, BALANCE.mapSize),
+    fallSpeed: rng.range(38, 112),
+    radius: rng.range(1.1, 3.4),
+    driftAmplitude: rng.range(5, 34),
+    driftSpeed: rng.range(0.35, 1.35),
+    phase: rng.range(0, Math.PI * 2),
+    spawnGap: rng.range(0, BALANCE.mapSize * 0.18),
+  }));
+}
 
 const SWORD_SPRITE_BOUNDS = { x: -18, y: -72, width: 72, height: 79 } as const;
 const SWORD_ASSET_VIEW_BOX = { x: -14, y: -48, width: 88, height: 96 } as const;
@@ -56,6 +82,8 @@ export class Renderer {
   private readonly tintedSprites = new Map<string, HTMLCanvasElement>();
   private time = 0;
   private snowIntensity = 0;
+  private snowFieldKey = "";
+  private snowField: SnowParticleDefinition[] = [];
 
   constructor(private readonly canvas: HTMLCanvasElement) {
     const ctx = canvas.getContext("2d");
@@ -165,12 +193,15 @@ export class Renderer {
       ctx.clip();
     }
     this.drawWorld(game);
+    this.drawSnowWeather(game, dt);
+    for (const effect of game.areaEffects) {
+      if (effect.kind === "frost-slam") this.drawAreaEffect(effect);
+    }
     if (game.tutorialMode) this.drawTutorialArenaFade();
     ctx.restore();
     if (game.tutorialMode) this.drawTutorialArenaBoundary();
     else {
       this.drawVignette(game);
-      this.drawSnowWeather(game, dt);
       this.drawMinimap(game);
     }
   }
@@ -268,7 +299,9 @@ export class Renderer {
     for (const structure of game.structures) {
       if (this.visible(game, structure.x, structure.y, structure.radius + 140)) this.drawStructure(structure, game.player);
     }
-    for (const effect of game.areaEffects) this.drawAreaEffect(effect);
+    for (const effect of game.areaEffects) {
+      if (effect.kind !== "frost-slam") this.drawAreaEffect(effect);
+    }
     for (const strike of game.icicleStrikes) this.drawIcicleStrike(strike);
     if (game.buildPreview) this.drawBuildPreview(game);
     for (const projectile of game.projectiles) {
@@ -344,6 +377,12 @@ export class Renderer {
           ctx.textAlign = "left";
           ctx.fillText(particle.text, left + 22, particle.y);
         } else {
+          if (particle.color === BALANCE.snowyEnemies.slow.popupTextColor) {
+            ctx.strokeStyle = "rgba(9,40,52,.92)";
+            ctx.lineWidth = 4;
+            ctx.lineJoin = "round";
+            ctx.strokeText(particle.text, particle.x, particle.y);
+          }
           ctx.fillText(particle.text, particle.x, particle.y);
         }
       } else if (particle.shape === "shard") {
@@ -841,17 +880,23 @@ export class Renderer {
     if (effect.kind === "frost-slam") {
       const ctx = this.ctx;
       ctx.save();
-      ctx.globalAlpha = Math.max(0.2, 0.78 - progress * 0.48);
+      ctx.globalAlpha = Math.max(0.22, 0.72 - progress * 0.38);
       const gradient = ctx.createRadialGradient(effect.x, effect.y, 0, effect.x, effect.y, radius);
-      gradient.addColorStop(0, "rgba(255,255,255,.08)");
-      gradient.addColorStop(0.72, "rgba(214,249,255,.18)");
-      gradient.addColorStop(1, "rgba(173,231,241,.7)");
+      gradient.addColorStop(0, "rgba(99,198,232,.04)");
+      gradient.addColorStop(0.72, "rgba(99,198,232,.12)");
+      gradient.addColorStop(0.9, "rgba(119,220,244,.2)");
+      gradient.addColorStop(1, "rgba(78,181,218,.74)");
       ctx.fillStyle = gradient;
       ctx.beginPath();
       ctx.arc(effect.x, effect.y, radius, 0, Math.PI * 2);
       ctx.fill();
-      ctx.strokeStyle = "rgba(239,253,255,.92)";
-      ctx.lineWidth = 8;
+      ctx.strokeStyle = "rgba(82,202,238,.98)";
+      ctx.lineWidth = 10;
+      ctx.stroke();
+      ctx.strokeStyle = "rgba(232,253,255,.92)";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(effect.x, effect.y, Math.max(0, radius - 9), 0, Math.PI * 2);
       ctx.stroke();
       ctx.restore();
       return;
@@ -1242,18 +1287,28 @@ export class Renderer {
     this.snowIntensity += Math.sign(target - this.snowIntensity)
       * Math.min(Math.abs(target - this.snowIntensity), dt / Math.max(0.1, fadeSeconds));
     if (!weather || this.snowIntensity <= 0.002) return;
+    const fieldCount = Math.ceil(
+      weather.particleCount * BALANCE.mapSize * BALANCE.mapSize
+      / (BALANCE.logicalWidth * BALANCE.logicalHeight),
+    );
+    const fieldKey = `${game.seed}:${game.activeCampaignTierId}:${fieldCount}`;
+    if (fieldKey !== this.snowFieldKey) {
+      this.snowFieldKey = fieldKey;
+      this.snowField = createSnowField(fieldKey, fieldCount);
+    }
     const ctx = this.ctx;
     ctx.save();
     ctx.globalAlpha = this.snowIntensity;
     ctx.fillStyle = "#f7ffff";
-    for (let index = 0; index < weather.particleCount; index += 1) {
-      const lane = (index * 73) % (BALANCE.logicalWidth + 80) - 40;
-      const speed = 42 + (index % 11) * 7;
-      const y = (index * 97 + this.time * speed) % (BALANCE.logicalHeight + 50) - 25;
-      const x = lane + Math.sin(this.time * 0.8 + index * 1.7) * (7 + index % 9);
-      const radius = 1.2 + (index % 5) * 0.48;
+    const elapsed = game.stats.elapsed;
+    for (const particle of this.snowField) {
+      const cycleHeight = BALANCE.mapSize + particle.spawnGap;
+      const y = (particle.y + elapsed * particle.fallSpeed) % cycleHeight - particle.spawnGap;
+      const x = particle.x
+        + Math.sin(elapsed * particle.driftSpeed + particle.phase) * particle.driftAmplitude;
+      if (!this.visible(game, x, y, particle.radius + 4)) continue;
       ctx.beginPath();
-      ctx.arc(x, y, radius, 0, Math.PI * 2);
+      ctx.arc(x, y, particle.radius, 0, Math.PI * 2);
       ctx.fill();
     }
     ctx.restore();

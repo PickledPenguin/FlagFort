@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { CAMPAIGN_TIERS, campaignTier, isCampaignTierUnlocked } from "./campaign";
+import {
+  CAMPAIGN_TIERS,
+  campaignTier,
+  highestUnlockedCampaignTierId,
+  isCampaignTierUnlocked,
+} from "./campaign";
 import { selectEnemyRoster } from "./enemy-registry";
 import { ProfileManager, createDefaultProfile, lifetimeXpAtLevel } from "./profile";
 import { generateWorld } from "./world";
@@ -52,6 +57,8 @@ describe("data-driven campaign tiers", () => {
     expect(isCampaignTierUnlocked(snowy, { level: 4, defeatedTierIds: [] })).toBe(false);
     expect(isCampaignTierUnlocked(snowy, { level: 3, defeatedTierIds: ["forest"] })).toBe(false);
     expect(isCampaignTierUnlocked(snowy, { level: 4, defeatedTierIds: ["forest"] })).toBe(true);
+    expect(highestUnlockedCampaignTierId({ level: 3, defeatedTierIds: ["forest"] })).toBe("forest");
+    expect(highestUnlockedCampaignTierId({ level: 4, defeatedTierIds: ["forest"] })).toBe("snowy");
   });
 
   it("guarantees the three Snowbound threats in stable roster slots", () => {

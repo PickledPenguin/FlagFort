@@ -108,6 +108,14 @@ export function isCampaignTierUnlocked(
   return !(tier.unlock.additional?.length);
 }
 
+export function highestUnlockedCampaignTierId(
+  progress: CampaignProgressView,
+): CampaignTierId {
+  return [...CAMPAIGN_TIERS]
+    .reverse()
+    .find((tier) => isCampaignTierUnlocked(tier, progress))?.id ?? CAMPAIGN_TIERS[0]!.id;
+}
+
 export function campaignUnlockRequirementText(
   tier: CampaignTierDefinition,
   progress: CampaignProgressView,

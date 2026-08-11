@@ -16,6 +16,7 @@ import {
   CAMPAIGN_TIERS,
   campaignTier,
   campaignUnlockRequirementText,
+  highestUnlockedCampaignTierId,
   isCampaignTierUnlocked,
   type CampaignReward,
 } from "./campaign";
@@ -274,10 +275,12 @@ export class Ui {
     const viewport = this.overlay.querySelector<HTMLElement>(".campaign-ladder-viewport");
     const selected = this.overlay.querySelector<HTMLElement>(".campaign-tier-node.selected");
     if (!viewport || !selected) return;
-    const tier = campaignTier(this.selectedCampaignTierId);
-    viewport.scrollTop = tier.order === 0
-      ? viewport.scrollHeight
-      : Math.max(0, selected.offsetTop - 8);
+    const selectedTop = selected.offsetTop;
+    const selectedBottom = selectedTop + selected.offsetHeight;
+    if (selectedTop < viewport.scrollTop) viewport.scrollTop = Math.max(0, selectedTop - 8);
+    else if (selectedBottom > viewport.scrollTop + viewport.clientHeight) {
+      viewport.scrollTop = Math.max(0, selectedBottom - viewport.clientHeight + 8);
+    }
   }
 
   private overlayKey(): string {
@@ -427,7 +430,7 @@ export class Ui {
             : `<span><img src="${ASSETS.enemies.basic}" alt=""><b>Classic Horde</b><small>Base roster</small></span>`}
             <span class="boss"><img src="${ASSETS.enemies[tier.boss]}" alt=""><b>${ENEMY_REGISTRY[tier.boss].displayName}</b><small>Boss</small></span>
           </div>
-          <div class="tier-milestones">${tier.milestones.map((milestone) => `<span class="${claimed.has(milestone.id) ? "claimed" : progress.level >= milestone.level ? "earned" : ""}"><small>LEVEL ${milestone.level}</small><b>${this.rewardMarkup(milestone.reward)}</b></span>`).join("")}</div>
+          <div class="tier-milestones">${tier.milestones.map((milestone) => `<span class="${claimed.has(milestone.id) ? "claimed" : progress.level >= milestone.level ? "earned" : ""}"><small>LEVEL ${milestone.level}</small>${this.rewardMarkup(milestone.reward)}</span>`).join("")}</div>
         </div>
       </article>`;
     }).join("");
@@ -764,7 +767,7 @@ export class Ui {
         const next = nextEquipmentTier(item.tier);
         const price = equipmentUpgradePrice(item.tier);
         const shownTier = item.tier ?? "wood";
-        return `<article class="shop-item">
+        return `<article class="shop-item" data-equipment-item="${kind}">
           <div class="shop-art"><img src="${META_BALANCE.assets.equipment[kind][shownTier]}" alt=""></div>
           <p class="eyebrow">${item.tier ? `${item.tier.toUpperCase()} TIER` : "LOCKED"}</p>
           <h3>${copy[kind].title}</h3><p>${copy[kind].text}</p>
@@ -1429,6 +1432,8 @@ export class Ui {
     if (!target) return;
     const action = target.dataset.action;
     const panelBeforeAction = this.menuPanel;
+    const menuModalScrollTop = this.overlay.querySelector<HTMLElement>(".menu-modal > .modal")?.scrollTop;
+    let upgradeFeedbackSelector: string | null = null;
     const difficulty = target.dataset.difficulty as Difficulty | undefined;
     if (difficulty) {
       audioManager.play("ui-click");
@@ -1457,6 +1462,7 @@ export class Ui {
     switch (action) {
       case "open-campaign":
         this.dailyRewardVisible = false;
+        this.selectedCampaignTierId = highestUnlockedCampaignTierId(this.campaignProgress());
         this.campaignOpen = true;
         break;
       case "close-campaign":
@@ -1585,14 +1591,21 @@ export class Ui {
         break;
       case "buy-upgrade":
         if (target.dataset.upgrade) {
-          this.game.profileManager?.buyPermanentUpgrade(
-            target.dataset.upgrade as PermanentUpgradeId,
-          );
+          const upgrade = target.dataset.upgrade as PermanentUpgradeId;
+          const level = target.dataset.level;
+          if (this.game.profileManager?.buyPermanentUpgrade(upgrade)) {
+            audioManager.play("upgrade-unlock");
+            upgradeFeedbackSelector = `[data-action="buy-upgrade"][data-upgrade="${upgrade}"][data-level="${level}"]`;
+          }
         }
         break;
       case "buy-equipment":
         if (target.dataset.equipment) {
-          this.game.profileManager?.buyEquipment(target.dataset.equipment as EquipmentKind);
+          const equipment = target.dataset.equipment as EquipmentKind;
+          if (this.game.profileManager?.buyEquipment(equipment)) {
+            audioManager.play("upgrade-unlock");
+            upgradeFeedbackSelector = `[data-equipment-item="${equipment}"]`;
+          }
         }
         break;
       case "toggle-equipment":
@@ -1664,6 +1677,18 @@ export class Ui {
     }
     this.invalidate();
     this.render(true);
+    if (menuModalScrollTop !== undefined && (
+      action === "buy-upgrade"
+      || action === "buy-equipment"
+      || action === "toggle-equipment"
+    )) {
+      const modal = this.overlay.querySelector<HTMLElement>(".menu-modal > .modal");
+      if (modal) modal.scrollTop = menuModalScrollTop;
+    }
+    if (upgradeFeedbackSelector) {
+      const feedbackTarget = this.overlay.querySelector<HTMLElement>(upgradeFeedbackSelector);
+      if (feedbackTarget) this.playUpgradeFeedback(feedbackTarget);
+    }
     if (this.game.rerollConfirmation && action === "reroll") {
       this.focusDialog(".reroll-card");
     }
@@ -1744,13 +1769,7 @@ export class Ui {
     this.choiceAnimating = true;
     const pair = target.closest<HTMLElement>(".choice-pair");
     pair?.classList.add("choosing");
-    for (let i = 0; i < 12; i += 1) {
-      const spark = document.createElement("i");
-      spark.className = "choice-spark";
-      spark.style.setProperty("--spark-x", `${(i % 4) * 28 + 8}%`);
-      spark.style.setProperty("--spark-delay", `${(i % 3) * 35}ms`);
-      pair?.append(spark);
-    }
+    if (pair) this.addUpgradeSparks(pair);
     const selectionDelay = prefersReducedMotion()
       ? 0
       : BALANCE.ui.cardSelectionDuration;
@@ -1758,6 +1777,21 @@ export class Ui {
       this.choiceAnimating = false;
       this.animateChoiceReplacement(() => this.game.chooseDawn(index), index);
     }, selectionDelay);
+  }
+
+  private playUpgradeFeedback(target: HTMLElement): void {
+    target.classList.add("upgrade-feedback");
+    this.addUpgradeSparks(target);
+  }
+
+  private addUpgradeSparks(target: HTMLElement): void {
+    for (let i = 0; i < 12; i += 1) {
+      const spark = document.createElement("i");
+      spark.className = "choice-spark";
+      spark.style.setProperty("--spark-x", `${(i % 4) * 28 + 8}%`);
+      spark.style.setProperty("--spark-delay", `${(i % 3) * 35}ms`);
+      target.append(spark);
+    }
   }
 
   private animateChoiceReplacement(apply: () => void, focusIndex = 0): void {

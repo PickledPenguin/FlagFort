@@ -1272,6 +1272,13 @@ img.icon.mouse-glyph {
   animation: choice-lock 420ms ease;
 }
 
+.upgrade-feedback {
+  position: relative;
+  z-index: 1;
+  border-color: #fff6ab !important;
+  animation: choice-lock 420ms ease;
+}
+
 @keyframes choice-lock {
   50% { transform: scale(1.04); filter: brightness(1.35); }
 }
@@ -3794,6 +3801,7 @@ img.icon {
   inset: 6% 14% 22%;
   width: 72%;
   height: 72%;
+  transform: rotate(-90deg);
 }
 
 .customization-group {
@@ -4962,9 +4970,10 @@ img.icon {
 .tier-enemies small { color: var(--tier-accent); font-size: 7px; }
 .tier-enemies .boss { border-color: rgba(255,101,91,.5); }
 .tier-milestones { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 7px; }
-.tier-milestones span { display: grid; padding: 6px 9px; border: 1px solid #66572b; border-radius: 8px; color: #e8cc6f; background: rgba(247,202,75,.06); }
+.tier-milestones > span { display: grid; padding: 6px 9px; border: 1px solid #66572b; border-radius: 8px; color: #e8cc6f; background: rgba(247,202,75,.06); }
 .tier-milestones small { font-size: 7px; font-weight: 950; }
-.tier-milestones b { font-size: 9px; }
+.tier-milestones > span > :not(small) { font-size: 9px; font-weight: 900; }
+.tier-milestones .coin-amount > span { display: inline; }
 .tier-milestones .claimed { opacity: .48; }
 .tier-milestones .claimed::after { content: "CLAIMED"; color: #9de0a8; font-size: 7px; font-weight: 950; }
 .campaign-ladder-modal > footer { min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(220px, 380px); align-items: center; gap: 16px; padding: 13px 22px 16px; border-top: 2px solid rgba(157,224,168,.18); background: rgba(4,17,11,.96); }

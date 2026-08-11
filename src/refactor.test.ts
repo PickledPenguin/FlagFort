@@ -167,7 +167,7 @@ describe("foundational refactor", () => {
     expect(game.flag.health).toBeLessThan(game.flag.maxHealth);
   });
 
-  it("preserves absolute flag health when maximum health is upgraded", () => {
+  it("adds the flag maximum-health increase to current health even while damaged", () => {
     const game = new Game(input());
     game.startRun("normal", "flag-upgrade");
     game.flag.health = 71;
@@ -182,8 +182,18 @@ describe("foundational refactor", () => {
       kind: "upgrade",
     }];
     game.chooseDawn(0);
-    expect(game.flag.health).toBe(71);
-    expect(game.flag.maxHealth).toBeGreaterThan(71);
+    expect(game.flag.maxHealth).toBe(BALANCE.flag.health + BALANCE.upgrades.flagHealth.amount);
+    expect(game.flag.health).toBe(71 + BALANCE.upgrades.flagHealth.amount);
+  });
+
+  it("resets screen shake immediately when a run ends", () => {
+    const game = new Game(input());
+    game.startRun("normal", "end-shake");
+    game.shake = 24;
+    (game as unknown as { endRun(victory: boolean, reason: string): void })
+      .endRun(false, "The flag fell.");
+    expect(game.phase).toBe("defeat");
+    expect(game.shake).toBe(0);
   });
 
   it("tracks turret and harvester capacity independently", () => {
