@@ -315,6 +315,34 @@ export class Renderer {
     for (const strike of game.areaStrikes) this.drawAreaStrike(strike);
     if (game.buildPreview) this.drawBuildPreview(game);
     for (const projectile of game.projectiles) {
+      if (projectile.appearance === "comet") {
+        ctx.save();
+        ctx.translate(projectile.x, projectile.y);
+        ctx.rotate(Math.atan2(projectile.vy, projectile.vx));
+        const trail = Math.max(30, projectile.radius * 4.5);
+        const gradient = ctx.createLinearGradient(-trail, 0, projectile.radius, 0);
+        gradient.addColorStop(0, "rgba(117,92,255,0)");
+        gradient.addColorStop(0.42, "rgba(139,105,255,.48)");
+        gradient.addColorStop(0.78, "rgba(80,224,255,.72)");
+        gradient.addColorStop(1, "#d8fbff");
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.ellipse(-trail * 0.34, 0, trail * 0.72, projectile.radius * 0.82, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#65e8ff";
+        ctx.strokeStyle = "#7454d8";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(0, 0, projectile.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = "#f4ffff";
+        ctx.beginPath();
+        ctx.arc(-projectile.radius * 0.2, -projectile.radius * 0.28, projectile.radius * 0.34, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+        continue;
+      }
       if (projectile.appearance === "sludge") {
         ctx.save();
         ctx.translate(projectile.x, projectile.y);

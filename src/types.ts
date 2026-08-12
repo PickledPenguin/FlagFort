@@ -37,7 +37,8 @@ export type RosterEnemyKind =
   | "radstalker"
   | "sludge-lobber"
   | "ruin-siren"
-  | "rift-strider";
+  | "rift-strider"
+  | "comet-slinger";
 export type BossEnemyKind = "boss" | "frost-warden" | "dune-colossus" | "caldera-sovereign" | "reactor-revenant";
 export type EnemyKind = RosterEnemyKind | "splitter-child" | BossEnemyKind;
 export type PlayerId = string;
@@ -53,6 +54,7 @@ export type DamageSource =
   | "sandcaster"
   | "magma-spitter"
   | "sludge-lobber"
+  | "comet-slinger"
   | "reactor-revenant"
   | "caldera-sovereign"
   | "dune-colossus"
@@ -223,7 +225,7 @@ export interface Projectile extends Circle {
   intendedTargetId?: number | "player" | "flag";
   color: string;
   sourceEnemyKind?: EnemyKind;
-  appearance?: "arrow" | "snowball" | "sandblast" | "magma" | "sludge";
+  appearance?: "arrow" | "snowball" | "sandblast" | "magma" | "sludge" | "comet";
   pierces?: boolean;
   statusEffect?: EnemyStatusEffect;
   impactBurst?: {
