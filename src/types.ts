@@ -37,7 +37,7 @@ export type RosterEnemyKind =
   | "radstalker"
   | "sludge-lobber"
   | "ruin-siren";
-export type BossEnemyKind = "boss" | "frost-warden" | "dune-colossus" | "caldera-sovereign";
+export type BossEnemyKind = "boss" | "frost-warden" | "dune-colossus" | "caldera-sovereign" | "reactor-revenant";
 export type EnemyKind = RosterEnemyKind | "splitter-child" | BossEnemyKind;
 export type PlayerId = string;
 export type DamageSource =
@@ -52,6 +52,7 @@ export type DamageSource =
   | "sandcaster"
   | "magma-spitter"
   | "sludge-lobber"
+  | "reactor-revenant"
   | "caldera-sovereign"
   | "dune-colossus"
   | "cinderburst-burst"

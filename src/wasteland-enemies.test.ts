@@ -2,7 +2,7 @@
 
 import { describe, expect, it } from "vitest";
 import { BALANCE } from "./config";
-import { ENEMY_REGISTRY, selectEnemyRoster } from "./enemy-registry";
+import { ENEMY_REGISTRY, isBossEnemyKind, selectEnemyRoster } from "./enemy-registry";
 import { Game } from "./game";
 import { Input } from "./input";
 import type { Enemy, Structure } from "./types";
@@ -197,5 +197,85 @@ describe("wasteland enemies", () => {
 
     expect(game.enemies).toHaveLength(definition.summon!.maximumLiving + 1);
     expect(siren.summonCooldown).toBe(definition.summon!.cappedRetryCooldown);
+  });
+
+  it("registers the Reactor Revenant as the complete armored wasteland boss", () => {
+    const definition = ENEMY_REGISTRY["reactor-revenant"];
+
+    expect(isBossEnemyKind("reactor-revenant")).toBe(true);
+    expect(definition.rosterEligible).toBe(false);
+    expect(definition.assets.portrait).toBe("enemies/reactor-revenant");
+    expect(definition.armor).toMatchObject({
+      scalesWithHealth: true,
+      brokenSprite: "enemies/reactor-revenant-broken",
+    });
+    expect(definition.areaStrike).toMatchObject({
+      rngSeedKey: "reactor-revenant:toxic-ruptures",
+      damageSource: "reactor-revenant",
+      statusEffect: {
+        kind: "slow",
+        duration: 3.8,
+        targets: ["player", "turret"],
+      },
+    });
+    expect(definition.phaseSlam).toMatchObject({
+      reinforcementKind: "ruin-siren",
+      reinforcementCount: 3,
+    });
+  });
+
+  it("creates deterministic toxic-rupture warnings around the defender", () => {
+    const first = gameFixture();
+    const second = gameFixture();
+    const firstBoss = spawn(first, "reactor-revenant", first.player.x + 460, first.player.y);
+    const secondBoss = spawn(second, "reactor-revenant", second.player.x + 460, second.player.y);
+    const config = ENEMY_REGISTRY["reactor-revenant"].areaStrike!;
+
+    (first as unknown as { createAreaStrikeAttack(enemy: Enemy): void })
+      .createAreaStrikeAttack(firstBoss);
+    (second as unknown as { createAreaStrikeAttack(enemy: Enemy): void })
+      .createAreaStrikeAttack(secondBoss);
+
+    expect(first.areaStrikes).toEqual(second.areaStrikes);
+    expect(first.areaStrikes).toHaveLength(
+      config.randomStrikeCount + Number(config.includesTargetedStrike),
+    );
+    expect(first.areaStrikes.every((strike) =>
+      strike.sourceEnemyKind === "reactor-revenant")).toBe(true);
+    expect(first.areaStrikes.some((strike) =>
+      strike.x === first.player.x && strike.y === first.player.y)).toBe(true);
+  });
+
+  it("breaks containment before health and releases one Ruin Siren group", () => {
+    const game = gameFixture();
+    const boss = spawn(game, "reactor-revenant", game.flag.x + 740, game.flag.y);
+    const definition = ENEMY_REGISTRY["reactor-revenant"];
+    const damageEnemy = (damage: number) => {
+      (game as unknown as {
+        damageEnemy(enemy: Enemy, amount: number, color: string, damageSource: "player-melee", ownerPlayerId: string): void;
+      }).damageEnemy(boss, damage, "#ffffff", "player-melee", game.player.id);
+    };
+
+    expect(boss.armor).toBeCloseTo(
+      definition.armor!.health * boss.maxHealth / definition.base.health,
+    );
+    damageEnemy(boss.armor!);
+    expect(boss.health).toBe(boss.maxHealth);
+    expect(boss.armor).toBe(0);
+
+    damageEnemy(boss.maxHealth * 0.55);
+    expect(boss.bossHalfSummoned).toBe(true);
+    (game as unknown as { updateBoss(enemy: Enemy, dt: number): void })
+      .updateBoss(boss, definition.phaseSlam!.chargeDuration + 0.01);
+
+    expect(game.enemies.filter((enemy) =>
+      enemy.summonedBy === boss.id && enemy.kind === "ruin-siren"))
+      .toHaveLength(definition.phaseSlam!.reinforcementCount);
+
+    boss.health = boss.maxHealth * 0.1;
+    (game as unknown as { updateBoss(enemy: Enemy, dt: number): void })
+      .updateBoss(boss, definition.phaseSlam!.chargeDuration * 2);
+    expect(game.enemies.filter((enemy) => enemy.summonedBy === boss.id))
+      .toHaveLength(definition.phaseSlam!.reinforcementCount);
   });
 });
