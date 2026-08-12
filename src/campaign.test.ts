@@ -12,6 +12,7 @@ import type { KeyValueStore } from "./platform";
 import type { CoinSettlement, XpRewardBreakdown } from "./rewards";
 import { CAMPAIGN_TIER_IDS } from "./types";
 import { RESOURCE_STATE_SKINS } from "./assets";
+import { CAMPAIGN_TIER_ARTWORK } from "./campaign-artwork";
 
 class MemoryStore implements KeyValueStore {
   private values = new Map<string, string>();
@@ -43,6 +44,19 @@ const zeroCoins: CoinSettlement = {
 };
 
 describe("data-driven campaign tiers", () => {
+  it("provides complete centralized selection artwork for current and upcoming biomes", () => {
+    for (const artwork of Object.values(CAMPAIGN_TIER_ARTWORK)) {
+      expect(artwork.icon).toMatch(/^\.\/images\/campaign\/.+-tier\.svg$/);
+      expect(artwork.backdrop).toMatch(/^\.\/images\/campaign\/.+-backdrop\.svg$/);
+    }
+    expect(CAMPAIGN_TIER_ARTWORK.desert).toEqual({
+      icon: "./images/campaign/desert-tier.svg",
+      backdrop: "./images/campaign/desert-backdrop.svg",
+    });
+    expect(campaignTier("forest")).toMatchObject(CAMPAIGN_TIER_ARTWORK.forest);
+    expect(campaignTier("snowy")).toMatchObject(CAMPAIGN_TIER_ARTWORK.snowy);
+  });
+
   it("keeps tier order, requirements, rewards, enemies, bosses, and effects on definitions", () => {
     expect(CAMPAIGN_TIERS.map((tier) => tier.id)).toEqual(CAMPAIGN_TIER_IDS);
     expect(campaignTier("snowy")).toMatchObject({

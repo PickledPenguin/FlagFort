@@ -1,6 +1,7 @@
 import type { BossEnemyKind, CampaignTierId, RosterEnemyKind } from "./types";
 import type { PopupContrast } from "./popup-colors";
 import type { ResourceStateSkinId } from "./assets";
+import { CAMPAIGN_TIER_ARTWORK } from "./campaign-artwork";
 
 export type CampaignReward =
   | { kind: "coins"; amount: number }
@@ -91,8 +92,7 @@ export const CAMPAIGN_TIERS: readonly CampaignTierDefinition[] = [
     subtitle: "The first standard",
     description: "Build beneath the old canopy and hold the fort through ten nights.",
     accent: "#8eef9f",
-    icon: "./images/campaign/forest-tier.svg",
-    backdrop: "./images/campaign/forest-backdrop.svg",
+    ...CAMPAIGN_TIER_ARTWORK.forest,
     boss: "boss",
     specialEnemies: [],
     unlock: { level: 1 },
@@ -120,8 +120,7 @@ export const CAMPAIGN_TIERS: readonly CampaignTierDefinition[] = [
     subtitle: "Whiteout siege",
     description: "A frozen forest where snow falls at night and cold-born zombies join every roster.",
     accent: "#8fe8ff",
-    icon: "./images/campaign/snowy-tier.svg",
-    backdrop: "./images/campaign/snowy-backdrop.svg",
+    ...CAMPAIGN_TIER_ARTWORK.snowy,
     boss: "frost-warden",
     specialEnemies: ["frostbite", "snowballer", "icebound"],
     unlock: { level: 4, previousTierId: "forest" },

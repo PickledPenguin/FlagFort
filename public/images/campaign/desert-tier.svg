@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="desert-tier-title desert-tier-description">
+  <title id="desert-tier-title">Desert campaign tier</title>
+  <desc id="desert-tier-description">A golden sun rising behind a wind-shaped acacia tree.</desc>
+  <g id="desert-tier-icon">
+    <circle id="desert-sun" cx="77" cy="39" r="24" fill="#ffd36a" stroke="#8c4d27" stroke-width="5"/>
+    <path id="dune-back" d="M8 92c18-21 34-27 53-18 18 9 29 8 51-8v34H8Z" fill="#e8a64d" stroke="#704225" stroke-width="5" stroke-linejoin="round"/>
+    <path id="acacia-trunk" d="M52 90c4-15 5-28 4-41m0 13-13-10m13 4 15-12" fill="none" stroke="#704225" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+    <path id="acacia-canopy" d="M25 44c2-10 12-15 23-11 6-11 25-11 30 1 12-3 22 4 22 14 0 8-7 13-16 13H41c-11 0-18-6-16-17Z" fill="#758641" stroke="#354c2a" stroke-width="5" stroke-linejoin="round"/>
+    <path id="dune-front" d="M8 99c29-17 54-17 104-3v10H8Z" fill="#f4c56a"/>
+  </g>
+</svg>

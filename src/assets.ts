@@ -1,5 +1,6 @@
 import type { EnemyKind, ResourceKind, StructureKind, Tier } from "./types";
 import { ENEMY_REGISTRY } from "./enemy-registry";
+import { CAMPAIGN_TIER_ARTWORK } from "./campaign-artwork";
 
 export const svgAsset = (path: string): string => `./images/${path}.svg`;
 export const cardAsset = (
@@ -58,6 +59,7 @@ export const EQUIPMENT_ASSETS = {
 } as const;
 
 export const ASSETS = {
+  campaignTierArtwork: CAMPAIGN_TIER_ARTWORK,
   resources: {
     wood: image("resources/wood-log"),
     stone: image("resources/stone"),
