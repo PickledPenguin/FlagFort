@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { ASSETS } from "./assets";
-import { campaignTier } from "./campaign";
+import { CAMPAIGN_BIOMES, campaignTier } from "./campaign";
 import { createWeatherField, Renderer } from "./renderer";
 
 describe("world-space biome weather", () => {
@@ -13,6 +13,15 @@ describe("world-space biome weather", () => {
     expect(new Set(first.map((particle) => particle.y)).size).toBe(120);
     expect(new Set(first.map((particle) => particle.fallSpeed.toFixed(3))).size).toBeGreaterThan(110);
     expect(new Set(first.map((particle) => particle.radius.toFixed(3))).size).toBeGreaterThan(100);
+  });
+
+  it("keeps staged volcanic embers deterministic and separate from snowfall", () => {
+    const volcanic = createWeatherField("campaign-seed", 72, CAMPAIGN_BIOMES.volcanic.weather!);
+    expect(createWeatherField("campaign-seed", 72, CAMPAIGN_BIOMES.volcanic.weather!))
+      .toEqual(volcanic);
+    expect(createWeatherField("campaign-seed", 72, CAMPAIGN_BIOMES.snow.weather!))
+      .not.toEqual(volcanic);
+    expect(volcanic).toHaveLength(72);
   });
 });
 

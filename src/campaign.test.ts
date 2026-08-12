@@ -103,6 +103,28 @@ describe("data-driven campaign tiers", () => {
     expect(campaignTier("desert").biome).toBe(CAMPAIGN_BIOMES.desert);
   });
 
+  it("defines a complete volcanic environment without exposing an unfinished tier", () => {
+    expect(CAMPAIGN_BIOMES.volcanic).toMatchObject({
+      ground: "volcanic",
+      minimapLabel: "VOLCANIC MAP",
+      resourceStateSkin: "volcanic",
+      friendlyProjectileColor: "#ffd27d",
+      palette: {
+        viewport: "#160f14",
+        ground: "#2c1b1d",
+        clearingCenter: "#4a2922",
+        clearingEdge: "#24171a",
+      },
+      weather: {
+        activeDuring: "always",
+        color: "#ff8a3d",
+        seedKey: "volcanic-ember-weather",
+        particleCount: 72,
+      },
+    });
+    expect(CAMPAIGN_TIERS.every((tier) => tier.biome !== CAMPAIGN_BIOMES.volcanic)).toBe(true);
+  });
+
   it("provides complete centralized selection artwork for current and upcoming biomes", () => {
     for (const artwork of Object.values(CAMPAIGN_TIER_ARTWORK)) {
       expect(artwork.icon).toMatch(/^\.\/images\/campaign\/.+-tier\.svg$/);

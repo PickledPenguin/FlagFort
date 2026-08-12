@@ -21,7 +21,7 @@ export interface CampaignUnlockRequirement {
 }
 
 export interface CampaignBiomeDefinition {
-  ground: "forest" | "snow" | "desert";
+  ground: "forest" | "snow" | "desert" | "volcanic";
   minimapLabel: string;
   resourceStateSkin: ResourceStateSkinId;
   resourceOverlay?: {
@@ -151,6 +151,32 @@ export const CAMPAIGN_BIOMES = {
       driftAmplitude: [22, 72],
       driftSpeed: [0.18, 0.62],
       spawnGapRatio: [0, 0.12],
+    },
+  },
+  volcanic: {
+    ground: "volcanic",
+    minimapLabel: "VOLCANIC MAP",
+    resourceStateSkin: "volcanic",
+    friendlyProjectileColor: "#ffd27d",
+    palette: {
+      viewport: "#160f14",
+      ground: "#2c1b1d",
+      clearingCenter: "#4a2922",
+      clearingEdge: "#24171a",
+      foliage: ["#171116", "#21171a", "#2d1c1d", "#3a2220"],
+    },
+    weather: {
+      kind: "falling-particles",
+      activeDuring: "always",
+      color: "#ff8a3d",
+      seedKey: "volcanic-ember-weather",
+      particleCount: 72,
+      fadeSeconds: 1.5,
+      fallSpeed: [14, 46],
+      radius: [0.8, 2.6],
+      driftAmplitude: [8, 38],
+      driftSpeed: [0.28, 0.92],
+      spawnGapRatio: [0, 0.14],
     },
   },
 } as const satisfies Record<string, CampaignBiomeDefinition>;
