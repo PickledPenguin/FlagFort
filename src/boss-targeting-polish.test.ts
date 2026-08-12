@@ -166,7 +166,7 @@ describe("boss difficulty scaling", () => {
 });
 
 describe("route-aware ranged obstruction targeting", () => {
-  it.each(["acidslinger", "sandcaster"] as const)(
+  it.each(["acidslinger", "sandstormer"] as const)(
     "%s ignores nearby off-route walls and attacks only a wall blocking its flag route",
     (kind) => {
       const game = gameFixture();

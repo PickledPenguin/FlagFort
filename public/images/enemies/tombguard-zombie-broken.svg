@@ -52,38 +52,20 @@
        stroke="#765234"
        stroke-width="3"
        stroke-linejoin="round"
-       transform="translate(-6.0851425,0.9736228)">
+       transform="translate(-0.24340567,0.7302171)">
       <path
          id="upper-armor-remnant"
          d="m -23.615088,-26.166434 14.2851348,-0.966917 2.614673,12.773547 -10.1071548,6.8443714 -12.637378,-0.5446718 z" />
       <path
          id="lower-armor-remnant"
          d="M -29.289895,10.770878 -17.010877,9.2789945 -6.1809178,17.980257 -9.4975912,28.888954 -24.141519,27.003383 Z" />
-      <path
-         id="face-guard-remnant"
-         d="M 9.8033579,-13.513188 -0.19664212,0.4868114 9.8033579,14.486812 18.803358,8.4868114 l -5,-8 5,-8 z"
-         fill="#d9aa5c" />
-    </g>
-    <g
-       id="exposed-wraps"
-       fill="none"
-       stroke="#e5c48a"
-       stroke-width="4"
-       stroke-linecap="round"
-       transform="translate(-6.0851425,0.9736228)">
-      <path
-         id="upper-wrap"
-         d="m -10,-20 18,-4 9,6" />
-      <path
-         id="lower-wrap"
-         d="M -10,20 7,24 17,18" />
     </g>
     <g
        id="armor-rubble"
        fill="#d5a657"
        stroke="#765234"
        stroke-width="2"
-       transform="translate(-6.0851425,0.9736228)">
+       transform="translate(-0.24340567,2.9208684)">
       <path
          id="upper-rubble"
          d="m 2,-27 9,2 -5,9 -8,-4 z" />

@@ -2,26 +2,23 @@ import { describe, expect, it } from "vitest";
 import { ENEMY_REGISTRY, ROSTER_TIERS, introducedRosterEnemies, rosterMilestones, selectEnemyRoster } from "./enemy-registry";
 
 describe("deterministic enemy roster", () => {
-  it("registers the Dune Hopper as the Desert leap enemy", () => {
-    const definition = ENEMY_REGISTRY["dune-hopper"];
-    expect(definition.assets.portrait).toBe("enemies/dune-hopper-zombie");
+  it("registers the Dune Burrower as the Desert tunnel enemy", () => {
+    const definition = ENEMY_REGISTRY["dune-burrower"];
+    expect(definition.displayName).toBe("Dune Burrower");
+    expect(definition.assets.portrait).toBe("enemies/dune-burrower-zombie");
     expect(definition.render).toEqual({ aspectRatio: 104 / 96, width: 78, height: 72 });
     expect(definition.tier).toBe(3);
     expect(definition.introductionNight).toBe(3);
     expect(definition.rosterEligible).toBe(true);
     expect(definition.campaignTierIds).toEqual(["desert"]);
-    expect(definition.leap).toMatchObject({
-      range: 230,
-      cooldown: 2.4,
-      arcHeight: 42,
-      particleColor: "#e9b85f",
-    });
-    expect(selectEnemyRoster("desert-roster", "desert")[3]).toBe("dune-hopper");
+    expect(definition.leap).toBeUndefined();
+    expect(selectEnemyRoster("desert-roster", "desert")[3]).toBe("dune-burrower");
   });
 
-  it("registers the Sandcaster as the Desert piercing ranged enemy", () => {
-    const definition = ENEMY_REGISTRY.sandcaster;
-    expect(definition.assets.portrait).toBe("enemies/sandcaster-zombie");
+  it("registers the Sandstormer as the Desert piercing support enemy", () => {
+    const definition = ENEMY_REGISTRY.sandstormer;
+    expect(definition.displayName).toBe("Sandstormer");
+    expect(definition.assets.portrait).toBe("enemies/sandstormer-zombie");
     expect(definition.render).toEqual({ aspectRatio: 88 / 104, width: 68, height: 80 });
     expect(definition.tier).toBe(5);
     expect(definition.introductionNight).toBe(5);
@@ -29,11 +26,11 @@ describe("deterministic enemy roster", () => {
     expect(definition.campaignTierIds).toEqual(["desert"]);
     expect(definition.projectile).toMatchObject({
       appearance: "sandblast",
-      damageSource: "sandcaster",
+      damageSource: "sandstormer",
       pierces: true,
       color: "#d8a84f",
     });
-    expect(selectEnemyRoster("desert-roster", "desert")[5]).toBe("sandcaster");
+    expect(selectEnemyRoster("desert-roster", "desert")[5]).toBe("sandstormer");
   });
 
   it("registers the Tombguard as the Desert armored bruiser", () => {

@@ -90,10 +90,10 @@
        cx="-13"
        cy="0"
        r="21"
-       fill="url(#cinder-core-gradient)"
+       fill="#ff8f35"
        stroke="#742d23"
        stroke-width="3"
-       style="fill:url(#cinder-core-gradient)" />
+       style="fill:#ff8f35" />
     <g
        id="charcoal-shell"
        fill="#343332"

@@ -5,7 +5,7 @@
    aria-labelledby="title description"
    version="1.1"
    id="svg1"
-   sodipodi:docname="dune-hopper-zombie.svg"
+   sodipodi:docname="dune-burrower-zombie.svg"
    inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
@@ -30,13 +30,13 @@
      inkscape:window-x="66"
      inkscape:window-y="151"
      inkscape:window-maximized="0"
-     inkscape:current-layer="dune-hopper-zombie" />
+     inkscape:current-layer="dune-burrower-zombie" />
   <title
-     id="title">Dune Hopper zombie</title>
+     id="title">Dune Burrower zombie</title>
   <desc
-     id="description">A lean desert zombie wearing a wind-swept scarf, with powerful springing legs and sand kicking from its feet.</desc>
+     id="description">A compact desert zombie with a sand drill crest, floating hands, and a tunnel-marked shell.</desc>
   <g
-     id="dune-hopper-zombie">
+     id="dune-burrower-zombie">
     <g
        id="body-and-hands"
        fill="#58a86b"
@@ -63,13 +63,24 @@
          r="8"
          style="fill:#e8bb66;fill-opacity:1;stroke:#754a2d;stroke-opacity:1" />
     </g>
-    <path
-       id="desert-scarf-wrap"
-       d="m -18.801637,20.507658 c 7,-12.9999994 7.23064,-27.7197785 -0.76936,-39.719779 2.581202,-1.882522 5.606226,-3.304565 8.829713,-3.581985 7.0000001,13.0000003 6.9396473,31.3017646 -1.060353,46.301764 -2.440452,-0.642938 -5.014337,-0.8411 -7,-3 z"
-       fill="#df7047"
-       stroke="#713626"
+    <g
+       id="burrowing-marks"
+       fill="#9b6332"
+       stroke="#754a2d"
        stroke-width="2"
-       sodipodi:nodetypes="ccccc" />
+       stroke-linejoin="round">
+      <path
+         id="sand-drill-crest"
+         d="m -29,-18 11,-9 8,8 -9,8 7,7 -10,9 -12,-12 9,-8 z" />
+      <path
+         id="upper-tunnel-chevron"
+         d="m -13,-13 8,5 -8,5 -5,-5 z"
+         fill="#f3d58d" />
+      <path
+         id="lower-tunnel-chevron"
+         d="m -13,3 8,5 -8,5 -5,-5 z"
+         fill="#f3d58d" />
+    </g>
     <g
        id="eyes"
        fill="#fff1c4"

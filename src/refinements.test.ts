@@ -241,35 +241,6 @@ describe("combat and navigation refinements", () => {
     expect(jumper.x).toBeCloseTo(jumper.jumpEndX);
   });
 
-  it("lets the staged Dune Hopper perform its longer, cooldown-limited desert bound", () => {
-    const game = new Game(input());
-    game.startRun("normal", "dune-hopper");
-    game.world.resources = [];
-    const duneHopper = enemy({
-      kind: "dune-hopper",
-      x: 1000,
-      y: 1000,
-      radius: BALANCE.enemy["dune-hopper"].radius,
-    });
-    const wall = structure("wall", 1100, 1000);
-    const target = { ...game.flag, x: 1450, y: 1000 };
-    game.structures = [wall];
-    game.enemies = [duneHopper];
-
-    const didLeap = (game as unknown as {
-      tryEnemyLeap: (e: Enemy, blocker: Structure, target: typeof game.flag) => boolean;
-    }).tryEnemyLeap(duneHopper, wall, target);
-
-    const leap = ENEMY_REGISTRY["dune-hopper"].leap!;
-    expect(didLeap).toBe(true);
-    expect(duneHopper.jumpTime).toBe(leap.duration);
-    expect(duneHopper.jumpCooldown).toBe(leap.cooldown);
-    expect(duneHopper.jumpEndX).toBeGreaterThan(wall.x + wall.radius);
-    (game as unknown as { updateEnemyAirborne: (e: Enemy, dt: number) => void })
-      .updateEnemyAirborne(duneHopper, leap.duration);
-    expect(duneHopper.jumpTime).toBe(0);
-    expect(duneHopper.x).toBeCloseTo(duneHopper.jumpEndX);
-  });
 });
 
 describe("night, economy, and tutorial refinements", () => {

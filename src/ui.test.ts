@@ -362,6 +362,16 @@ describe("event-driven HUD interaction", () => {
     expect(document.activeElement).toBe(dawn);
   });
 
+  it("uses a biome-neutral transparent dawn overlay", () => {
+    const { game, overlay, ui } = createHarness();
+    game.phase = "dawn";
+    game.choices = [];
+    ui.render(true);
+
+    const screen = overlay.querySelector<HTMLElement>(".dawn-screen")!;
+    expect(screen.getAttribute("style")).toBeNull();
+  });
+
   it("shows concise upgrade amounts and current-to-upgraded values", () => {
     const { game, overlay, ui } = createHarness((manager) => {
       manager.profile.permanentUpgrades.bowRate = 5;

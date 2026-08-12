@@ -1099,9 +1099,7 @@ img.icon.mouse-glyph {
 
 /* Dawn */
 .dawn-screen {
-  background:
-    radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--biome-accent, #fbbb52) 24%, transparent), transparent 36%),
-    linear-gradient(color-mix(in srgb, var(--biome-edge, #081910) 96%, #050807), color-mix(in srgb, var(--biome-ground, #13311e) 88%, #07100b));
+  background: rgba(3, 7, 5, 0.68);
 }
 
 .dawn-panel {

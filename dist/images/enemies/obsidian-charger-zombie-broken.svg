@@ -2,9 +2,7 @@
   <title id="title">Obsidian Charger zombie with broken armor</title>
   <desc id="description">A broad volcanic zombie charging forward after its obsidian headplate and shoulder armor have shattered, exposing glowing cracks and scattered shards.</desc>
   <g id="obsidian-charger-zombie-broken">
-    <g id="braced-arms" fill="#536b53" stroke="#26342a" stroke-width="3">
-      <path id="upper-arm" d="M10-20c17-14 32-12 41-3l-8 12c-10-6-17-5-27 4Z"/>
-      <path id="lower-arm" d="M10 20c17 14 32 12 41 3l-8-12c-10 6-17 5-27-4Z"/>
+    <g id="floating-hands" fill="#536b53" stroke="#26342a" stroke-width="3">
       <circle id="upper-fist" cx="45" cy="-20" r="10"/>
       <circle id="lower-fist" cx="45" cy="20" r="10"/>
     </g>

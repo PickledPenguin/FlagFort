@@ -72,6 +72,14 @@
   </defs>
   <g
      id="drowned-bulwark-zombie">
+    <g
+       id="floating-hands"
+       fill="#60776d"
+       stroke="#1d3736"
+       stroke-width="2.5">
+      <circle id="upper-hand" cx="27" cy="-24" r="9" />
+      <circle id="lower-hand" cx="27" cy="25" r="9" />
+    </g>
     <ellipse
        id="body"
        cx="-11.568716"

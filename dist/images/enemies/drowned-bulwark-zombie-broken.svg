@@ -88,6 +88,14 @@
   <g
      id="drowned-bulwark-broken-zombie">
     <g
+       id="floating-hands"
+       fill="#60776d"
+       stroke="#1d3736"
+       stroke-width="2.5">
+      <circle id="upper-hand" cx="29" cy="-23" r="9" />
+      <circle id="lower-hand" cx="29" cy="25" r="9" />
+    </g>
+    <g
        id="shield-remnants"
        fill="#53635f"
        stroke="#263c3a"

@@ -382,7 +382,7 @@ export const CAMPAIGN_TIERS: readonly CampaignTierDefinition[] = [
     accent: "#f1ca75",
     ...CAMPAIGN_TIER_ARTWORK.desert,
     boss: "dune-colossus",
-    specialEnemies: ["dune-hopper", "sandcaster", "tombguard"],
+    specialEnemies: ["dune-burrower", "sandstormer", "tombguard"],
     unlock: { level: 13, previousTierId: "snowy" },
     milestones: [
       { id: "desert-level-8-coins", level: 15, reward: { kind: "coins", amount: 85 } },

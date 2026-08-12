@@ -18,10 +18,6 @@
       <circle id="halo-cutout" cx="0" cy="-13" r="22" fill="#222b31"/>
       <circle id="halo-rim" cx="0" cy="-13" r="15" fill="none" stroke="#e0b85b" stroke-width="4"/>
     </g>
-    <g id="legs" fill="none" stroke="#414a4d" stroke-width="10" stroke-linecap="round">
-      <path id="rear-leg" d="M-13 24-24 45"/>
-      <path id="front-leg" d="M13 24 27 44"/>
-    </g>
     <path id="body" d="M-27-8C-25-29-7-38 13-32 31-25 34 0 25 28H-23C-29 13-31 2-27-8Z" fill="url(#gearwright-apron-gradient)" stroke="#292822" stroke-width="3"/>
     <path id="head" d="M-17-28C-4-39 15-34 22-20 23-4 13 6-2 4-16 2-23-14-17-28Z" fill="#6d8177" stroke="#283a39" stroke-width="3"/>
     <path id="visor" d="M-17-20C-4-27 10-27 22-20L17-11C6-16-5-14-13-9Z" fill="#2b3538" stroke="#a97834" stroke-width="2"/>
@@ -29,9 +25,9 @@
       <rect id="left-light" x="-9" y="-21" width="7" height="4" rx="2"/>
       <rect id="right-light" x="6" y="-22" width="7" height="4" rx="2"/>
     </g>
-    <g id="tool-arms" fill="none" stroke="#64776e" stroke-width="8" stroke-linecap="round">
-      <path id="wrench-arm" d="M-22-2-40 11"/>
-      <path id="beacon-arm" d="M23-3 39 7"/>
+    <g id="floating-hands" fill="#70847a" stroke="#283a39" stroke-width="2.5">
+      <circle id="wrench-hand" cx="-40" cy="11" r="8"/>
+      <circle id="beacon-hand" cx="39" cy="7" r="8"/>
     </g>
     <path id="wrench" d="m-39 10-10 10m1-16 8 7-1 11" fill="none" stroke="#c5ced0" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
     <g id="command-beacon">

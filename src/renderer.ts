@@ -321,6 +321,7 @@ export class Renderer {
       ctx.restore();
       this.healthBar(portal.x, portal.y - portal.radius - 18, 70, portal.health / portal.maxHealth, "#9b79ff");
     }
+    this.drawSandTunnels(game);
     if (game.hasActiveFlag()) this.drawFlag(game);
     for (const structure of game.structures) {
       if (this.visible(game, structure.x, structure.y, structure.radius + 140)) this.drawStructure(structure, game.player);
@@ -601,23 +602,44 @@ export class Renderer {
       ctx.beginPath(); ctx.ellipse(0, 0, 14, 5, this.time * 2, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
       ctx.restore();
     }
-    for (const tunnel of game.sandTunnels) {
-      ctx.save();
-      ctx.strokeStyle = "rgba(241,202,117,.78)";
-      ctx.fillStyle = "rgba(120,74,35,.58)";
-      ctx.lineWidth = 4;
-      ctx.setLineDash([9, 8]);
-      ctx.beginPath(); ctx.moveTo(tunnel.entry.x, tunnel.entry.y); ctx.lineTo(tunnel.exit.x, tunnel.exit.y); ctx.stroke();
-      ctx.setLineDash([]);
-      for (const point of [tunnel.entry, tunnel.exit]) {
-        ctx.beginPath(); ctx.ellipse(point.x, point.y, 30, 13, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-      }
-      ctx.restore();
-    }
     ctx.globalAlpha = 1;
     ctx.strokeStyle = "#0a291c";
     ctx.lineWidth = 18;
     ctx.strokeRect(0, 0, BALANCE.mapSize, BALANCE.mapSize);
+  }
+
+  private drawSandTunnels(game: Game): void {
+    const ctx = this.ctx;
+    for (const tunnel of game.sandTunnels) {
+      const dx = tunnel.exit.x - tunnel.entry.x;
+      const dy = tunnel.exit.y - tunnel.entry.y;
+      const length = Math.max(1, Math.hypot(dx, dy));
+      const perpendicularX = -dy / length;
+      const perpendicularY = dx / length;
+      const bend = (tunnel.id % 2 === 0 ? 1 : -1) * Math.min(26, length * 0.12);
+      const midpointX = (tunnel.entry.x + tunnel.exit.x) / 2 + perpendicularX * bend;
+      const midpointY = (tunnel.entry.y + tunnel.exit.y) / 2 + perpendicularY * bend;
+
+      ctx.save();
+      ctx.strokeStyle = "#9a622f";
+      ctx.fillStyle = "#75451f";
+      ctx.lineWidth = 7;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.moveTo(tunnel.entry.x, tunnel.entry.y);
+      ctx.quadraticCurveTo(midpointX, midpointY, tunnel.exit.x, tunnel.exit.y);
+      ctx.stroke();
+      ctx.strokeStyle = "#d09a4b";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      for (const point of [tunnel.entry, tunnel.exit]) {
+        ctx.beginPath();
+        ctx.ellipse(point.x, point.y, 30, 13, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
   }
 
   private drawResource(
@@ -986,14 +1008,17 @@ export class Renderer {
       ctx.shadowColor = "#d99cff";
       ctx.shadowBlur = 20;
     }
-    if (enemy.kind === "sandcaster") {
+    if (enemy.kind === "sandstormer") {
       const radius = BALANCE.tierMechanics.desert.sandstormRadius;
-      ctx.fillStyle = "rgba(225,177,83,.10)";
-      ctx.strokeStyle = "rgba(241,202,117,.5)";
-      ctx.lineWidth = 4;
-      ctx.setLineDash([18, 13]);
-      ctx.beginPath(); ctx.arc(0, 0, radius, this.time, Math.PI * 2 + this.time); ctx.fill(); ctx.stroke();
-      ctx.setLineDash([]);
+      ctx.strokeStyle = "rgba(241,202,117,.28)";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(0, 0, radius, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.fillStyle = "rgba(241,202,117,.11)";
+      ctx.beginPath();
+      ctx.arc(0, 0, enemy.radius + 12, 0, Math.PI * 2);
+      ctx.fill();
     }
     if (enemy.timedLifeRemaining !== undefined) {
       if (enemy.timedLifeExpired) ctx.filter = "grayscale(1) brightness(.72)";

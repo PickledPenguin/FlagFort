@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="-55 -50 110 100" role="img" aria-labelledby="title description">
   <title id="title">Radstalker zombie</title>
-  <desc id="description">A lean irradiated zombie in a torn hazard hood, stalking forward with luminous claws and a cracked radiation canister.</desc>
+  <desc id="description">A compact irradiated zombie in a torn hazard hood, with floating clawed hands and a cracked radiation canister.</desc>
   <defs id="radstalker-definitions">
     <radialGradient id="radstalker-glow" cx="50%" cy="50%" r="50%">
       <stop offset="0" stop-color="#efff9d"/>
@@ -13,9 +13,9 @@
       <circle id="fallout-speck-two" cx="-48" cy="10" r="2"/>
       <circle id="fallout-speck-three" cx="-34" cy="34" r="2.5"/>
     </g>
-    <g id="reaching-arms" fill="none" stroke="#587663" stroke-width="9" stroke-linecap="round">
-      <path id="upper-arm" d="M9-15 28-28 43-21"/>
-      <path id="lower-arm" d="M10 15 30 26 43 17"/>
+    <g id="floating-hands" fill="#6f8d72" stroke="#293d33" stroke-width="2.5">
+      <circle id="upper-hand" cx="43" cy="-21" r="9"/>
+      <circle id="lower-hand" cx="43" cy="17" r="9"/>
     </g>
     <g id="glowing-claws" fill="none" stroke="#cfff71" stroke-width="3" stroke-linecap="round">
       <path id="upper-claws" d="m42-21 10-6m-9 7 11 1m-12-1 7 8"/>

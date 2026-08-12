@@ -236,8 +236,8 @@ describe("data-driven campaign tiers", () => {
 
   it("registers a complete themed artwork set for the upcoming Desert enemies", () => {
     expect(DESERT_ENEMY_ARTWORK).toEqual({
-      duneHopper: "enemies/dune-hopper-zombie",
-      sandcaster: "enemies/sandcaster-zombie",
+      duneBurrower: "enemies/dune-burrower-zombie",
+      sandstormer: "enemies/sandstormer-zombie",
       tombguard: {
         armored: "enemies/tombguard-zombie",
         broken: "enemies/tombguard-zombie-broken",
@@ -476,7 +476,7 @@ describe("data-driven campaign tiers", () => {
       order: 2,
       unlock: { level: 13, previousTierId: "snowy" },
       boss: "dune-colossus",
-      specialEnemies: ["dune-hopper", "sandcaster", "tombguard"],
+      specialEnemies: ["dune-burrower", "sandstormer", "tombguard"],
       biome: CAMPAIGN_BIOMES.desert,
     });
     expect(campaignTier("volcanic")).toMatchObject({
@@ -708,8 +708,8 @@ describe("data-driven campaign tiers", () => {
     expect(selectEnemyRoster("same-seed", "desert")).toEqual({
       1: "basic",
       2: "runner",
-      3: "dune-hopper",
-      5: "sandcaster",
+      3: "dune-burrower",
+      5: "sandstormer",
       7: "tombguard",
     });
     expect(selectEnemyRoster("same-seed", "desert"))

@@ -50,10 +50,10 @@ describe("staged Desert enemies", () => {
     expect(tombguard.health).toBe(tombguard.maxHealth - 20);
   });
 
-  it("lets a Sandcaster sandblast pierce an aligned wall and defender", () => {
+  it("lets a Sandstormer sandblast pierce an aligned wall and defender", () => {
     const game = gameFixture();
-    const definition = ENEMY_REGISTRY.sandcaster;
-    const sandcaster = spawn(game, "sandcaster", game.player.x - 220, game.player.y);
+    const definition = ENEMY_REGISTRY.sandstormer;
+    const sandstormer = spawn(game, "sandstormer", game.player.x - 220, game.player.y);
     const wall: Structure = {
       id: 810,
       kind: "wall",
@@ -73,21 +73,55 @@ describe("staged Desert enemies", () => {
 
     (game as unknown as {
       enemyRangedAttack(enemy: Enemy, target: typeof game.player, dt: number): void;
-    }).enemyRangedAttack(sandcaster, game.player, definition.attack.chargeSeconds);
+    }).enemyRangedAttack(sandstormer, game.player, definition.attack.chargeSeconds);
 
     expect(game.projectiles.at(-1)).toMatchObject({
-      sourceEnemyKind: "sandcaster",
-      damageSource: "sandcaster",
+      sourceEnemyKind: "sandstormer",
+      damageSource: "sandstormer",
       appearance: "sandblast",
       pierces: true,
     });
 
     (game as unknown as { updateProjectiles(dt: number): void }).updateProjectiles(0.5);
 
-    expect(wall.health).toBe(wall.maxHealth - sandcaster.structureDamage);
-    expect(game.player.health).toBe(game.player.maxHealth - sandcaster.damage);
+    expect(wall.health).toBe(wall.maxHealth - sandstormer.structureDamage);
+    expect(game.player.health).toBe(game.player.maxHealth - sandstormer.damage);
     expect(game.projectiles).toHaveLength(1);
     expect(game.projectiles[0]!.hitIds).toEqual(new Set([wall.id, "player"]));
+  });
+
+  it("lets each Dune Burrower create only one tunnel and never leap", () => {
+    const game = gameFixture();
+    const burrower = spawn(game, "dune-burrower", game.flag.x + 190, game.flag.y);
+    game.structures = [{
+      id: 811,
+      kind: "wall",
+      tier: "wood",
+      x: game.flag.x + 120,
+      y: game.flag.y,
+      radius: BALANCE.structure.radius.wall,
+      health: 200,
+      maxHealth: 200,
+      cooldown: 0,
+      angle: 0,
+      lastArmAngle: 0,
+      harvesterHitResourceIds: new Set(),
+      flash: 0,
+    }];
+    burrower.tunnelCooldown = 0;
+
+    (game as unknown as { updateEnemies(dt: number): void }).updateEnemies(0);
+    expect(game.sandTunnels).toHaveLength(1);
+    expect(burrower.tunnelCreated).toBe(true);
+    expect(ENEMY_REGISTRY["dune-burrower"].leap).toBeUndefined();
+
+    burrower.tunnelCooldown = 0;
+    (game as unknown as { updateEnemies(dt: number): void }).updateEnemies(0);
+    expect(game.sandTunnels).toHaveLength(1);
+  });
+
+  it("keeps the Sandstormer speed buff dramatic", () => {
+    expect(BALANCE.tierMechanics.desert.sandstormSpeedMultiplier).toBeGreaterThanOrEqual(2);
   });
 
   it("stages the Dune Colossus as a complete armored campaign boss", () => {
@@ -100,7 +134,7 @@ describe("staged Desert enemies", () => {
     expect(definition.armor?.brokenSprite).toBe("enemies/dune-colossus-broken");
     expect(definition.armor?.scalesWithHealth).toBe(true);
     expect(definition.areaStrike?.damageSource).toBe("dune-colossus");
-    expect(definition.phaseSlam?.reinforcementKind).toBe("dune-hopper");
+    expect(definition.phaseSlam?.reinforcementKind).toBe("dune-burrower");
   });
 
   it("creates deterministic sand-pillar warnings around the defender", () => {
@@ -125,7 +159,7 @@ describe("staged Desert enemies", () => {
       strike.x === first.player.x && strike.y === first.player.y)).toBe(true);
   });
 
-  it("breaks its shell before health and calls one Dune Hopper swarm at half health", () => {
+  it("breaks its shell before health and calls one Dune Burrower swarm at half health", () => {
     const game = gameFixture();
     const boss = spawn(game, "dune-colossus", game.flag.x + 700, game.flag.y);
     const config = ENEMY_REGISTRY["dune-colossus"];
@@ -148,7 +182,7 @@ describe("staged Desert enemies", () => {
       .updateBoss(boss, config.phaseSlam!.chargeDuration + 0.01);
 
     expect(game.enemies.filter((enemy) =>
-      enemy.summonedBy === boss.id && enemy.kind === "dune-hopper"))
+      enemy.summonedBy === boss.id && enemy.kind === "dune-burrower"))
       .toHaveLength(config.phaseSlam!.reinforcementCount);
 
     boss.health = boss.maxHealth * 0.1;

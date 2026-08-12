@@ -5,7 +5,7 @@
    aria-labelledby="title desc"
    version="1.1"
    id="svg-icebound-broken"
-   sodipodi:docname="icebound-zombie-broken.svg"
+   sodipodi:docname="icebound-crusher-zombie-broken.svg"
    inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
@@ -21,11 +21,11 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
-     inkscape:current-layer="icebound-zombie-broken" />
+     inkscape:current-layer="icebound-crusher-zombie-broken" />
   <title id="title">Icebound Crusher without ice armor</title>
   <desc id="desc">The massive blue zombie exposed after its angular ice shell shatters.</desc>
   <g
-     id="icebound-zombie-broken"
+     id="icebound-crusher-zombie-broken"
      stroke="#173746"
      stroke-width="5"
      stroke-linejoin="round">

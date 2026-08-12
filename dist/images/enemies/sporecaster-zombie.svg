@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="-58 -52 116 104" role="img" aria-labelledby="title description">
   <title id="title">Sporecaster zombie</title>
-  <desc id="description">A hunched bog zombie carrying a towering fungus colony and cradling a glowing puffball ready to burst into slowing spores.</desc>
+  <desc id="description">A round bog zombie carrying a clean fungus crown and a glowing puffball ready to burst into slowing spores.</desc>
   <defs id="sporecaster-definitions">
     <linearGradient id="sporecaster-body-gradient" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#627a63"/>
@@ -25,10 +25,6 @@
       <circle id="spore-three" cx="-8" cy="-43" r="3"/>
       <circle id="spore-four" cx="1" cy="-31" r="1.8"/>
     </g>
-    <g id="legs" fill="none" stroke="#3d5952" stroke-width="10" stroke-linecap="round">
-      <path id="rear-leg" d="M-16 20-29 39-43 36"/>
-      <path id="front-leg" d="M9 20 22 39 37 35"/>
-    </g>
     <ellipse id="body" cx="-3" cy="4" rx="29" ry="25" fill="url(#sporecaster-body-gradient)" stroke="#213b39" stroke-width="3"/>
     <path id="hood" d="M-24-16C-12-34 16-31 31-11L20-3C10-16-7-20-17-7Z" fill="#415d4e" stroke="#243e37" stroke-width="3" stroke-linejoin="round"/>
     <path id="face" d="M1-10c14-4 25 2 29 13-9 9-21 11-34 3Z" fill="#263f3e"/>
@@ -36,9 +32,9 @@
       <circle id="upper-eye" cx="17" cy="-3" r="4"/>
       <circle id="lower-eye" cx="18" cy="9" r="3"/>
     </g>
-    <g id="casting-arms" fill="none" stroke="#4d6c5c" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
-      <path id="upper-arm" d="M8-14 28-25 43-17"/>
-      <path id="lower-arm" d="M9 17 28 27 43 18"/>
+    <g id="floating-hands" fill="#587764" stroke="#213b39" stroke-width="2.5">
+      <circle id="upper-hand" cx="41" cy="-18" r="8"/>
+      <circle id="lower-hand" cx="41" cy="18" r="8"/>
     </g>
     <circle id="puffball" cx="45" r="14" fill="url(#sporecaster-orb-gradient)" stroke="#405d3f" stroke-width="3"/>
     <g id="puffball-spots" fill="#f3ffc9">

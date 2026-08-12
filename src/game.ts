@@ -226,6 +226,7 @@ export class Game {
   radiationHazards: Array<{ x: number; y: number; radius: number; createdNight: number }> = [];
   infectionTravelers: Array<{ x: number; y: number; targetId: number; speed: number }> = [];
   sandTunnels: Array<{ id: number; entry: Vec2; exit: Vec2; remaining: number; cooldown: number }> = [];
+  private activeSandstormers: Enemy[] = [];
   clockworkEarlyKills = 0;
   clockPenaltyNotice: { kills: number; seconds: number } | null = null;
   timeRewind: { bossId: number; elapsed: number; startTimer: number; removed: number } | null = null;
@@ -2099,7 +2100,8 @@ export class Game {
         ? BALANCE.tierMechanics.clockwork.timedLifeSeconds
         : undefined,
       timedLifeExpired: false,
-      tunnelCooldown: kind === "dune-hopper" ? 1.5 : undefined,
+      tunnelCooldown: kind === "dune-burrower" ? 1.5 : undefined,
+      tunnelCreated: kind === "dune-burrower" ? false : undefined,
     });
     const spawned = this.enemies.at(-1);
     if (spawned) {
@@ -2230,6 +2232,8 @@ export class Game {
   }
 
   private updateEnemies(dt: number): void {
+    this.activeSandstormers = this.enemies.filter((enemy) =>
+      enemy.kind === "sandstormer" && enemy.health > 0);
     for (const enemy of this.enemies) {
       if ((enemy.ghostRemaining ?? 0) > 0) {
         enemy.ghostRemaining = Math.max(0, enemy.ghostRemaining! - dt);
@@ -2247,7 +2251,7 @@ export class Game {
       enemy.jumpCooldown = Math.max(0, enemy.jumpCooldown - dt);
       enemy.routeCommitment = Math.max(0, enemy.routeCommitment - dt);
       enemy.bossSlamWave = Math.max(0, (enemy.bossSlamWave ?? 0) - dt);
-      if (enemy.kind === "dune-hopper") {
+      if (enemy.kind === "dune-burrower" && !enemy.tunnelCreated) {
         enemy.tunnelCooldown = Math.max(0, (enemy.tunnelCooldown ?? 0) - dt);
         if (enemy.tunnelCooldown <= 0) {
           const blocker = this.structures.filter((structure) => distance(enemy, structure) <= 210)
@@ -2263,8 +2267,8 @@ export class Game {
               remaining: BALANCE.tierMechanics.desert.tunnelDuration,
               cooldown: 0,
             });
-            enemy.tunnelCooldown = BALANCE.tierMechanics.desert.tunnelDuration;
-            this.burst(enemy.x, enemy.y, "#f1ca75", 18, "TUNNEL");
+            enemy.tunnelCreated = true;
+            this.burst(enemy.x, enemy.y, "#f1ca75", 8, "TUNNEL");
           }
         }
       }
@@ -2763,9 +2767,9 @@ export class Game {
     }
     const sunlightMultiplier = enemy.burning && this.phase === "day" ? BALANCE.sunlight.movementMultiplier : 1;
     const windupMovementMultiplier = preserveMeleeWindup ? 1 : enemy.attackWindup > 0 ? 0.2 : 1;
-    const sandstormMultiplier = enemy.kind !== "sandcaster" && this.enemies.some((support) =>
-      support.kind === "sandcaster" && support.health > 0
-        && distance(support, enemy) <= BALANCE.tierMechanics.desert.sandstormRadius)
+    const sandstormRadiusSquared = BALANCE.tierMechanics.desert.sandstormRadius ** 2;
+    const sandstormMultiplier = enemy.kind !== "sandstormer" && this.activeSandstormers.some((support) =>
+      (support.x - enemy.x) ** 2 + (support.y - enemy.y) ** 2 <= sandstormRadiusSquared)
       ? BALANCE.tierMechanics.desert.sandstormSpeedMultiplier
       : 1;
     const speed = enemy.speed * sunlightMultiplier * windupMovementMultiplier * sandstormMultiplier;

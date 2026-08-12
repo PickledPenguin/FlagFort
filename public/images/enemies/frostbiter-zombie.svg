@@ -5,7 +5,7 @@
    aria-labelledby="title desc"
    version="1.1"
    id="svg3"
-   sodipodi:docname="frostbite-zombie.svg"
+   sodipodi:docname="frostbiter-zombie.svg"
    inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
@@ -32,11 +32,11 @@
      inkscape:window-maximized="0"
      inkscape:current-layer="svg3" />
   <title
-     id="title">Frostbite zombie</title>
+     id="title">Frostbiter zombie</title>
   <desc
      id="desc">A quick blue zombie with icy claws and a trailing frost crest.</desc>
   <g
-     id="frostbite-zombie"
+     id="frostbiter-zombie"
      stroke="#173746"
      stroke-width="4"
      stroke-linejoin="round">

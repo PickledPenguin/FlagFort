@@ -13,10 +13,6 @@
     </radialGradient>
   </defs>
   <g id="aether-gunner-zombie">
-    <g id="legs" fill="none" stroke="#3d464b" stroke-width="11" stroke-linecap="round">
-      <path id="rear-leg" d="M-13 24-28 44"/>
-      <path id="front-leg" d="M12 24 24 45"/>
-    </g>
     <path id="body" d="M-27-11C-24-31-7-41 12-36 28-31 35-10 27 26H-24C-29 10-31 0-27-11Z" fill="url(#aether-gunner-metal-gradient)" stroke="#20272d" stroke-width="3"/>
     <path id="head" d="M-17-28C-4-40 17-35 24-20 25-5 16 5 2 4-13 3-23-13-17-28Z" fill="#71837a" stroke="#293a39" stroke-width="3"/>
     <path id="goggle-band" d="M-17-19C-5-26 10-27 23-20" fill="none" stroke="#252c31" stroke-width="7"/>
@@ -33,9 +29,9 @@
       <circle id="aether-core" cx="10" cy="7" r="7" fill="url(#aether-gunner-core-gradient)"/>
       <path id="pressure-gauge" d="M-5-2C-1-15 15-16 21-5" fill="none" stroke="#e1c06b" stroke-width="3" stroke-linecap="round"/>
     </g>
-    <g id="grip-arms" fill="none" stroke="#63776d" stroke-width="8" stroke-linecap="round">
-      <path id="rear-arm" d="M-20-4-10 10"/>
-      <path id="front-arm" d="M22-4 27 6"/>
+    <g id="floating-hands" fill="#71877c" stroke="#293a39" stroke-width="2.5">
+      <circle id="rear-hand" cx="-12" cy="10" r="8"/>
+      <circle id="front-hand" cx="28" cy="6" r="8"/>
     </g>
     <path id="aether-vent" d="m-18 24-7 10m18-9-3 13m15-13v13" fill="none" stroke="#79e7df" stroke-width="3" stroke-linecap="round" opacity="0.8"/>
   </g>

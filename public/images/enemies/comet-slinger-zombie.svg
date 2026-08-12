@@ -80,7 +80,7 @@
      id="comet-slinger-zombie"
      transform="translate(-16,6)">
     <g
-       id="slinging-arms"
+       id="floating-hand-spacing"
        fill="none"
        stroke="#625da0"
        stroke-width="9"
@@ -202,9 +202,9 @@
     </g>
     <path
        id="comet-tail"
-       d="M 4.4376096,21.028139 C -11.032237,20.587216 -17.215674,12.950992 -21.327531,2.3169506 -12.258038,7.4884403 -5.9924323,5.7729943 1.952502,2.4748098 -0.07096347,11.244393 2.6385628,15.48166 4.4376096,21.028139 Z"
-       fill="url(#comet-tail-gradient)"
-       style="fill:url(#comet-tail-gradient);fill-opacity:1"
+       d="M 4.4,21 C -8,20 -16,13 -21,3 -11,8 -4,7 2,3 -1,11 2,16 4.4,21 Z"
+       fill="#8cecff"
+       style="fill:#8cecff;fill-opacity:0.78"
        sodipodi:nodetypes="cccc" />
     <g
        id="orbit-sparks"

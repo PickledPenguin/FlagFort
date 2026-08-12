@@ -28,8 +28,8 @@ export type RosterEnemyKind =
   | "frostbite"
   | "snowballer"
   | "icebound"
-  | "dune-hopper"
-  | "sandcaster"
+  | "dune-burrower"
+  | "sandstormer"
   | "tombguard"
   | "cinderburst"
   | "magma-spitter"
@@ -58,7 +58,7 @@ export type DamageSource =
   | "boss-acid"
   | "enemy-arrow"
   | "enemy-acid"
-  | "sandcaster"
+  | "sandstormer"
   | "magma-spitter"
   | "sludge-lobber"
   | "comet-slinger"
@@ -234,6 +234,7 @@ export interface Enemy extends Circle {
   timedLifeExpired?: boolean;
   timedLifeRewardCounted?: boolean;
   tunnelCooldown?: number;
+  tunnelCreated?: boolean;
   mireTentacle?: boolean;
 }
 

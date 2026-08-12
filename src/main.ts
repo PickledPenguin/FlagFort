@@ -67,7 +67,43 @@ async function bootstrap(): Promise<void> {
     const enemyKinds = Object.keys(ENEMY_REGISTRY) as EnemyKind[];
     const swordPreview = preview.get("swordPreview") as Tier | null;
     const tiers: Tier[] = ["wood", "stone", "gold", "diamond"];
-    if (preview.has("snowPreview")) {
+    if (preview.has("desertSpecialPreview")) {
+      game.startRun("normal", "flagfort-desert-special-preview", [], true, {
+        settle: false,
+        campaignTierId: "desert",
+      });
+      game.phase = "night";
+      game.timer = 999;
+      const wall = {
+        id: 999_101,
+        ownerId: game.player.id,
+        kind: "wall" as const,
+        tier: "stone" as const,
+        x: game.flag.x + 120,
+        y: game.flag.y,
+        radius: BALANCE.structure.radius.wall,
+        health: 360,
+        maxHealth: 360,
+        cooldown: 0,
+        angle: 0,
+        lastArmAngle: 0,
+        harvesterHitResourceIds: new Set<number>(),
+        flash: 0,
+      };
+      game.structures.push(wall);
+      const spawnPreviewEnemy = (x: number, y: number, kind: EnemyKind): void => {
+        (game as unknown as {
+          spawnEnemy(position: { x: number; y: number }, enemyKind: EnemyKind): void;
+        }).spawnEnemy({ x, y }, kind);
+      };
+      spawnPreviewEnemy(game.flag.x + 220, game.flag.y, "dune-burrower");
+      spawnPreviewEnemy(game.flag.x - 180, game.flag.y - 60, "sandstormer");
+      spawnPreviewEnemy(game.flag.x - 80, game.flag.y - 40, "runner");
+      const burrower = game.enemies.find((enemy) => enemy.kind === "dune-burrower");
+      if (burrower) burrower.tunnelCooldown = 0;
+      (game as unknown as { updateEnemies(dt: number): void }).updateEnemies(0);
+      game.modalLock = true;
+    } else if (preview.has("snowPreview")) {
       game.startRun("normal", "flagfall-snow-preview", [], true, {
         settle: false,
         campaignTierId: "snowy",

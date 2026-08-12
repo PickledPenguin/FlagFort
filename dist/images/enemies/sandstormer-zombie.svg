@@ -5,7 +5,7 @@
    aria-labelledby="title description"
    version="1.1"
    id="svg2"
-   sodipodi:docname="sandcaster-zombie.svg"
+   sodipodi:docname="sandstormer-zombie.svg"
    inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
@@ -28,13 +28,13 @@
      inkscape:window-x="90"
      inkscape:window-y="273"
      inkscape:window-maximized="0"
-     inkscape:current-layer="sandcaster-zombie" />
+     inkscape:current-layer="sandstormer-zombie" />
   <title
-     id="title">Sandcaster zombie</title>
+     id="title">Sandstormer zombie</title>
   <desc
      id="description">A robed desert zombie holding a cracked clay vessel that swirls with a clearly visible cloud of stinging sand.</desc>
   <defs
-     id="sandcaster-definitions">
+     id="sandstormer-definitions">
     <linearGradient
        id="robe-gradient"
        x1="-35.20216"
@@ -54,7 +54,7 @@
     </linearGradient>
   </defs>
   <g
-     id="sandcaster-zombie">
+     id="sandstormer-zombie">
     <circle
        id="body"
        r="22"

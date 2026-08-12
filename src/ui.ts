@@ -917,8 +917,6 @@ export class Ui {
   }
 
   private dawnMarkup(): string {
-    const activeTier = this.game.getCampaignTier();
-    const dawnStyle = `--biome-accent:${activeTier.accent};--biome-ground:${activeTier.biome.palette.clearingCenter};--biome-edge:${activeTier.biome.palette.viewport}`;
     if (this.game.enemyWarning) {
       const info = enemyInfo[this.game.enemyWarning];
       return `<section class="screen modal-screen danger-screen"><div class="modal warning-card" role="dialog" aria-modal="true" aria-labelledby="threat-warning-title">
@@ -940,7 +938,7 @@ export class Ui {
       </div></section>`;
     }
     if (this.game.isUpgradeSelectionExhausted()) {
-      return `<section class="screen dawn-screen" style="${dawnStyle}"><div class="dawn-panel upgrade-cap-panel" role="region" aria-labelledby="upgrade-cap-title" tabindex="-1">
+      return `<section class="screen dawn-screen"><div class="dawn-panel upgrade-cap-panel" role="region" aria-labelledby="upgrade-cap-title" tabindex="-1">
         <header><p class="eyebrow">DAWN ${this.game.night} · PROGRESSION COMPLETE</p><h2 id="upgrade-cap-title">Every available upgrade is maximized</h2>
           <span>Your fort cannot gain any more run upgrades. Choose how this run continues.</span></header>
         <div class="upgrade-cap-actions">
@@ -949,7 +947,7 @@ export class Ui {
         </div>
       </div></section>`;
     }
-    return `<section class="screen dawn-screen" style="${dawnStyle}"><div class="dawn-panel" role="region" aria-labelledby="dawn-title" tabindex="-1">
+    return `<section class="screen dawn-screen"><div class="dawn-panel" role="region" aria-labelledby="dawn-title" tabindex="-1">
       <header><p class="eyebrow">DAWN ${this.game.night} · COUNT FROZEN</p><h2 id="dawn-title">${heading}</h2><span>Each benefit empowers the horde.</span>
       </header>
         <div class="choice-viewport"><div class="choice-track" style="--card-transition-duration:${BALANCE.ui.cardTransitionDuration}ms;--card-transition-easing:${BALANCE.ui.cardTransitionEasing}"><div class="choice-set choice-pairs">${this.game.choices.map((choice, index) => this.choicePair(choice, index)).join("")}</div></div></div>

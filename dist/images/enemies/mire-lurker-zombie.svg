@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="-58 -52 116 104" role="img" aria-labelledby="title description">
   <title id="title">Mire Lurker zombie</title>
-  <desc id="description">A low swamp hunter cloaked in reeds and duckweed, with grasping claws, luminous eyes, and a leech-like tongue.</desc>
+  <desc id="description">A low round swamp hunter cloaked in reeds and duckweed, with floating clawed hands and a leech-like tongue.</desc>
   <defs id="mire-lurker-definitions">
     <linearGradient id="mire-lurker-body-gradient" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#56766b"/>
@@ -17,10 +17,9 @@
       <path id="reed-two" d="m-29-6 2-43 7 8-2 37Z"/>
       <path id="reed-three" d="m-19-8 14-35 4 10-10 29Z"/>
     </g>
-    <g id="crawling-limbs" fill="none" stroke="#35534c" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
-      <path id="foreleg" d="M12 18 31 34 47 24"/>
-      <path id="hindleg" d="M-22 17-37 32-49 25"/>
-      <path id="upper-arm" d="M10-18 31-30 46-20"/>
+    <g id="floating-hands" fill="#45675c" stroke="#1c3433" stroke-width="2.5">
+      <circle id="upper-hand" cx="46" cy="-20" r="9"/>
+      <circle id="lower-hand" cx="46" cy="24" r="9"/>
     </g>
     <ellipse id="body" cx="-5" cy="2" rx="32" ry="25" fill="url(#mire-lurker-body-gradient)" stroke="#1c3433" stroke-width="3"/>
     <path id="reed-cowl" d="M-34-9C-25-34 2-41 28-21L19-11C4-24-14-22-25-3Z" fill="#4d6848" stroke="#263e34" stroke-width="3" stroke-linejoin="round"/>

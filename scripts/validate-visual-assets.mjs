@@ -57,6 +57,15 @@ const gameplayAssets = [
 const requiredStructureGroups = ["wall", "spikes", "door", "harvester", "turret"]
   .flatMap((kind) => ["wood", "stone", "gold", "diamond"].map((tier) => `${kind}-${tier}`));
 
+const laterBiomeSpecialZombieAssets = [
+  "cinderburst-zombie", "magma-spitter-zombie", "obsidian-charger-zombie",
+  "obsidian-charger-zombie-broken", "radstalker-zombie", "sludge-lobber-zombie",
+  "ruin-siren-zombie", "rift-strider-zombie", "comet-slinger-zombie",
+  "void-herald-zombie", "mire-lurker-zombie", "sporecaster-zombie",
+  "drowned-bulwark-zombie", "drowned-bulwark-zombie-broken", "springjack-zombie",
+  "aether-gunner-zombie", "gearwright-zombie",
+];
+
 function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
@@ -96,6 +105,17 @@ async function findSvgFiles(directory) {
 const allSvgFiles = await findSvgFiles(resolve(publicRoot, "images"));
 for (const absolutePath of allSvgFiles) {
   await validateSvg(relative(publicRoot, absolutePath));
+}
+
+for (const name of laterBiomeSpecialZombieAssets) {
+  const relativePath = `images/enemies/${name}.svg`;
+  const svg = await readFile(resolve(publicRoot, relativePath), "utf8");
+  const floatingHands = svg.match(/<circle\b[^>]*\bid="[^"]*(?:hand|fist)[^"]*"[^>]*>/gi) ?? [];
+  assert(floatingHands.length >= 2, `${relativePath}: special zombies need two floating circle hands`);
+  assert(!/\b(?:foreleg|hindleg|rear-leg|front-leg|spring-legs|id="legs")\b/i.test(svg),
+    `${relativePath}: later-biome special zombies must not have legs`);
+  assert(!/<path\b[^>]*\bid="[^"]*arm[^"]*"/i.test(svg),
+    `${relativePath}: later-biome special-zombie arms must be floating circles`);
 }
 
 const expectedCards = {
