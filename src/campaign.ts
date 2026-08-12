@@ -1,4 +1,5 @@
 import type { BossEnemyKind, CampaignTierId, RosterEnemyKind } from "./types";
+import type { PopupContrast } from "./popup-colors";
 
 export type CampaignReward =
   | { kind: "coins"; amount: number }
@@ -22,6 +23,9 @@ export interface CampaignBiomeDefinition {
   minimapLabel: string;
   resourceSnowChance: number;
   friendlyProjectileColor?: string;
+  popupContrast?: PopupContrast & {
+    protectedColors: readonly string[];
+  };
   palette: {
     viewport: string;
     ground: string;
@@ -115,6 +119,11 @@ export const CAMPAIGN_TIERS: readonly CampaignTierDefinition[] = [
       minimapLabel: "SNOWBOUND MAP",
       resourceSnowChance: 0.58,
       friendlyProjectileColor: "#704321",
+      popupContrast: {
+        protectedColors: ["#63c6e8"],
+        perceivedBrightnessThreshold: 150,
+        darkenMultiplier: 0.42,
+      },
       palette: {
         viewport: "#b9d6db",
         ground: "#d7e7e8",

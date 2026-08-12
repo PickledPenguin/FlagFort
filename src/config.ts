@@ -147,10 +147,6 @@ export const BALANCE = {
       itemGap: 8,
       rowGap: 5,
     },
-    snowPopupContrast: {
-      perceivedBrightnessThreshold: 150,
-      darkenMultiplier: 0.42,
-    },
   },
   resource: {
     radius: { wood: 42, stone: 35, gold: 30, diamond: 27 } satisfies Record<ResourceKind, number>,

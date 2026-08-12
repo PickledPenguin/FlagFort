@@ -3921,9 +3921,9 @@ export class Game {
     if (text) {
       const resolvedTextColor = biomePopupColor(
         textColor,
-        this.getCampaignTier().biome.ground === "snow" && !this.tutorialMode,
-        BALANCE.snowyEnemies.slow.popupTextColor,
-        BALANCE.ui.snowPopupContrast,
+        this.tutorialMode
+          ? undefined
+          : this.getCampaignTier().biome.popupContrast,
       );
       this.particles.push({
         x, y: y + textOffsetY, vx: 0, vy: -38, life: 0.9, maxLife: 0.9, radius: 0,
@@ -3977,9 +3977,9 @@ export class Game {
   private floatResource(x: number, y: number, resource: keyof ResourceWallet, text: string): void {
     const color = biomePopupColor(
       BALANCE.tierColors[resource],
-      this.getCampaignTier().biome.ground === "snow" && !this.tutorialMode,
-      BALANCE.snowyEnemies.slow.popupTextColor,
-      BALANCE.ui.snowPopupContrast,
+      this.tutorialMode
+        ? undefined
+        : this.getCampaignTier().biome.popupContrast,
     );
     this.particles.push({
       x,

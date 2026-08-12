@@ -1,15 +1,17 @@
-export interface SnowPopupContrast {
+export interface PopupContrast {
   perceivedBrightnessThreshold: number;
   darkenMultiplier: number;
+  protectedColors: readonly string[];
 }
 
 export function biomePopupColor(
   color: string,
-  snowy: boolean,
-  frostColor: string,
-  contrast: SnowPopupContrast,
+  contrast: PopupContrast | undefined,
 ): string {
-  if (!snowy || color.toLowerCase() === frostColor.toLowerCase()) return color;
+  if (!contrast) return color;
+  if (contrast.protectedColors.some((protectedColor) => (
+    color.toLowerCase() === protectedColor.toLowerCase()
+  ))) return color;
   const match = /^#([0-9a-f]{6})$/i.exec(color);
   if (!match) return color;
   const value = match[1]!;

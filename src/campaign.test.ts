@@ -52,6 +52,11 @@ describe("data-driven campaign tiers", () => {
         ground: "snow",
         resourceSnowChance: 0.58,
         friendlyProjectileColor: "#704321",
+        popupContrast: {
+          protectedColors: ["#63c6e8"],
+          perceivedBrightnessThreshold: 150,
+          darkenMultiplier: 0.42,
+        },
         palette: {
           viewport: "#b9d6db",
           ground: "#d7e7e8",
@@ -80,6 +85,14 @@ describe("data-driven campaign tiers", () => {
       ))).toBe(true);
       expect(tier.biome.friendlyProjectileColor === undefined
         || /^#[0-9a-f]{6}$/i.test(tier.biome.friendlyProjectileColor)).toBe(true);
+      expect(tier.biome.popupContrast?.protectedColors.every((color) => (
+        /^#[0-9a-f]{6}$/i.test(color)
+      )) ?? true).toBe(true);
+      if (tier.biome.popupContrast) {
+        expect(tier.biome.popupContrast.perceivedBrightnessThreshold).toBeGreaterThan(0);
+        expect(tier.biome.popupContrast.darkenMultiplier).toBeGreaterThan(0);
+        expect(tier.biome.popupContrast.darkenMultiplier).toBeLessThan(1);
+      }
       const weather = tier.biome.weather;
       if (weather) {
         expect(weather.color).toMatch(/^#[0-9a-f]{6}$/i);

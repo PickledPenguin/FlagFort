@@ -2,6 +2,7 @@
 
 import { describe, expect, it } from "vitest";
 import { BALANCE } from "./config";
+import { campaignTier } from "./campaign";
 import { ENEMY_REGISTRY } from "./enemy-registry";
 import { Game } from "./game";
 import { Input } from "./input";
@@ -148,25 +149,20 @@ describe("Acidslinger obstruction targeting", () => {
   });
 });
 
-describe("snow popup contrast", () => {
+describe("biome popup contrast", () => {
   it("darkens light ordinary feedback while preserving semantic frost blue", () => {
+    const contrast = campaignTier("snowy").biome.popupContrast;
     expect(biomePopupColor(
       "#aab0aa",
-      true,
-      BALANCE.snowyEnemies.slow.popupTextColor,
-      BALANCE.ui.snowPopupContrast,
+      contrast,
     )).not.toBe("#aab0aa");
     expect(biomePopupColor(
       BALANCE.snowyEnemies.slow.popupTextColor,
-      true,
-      BALANCE.snowyEnemies.slow.popupTextColor,
-      BALANCE.ui.snowPopupContrast,
+      contrast,
     )).toBe(BALANCE.snowyEnemies.slow.popupTextColor);
     expect(biomePopupColor(
       "#aab0aa",
-      false,
-      BALANCE.snowyEnemies.slow.popupTextColor,
-      BALANCE.ui.snowPopupContrast,
+      undefined,
     )).toBe("#aab0aa");
   });
 });
