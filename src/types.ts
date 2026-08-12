@@ -32,7 +32,7 @@ export type RosterEnemyKind =
   | "sandcaster"
   | "tombguard";
 export type BossEnemyKind = "boss" | "frost-warden" | "dune-colossus";
-export type EnemyKind = RosterEnemyKind | "splitter-child" | "cinderburst" | BossEnemyKind;
+export type EnemyKind = RosterEnemyKind | "splitter-child" | "cinderburst" | "magma-spitter" | BossEnemyKind;
 export type PlayerId = string;
 export type DamageSource =
   | "player-melee"
@@ -44,6 +44,7 @@ export type DamageSource =
   | "enemy-arrow"
   | "enemy-acid"
   | "sandcaster"
+  | "magma-spitter"
   | "dune-colossus"
   | "cinderburst-burst"
   | "popper-burst"
@@ -210,7 +211,7 @@ export interface Projectile extends Circle {
   intendedTargetId?: number | "player" | "flag";
   color: string;
   sourceEnemyKind?: EnemyKind;
-  appearance?: "arrow" | "snowball" | "sandblast";
+  appearance?: "arrow" | "snowball" | "sandblast" | "magma";
   pierces?: boolean;
   statusEffect?: EnemyStatusEffect;
   impactBurst?: {

@@ -84,4 +84,53 @@ describe("staged volcanic enemies", () => {
     expect(game.player.health).toBe(healthBefore);
     expect(game.areaEffects).toHaveLength(0);
   });
+
+  it("keeps Magma Spitter staged with a complete ranged siege role", () => {
+    const definition = ENEMY_REGISTRY["magma-spitter"];
+    expect(definition.assets.portrait).toBe("enemies/magma-spitter-zombie");
+    expect(definition.render).toEqual({ aspectRatio: 112 / 104, width: 82, height: 76 });
+    expect(definition.targeting).toMatchObject({
+      mode: "harvester",
+      attackRange: 430,
+      innerRadius: 190,
+    });
+    expect(definition.projectile).toMatchObject({
+      appearance: "magma",
+      damageSource: "magma-spitter",
+      pierces: false,
+    });
+    expect(definition.rosterEligible).toBe(false);
+    for (const tier of ["forest", "snowy", "desert"] as const) {
+      expect(Object.values(selectEnemyRoster("staged-magma-spitter", tier)))
+        .not.toContain("magma-spitter");
+    }
+  });
+
+  it("bombards a harvester from range with extra structure damage", () => {
+    const game = gameFixture();
+    const definition = ENEMY_REGISTRY["magma-spitter"];
+    const magmaSpitter = spawn(game, "magma-spitter", game.player.x - 300, game.player.y);
+    const harvester = structure(950, "harvester", game.player.x, game.player.y);
+    game.structures = [harvester];
+
+    (game as unknown as { selectEnemyTarget(enemy: Enemy): void })
+      .selectEnemyTarget(magmaSpitter);
+    expect(magmaSpitter.targetId).toBe(harvester.id);
+
+    (game as unknown as {
+      enemyRangedAttack(enemy: Enemy, target: Structure, dt: number, obstacleFallback: boolean): void;
+    }).enemyRangedAttack(magmaSpitter, harvester, definition.attack.chargeSeconds, true);
+
+    expect(game.projectiles.at(-1)).toMatchObject({
+      sourceEnemyKind: "magma-spitter",
+      damageSource: "magma-spitter",
+      intendedTargetId: harvester.id,
+      damage: magmaSpitter.structureDamage,
+      appearance: "magma",
+      pierces: false,
+    });
+    (game as unknown as { updateProjectiles(dt: number): void }).updateProjectiles(0.8);
+    expect(harvester.health).toBe(harvester.maxHealth - magmaSpitter.structureDamage);
+    expect(game.projectiles).toHaveLength(0);
+  });
 });
