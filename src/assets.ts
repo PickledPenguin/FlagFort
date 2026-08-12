@@ -36,6 +36,12 @@ export const RESOURCE_STATE_SKINS = {
     gold: { active: image("world/wasteland-uranium-active"), depleted: image("world/wasteland-uranium-depleted") },
     diamond: { active: image("world/wasteland-isotope-crystal-active"), depleted: image("world/wasteland-isotope-crystal-depleted") },
   },
+  rift: {
+    wood: { active: image("world/rift-twilight-wood-active"), depleted: image("world/rift-twilight-wood-depleted") },
+    stone: { active: image("world/rift-moonstone-active"), depleted: image("world/rift-moonstone-depleted") },
+    gold: { active: image("world/rift-star-metal-active"), depleted: image("world/rift-star-metal-depleted") },
+    diamond: { active: image("world/rift-void-crystal-active"), depleted: image("world/rift-void-crystal-depleted") },
+  },
 } as const satisfies Record<
   string,
   Record<ResourceKind, Record<"active" | "depleted", string>>

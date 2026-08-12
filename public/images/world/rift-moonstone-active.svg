@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title description">
+  <title id="title">Astral rift moonstone</title>
+  <desc id="description">A cluster of pale floating moonstone slabs held together by violet energy.</desc>
+  <g id="rift-moonstone-active">
+    <ellipse id="shadow" cx="49" cy="85" rx="35" ry="7" fill="#17142c" opacity=".65"/>
+    <path id="left-slab" d="m10 68 10-30 19-13 14 22-8 31-24 8Z" fill="#777895" stroke="#25243e" stroke-width="6" stroke-linejoin="round"/>
+    <path id="right-slab" d="m49 72 8-39 20-14 12 25-9 34-22 8Z" fill="#9495b1" stroke="#25243e" stroke-width="6" stroke-linejoin="round"/>
+    <path id="facets" d="m23 41 16 11-16 20m38-35 14 10-13 24" fill="none" stroke="#c7c8df" stroke-width="4" stroke-linecap="round"/>
+    <path id="rift-energy" d="M41 35c8-10 16 7 22-3M43 67c8-9 15 7 22-2" fill="none" stroke="#a96eff" stroke-width="4" stroke-linecap="round"/>
+    <circle id="orbit-one" cx="31" cy="19" r="4" fill="#d8c6ff"/>
+    <circle id="orbit-two" cx="84" cy="16" r="3" fill="#d8c6ff"/>
+  </g>
+</svg>

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title description">
+  <title id="title">Depleted astral rift moonstone</title>
+  <desc id="description">Broken moonstone fragments resting after their violet energy has faded.</desc>
+  <g id="rift-moonstone-depleted">
+    <path id="left-fragment" d="m11 76 12-21 18-5 11 20-12 15-21 2Z" fill="#68697f" stroke="#25243e" stroke-width="6" stroke-linejoin="round"/>
+    <path id="right-fragment" d="m49 78 11-25 20-4 8 23-14 14-18 1Z" fill="#77788f" stroke="#25243e" stroke-width="6" stroke-linejoin="round"/>
+    <path id="cracks" d="m29 57 7 9-8 12m45-21-8 9 8 10" fill="none" stroke="#40415b" stroke-width="3" stroke-linecap="round"/>
+    <path id="faint-energy" d="M42 72c6-5 10 4 16-1" fill="none" stroke="#7657aa" stroke-width="3" stroke-linecap="round"/>
+    <ellipse id="shadow" cx="49" cy="88" rx="36" ry="5" fill="#17142c" opacity=".55"/>
+  </g>
+</svg>

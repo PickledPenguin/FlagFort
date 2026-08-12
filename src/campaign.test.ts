@@ -49,6 +49,27 @@ const zeroCoins: CoinSettlement = {
 };
 
 describe("data-driven campaign tiers", () => {
+  it("registers a complete astral rift resource-art skin for the upcoming sixth tier", () => {
+    expect(RESOURCE_STATE_SKINS.rift).toEqual({
+      wood: {
+        active: "./images/world/rift-twilight-wood-active.svg",
+        depleted: "./images/world/rift-twilight-wood-depleted.svg",
+      },
+      stone: {
+        active: "./images/world/rift-moonstone-active.svg",
+        depleted: "./images/world/rift-moonstone-depleted.svg",
+      },
+      gold: {
+        active: "./images/world/rift-star-metal-active.svg",
+        depleted: "./images/world/rift-star-metal-depleted.svg",
+      },
+      diamond: {
+        active: "./images/world/rift-void-crystal-active.svg",
+        depleted: "./images/world/rift-void-crystal-depleted.svg",
+      },
+    });
+  });
+
   it("registers a complete nuclear wasteland resource-art skin for the upcoming fifth tier", () => {
     expect(RESOURCE_STATE_SKINS.wasteland).toEqual({
       wood: {
