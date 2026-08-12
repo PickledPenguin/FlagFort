@@ -21,7 +21,7 @@ export interface CampaignUnlockRequirement {
 }
 
 export interface CampaignBiomeDefinition {
-  ground: "forest" | "snow";
+  ground: "forest" | "snow" | "desert";
   minimapLabel: string;
   resourceStateSkin: ResourceStateSkinId;
   resourceOverlay?: {
@@ -64,6 +64,97 @@ export interface CampaignBiomeDefinition {
   };
 }
 
+export const CAMPAIGN_BIOMES = {
+  forest: {
+    ground: "forest",
+    minimapLabel: "FOREST MAP",
+    resourceStateSkin: "temperate",
+    palette: {
+      viewport: "#173f2a",
+      ground: "#1a4b30",
+      clearingCenter: "#315c36",
+      clearingEdge: "#1c4930",
+      foliage: ["#113b26", "#17452a", "#214f2c", "#285932"],
+    },
+  },
+  snow: {
+    ground: "snow",
+    minimapLabel: "SNOWBOUND MAP",
+    resourceStateSkin: "temperate",
+    resourceOverlay: {
+      kind: "cap",
+      chance: 0.58,
+      seedKey: "resource-snow",
+      fillColor: "#f7ffff",
+      strokeColor: "#b7d7df",
+      opacity: 0.94,
+      hitOpacity: 0.45,
+      widthRatio: 0.72,
+      heightRatio: 0.25,
+      verticalOffsetRatio: -0.7,
+      rotation: -0.08,
+      lineWidth: 2,
+    },
+    friendlyProjectileColor: "#704321",
+    popupContrast: {
+      protectedColors: ["#63c6e8"],
+      perceivedBrightnessThreshold: 150,
+      darkenMultiplier: 0.42,
+    },
+    palette: {
+      viewport: "#b9d6db",
+      ground: "#d7e7e8",
+      clearingCenter: "#f1f6f4",
+      clearingEdge: "#c7dcdd",
+      foliage: ["#acc7c9", "#b9d0d0", "#c5d9d8", "#d0e2e0"],
+    },
+    weather: {
+      kind: "falling-particles",
+      activeDuring: "night",
+      color: "#f7ffff",
+      seedKey: "snow-weather",
+      particleCount: 120,
+      fadeSeconds: 1.4,
+      fallSpeed: [38, 112],
+      radius: [1.1, 3.4],
+      driftAmplitude: [5, 34],
+      driftSpeed: [0.35, 1.35],
+      spawnGapRatio: [0, 0.18],
+    },
+  },
+  desert: {
+    ground: "desert",
+    minimapLabel: "SUNSCORCHED MAP",
+    resourceStateSkin: "desert",
+    friendlyProjectileColor: "#4f2f1c",
+    popupContrast: {
+      protectedColors: ["#9a3f25", "#1f6d70"],
+      perceivedBrightnessThreshold: 160,
+      darkenMultiplier: 0.45,
+    },
+    palette: {
+      viewport: "#9f6034",
+      ground: "#c98243",
+      clearingCenter: "#e4ad65",
+      clearingEdge: "#b96f38",
+      foliage: ["#744126", "#89502b", "#9c5e31", "#ad6d38"],
+    },
+    weather: {
+      kind: "falling-particles",
+      activeDuring: "always",
+      color: "#f2c77d",
+      seedKey: "desert-dust-weather",
+      particleCount: 54,
+      fadeSeconds: 1.8,
+      fallSpeed: [8, 24],
+      radius: [0.7, 2.1],
+      driftAmplitude: [22, 72],
+      driftSpeed: [0.18, 0.62],
+      spawnGapRatio: [0, 0.12],
+    },
+  },
+} as const satisfies Record<string, CampaignBiomeDefinition>;
+
 export interface CampaignTierDefinition {
   id: CampaignTierId;
   order: number;
@@ -100,18 +191,7 @@ export const CAMPAIGN_TIERS: readonly CampaignTierDefinition[] = [
       { id: "forest-level-2-coins", level: 2, reward: { kind: "coins", amount: 25 } },
       { id: "forest-level-3-coins", level: 3, reward: { kind: "coins", amount: 35 } },
     ],
-    biome: {
-      ground: "forest",
-      minimapLabel: "FOREST MAP",
-      resourceStateSkin: "temperate",
-      palette: {
-        viewport: "#173f2a",
-        ground: "#1a4b30",
-        clearingCenter: "#315c36",
-        clearingEdge: "#1c4930",
-        foliage: ["#113b26", "#17452a", "#214f2c", "#285932"],
-      },
-    },
+    biome: CAMPAIGN_BIOMES.forest,
   },
   {
     id: "snowy",
@@ -128,51 +208,7 @@ export const CAMPAIGN_TIERS: readonly CampaignTierDefinition[] = [
       { id: "snowy-level-5-coins", level: 5, reward: { kind: "coins", amount: 50 } },
       { id: "snowy-level-6-coins", level: 6, reward: { kind: "coins", amount: 65 } },
     ],
-    biome: {
-      ground: "snow",
-      minimapLabel: "SNOWBOUND MAP",
-      resourceStateSkin: "temperate",
-      resourceOverlay: {
-        kind: "cap",
-        chance: 0.58,
-        seedKey: "resource-snow",
-        fillColor: "#f7ffff",
-        strokeColor: "#b7d7df",
-        opacity: 0.94,
-        hitOpacity: 0.45,
-        widthRatio: 0.72,
-        heightRatio: 0.25,
-        verticalOffsetRatio: -0.7,
-        rotation: -0.08,
-        lineWidth: 2,
-      },
-      friendlyProjectileColor: "#704321",
-      popupContrast: {
-        protectedColors: ["#63c6e8"],
-        perceivedBrightnessThreshold: 150,
-        darkenMultiplier: 0.42,
-      },
-      palette: {
-        viewport: "#b9d6db",
-        ground: "#d7e7e8",
-        clearingCenter: "#f1f6f4",
-        clearingEdge: "#c7dcdd",
-        foliage: ["#acc7c9", "#b9d0d0", "#c5d9d8", "#d0e2e0"],
-      },
-      weather: {
-        kind: "falling-particles",
-        activeDuring: "night",
-        color: "#f7ffff",
-        seedKey: "snow-weather",
-        particleCount: 120,
-        fadeSeconds: 1.4,
-        fallSpeed: [38, 112],
-        radius: [1.1, 3.4],
-        driftAmplitude: [5, 34],
-        driftSpeed: [0.35, 1.35],
-        spawnGapRatio: [0, 0.18],
-      },
-    },
+    biome: CAMPAIGN_BIOMES.snow,
   },
 ] as const;
 

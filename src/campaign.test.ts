@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
+  CAMPAIGN_BIOMES,
   CAMPAIGN_TIERS,
   campaignTier,
   highestUnlockedCampaignTierId,
   isCampaignTierUnlocked,
 } from "./campaign";
+import type { CampaignBiomeDefinition } from "./campaign";
 import { isBossEnemyKind, selectEnemyRoster } from "./enemy-registry";
 import { ProfileManager, createDefaultProfile, lifetimeXpAtLevel } from "./profile";
 import { generateWorld } from "./world";
@@ -44,6 +46,26 @@ const zeroCoins: CoinSettlement = {
 };
 
 describe("data-driven campaign tiers", () => {
+  it("defines the upcoming Desert environment without exposing an unfinished tier", () => {
+    expect(CAMPAIGN_BIOMES.desert).toMatchObject({
+      ground: "desert",
+      minimapLabel: "SUNSCORCHED MAP",
+      resourceStateSkin: "desert",
+      friendlyProjectileColor: "#4f2f1c",
+      palette: {
+        viewport: "#9f6034",
+        ground: "#c98243",
+        clearingCenter: "#e4ad65",
+        clearingEdge: "#b96f38",
+      },
+      weather: {
+        activeDuring: "always",
+        seedKey: "desert-dust-weather",
+      },
+    });
+    expect(CAMPAIGN_TIERS.some((tier) => tier.biome === CAMPAIGN_BIOMES.desert)).toBe(false);
+  });
+
   it("provides complete centralized selection artwork for current and upcoming biomes", () => {
     for (const artwork of Object.values(CAMPAIGN_TIER_ARTWORK)) {
       expect(artwork.icon).toMatch(/^\.\/images\/campaign\/.+-tier\.svg$/);
@@ -100,23 +122,24 @@ describe("data-driven campaign tiers", () => {
   });
 
   it("defines complete render palettes for every biome", () => {
-    for (const tier of CAMPAIGN_TIERS) {
-      expect(RESOURCE_STATE_SKINS[tier.biome.resourceStateSkin]).toBeDefined();
-      expect(tier.biome.palette.foliage).toHaveLength(4);
-      expect(Object.values(tier.biome.palette).flat().every((color) => (
+    const biomes: readonly CampaignBiomeDefinition[] = Object.values(CAMPAIGN_BIOMES);
+    for (const biome of biomes) {
+      expect(RESOURCE_STATE_SKINS[biome.resourceStateSkin]).toBeDefined();
+      expect(biome.palette.foliage).toHaveLength(4);
+      expect(Object.values(biome.palette).flat().every((color) => (
         typeof color === "string" && /^#[0-9a-f]{6}$/i.test(color)
       ))).toBe(true);
-      expect(tier.biome.friendlyProjectileColor === undefined
-        || /^#[0-9a-f]{6}$/i.test(tier.biome.friendlyProjectileColor)).toBe(true);
-      expect(tier.biome.popupContrast?.protectedColors.every((color) => (
+      expect(biome.friendlyProjectileColor === undefined
+        || /^#[0-9a-f]{6}$/i.test(biome.friendlyProjectileColor)).toBe(true);
+      expect(biome.popupContrast?.protectedColors.every((color) => (
         /^#[0-9a-f]{6}$/i.test(color)
       )) ?? true).toBe(true);
-      if (tier.biome.popupContrast) {
-        expect(tier.biome.popupContrast.perceivedBrightnessThreshold).toBeGreaterThan(0);
-        expect(tier.biome.popupContrast.darkenMultiplier).toBeGreaterThan(0);
-        expect(tier.biome.popupContrast.darkenMultiplier).toBeLessThan(1);
+      if (biome.popupContrast) {
+        expect(biome.popupContrast.perceivedBrightnessThreshold).toBeGreaterThan(0);
+        expect(biome.popupContrast.darkenMultiplier).toBeGreaterThan(0);
+        expect(biome.popupContrast.darkenMultiplier).toBeLessThan(1);
       }
-      const resourceOverlay = tier.biome.resourceOverlay;
+      const resourceOverlay = biome.resourceOverlay;
       if (resourceOverlay) {
         expect(resourceOverlay.chance).toBeGreaterThan(0);
         expect(resourceOverlay.chance).toBeLessThanOrEqual(1);
@@ -131,7 +154,7 @@ describe("data-driven campaign tiers", () => {
         expect(resourceOverlay.heightRatio).toBeGreaterThan(0);
         expect(resourceOverlay.lineWidth).toBeGreaterThan(0);
       }
-      const weather = tier.biome.weather;
+      const weather = biome.weather;
       if (weather) {
         expect(weather.color).toMatch(/^#[0-9a-f]{6}$/i);
         expect(weather.seedKey).not.toHaveLength(0);
