@@ -2,7 +2,7 @@
 
 import { describe, expect, it } from "vitest";
 import { BALANCE } from "./config";
-import { ENEMY_REGISTRY, selectEnemyRoster } from "./enemy-registry";
+import { ENEMY_REGISTRY, isBossEnemyKind, selectEnemyRoster } from "./enemy-registry";
 import { Game } from "./game";
 import { Input } from "./input";
 import type { Enemy, Structure, StructureKind } from "./types";
@@ -188,5 +188,80 @@ describe("staged volcanic enemies", () => {
 
     expect(wall.health).toBe(0);
     expect(charger.chargeHitIds).toContain(wall.id);
+  });
+
+  it("stages the Caldera Sovereign as a complete armored volcanic boss", () => {
+    const definition = ENEMY_REGISTRY["caldera-sovereign"];
+
+    expect(isBossEnemyKind("caldera-sovereign")).toBe(true);
+    expect(definition.rosterEligible).toBe(false);
+    expect(definition.assets.portrait).toBe("enemies/caldera-sovereign");
+    expect(definition.armor).toMatchObject({
+      scalesWithHealth: true,
+      brokenSprite: "enemies/caldera-sovereign-broken",
+    });
+    expect(definition.areaStrike).toMatchObject({
+      rngSeedKey: "caldera-sovereign:magma-fissures",
+      damageSource: "caldera-sovereign",
+    });
+    expect(definition.phaseSlam).toMatchObject({
+      reinforcementKind: "cinderburst",
+      reinforcementCount: 5,
+    });
+  });
+
+  it("creates deterministic magma-fissure warnings around the defender", () => {
+    const first = gameFixture();
+    const second = gameFixture();
+    const firstBoss = spawn(first, "caldera-sovereign", first.player.x + 440, first.player.y);
+    const secondBoss = spawn(second, "caldera-sovereign", second.player.x + 440, second.player.y);
+    const config = ENEMY_REGISTRY["caldera-sovereign"].areaStrike!;
+
+    (first as unknown as { createAreaStrikeAttack(enemy: Enemy): void })
+      .createAreaStrikeAttack(firstBoss);
+    (second as unknown as { createAreaStrikeAttack(enemy: Enemy): void })
+      .createAreaStrikeAttack(secondBoss);
+
+    expect(first.areaStrikes).toEqual(second.areaStrikes);
+    expect(first.areaStrikes).toHaveLength(
+      config.randomStrikeCount + Number(config.includesTargetedStrike),
+    );
+    expect(first.areaStrikes.every((strike) =>
+      strike.sourceEnemyKind === "caldera-sovereign")).toBe(true);
+    expect(first.areaStrikes.some((strike) =>
+      strike.x === first.player.x && strike.y === first.player.y)).toBe(true);
+  });
+
+  it("breaks its crown before health and awakens one Cinderburst group", () => {
+    const game = gameFixture();
+    const boss = spawn(game, "caldera-sovereign", game.flag.x + 720, game.flag.y);
+    const definition = ENEMY_REGISTRY["caldera-sovereign"];
+    const damageEnemy = (damage: number) => {
+      (game as unknown as {
+        damageEnemy(enemy: Enemy, amount: number, color: string, damageSource: "player-melee", ownerPlayerId: string): void;
+      }).damageEnemy(boss, damage, "#ffffff", "player-melee", game.player.id);
+    };
+
+    expect(boss.armor).toBeCloseTo(
+      definition.armor!.health * boss.maxHealth / definition.base.health,
+    );
+    damageEnemy(boss.armor!);
+    expect(boss.health).toBe(boss.maxHealth);
+    expect(boss.armor).toBe(0);
+
+    damageEnemy(boss.maxHealth * 0.55);
+    expect(boss.bossHalfSummoned).toBe(true);
+    (game as unknown as { updateBoss(enemy: Enemy, dt: number): void })
+      .updateBoss(boss, definition.phaseSlam!.chargeDuration + 0.01);
+
+    expect(game.enemies.filter((enemy) =>
+      enemy.summonedBy === boss.id && enemy.kind === "cinderburst"))
+      .toHaveLength(definition.phaseSlam!.reinforcementCount);
+
+    boss.health = boss.maxHealth * 0.1;
+    (game as unknown as { updateBoss(enemy: Enemy, dt: number): void })
+      .updateBoss(boss, definition.phaseSlam!.chargeDuration * 2);
+    expect(game.enemies.filter((enemy) => enemy.summonedBy === boss.id))
+      .toHaveLength(definition.phaseSlam!.reinforcementCount);
   });
 });

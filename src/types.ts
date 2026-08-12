@@ -31,7 +31,7 @@ export type RosterEnemyKind =
   | "dune-hopper"
   | "sandcaster"
   | "tombguard";
-export type BossEnemyKind = "boss" | "frost-warden" | "dune-colossus";
+export type BossEnemyKind = "boss" | "frost-warden" | "dune-colossus" | "caldera-sovereign";
 export type EnemyKind = RosterEnemyKind | "splitter-child" | "cinderburst" | "magma-spitter" | "obsidian-charger" | BossEnemyKind;
 export type PlayerId = string;
 export type DamageSource =
@@ -45,6 +45,7 @@ export type DamageSource =
   | "enemy-acid"
   | "sandcaster"
   | "magma-spitter"
+  | "caldera-sovereign"
   | "dune-colossus"
   | "cinderburst-burst"
   | "popper-burst"

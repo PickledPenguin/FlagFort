@@ -90,6 +90,7 @@ export const META_BALANCE = {
       boss: 80,
       "frost-warden": 90,
       "dune-colossus": 105,
+      "caldera-sovereign": 120,
     } satisfies Record<EnemyKind, number>,
     cumulativeNightXp: [0, 7, 28, 63, 112, 175, 252, 343, 448, 567, 700],
     campaignVictoryBonus: 300,
