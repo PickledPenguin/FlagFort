@@ -265,6 +265,40 @@ describe("true player-side area attacks", () => {
     expect(game.areaEffects).toHaveLength(effectCount);
     expect(game.player.health).toBe(healthBefore);
   });
+
+  it("dispatches configured death effects without relying on Splitter or Popper identity", () => {
+    const game = gameFixture();
+    game.phase = "night";
+    const splitterDeath = ENEMY_REGISTRY.splitter.death;
+    const popperDeath = ENEMY_REGISTRY.popper.death;
+    const previousBreakerDeath = ENEMY_REGISTRY.breaker.death;
+    const previousRunnerDeath = ENEMY_REGISTRY.runner.death;
+    ENEMY_REGISTRY.breaker.death = splitterDeath;
+    ENEMY_REGISTRY.runner.death = popperDeath;
+
+    try {
+      const breaker = spawn(game, "breaker", game.flag.x + 300, game.flag.y);
+      breaker.deathReason = "combat";
+      (game as unknown as { resolveEnemyDeath(enemy: Enemy): void }).resolveEnemyDeath(breaker);
+      const children = game.enemies.filter((enemy) => enemy.summonedBy === breaker.id);
+      expect(children).toHaveLength(splitterDeath.splitCount ?? 0);
+      expect(children.every((enemy) => enemy.kind === splitterDeath.childKind)).toBe(true);
+      expect(children[0]?.health).toBeCloseTo(breaker.maxHealth * (splitterDeath.childHealth ?? 0));
+
+      const runner = spawn(game, "runner", game.player.x + 40, game.player.y);
+      runner.deathReason = "combat";
+      const healthBefore = game.player.health;
+      (game as unknown as { resolveEnemyDeath(enemy: Enemy): void }).resolveEnemyDeath(runner);
+      expect(game.player.health).toBeLessThan(healthBefore);
+      expect(game.areaEffects.at(-1)).toMatchObject({
+        kind: "popper-acid",
+        radius: popperDeath.burstOuterRadius,
+      });
+    } finally {
+      ENEMY_REGISTRY.breaker.death = previousBreakerDeath;
+      ENEMY_REGISTRY.runner.death = previousRunnerDeath;
+    }
+  });
 });
 
 describe("single-pass action speed and HUD placement", () => {

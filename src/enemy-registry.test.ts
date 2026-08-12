@@ -42,6 +42,26 @@ describe("deterministic enemy roster", () => {
       expect(definition.targeting.mode).toBeTruthy();
       expect(definition.attack.mode).toBeTruthy();
       expect(definition.death.mode).toBeTruthy();
+      if (definition.death.mode === "split") {
+        expect(definition.death.childKind).toBeTruthy();
+        expect(definition.death.splitCount).toBeGreaterThan(0);
+        expect(definition.death.childHealth).toBeGreaterThan(0);
+        expect(definition.death.childDamage).toBeGreaterThan(0);
+        expect(definition.death.childSize).toBeGreaterThan(0);
+        expect(definition.death.particleColor).toMatch(/^#[0-9a-f]{6}$/i);
+        expect(definition.death.particleCount).toBeGreaterThan(0);
+        expect(definition.death.popupText).toBeTruthy();
+      }
+      if (definition.death.mode === "acid-burst") {
+        expect(definition.death.burstInnerRadius).toBeGreaterThan(0);
+        expect(definition.death.burstOuterRadius)
+          .toBeGreaterThan(definition.death.burstInnerRadius ?? 0);
+        expect(definition.death.burstTargets?.length).toBeGreaterThan(0);
+        expect(definition.death.particleColor).toMatch(/^#[0-9a-f]{6}$/i);
+        expect(definition.death.particleCount).toBeGreaterThan(0);
+        expect(definition.death.popupText).toBeTruthy();
+        expect(definition.death.screenShake).toBeGreaterThanOrEqual(0);
+      }
       if (definition.armor) {
         expect(definition.armor.health).toBeGreaterThan(0);
         expect(definition.armor.projectileResistance).toBeGreaterThanOrEqual(0);
