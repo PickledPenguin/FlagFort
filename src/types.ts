@@ -28,7 +28,7 @@ export type RosterEnemyKind =
   | "frostbite"
   | "snowballer"
   | "icebound";
-export type BossEnemyKind = "boss" | "frost-warden";
+export type BossEnemyKind = "boss" | "frost-warden" | "dune-colossus";
 export type EnemyKind = RosterEnemyKind | "splitter-child" | "dune-hopper" | "sandcaster" | "tombguard" | BossEnemyKind;
 export type PlayerId = string;
 export type DamageSource =
@@ -41,6 +41,7 @@ export type DamageSource =
   | "enemy-arrow"
   | "enemy-acid"
   | "sandcaster"
+  | "dune-colossus"
   | "popper-burst"
   | "rammer-charge"
   | "frost-warden"

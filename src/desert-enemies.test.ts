@@ -2,7 +2,7 @@
 
 import { describe, expect, it } from "vitest";
 import { BALANCE } from "./config";
-import { ENEMY_REGISTRY } from "./enemy-registry";
+import { ENEMY_REGISTRY, isBossEnemyKind } from "./enemy-registry";
 import { Game } from "./game";
 import { Input } from "./input";
 import type { Enemy, Structure } from "./types";
@@ -88,5 +88,72 @@ describe("staged Desert enemies", () => {
     expect(game.player.health).toBe(game.player.maxHealth - sandcaster.damage);
     expect(game.projectiles).toHaveLength(1);
     expect(game.projectiles[0]!.hitIds).toEqual(new Set([wall.id, "player"]));
+  });
+
+  it("stages the Dune Colossus as a complete armored campaign boss", () => {
+    const definition = ENEMY_REGISTRY["dune-colossus"];
+
+    expect(isBossEnemyKind("dune-colossus")).toBe(true);
+    expect(definition.rosterEligible).toBe(false);
+    expect(definition.assets.portrait).toBe("enemies/dune-colossus");
+    expect(definition.armor?.brokenSprite).toBe("enemies/dune-colossus-broken");
+    expect(definition.armor?.scalesWithHealth).toBe(true);
+    expect(definition.areaStrike?.damageSource).toBe("dune-colossus");
+    expect(definition.phaseSlam?.reinforcementKind).toBe("dune-hopper");
+  });
+
+  it("creates deterministic sand-pillar warnings around the defender", () => {
+    const first = gameFixture();
+    const second = gameFixture();
+    const firstBoss = spawn(first, "dune-colossus", first.player.x + 420, first.player.y);
+    const secondBoss = spawn(second, "dune-colossus", second.player.x + 420, second.player.y);
+    const config = ENEMY_REGISTRY["dune-colossus"].areaStrike!;
+
+    (first as unknown as { createAreaStrikeAttack(enemy: Enemy): void })
+      .createAreaStrikeAttack(firstBoss);
+    (second as unknown as { createAreaStrikeAttack(enemy: Enemy): void })
+      .createAreaStrikeAttack(secondBoss);
+
+    expect(first.areaStrikes).toEqual(second.areaStrikes);
+    expect(first.areaStrikes).toHaveLength(
+      config.randomStrikeCount + Number(config.includesTargetedStrike),
+    );
+    expect(first.areaStrikes.every((strike) => strike.sourceEnemyKind === "dune-colossus"))
+      .toBe(true);
+    expect(first.areaStrikes.some((strike) =>
+      strike.x === first.player.x && strike.y === first.player.y)).toBe(true);
+  });
+
+  it("breaks its shell before health and calls one Dune Hopper swarm at half health", () => {
+    const game = gameFixture();
+    const boss = spawn(game, "dune-colossus", game.flag.x + 700, game.flag.y);
+    const config = ENEMY_REGISTRY["dune-colossus"];
+    const damageEnemy = (damage: number) => {
+      (game as unknown as {
+        damageEnemy(enemy: Enemy, amount: number, color: string, damageSource: "player-melee", ownerPlayerId: string): void;
+      }).damageEnemy(boss, damage, "#ffffff", "player-melee", game.player.id);
+    };
+
+    expect(boss.armor).toBeCloseTo(
+      config.armor!.health * boss.maxHealth / config.base.health,
+    );
+    damageEnemy(boss.armor!);
+    expect(boss.health).toBe(boss.maxHealth);
+    expect(boss.armor).toBe(0);
+
+    damageEnemy(boss.maxHealth * 0.55);
+    expect(boss.bossHalfSummoned).toBe(true);
+    (game as unknown as { updateBoss(enemy: Enemy, dt: number): void })
+      .updateBoss(boss, config.phaseSlam!.chargeDuration + 0.01);
+
+    expect(game.enemies.filter((enemy) =>
+      enemy.summonedBy === boss.id && enemy.kind === "dune-hopper"))
+      .toHaveLength(config.phaseSlam!.reinforcementCount);
+
+    boss.health = boss.maxHealth * 0.1;
+    (game as unknown as { updateBoss(enemy: Enemy, dt: number): void })
+      .updateBoss(boss, config.phaseSlam!.chargeDuration * 2);
+    expect(game.enemies.filter((enemy) => enemy.summonedBy === boss.id))
+      .toHaveLength(config.phaseSlam!.reinforcementCount);
   });
 });
