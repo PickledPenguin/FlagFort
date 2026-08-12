@@ -479,6 +479,7 @@ describe("Frost Warden", () => {
 
       expect(game.projectiles.at(-1)).toMatchObject({
         owner: inheritedVolley.owner,
+        sourceEnemyKind: warden.kind,
         damageSource: inheritedVolley.damageSource,
         color: inheritedVolley.color,
         radius: inheritedVolley.radius,

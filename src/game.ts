@@ -3361,6 +3361,7 @@ export class Game {
       lifetime: config.lifetime,
       hitIds: new Set(),
       color: config.color,
+      sourceEnemyKind: enemy.kind,
     });
     this.burst(enemy.x + Math.cos(angle) * enemy.radius, enemy.y + Math.sin(angle) * enemy.radius, config.muzzleColor, 10);
     emitAudioCue({ cue: config.audio as import("./audio").SoundId, position: { x: enemy.x, y: enemy.y } });
@@ -3484,6 +3485,8 @@ export class Game {
         continue;
       }
       if (projectile.owner === "boss-acid") {
+        const projectileEnemyKind = projectile.sourceEnemyKind ?? "boss";
+        const projectileDamageSource = projectile.damageSource ?? "boss-acid";
         if (Math.floor(projectile.lifetime * 18) !== Math.floor((projectile.lifetime + dt) * 18)) {
           this.particles.push({
             x: projectile.x - dx * 0.35,
@@ -3493,17 +3496,22 @@ export class Game {
             life: 0.32,
             maxLife: 0.32,
             radius: this.rng.range(3, 6),
-            color: this.rng.next() > 0.5 ? "#b8ff3d" : "#65d82d",
+            color: projectile.color,
           });
         }
         if (!projectile.hitIds.has("player")
           && segmentCircle(projectile.previousX, projectile.previousY, projectile.x, projectile.y, this.player)) {
           const wasFull = this.player.health >= this.player.maxHealth;
           projectile.hitIds.add("player");
-          const damage = this.applyIncomingDamage(this.player, projectile.damage, "boss", "boss-acid");
+          const damage = this.applyIncomingDamage(
+            this.player,
+            projectile.damage,
+            projectileEnemyKind,
+            projectileDamageSource,
+          );
           this.player.hurtFlash = 0.25;
           emitAudioCue({ cue: "player-hurt", position: { x: this.player.x, y: this.player.y } });
-          this.burst(this.player.x, this.player.y, "#b8ff3d", 12, `-${Math.round(damage)}`);
+          this.burst(this.player.x, this.player.y, projectile.color, 12, `-${Math.round(damage)}`);
           if (wasFull && !this.playerDamageWarned) {
             this.playerDamageWarned = true;
             const disabled = this.getChallengeModifiers().disablesPlayerHealing;
@@ -3514,16 +3522,21 @@ export class Game {
           if (projectile.hitIds.has(structure.id)) continue;
           if (!segmentCircle(projectile.previousX, projectile.previousY, projectile.x, projectile.y, structure)) continue;
           projectile.hitIds.add(structure.id);
-          this.applyIncomingDamage(structure, projectile.damage, "boss", "boss-acid");
+          this.applyIncomingDamage(
+            structure,
+            projectile.damage,
+            projectileEnemyKind,
+            projectileDamageSource,
+          );
           structure.flash = 0.22;
           emitAudioCue({ cue: "structure-damaged", position: { x: structure.x, y: structure.y } });
-          this.burst(structure.x, structure.y, "#9be739", 8);
+          this.burst(structure.x, structure.y, projectile.color, 8);
         }
         const inWorld = projectile.x >= -projectile.radius && projectile.y >= -projectile.radius
           && projectile.x <= BALANCE.mapSize + projectile.radius
           && projectile.y <= BALANCE.mapSize + projectile.radius;
         if (projectile.rangeLeft > 0 && projectile.lifetime > 0 && inWorld) survivors.push(projectile);
-        else this.burst(projectile.x, projectile.y, "#b8ff3d", 14, "SPLASH");
+        else this.burst(projectile.x, projectile.y, projectile.color, 14, "SPLASH");
         continue;
       }
       let hit = false;
