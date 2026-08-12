@@ -182,8 +182,8 @@ export interface Enemy extends Circle {
   chargeHitIds?: Set<number>;
   armor?: number;
   maxArmor?: number;
-  icicleCooldown?: number;
-  icicleAttackSerial?: number;
+  areaStrikeCooldown?: number;
+  areaStrikeSerial?: number;
 }
 
 export interface Projectile extends Circle {
@@ -231,8 +231,9 @@ export interface AreaEffect extends Vec2 {
   duration: number;
 }
 
-export interface IcicleStrike extends Vec2 {
+export interface AreaStrike extends Vec2 {
   id: number;
+  sourceEnemyKind: EnemyKind;
   radius: number;
   angle: number;
   warningRemaining: number;

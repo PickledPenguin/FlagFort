@@ -126,13 +126,13 @@ async function bootstrap(): Promise<void> {
         game.structures.push(turret);
         (game as unknown as { applySlowStatus(target: typeof turret, duration: number): void })
           .applySlowStatus(turret, 5);
-        (game as unknown as { createIcicleAttack(enemy: typeof warden): void })
-          .createIcicleAttack(warden);
-        for (const strike of game.icicleStrikes) {
+      (game as unknown as { createAreaStrikeAttack(enemy: typeof warden): void })
+        .createAreaStrikeAttack(warden);
+      for (const strike of game.areaStrikes) {
           strike.warningRemaining = strike.warningDuration * 0.45;
         }
         if (preview.get("frostWardenPreview") === "eruption") {
-          for (const strike of game.icicleStrikes) {
+      for (const strike of game.areaStrikes) {
             strike.warningRemaining = 0;
             strike.eruptionRemaining = strike.eruptionDuration * 0.72;
           }

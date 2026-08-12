@@ -338,25 +338,50 @@ describe("Frost Warden", () => {
     const second = gameFixture();
     const firstWarden = spawn(first, "frost-warden", first.player.x + 400, first.player.y);
     const secondWarden = spawn(second, "frost-warden", second.player.x + 400, second.player.y);
-    const firstInternals = first as unknown as { createIcicleAttack(enemy: Enemy): void };
-    const secondInternals = second as unknown as { createIcicleAttack(enemy: Enemy): void };
+    const config = ENEMY_REGISTRY["frost-warden"].areaStrike!;
+    const firstInternals = first as unknown as { createAreaStrikeAttack(enemy: Enemy): void };
+    const secondInternals = second as unknown as { createAreaStrikeAttack(enemy: Enemy): void };
 
-    firstInternals.createIcicleAttack(firstWarden);
-    secondInternals.createIcicleAttack(secondWarden);
+    firstInternals.createAreaStrikeAttack(firstWarden);
+    secondInternals.createAreaStrikeAttack(secondWarden);
 
-    expect(first.icicleStrikes.map(({ x, y, angle }) => ({ x, y, angle })))
-      .toEqual(second.icicleStrikes.map(({ x, y, angle }) => ({ x, y, angle })));
-    expect(first.icicleStrikes).toHaveLength(BALANCE.snowyEnemies.frostWarden.icicle.count + 1);
-    const targeted = first.icicleStrikes.find((strike) =>
+    expect(first.areaStrikes.map(({ x, y, angle }) => ({ x, y, angle })))
+      .toEqual(second.areaStrikes.map(({ x, y, angle }) => ({ x, y, angle })));
+    expect(first.areaStrikes).toHaveLength(
+      config.randomStrikeCount + Number(config.includesTargetedStrike),
+    );
+    const targeted = first.areaStrikes.find((strike) =>
       strike.x === first.player.x && strike.y === first.player.y);
     expect(targeted).toBeDefined();
-    expect(targeted?.warningRemaining).toBe(
-      BALANCE.snowyEnemies.frostWarden.icicle.warningDuration,
-    );
-    for (const strike of first.icicleStrikes.filter((candidate) => candidate !== targeted)) {
+    expect(targeted?.warningRemaining).toBe(config.warningDuration);
+    for (const strike of first.areaStrikes.filter((candidate) => candidate !== targeted)) {
       expect(Math.hypot(strike.x - first.player.x, strike.y - first.player.y))
-        .toBeGreaterThanOrEqual(BALANCE.snowyEnemies.frostWarden.icicle.placementMinimumRadius);
-      expect(Math.abs(strike.angle)).toBeLessThanOrEqual(0.22);
+        .toBeGreaterThanOrEqual(config.placementMinimumRadius);
+      expect(Math.abs(strike.angle)).toBeLessThanOrEqual(config.strikeAngleJitter);
+    }
+  });
+
+  it("dispatches a configured area strike without a Frost Warden kind branch", () => {
+    const frostConfig = ENEMY_REGISTRY["frost-warden"].areaStrike!;
+    ENEMY_REGISTRY.boss.areaStrike = {
+      ...frostConfig,
+      rngSeedKey: "test-boss-area-strike",
+      initialCooldown: 0,
+      randomStrikeCount: 0,
+    };
+    try {
+      const game = gameFixture();
+      const boss = spawn(game, "boss", game.player.x + 200, game.player.y);
+
+      (game as unknown as { updateBoss(enemy: Enemy, dt: number): void }).updateBoss(boss, 0.1);
+
+      expect(game.areaStrikes).toHaveLength(1);
+      const strike = game.areaStrikes[0]!;
+      expect(strike.sourceEnemyKind).toBe("boss");
+      expect(strike.x).toBe(game.player.x);
+      expect(boss.areaStrikeCooldown).toBe(frostConfig.cooldown);
+    } finally {
+      delete ENEMY_REGISTRY.boss.areaStrike;
     }
   });
 
@@ -370,12 +395,13 @@ describe("Frost Warden", () => {
 
   it("damages and slows caught defenders when an icicle erupts", () => {
     const game = gameFixture();
-    const config = BALANCE.snowyEnemies.frostWarden.icicle;
+    const config = ENEMY_REGISTRY["frost-warden"].areaStrike!;
     const turret = structure(740, "turret", game.player.x + 20, game.player.y);
     const wall = structure(741, "wall", game.player.x - 20, game.player.y);
     game.structures = [turret, wall];
-    game.icicleStrikes = [{
+    game.areaStrikes = [{
       id: 9002,
+      sourceEnemyKind: "frost-warden",
       x: game.player.x,
       y: game.player.y,
       radius: config.radius,
@@ -386,12 +412,12 @@ describe("Frost Warden", () => {
       eruptionDuration: config.eruptionDuration,
     }];
 
-    (game as unknown as { updateIcicleStrikes(dt: number): void }).updateIcicleStrikes(0.02);
+    (game as unknown as { updateAreaStrikes(dt: number): void }).updateAreaStrikes(0.02);
 
     expect(game.player.health).toBeLessThan(game.player.maxHealth);
-    expect(game.player.statuses?.slow?.remaining).toBe(config.slowDuration);
+    expect(game.player.statuses?.slow?.remaining).toBe(config.statusEffect?.duration);
     expect(turret.health).toBeLessThan(turret.maxHealth);
-    expect(turret.statuses?.slow?.remaining).toBe(config.slowDuration);
+    expect(turret.statuses?.slow?.remaining).toBe(config.statusEffect?.duration);
     expect(wall.health).toBeLessThan(wall.maxHealth);
     expect(wall.statuses).toBeUndefined();
     expect(game.particles.some((particle) => particle.shape === "shard")).toBe(true);

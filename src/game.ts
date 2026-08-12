@@ -91,7 +91,7 @@ import type {
   EnemyKind,
   EnemyStatusEffect,
   Flag,
-  IcicleStrike,
+  AreaStrike,
   Particle,
   Phase,
   Player,
@@ -220,7 +220,7 @@ export class Game {
   projectiles: Projectile[] = [];
   particles: Particle[] = [];
   areaEffects: AreaEffect[] = [];
-  icicleStrikes: IcicleStrike[] = [];
+  areaStrikes: AreaStrike[] = [];
   selectedSlot = 1;
   selectedTiers: Record<StructureKind, Tier> = {
     wall: "wood",
@@ -412,7 +412,7 @@ export class Game {
     this.projectiles = [];
     this.particles = [];
     this.areaEffects = [];
-    this.icicleStrikes = [];
+    this.areaStrikes = [];
     this.navigationFields.clear();
     this.structureRevision = 0;
     this.nightWaveScheduled = false;
@@ -1078,7 +1078,7 @@ export class Game {
     this.updatePortals(dt);
     this.updateBossSpawn();
     this.updateEnemies(dt);
-    this.updateIcicleStrikes(dt);
+    this.updateAreaStrikes(dt);
     this.trackFlagRadiusEntries();
     this.updateProjectiles(dt);
     this.updateParticles(dt);
@@ -1964,10 +1964,8 @@ export class Game {
       maxArmor: definition.armor
         ? definition.armor.health * (definition.armor.scalesWithHealth ? health / Math.max(1, base.health) : 1)
         : undefined,
-      icicleCooldown: kind === "frost-warden"
-        ? BALANCE.snowyEnemies.frostWarden.icicle.initialCooldown
-        : undefined,
-      icicleAttackSerial: kind === "frost-warden" ? 0 : undefined,
+      areaStrikeCooldown: definition.areaStrike?.initialCooldown,
+      areaStrikeSerial: definition.areaStrike ? 0 : undefined,
     });
     const spawned = this.enemies.at(-1);
     if (spawned) {
@@ -3068,8 +3066,8 @@ export class Game {
   }
 
   private updateBoss(enemy: Enemy, dt: number): void {
-    if (enemy.kind === "frost-warden") {
-      this.updateFrostWarden(enemy, dt);
+    if (ENEMY_REGISTRY[enemy.kind].areaStrike) {
+      this.updateAreaStrikeEnemy(enemy, dt);
       return;
     }
     if (!this.flagPresent) return;
@@ -3158,48 +3156,54 @@ export class Game {
     }
   }
 
-  private updateFrostWarden(enemy: Enemy, dt: number): void {
+  private updateAreaStrikeEnemy(enemy: Enemy, dt: number): void {
     if (!this.flagPresent) return;
+    const config = ENEMY_REGISTRY[enemy.kind].areaStrike;
+    if (!config) return;
     enemy.targetId = "flag";
-    if (distance(enemy, this.player) > BALANCE.snowyEnemies.frostWarden.icicle.activationRadius) return;
-    enemy.icicleCooldown = Math.max(
+    if (distance(enemy, this.player) > config.activationRadius) return;
+    enemy.areaStrikeCooldown = Math.max(
       0,
-      (enemy.icicleCooldown ?? 0) - dt * (enemy.attackSpeedMultiplier ?? 1),
+      (enemy.areaStrikeCooldown ?? 0) - dt * (enemy.attackSpeedMultiplier ?? 1),
     );
-    if (enemy.icicleCooldown > 0) return;
-    enemy.icicleCooldown = BALANCE.snowyEnemies.frostWarden.icicle.cooldown;
-    this.createIcicleAttack(enemy);
+    if (enemy.areaStrikeCooldown > 0) return;
+    enemy.areaStrikeCooldown = config.cooldown;
+    this.createAreaStrikeAttack(enemy);
   }
 
-  private createIcicleAttack(enemy: Enemy): void {
-    const config = BALANCE.snowyEnemies.frostWarden.icicle;
-    const serial = enemy.icicleAttackSerial ?? 0;
-    enemy.icicleAttackSerial = serial + 1;
-    const rng = new SeededRng(`${this.seed}:frost-warden:icicles:${enemy.id}:${serial}`);
+  private createAreaStrikeAttack(enemy: Enemy): void {
+    const config = ENEMY_REGISTRY[enemy.kind].areaStrike;
+    if (!config) return;
+    const serial = enemy.areaStrikeSerial ?? 0;
+    enemy.areaStrikeSerial = serial + 1;
+    const rng = new SeededRng(`${this.seed}:${config.rngSeedKey}:${enemy.id}:${serial}`);
     const baseAngle = rng.range(0, Math.PI * 2);
-    for (let index = 0; index < config.count; index += 1) {
-      const placementAngle = baseAngle + index / config.count * Math.PI * 2 + rng.range(-0.38, 0.38);
-      const placementRadius = rng.range(config.placementMinimumRadius, config.placementSpread);
-      this.icicleStrikes.push({
+    for (let index = 0; index < config.randomStrikeCount; index += 1) {
+      const placementAngle = baseAngle + index / config.randomStrikeCount * Math.PI * 2
+        + rng.range(-config.placementAngleJitter, config.placementAngleJitter);
+      const placementRadius = rng.range(config.placementMinimumRadius, config.placementMaximumRadius);
+      this.areaStrikes.push({
         id: this.nextId++,
+        sourceEnemyKind: enemy.kind,
         x: Math.max(config.radius, Math.min(BALANCE.mapSize - config.radius,
           this.player.x + Math.cos(placementAngle) * placementRadius)),
         y: Math.max(config.radius, Math.min(BALANCE.mapSize - config.radius,
           this.player.y + Math.sin(placementAngle) * placementRadius)),
         radius: config.radius,
-        angle: rng.range(-0.22, 0.22),
+        angle: rng.range(-config.strikeAngleJitter, config.strikeAngleJitter),
         warningRemaining: config.warningDuration,
         warningDuration: config.warningDuration,
         eruptionRemaining: config.eruptionDuration,
         eruptionDuration: config.eruptionDuration,
       });
     }
-    this.icicleStrikes.push({
+    if (config.includesTargetedStrike) this.areaStrikes.push({
       id: this.nextId++,
+      sourceEnemyKind: enemy.kind,
       x: this.player.x,
       y: this.player.y,
       radius: config.radius,
-      angle: rng.range(-0.22, 0.22),
+      angle: rng.range(-config.strikeAngleJitter, config.strikeAngleJitter),
       warningRemaining: config.warningDuration,
       warningDuration: config.warningDuration,
       eruptionRemaining: config.eruptionDuration,
@@ -3207,32 +3211,33 @@ export class Game {
     });
   }
 
-  private updateIcicleStrikes(dt: number): void {
-    const survivors: IcicleStrike[] = [];
-    for (const strike of this.icicleStrikes) {
+  private updateAreaStrikes(dt: number): void {
+    const survivors: AreaStrike[] = [];
+    for (const strike of this.areaStrikes) {
       if (strike.warningRemaining > 0) {
         strike.warningRemaining = Math.max(0, strike.warningRemaining - dt);
-        if (strike.warningRemaining === 0) this.resolveIcicleStrike(strike);
+        if (strike.warningRemaining === 0) this.resolveAreaStrike(strike);
         survivors.push(strike);
         continue;
       }
       strike.eruptionRemaining = Math.max(0, strike.eruptionRemaining - dt);
       if (strike.eruptionRemaining > 0) survivors.push(strike);
     }
-    this.icicleStrikes = survivors;
+    this.areaStrikes = survivors;
   }
 
-  private resolveIcicleStrike(strike: IcicleStrike): void {
-    const config = BALANCE.snowyEnemies.frostWarden.icicle;
+  private resolveAreaStrike(strike: AreaStrike): void {
+    const config = ENEMY_REGISTRY[strike.sourceEnemyKind].areaStrike;
+    if (!config) return;
     if (distance(strike, this.player) <= strike.radius + this.player.radius) {
       const damage = this.applyIncomingDamage(
         this.player,
-        config.damage * this.getChallengeModifiers().enemyDamageMultiplier,
-        "frost-warden",
-        "frost-warden",
+        config.playerDamage * this.getChallengeModifiers().enemyDamageMultiplier,
+        strike.sourceEnemyKind,
+        config.damageSource,
       );
       this.player.hurtFlash = 0.3;
-      this.applySlowStatus(this.player, config.slowDuration);
+      this.applyEnemyStatusEffect(config.statusEffect, this.player);
       emitAudioCue({ cue: "player-hurt", position: { x: this.player.x, y: this.player.y } });
       this.burst(
         this.player.x,
@@ -3240,7 +3245,7 @@ export class Game {
         config.impactColor,
         8,
         `-${Math.round(damage)}`,
-        BALANCE.snowyEnemies.slow.popupTextColor,
+        config.statusEffect?.popupTextColor,
       );
     }
     for (const structure of this.structures) {
@@ -3248,16 +3253,19 @@ export class Game {
       this.applyIncomingDamage(
         structure,
         config.structureDamage * this.getChallengeModifiers().enemyDamageMultiplier,
-        "frost-warden",
-        "frost-warden",
+        strike.sourceEnemyKind,
+        config.damageSource,
       );
       structure.flash = 0.28;
-      if (structure.kind === "turret") this.applySlowStatus(structure, config.slowDuration);
+      this.applyEnemyStatusEffect(config.statusEffect, structure);
       emitAudioCue({ cue: "structure-damaged", position: { x: structure.x, y: structure.y } });
     }
-    this.shardBurst(strike.x, strike.y, 22);
-    this.shake = Math.max(this.shake, 9);
-    emitAudioCue({ cue: "ice-shatter", position: { x: strike.x, y: strike.y } });
+    this.shardBurst(strike.x, strike.y, config.impactParticleCount);
+    this.shake = Math.max(this.shake, config.screenShake);
+    emitAudioCue({
+      cue: config.impactAudio as import("./audio").SoundId,
+      position: { x: strike.x, y: strike.y },
+    });
   }
 
   private fireBossAcid(enemy: Enemy): void {

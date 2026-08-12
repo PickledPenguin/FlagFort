@@ -10,7 +10,7 @@ import { costLayoutRows } from "./cost-layout";
 import { projectileVisualColor } from "./projectile-visuals";
 import { SeededRng } from "./rng";
 import type { CampaignBiomeDefinition } from "./campaign";
-import type { Enemy, IcicleStrike, Player, ResourceNode, Structure } from "./types";
+import type { AreaStrike, Enemy, Player, ResourceNode, Structure } from "./types";
 
 const resourceColors = {
   wood: "#315f37",
@@ -312,7 +312,7 @@ export class Renderer {
     for (const effect of game.areaEffects) {
       if (effect.kind !== "frost-slam") this.drawAreaEffect(effect);
     }
-    for (const strike of game.icicleStrikes) this.drawIcicleStrike(strike);
+    for (const strike of game.areaStrikes) this.drawAreaStrike(strike);
     if (game.buildPreview) this.drawBuildPreview(game);
     for (const projectile of game.projectiles) {
       if (projectile.owner === "boss-acid" || projectile.owner === "enemy-acid") {
@@ -939,7 +939,7 @@ export class Renderer {
     this.ctx.restore();
   }
 
-  private drawIcicleStrike(strike: IcicleStrike): void {
+  private drawAreaStrike(strike: AreaStrike): void {
     const ctx = this.ctx;
     ctx.save();
     ctx.translate(strike.x, strike.y);

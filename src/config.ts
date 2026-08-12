@@ -65,23 +65,6 @@ export const BALANCE = {
       tint: "#e7fbff",
       popupTextColor: "#63c6e8",
     },
-    frostWarden: {
-      icicle: {
-        impactColor: "#d9fbff",
-        count: 3,
-        activationRadius: 780,
-        cooldown: 4.8,
-        initialCooldown: 1.5,
-        warningDuration: 1.15,
-        radius: 54,
-        damage: 22,
-        structureDamage: 52,
-        slowDuration: 2.8,
-        placementMinimumRadius: 92,
-        placementSpread: 230,
-        eruptionDuration: 0.62,
-      },
-    },
   },
   navigation: {
     cellSize: 72,

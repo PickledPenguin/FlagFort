@@ -135,6 +135,29 @@ describe("deterministic enemy roster", () => {
         expect(definition.ram.breachBurst.count).toBeGreaterThan(0);
         expect(definition.ram.breachBurst.popupText).toBeTruthy();
       }
+      if (definition.areaStrike) {
+        expect(definition.areaStrike.rngSeedKey).toBeTruthy();
+        expect(definition.areaStrike.initialCooldown).toBeGreaterThanOrEqual(0);
+        expect(definition.areaStrike.cooldown).toBeGreaterThan(0);
+        expect(definition.areaStrike.activationRadius).toBeGreaterThan(0);
+        expect(definition.areaStrike.randomStrikeCount).toBeGreaterThanOrEqual(0);
+        expect(definition.areaStrike.placementMinimumRadius).toBeGreaterThanOrEqual(0);
+        expect(definition.areaStrike.placementMaximumRadius)
+          .toBeGreaterThanOrEqual(definition.areaStrike.placementMinimumRadius);
+        expect(definition.areaStrike.placementAngleJitter).toBeGreaterThanOrEqual(0);
+        expect(definition.areaStrike.strikeAngleJitter).toBeGreaterThanOrEqual(0);
+        expect(definition.areaStrike.warningDuration).toBeGreaterThan(0);
+        expect(definition.areaStrike.eruptionDuration).toBeGreaterThan(0);
+        expect(definition.areaStrike.radius).toBeGreaterThan(0);
+        expect(definition.areaStrike.playerDamage).toBeGreaterThan(0);
+        expect(definition.areaStrike.structureDamage).toBeGreaterThan(0);
+        expect(definition.areaStrike.damageSource).toBeTruthy();
+        expect(definition.areaStrike.statusEffect?.duration ?? 1).toBeGreaterThan(0);
+        expect(definition.areaStrike.impactColor).toMatch(/^#[0-9a-f]{6}$/i);
+        expect(definition.areaStrike.impactParticleCount).toBeGreaterThan(0);
+        expect(definition.areaStrike.screenShake).toBeGreaterThanOrEqual(0);
+        expect(definition.areaStrike.impactAudio).toBeTruthy();
+      }
     }
   });
 });
