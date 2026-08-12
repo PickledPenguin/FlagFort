@@ -18,6 +18,22 @@ describe("deterministic enemy roster", () => {
     expect(Object.values(selectEnemyRoster("desert-staging"))).not.toContain("dune-hopper");
   });
 
+  it("stages the Sandcaster as a piercing Desert ranged enemy without exposing it to unfinished rosters", () => {
+    const definition = ENEMY_REGISTRY.sandcaster;
+    expect(definition.assets.portrait).toBe("enemies/sandcaster-zombie");
+    expect(definition.render).toEqual({ aspectRatio: 88 / 104, width: 68, height: 80 });
+    expect(definition.tier).toBe(5);
+    expect(definition.introductionNight).toBe(5);
+    expect(definition.rosterEligible).toBe(false);
+    expect(definition.projectile).toMatchObject({
+      appearance: "sandblast",
+      damageSource: "sandcaster",
+      pierces: true,
+      color: "#d8a84f",
+    });
+    expect(Object.values(selectEnemyRoster("desert-staging"))).not.toContain("sandcaster");
+  });
+
   it("selects exactly one configured enemy per tier from a dedicated stable stream", () => {
     const first = selectEnemyRoster("fort-seed");
     const repeated = selectEnemyRoster("fort-seed");

@@ -2804,6 +2804,7 @@ export class Game {
       hitIds: new Set(), color: projectile.color,
       sourceEnemyKind: enemy.kind,
       appearance: projectile.appearance,
+      pierces: projectile.pierces,
       statusEffect: projectile.statusEffect,
       impactBurst: projectile.impactBurst,
     });
@@ -3327,7 +3328,7 @@ export class Game {
       projectile.lifetime -= dt;
       if (!this.isInsideTutorialArena(projectile.x, projectile.y, projectile.radius)) continue;
       if (projectile.owner === "enemy-arrow" || projectile.owner === "enemy-acid") {
-        const piercing = projectile.owner === "enemy-acid";
+        const piercing = projectile.pierces ?? projectile.owner === "enemy-acid";
         const projectileEnemyKind: EnemyKind = projectile.sourceEnemyKind
           ?? (projectile.owner === "enemy-arrow" ? "archer" : "acidslinger");
         const projectileDamageSource: DamageSource = projectile.damageSource

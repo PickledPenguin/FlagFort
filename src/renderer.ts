@@ -315,6 +315,26 @@ export class Renderer {
     for (const strike of game.areaStrikes) this.drawAreaStrike(strike);
     if (game.buildPreview) this.drawBuildPreview(game);
     for (const projectile of game.projectiles) {
+      if (projectile.appearance === "sandblast") {
+        ctx.save();
+        ctx.translate(projectile.x, projectile.y);
+        ctx.rotate(Math.atan2(projectile.vy, projectile.vx));
+        const length = Math.max(24, projectile.radius * 4.2);
+        const gradient = ctx.createLinearGradient(-length, 0, projectile.radius, 0);
+        gradient.addColorStop(0, "rgba(216,168,79,0)");
+        gradient.addColorStop(0.45, "rgba(216,168,79,.55)");
+        gradient.addColorStop(1, "#f1ca75");
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.ellipse(-length * 0.3, 0, length * 0.7, projectile.radius, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#fff0b2";
+        ctx.beginPath();
+        ctx.arc(projectile.radius * 0.25, 0, projectile.radius * 0.38, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+        continue;
+      }
       if (projectile.owner === "boss-acid" || projectile.owner === "enemy-acid") {
         const size = projectile.radius * 3.4;
         this.drawSprite(

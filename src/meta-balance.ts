@@ -74,6 +74,7 @@ export const META_BALANCE = {
       "splitter-child": 0,
       jumper: 5,
       "dune-hopper": 4,
+      sandcaster: 8,
       popper: 6,
       archer: 6,
       summoner: 8,
