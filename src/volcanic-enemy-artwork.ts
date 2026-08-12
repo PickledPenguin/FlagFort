@@ -7,4 +7,8 @@ export const VOLCANIC_ENEMY_ARTWORK = {
     armored: volcanicEnemyImage("obsidian-charger-zombie"),
     broken: volcanicEnemyImage("obsidian-charger-zombie-broken"),
   },
+  calderaSovereign: {
+    armored: volcanicEnemyImage("caldera-sovereign"),
+    broken: volcanicEnemyImage("caldera-sovereign-broken"),
+  },
 } as const;

@@ -84,13 +84,17 @@ describe("data-driven campaign tiers", () => {
     });
   });
 
-  it("registers a complete themed artwork set for the upcoming volcanic specials", () => {
+  it("registers a complete themed artwork set for the upcoming volcanic enemies", () => {
     expect(VOLCANIC_ENEMY_ARTWORK).toEqual({
       cinderburst: "enemies/cinderburst-zombie",
       magmaSpitter: "enemies/magma-spitter-zombie",
       obsidianCharger: {
         armored: "enemies/obsidian-charger-zombie",
         broken: "enemies/obsidian-charger-zombie-broken",
+      },
+      calderaSovereign: {
+        armored: "enemies/caldera-sovereign",
+        broken: "enemies/caldera-sovereign-broken",
       },
     });
   });

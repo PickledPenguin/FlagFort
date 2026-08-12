@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" viewBox="0 0 180 180" role="img" aria-labelledby="title description" version="1.1" id="caldera-sovereign-broken-svg" sodipodi:docname="caldera-sovereign-broken.svg" inkscape:version="1.4.4">
+  <title id="title">Caldera Sovereign with shattered armor</title>
+  <desc id="description">The volcanic sovereign after its basalt shell has burst apart, exposing a blazing furnace core and streams of molten rock.</desc>
+  <defs id="definitions">
+    <radialGradient id="exposed-core-gradient">
+      <stop id="core-white" offset="0" stop-color="#fff8c7"/>
+      <stop id="core-yellow" offset=".28" stop-color="#ffd45f"/>
+      <stop id="core-orange" offset=".62" stop-color="#ff6929"/>
+      <stop id="core-red" offset="1" stop-color="#9d211f"/>
+    </radialGradient>
+    <linearGradient id="broken-basalt-gradient" x1="0" y1="0" x2="1" y2="1">
+      <stop id="broken-highlight" offset="0" stop-color="#514752"/>
+      <stop id="broken-shadow" offset="1" stop-color="#17161c"/>
+    </linearGradient>
+  </defs>
+  <g id="caldera-sovereign-broken" transform="translate(90 92)" stroke-linejoin="round">
+    <g id="violent-ember-aura" fill="#ff9d42">
+      <path id="flame-one" d="M-70-45c-7-12 9-15 2-30 17 11 14 25 5 33Z"/>
+      <path id="flame-two" d="M65-45c-6-10 8-14 1-26 16 9 13 22 6 29Z"/>
+      <circle id="ember-one" cx="-78" cy="21" r="4"/>
+      <circle id="ember-two" cx="71" cy="25" r="4.5"/>
+      <circle id="ember-three" cx="-51" cy="-72" r="3"/>
+    </g>
+    <g id="three-arms" fill="#506550" stroke="#243027" stroke-width="6">
+      <path id="upper-arm" d="M25-37 56-64 76-50 61-20 41-11Z"/>
+      <path id="middle-arm" d="M38-8 78-15 86 6 58 23 37 15Z"/>
+      <path id="lower-arm" d="M27 30 61 48 54 72 18 55 8 39Z"/>
+      <path id="rear-arm" d="M-38 14-77 31-70 57-31 46-17 27Z"/>
+    </g>
+    <ellipse id="body" cx="-4" cy="1" rx="56" ry="59" fill="#4f684f" stroke="#243027" stroke-width="7"/>
+    <circle id="exposed-furnace-core" cx="8" cy="13" r="34" fill="url(#exposed-core-gradient)" stroke="#7d241d" stroke-width="6"/>
+    <g id="molten-body-fissures" fill="none" stroke="#ff7b2e" stroke-width="5" stroke-linecap="round">
+      <path id="upper-fissure" d="M-38-27-19-17-8 0"/>
+      <path id="rear-fissure" d="M-43 10-27 18-19 37"/>
+      <path id="lower-fissure" d="M-20 48-4 34 13 49 31 39"/>
+      <path id="arm-fissure" d="M48-43 59-35 53-22"/>
+    </g>
+    <g id="shattered-basalt" fill="url(#broken-basalt-gradient)" stroke="#111117" stroke-width="5">
+      <path id="left-crown-shard" d="M-48-29-43-70-24-55-13-78-7-43-22-18Z"/>
+      <path id="right-crown-shard" d="M17-43 25-75 34-47 48-58 46-24 31-13Z"/>
+      <path id="upper-left-shard" d="M-49-27-24-40-12-22-31-9Z"/>
+      <path id="upper-right-shard" d="M20-30 42-39 53-15 38-4Z"/>
+      <path id="lower-left-shard" d="M-47 31-26 20-18 48-37 58Z"/>
+      <path id="lower-right-shard" d="M27 42 43 30 45 57 24 66Z"/>
+    </g>
+    <g id="face" stroke="#1b2420" stroke-width="2.5">
+      <path id="upper-eye" d="m27-13 18 3-15 8Z" fill="#fff2a6"/>
+      <path id="lower-eye" d="m30 2 17 5-17 5Z" fill="#fff2a6"/>
+      <path id="roaring-mouth" d="m25 25 11-8 12 10 9-8" fill="none" stroke-width="6" stroke-linecap="round"/>
+    </g>
+    <g id="fallen-shards" fill="#28252d" stroke="#111117" stroke-width="3">
+      <path id="fallen-shard-one" d="m-70 67 13-15 12 17Z"/>
+      <path id="fallen-shard-two" d="m48 70 9-18 16 16Z"/>
+      <path id="fallen-shard-three" d="m-12 74 8-13 12 14Z"/>
+    </g>
+    <g id="lava-ground" fill="none" stroke="#ff682a" stroke-width="4" stroke-linecap="round">
+      <path id="left-lava-crack" d="M-77 73-55 63-42 72-23 64"/>
+      <path id="right-lava-crack" d="M17 70 39 60 54 70 78 59"/>
+    </g>
+  </g>
+</svg>

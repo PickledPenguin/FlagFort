@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" viewBox="0 0 180 180" role="img" aria-labelledby="title description" version="1.1" id="caldera-sovereign-svg" sodipodi:docname="caldera-sovereign.svg" inkscape:version="1.4.4">
+  <title id="title">Caldera Sovereign boss</title>
+  <desc id="description">A colossal volcanic zombie encased in a crown of black basalt, with three crushing arms and a furnace core sealed behind glowing armor.</desc>
+  <defs id="definitions">
+    <linearGradient id="basalt-gradient" x1="0" y1="0" x2="1" y2="1">
+      <stop id="basalt-highlight" offset="0" stop-color="#625567"/>
+      <stop id="basalt-mid" offset=".48" stop-color="#302b35"/>
+      <stop id="basalt-shadow" offset="1" stop-color="#15151b"/>
+    </linearGradient>
+    <radialGradient id="sealed-core-gradient">
+      <stop id="sealed-core-center" offset="0" stop-color="#ffe18a"/>
+      <stop id="sealed-core-mid" offset=".45" stop-color="#ff7a2d"/>
+      <stop id="sealed-core-edge" offset="1" stop-color="#8f2520"/>
+    </radialGradient>
+  </defs>
+  <g id="caldera-sovereign" transform="translate(90 92)" stroke-linejoin="round">
+    <g id="ember-aura" fill="#ff8a3d" opacity=".8">
+      <circle id="ember-one" cx="-69" cy="-55" r="4"/>
+      <circle id="ember-two" cx="-77" cy="32" r="3"/>
+      <circle id="ember-three" cx="64" cy="-66" r="3.5"/>
+      <path id="rising-ember" d="M68 54c-8-10 7-14 1-26 15 9 12 20 5 29Z"/>
+    </g>
+    <g id="three-arms" fill="#506550" stroke="#243027" stroke-width="6">
+      <path id="upper-arm" d="M25-37 56-64 76-50 61-20 41-11Z"/>
+      <path id="middle-arm" d="M38-8 78-15 86 6 58 23 37 15Z"/>
+      <path id="lower-arm" d="M27 30 61 48 54 72 18 55 8 39Z"/>
+      <path id="rear-arm" d="M-38 14-77 31-70 57-31 46-17 27Z"/>
+    </g>
+    <ellipse id="body" cx="-4" cy="1" rx="56" ry="59" fill="#4f684f" stroke="#243027" stroke-width="7"/>
+    <circle id="sealed-furnace-core" cx="10" cy="13" r="25" fill="url(#sealed-core-gradient)" stroke="#641f1d" stroke-width="6"/>
+    <g id="basalt-crown-and-armor" fill="url(#basalt-gradient)" stroke="#111117" stroke-width="6">
+      <path id="caldera-crown" d="M-49-32-43-71-25-57-12-82 3-57 23-78 31-48 49-60 48-22 25-10-22-12Z"/>
+      <path id="upper-carapace" d="M-51-29-18-43 8-31 39-40 54-13 35 3 9-4-19 5-51-8Z"/>
+      <path id="core-seal" d="M-26 7-7-13 18-8 37 10 28 37 4 45-22 31Z"/>
+      <path id="lower-carapace" d="M-47 29-24 19-3 43 22 48 39 33 43 57 13 68-23 62Z"/>
+    </g>
+    <g id="lava-seams" fill="none" stroke="#ff7a2d" stroke-width="4" stroke-linecap="round">
+      <path id="crown-seam" d="M-27-48-14-36 0-48 17-34 32-43"/>
+      <path id="upper-seam" d="M-33-20-16-27 2-19 23-26 39-17"/>
+      <path id="seal-seam" d="M-12 9 1 20 14 7 27 18"/>
+      <path id="lower-seam" d="M-28 45-9 50 9 57 27 48"/>
+    </g>
+    <g id="face" stroke="#1b2420" stroke-width="2.5">
+      <path id="upper-eye" d="m27-13 18 3-15 8Z" fill="#ffd979"/>
+      <path id="lower-eye" d="m30 2 17 5-17 5Z" fill="#ffd979"/>
+      <path id="mouth" d="m27 25 9-6 10 7 8-5" fill="none" stroke-width="5" stroke-linecap="round"/>
+    </g>
+    <g id="ground-cracks" fill="none" stroke="#d54a27" stroke-width="3" stroke-linecap="round" opacity=".85">
+      <path id="left-ground-crack" d="M-72 71-49 63-37 71-17 65"/>
+      <path id="right-ground-crack" d="M20 69 41 61 57 69 76 61"/>
+    </g>
+  </g>
+</svg>
