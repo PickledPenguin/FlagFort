@@ -2613,7 +2613,7 @@ export class Game {
       && distance(enemy, directBlocker) <= enemy.radius + directBlocker.radius + maximumGap) {
       return directBlocker;
     }
-    if (enemy.kind === "acidslinger") return undefined;
+    if (ENEMY_REGISTRY[enemy.kind].targeting.mode === "acidslinger") return undefined;
     return this.structures
       .filter((structure) => structure.health > 0)
       .filter((structure) =>

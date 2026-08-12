@@ -165,34 +165,37 @@ describe("boss difficulty scaling", () => {
   });
 });
 
-describe("Acidslinger obstruction targeting", () => {
-  it("ignores nearby off-route walls and attacks only a wall blocking its flag route", () => {
-    const game = gameFixture();
-    const acid = spawn(game, "acidslinger", game.flag.x - 300, game.flag.y);
-    game.player.x = acid.x;
-    game.player.y = acid.y + 1000;
-    const unrelated = wall(800, acid.x + 10, acid.y + 60);
-    game.structures = [unrelated];
-    const internals = game as unknown as {
-      selectEnemyTarget(enemy: Enemy): void;
-      firstBlockingStructure(enemy: Enemy, target: { x: number; y: number }): Structure | undefined;
-      findAdjacentStuckBlocker(enemy: Enemy, target: { x: number; y: number }): Structure | undefined;
-    };
+describe("route-aware ranged obstruction targeting", () => {
+  it.each(["acidslinger", "sandcaster"] as const)(
+    "%s ignores nearby off-route walls and attacks only a wall blocking its flag route",
+    (kind) => {
+      const game = gameFixture();
+      const enemy = spawn(game, kind, game.flag.x - 300, game.flag.y);
+      game.player.x = enemy.x;
+      game.player.y = enemy.y + 1000;
+      const unrelated = wall(800, enemy.x + 10, enemy.y + 60);
+      game.structures = [unrelated];
+      const internals = game as unknown as {
+        selectEnemyTarget(enemy: Enemy): void;
+        firstBlockingStructure(enemy: Enemy, target: { x: number; y: number }): Structure | undefined;
+        findAdjacentStuckBlocker(enemy: Enemy, target: { x: number; y: number }): Structure | undefined;
+      };
 
-    internals.selectEnemyTarget(acid);
-    expect(acid.targetId).toBe("flag");
-    expect(internals.firstBlockingStructure(acid, game.flag)).toBeUndefined();
-    expect(internals.findAdjacentStuckBlocker(acid, game.flag)).toBeUndefined();
+      internals.selectEnemyTarget(enemy);
+      expect(enemy.targetId).toBe("flag");
+      expect(internals.firstBlockingStructure(enemy, game.flag)).toBeUndefined();
+      expect(internals.findAdjacentStuckBlocker(enemy, game.flag)).toBeUndefined();
 
-    const blocking = wall(801, acid.x + 70, acid.y);
-    game.structures.push(blocking);
-    expect(internals.firstBlockingStructure(acid, game.flag)?.id).toBe(blocking.id);
+      const blocking = wall(801, enemy.x + 70, enemy.y);
+      game.structures.push(blocking);
+      expect(internals.firstBlockingStructure(enemy, game.flag)?.id).toBe(blocking.id);
 
-    game.structures = [unrelated];
-    internals.selectEnemyTarget(acid);
-    expect(acid.targetId).toBe("flag");
-    expect(internals.firstBlockingStructure(acid, game.flag)).toBeUndefined();
-  });
+      game.structures = [unrelated];
+      internals.selectEnemyTarget(enemy);
+      expect(enemy.targetId).toBe("flag");
+      expect(internals.firstBlockingStructure(enemy, game.flag)).toBeUndefined();
+    },
+  );
 });
 
 describe("biome popup contrast", () => {
