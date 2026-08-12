@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title description">
+  <title id="title">Depleted clockwork ironwood tree</title>
+  <desc id="description">A cut ironwood stump with loosened brass bands and a silent pressure pipe.</desc>
+  <g id="clockwork-ironwood-depleted">
+    <ellipse id="shadow" cx="48" cy="87" rx="37" ry="6" fill="#17191d" opacity=".72"/>
+    <path id="roots" d="M41 61 25 87h20l6-12 8 12h17L57 60Z" fill="#5f4633" stroke="#29282a" stroke-width="5" stroke-linejoin="round"/>
+    <path id="stump" d="m38 65 2-31 10-6 12 7-2 31Z" fill="#705039" stroke="#29282a" stroke-width="6" stroke-linejoin="round"/>
+    <path id="cut-face" d="m40 34 10-6 12 7-12 8Z" fill="#a57a4c" stroke="#29282a" stroke-width="4" stroke-linejoin="round"/>
+    <path id="growth-rings" d="m46 34 4-2 6 3-6 4Z" fill="none" stroke="#634930" stroke-width="2"/>
+    <path id="loose-band" d="M38 53c8 3 15 3 23 0" fill="none" stroke="#a97835" stroke-width="4" stroke-linecap="round"/>
+    <path id="silent-pipe" d="M61 62h11V48" fill="none" stroke="#8f5a3d" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle id="dark-gauge" cx="72" cy="45" r="4" fill="#374343" stroke="#29282a" stroke-width="2"/>
+  </g>
+</svg>

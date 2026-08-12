@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title description">
+  <title id="title">Clockwork aether core</title>
+  <desc id="description">A luminous cyan power crystal suspended inside a brass gyroscopic mechanism.</desc>
+  <g id="clockwork-aether-core-active">
+    <ellipse id="shadow" cx="48" cy="88" rx="37" ry="6" fill="#13171b" opacity=".78"/>
+    <path id="base" d="m22 78 8-15h36l9 15-11 9H32Z" fill="#596069" stroke="#252a30" stroke-width="5" stroke-linejoin="round"/>
+    <path id="outer-ring" d="M19 49c0-24 13-37 29-37s29 13 29 37-13 36-29 36-29-12-29-36Z" fill="none" stroke="#b98335" stroke-width="6"/>
+    <path id="tilted-ring" d="M12 49c0-12 16-22 36-22s36 10 36 22-16 22-36 22-36-10-36-22Z" fill="none" stroke="#d3aa55" stroke-width="5" transform="rotate(-18 48 49)"/>
+    <path id="aether-crystal" d="m37 63-6-28 17-20 17 20-7 28-10 13Z" fill="#75e8e0" stroke="#235a61" stroke-width="5" stroke-linejoin="round"/>
+    <path id="crystal-facets" d="m48 21-3 43m-12-27 12 27 18-27" fill="none" stroke="#d9ffef" stroke-width="3" stroke-linecap="round" opacity=".88"/>
+    <g id="energy-nodes" fill="#f5d982" stroke="#684a28" stroke-width="2">
+      <circle cx="20" cy="49" r="4"/><circle cx="76" cy="49" r="4"/><circle cx="48" cy="13" r="4"/>
+    </g>
+  </g>
+</svg>

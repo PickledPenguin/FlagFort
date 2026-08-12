@@ -51,6 +51,29 @@ const zeroCoins: CoinSettlement = {
 };
 
 describe("data-driven campaign tiers", () => {
+  it("registers a complete Clockwork Citadel resource-art skin for the upcoming eighth tier", () => {
+    expect(RESOURCE_STATE_SKINS.clockwork).toEqual({
+      wood: {
+        active: "./images/world/clockwork-ironwood-active.svg",
+        depleted: "./images/world/clockwork-ironwood-depleted.svg",
+      },
+      stone: {
+        active: "./images/world/clockwork-gearstone-active.svg",
+        depleted: "./images/world/clockwork-gearstone-depleted.svg",
+      },
+      gold: {
+        active: "./images/world/clockwork-brass-active.svg",
+        depleted: "./images/world/clockwork-brass-depleted.svg",
+      },
+      diamond: {
+        active: "./images/world/clockwork-aether-core-active.svg",
+        depleted: "./images/world/clockwork-aether-core-depleted.svg",
+      },
+    });
+    expect(CAMPAIGN_TIERS.every((tier) => tier.biome.resourceStateSkin !== "clockwork"))
+      .toBe(true);
+  });
+
   it("registers a complete themed artwork set for the upcoming Drowned Mire enemies", () => {
     expect(MIRE_ENEMY_ARTWORK).toEqual({
       mireLurker: "enemies/mire-lurker-zombie",
