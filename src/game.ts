@@ -2702,9 +2702,7 @@ export class Game {
   }
 
   private enemyAttackRange(enemy: Enemy): number {
-    return enemy.kind === "snowballer"
-      ? BALANCE.snowyEnemies.snowballer.attackRange
-      : ENEMY_REGISTRY[enemy.kind].targeting.attackRange;
+    return ENEMY_REGISTRY[enemy.kind].targeting.attackRange;
   }
 
   private statusMovementMultiplier(target: Player | Structure): number {
@@ -2763,10 +2761,9 @@ export class Game {
       rangeLeft: projectile.range, lifetime: projectile.lifetime,
       hitIds: new Set(), color: projectile.color,
       sourceEnemyKind: enemy.kind,
-      appearance: enemy.kind === "snowballer" ? "snowball" : "arrow",
-      slowDuration: enemy.kind === "snowballer"
-        ? BALANCE.snowyEnemies.slow.snowballerDuration
-        : undefined,
+      appearance: projectile.appearance,
+      statusEffect: projectile.statusEffect,
+      impactBurst: projectile.impactBurst,
     });
     emitAudioCue({
       cue: (definition.audio.projectile ?? "zombie-attack") as import("./audio").SoundId,
@@ -3268,7 +3265,12 @@ export class Game {
           );
           this.player.hurtFlash = 0.25;
           impacted = true;
-          if (projectile.slowDuration) this.applySlowStatus(this.player, projectile.slowDuration);
+          const playerStatusEffect = projectile.statusEffect?.targets.includes("player")
+            ? projectile.statusEffect
+            : undefined;
+          if (playerStatusEffect?.kind === "slow") {
+            this.applySlowStatus(this.player, playerStatusEffect.duration);
+          }
           emitAudioCue({ cue: "player-hurt", position: { x: this.player.x, y: this.player.y } });
           this.burst(
             this.player.x,
@@ -3276,7 +3278,7 @@ export class Game {
             projectile.color,
             10,
             `-${Math.round(damage)}`,
-            projectile.slowDuration ? BALANCE.snowyEnemies.slow.popupTextColor : projectile.color,
+            playerStatusEffect?.popupTextColor ?? projectile.color,
           );
         }
         if (this.flagPresent && accepts("flag") && !projectile.hitIds.has("flag")
@@ -3304,8 +3306,10 @@ export class Game {
           );
           structure.flash = 0.22;
           impacted = true;
-          if (projectile.slowDuration && structure.kind === "turret") {
-            this.applySlowStatus(structure, projectile.slowDuration);
+          if (projectile.statusEffect?.kind === "slow"
+            && structure.kind === "turret"
+            && projectile.statusEffect.targets.includes("turret")) {
+            this.applySlowStatus(structure, projectile.statusEffect.duration);
           }
           this.burst(structure.x, structure.y, projectile.color, 8);
         }
@@ -3322,8 +3326,13 @@ export class Game {
         }
         const inWorld = projectile.x >= -projectile.radius && projectile.y >= -projectile.radius
           && projectile.x <= BALANCE.mapSize + projectile.radius && projectile.y <= BALANCE.mapSize + projectile.radius;
-        if (impacted && projectile.appearance === "snowball") {
-          this.burst(projectile.x, projectile.y, BALANCE.snowyEnemies.slow.tint, 14);
+        if (impacted && projectile.impactBurst) {
+          this.burst(
+            projectile.x,
+            projectile.y,
+            projectile.impactBurst.color,
+            projectile.impactBurst.count,
+          );
         }
         if ((!impacted || piercing) && projectile.rangeLeft > 0 && projectile.lifetime > 0 && inWorld) survivors.push(projectile);
         else if (projectile.owner === "enemy-acid") this.burst(projectile.x, projectile.y, projectile.color, 12, "SPLASH");

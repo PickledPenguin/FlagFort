@@ -198,7 +198,16 @@ export interface Projectile extends Circle {
   color: string;
   sourceEnemyKind?: EnemyKind;
   appearance?: "arrow" | "snowball";
-  slowDuration?: number;
+  statusEffect?: {
+    kind: "slow";
+    duration: number;
+    targets: readonly ("player" | "turret")[];
+    popupTextColor: string;
+  };
+  impactBurst?: {
+    color: string;
+    count: number;
+  };
 }
 
 export interface Particle extends Vec2 {

@@ -63,12 +63,8 @@ export const BALANCE = {
       movementMultiplier: 0.65,
       attackSpeedMultiplier: 0.65,
       frostbiterDuration: 3,
-      snowballerDuration: 1.75,
       tint: "#e7fbff",
       popupTextColor: "#63c6e8",
-    },
-    snowballer: {
-      attackRange: 350,
     },
     icebound: {
       armorHealth: 90,

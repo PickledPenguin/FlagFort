@@ -2,6 +2,7 @@
 
 import { describe, expect, it } from "vitest";
 import { BALANCE } from "./config";
+import { ENEMY_REGISTRY } from "./enemy-registry";
 import { Game } from "./game";
 import { Input } from "./input";
 import { applySlow, isSlowed, updateStatuses } from "./status-effects";
@@ -129,6 +130,30 @@ describe("shared snowy slow status", () => {
     expect(turret.statuses?.slow?.remaining).toBe(BALANCE.snowyEnemies.slow.frostbiterDuration);
   });
 
+  it("builds Snowballer range and projectile effects entirely from its registry definition", () => {
+    const game = gameFixture();
+    const definition = ENEMY_REGISTRY.snowballer;
+    const snowballer = spawn(
+      game,
+      "snowballer",
+      game.player.x - definition.targeting.attackRange,
+      game.player.y,
+    );
+    expect((game as unknown as { enemyAttackRange(enemy: Enemy): number })
+      .enemyAttackRange(snowballer)).toBe(definition.targeting.attackRange);
+
+    (game as unknown as {
+      enemyRangedAttack(enemy: Enemy, target: typeof game.player, dt: number): void;
+    }).enemyRangedAttack(snowballer, game.player, definition.attack.chargeSeconds);
+
+    expect(game.projectiles.at(-1)).toMatchObject({
+      sourceEnemyKind: "snowballer",
+      appearance: definition.projectile!.appearance,
+      statusEffect: definition.projectile!.statusEffect,
+      impactBurst: definition.projectile!.impactBurst,
+    });
+  });
+
   it("lets a Snowballer shot pass resources and walls, then slows its player target", () => {
     const game = gameFixture();
     const startX = game.player.x - 160;
@@ -142,7 +167,8 @@ describe("shared snowy slow status", () => {
       owner: "enemy-arrow",
       sourceEnemyKind: "snowballer",
       appearance: "snowball",
-      slowDuration: BALANCE.snowyEnemies.slow.snowballerDuration,
+      statusEffect: ENEMY_REGISTRY.snowballer.projectile!.statusEffect,
+      impactBurst: ENEMY_REGISTRY.snowballer.projectile!.impactBurst,
       intendedTargetId: "player",
       x: startX,
       y: game.player.y,
@@ -161,7 +187,8 @@ describe("shared snowy slow status", () => {
     expect(game.player.health).toBe(game.player.maxHealth - 9);
     expect(wall.health).toBe(wall.maxHealth);
     expect(node.health).toBe(node.maxHealth);
-    expect(game.player.statuses?.slow?.remaining).toBe(BALANCE.snowyEnemies.slow.snowballerDuration);
+    expect(game.player.statuses?.slow?.remaining)
+      .toBe(ENEMY_REGISTRY.snowballer.projectile!.statusEffect!.duration);
     expect(game.player.statuses!.slow!.remaining).toBeLessThan(BALANCE.snowyEnemies.slow.frostbiterDuration);
     expect(game.projectiles).toHaveLength(0);
     expect(game.particles.filter((particle) => particle.color === BALANCE.snowyEnemies.slow.tint).length)
