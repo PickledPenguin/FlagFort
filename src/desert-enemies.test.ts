@@ -25,6 +25,31 @@ function spawn(game: Game, kind: Enemy["kind"], x: number, y: number): Enemy {
 }
 
 describe("staged Desert enemies", () => {
+  it("gives Tombguard projectile-resistant armor that melee can crack efficiently", () => {
+    const game = gameFixture();
+    const definition = ENEMY_REGISTRY.tombguard;
+    const tombguard = spawn(game, "tombguard", game.player.x + 100, game.player.y);
+    const damageEnemy = (damage: number, source: "player-bow" | "player-melee") => {
+      (game as unknown as {
+        damageEnemy(enemy: Enemy, amount: number, color: string, damageSource: typeof source, ownerPlayerId: string | null): void;
+      }).damageEnemy(tombguard, damage, "#ffffff", source, game.player.id);
+    };
+
+    expect(tombguard.armor).toBe(definition.armor!.health);
+    expect(tombguard.health).toBe(tombguard.maxHealth);
+
+    damageEnemy(40, "player-bow");
+    expect(tombguard.armor).toBe(definition.armor!.health - 14);
+    expect(tombguard.health).toBe(tombguard.maxHealth);
+
+    damageEnemy(96, "player-melee");
+    expect(tombguard.armor).toBe(0);
+    expect(tombguard.health).toBe(tombguard.maxHealth);
+
+    damageEnemy(20, "player-melee");
+    expect(tombguard.health).toBe(tombguard.maxHealth - 20);
+  });
+
   it("lets a Sandcaster sandblast pierce an aligned wall and defender", () => {
     const game = gameFixture();
     const definition = ENEMY_REGISTRY.sandcaster;

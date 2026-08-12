@@ -34,6 +34,22 @@ describe("deterministic enemy roster", () => {
     expect(Object.values(selectEnemyRoster("desert-staging"))).not.toContain("sandcaster");
   });
 
+  it("stages the Tombguard as an armored Desert bruiser without exposing it to unfinished rosters", () => {
+    const definition = ENEMY_REGISTRY.tombguard;
+    expect(definition.assets.portrait).toBe("enemies/tombguard-zombie");
+    expect(definition.render).toEqual({ aspectRatio: 112 / 100, width: 102, height: 91 });
+    expect(definition.tier).toBe(7);
+    expect(definition.introductionNight).toBe(7);
+    expect(definition.rosterEligible).toBe(false);
+    expect(definition.armor).toMatchObject({
+      health: 110,
+      projectileResistance: 0.65,
+      label: "TOMB ARMOR",
+      brokenSprite: "enemies/tombguard-zombie-broken",
+    });
+    expect(Object.values(selectEnemyRoster("desert-staging"))).not.toContain("tombguard");
+  });
+
   it("selects exactly one configured enemy per tier from a dedicated stable stream", () => {
     const first = selectEnemyRoster("fort-seed");
     const repeated = selectEnemyRoster("fort-seed");

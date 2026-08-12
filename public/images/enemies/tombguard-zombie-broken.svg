@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-56 -50 112 100" role="img" aria-labelledby="title description">
+  <title id="title">Tombguard zombie with broken armor</title>
+  <desc id="description">A broad desert zombie whose sandstone tomb armor has shattered, exposing its green body beneath a damaged scarab crest.</desc>
+  <g id="tombguard-zombie-broken">
+    <g id="rear-hands" fill="#52775a" stroke="#294735" stroke-width="2"><circle id="upper-hand" cx="38" cy="-18" r="10"/><circle id="lower-hand" cx="38" cy="18" r="10"/></g>
+    <circle id="body" r="28" fill="#567d5d" stroke="#294735" stroke-width="3"/>
+    <g id="broken-sandstone-armor" fill="#c9924e" stroke="#765234" stroke-width="3" stroke-linejoin="round"><path id="upper-armor-remnant" d="M-30-24-17-30-10-19-17-9-29-5Z"/><path id="lower-armor-remnant" d="M-29 7-17 10-10 22-17 31-30 24Z"/><path id="face-guard-remnant" d="M20-14 30 0 20 14 11 8 16 0 11-8Z" fill="#d9aa5c"/></g>
+    <g id="exposed-wraps" fill="none" stroke="#e5c48a" stroke-width="4" stroke-linecap="round"><path id="upper-wrap" d="M-10-20 8-24 17-18"/><path id="lower-wrap" d="M-10 20 7 24 17 18"/></g>
+    <g id="broken-scarab-crest" fill="#32aeb0" stroke="#235f65" stroke-width="2"><path id="scarab-half" d="M-17-9q10 1 10 9t-10 9q-5-9 0-18Z"/><path id="scarab-wing" d="M-18-3-30-12l3 14 9 4Z"/></g>
+    <g id="armor-rubble" fill="#d5a657" stroke="#765234" stroke-width="2"><path id="upper-rubble" d="m2-31 9 2-5 9-8-4Z"/><path id="lower-rubble" d="m0 30 10-4 4 8-9 5Z"/><path id="rear-rubble" d="m25-25 8 5-6 7-7-5Z"/></g>
+    <g id="eyes" fill="#fff2bd" stroke="#294735" stroke-width="1.5"><ellipse id="upper-eye" cx="14" cy="-8" rx="6" ry="4" transform="rotate(18 14 -8)"/><ellipse id="lower-eye" cx="14" cy="8" rx="6" ry="4" transform="rotate(-18 14 8)"/></g>
+    <g id="pupils" fill="#782f2b"><circle id="upper-pupil" cx="17" cy="-7" r="2.5"/><circle id="lower-pupil" cx="17" cy="7" r="2.5"/></g>
+  </g>
+</svg>

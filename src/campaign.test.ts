@@ -51,7 +51,10 @@ describe("data-driven campaign tiers", () => {
     expect(DESERT_ENEMY_ARTWORK).toEqual({
       duneHopper: "enemies/dune-hopper-zombie",
       sandcaster: "enemies/sandcaster-zombie",
-      tombguard: "enemies/tombguard-zombie",
+      tombguard: {
+        armored: "enemies/tombguard-zombie",
+        broken: "enemies/tombguard-zombie-broken",
+      },
       duneColossus: {
         armored: "enemies/dune-colossus",
         broken: "enemies/dune-colossus-broken",
