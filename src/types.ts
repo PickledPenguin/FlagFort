@@ -42,7 +42,8 @@ export type RosterEnemyKind =
   | "void-herald"
   | "mire-lurker"
   | "sporecaster"
-  | "drowned-bulwark";
+  | "drowned-bulwark"
+  | "springjack";
 export type BossEnemyKind = "boss" | "frost-warden" | "dune-colossus" | "caldera-sovereign" | "reactor-revenant" | "eclipse-regent" | "mireheart-titan";
 export type EnemyKind = RosterEnemyKind | "splitter-child" | BossEnemyKind;
 export type PlayerId = string;
