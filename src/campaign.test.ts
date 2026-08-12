@@ -17,6 +17,7 @@ import { RESOURCE_STATE_SKINS } from "./assets";
 import { CAMPAIGN_TIER_ARTWORK } from "./campaign-artwork";
 import { DESERT_ENEMY_ARTWORK } from "./desert-enemy-artwork";
 import { VOLCANIC_ENEMY_ARTWORK } from "./volcanic-enemy-artwork";
+import { WASTELAND_ENEMY_ARTWORK } from "./wasteland-enemy-artwork";
 
 class MemoryStore implements KeyValueStore {
   private values = new Map<string, string>();
@@ -118,6 +119,15 @@ describe("data-driven campaign tiers", () => {
         broken: "enemies/caldera-sovereign-broken",
       },
     });
+  });
+
+  it("registers exactly three themed specials for the upcoming wasteland tier", () => {
+    expect(WASTELAND_ENEMY_ARTWORK).toEqual({
+      radstalker: "enemies/radstalker-zombie",
+      sludgeLobber: "enemies/sludge-lobber-zombie",
+      ruinSiren: "enemies/ruin-siren-zombie",
+    });
+    expect(Object.keys(WASTELAND_ENEMY_ARTWORK)).toHaveLength(3);
   });
 
   it("defines and exposes the Desert environment through its completed tier", () => {
