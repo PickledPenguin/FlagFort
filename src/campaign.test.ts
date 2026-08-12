@@ -19,6 +19,7 @@ import { DESERT_ENEMY_ARTWORK } from "./desert-enemy-artwork";
 import { VOLCANIC_ENEMY_ARTWORK } from "./volcanic-enemy-artwork";
 import { WASTELAND_ENEMY_ARTWORK } from "./wasteland-enemy-artwork";
 import { ASTRAL_ENEMY_ARTWORK } from "./astral-enemy-artwork";
+import { MIRE_ENEMY_ARTWORK } from "./mire-enemy-artwork";
 
 class MemoryStore implements KeyValueStore {
   private values = new Map<string, string>();
@@ -50,6 +51,15 @@ const zeroCoins: CoinSettlement = {
 };
 
 describe("data-driven campaign tiers", () => {
+  it("registers exactly three themed artwork entries for the upcoming Drowned Mire specials", () => {
+    expect(MIRE_ENEMY_ARTWORK).toEqual({
+      mireLurker: "enemies/mire-lurker-zombie",
+      sporecaster: "enemies/sporecaster-zombie",
+      drownedBulwark: "enemies/drowned-bulwark-zombie",
+    });
+    expect(Object.keys(MIRE_ENEMY_ARTWORK)).toHaveLength(3);
+  });
+
   it("registers a complete Drowned Mire resource-art skin for the upcoming seventh tier", () => {
     expect(RESOURCE_STATE_SKINS.mire).toEqual({
       wood: {

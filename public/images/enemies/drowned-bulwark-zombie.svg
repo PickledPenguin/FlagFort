@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-58 -52 116 104" role="img" aria-labelledby="title description">
+  <title id="title">Drowned Bulwark zombie</title>
+  <desc id="description">A massive drowned zombie fused to a mossy ruin shield, braced to smash through fortifications beneath a crown of broken stone.</desc>
+  <defs id="drowned-bulwark-definitions">
+    <linearGradient id="drowned-bulwark-body-gradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#60776d"/>
+      <stop offset="1" stop-color="#2b4543"/>
+    </linearGradient>
+    <linearGradient id="drowned-bulwark-shield-gradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#718078"/>
+      <stop offset="1" stop-color="#3f504d"/>
+    </linearGradient>
+  </defs>
+  <g id="drowned-bulwark-zombie">
+    <g id="heavy-legs" fill="none" stroke="#304c49" stroke-width="13" stroke-linecap="round" stroke-linejoin="round">
+      <path id="rear-leg" d="M-18 18-30 39-46 36"/>
+      <path id="front-leg" d="M12 19 25 39 42 35"/>
+    </g>
+    <ellipse id="body" cx="-5" cy="1" rx="34" ry="29" fill="url(#drowned-bulwark-body-gradient)" stroke="#1d3736" stroke-width="3"/>
+    <path id="stone-crown" d="m-26-19 2-21 12 8 9-16 10 16 14-9 2 23Z" fill="#596a64" stroke="#2c403d" stroke-width="3" stroke-linejoin="round"/>
+    <g id="crown-moss" fill="#78925b">
+      <path id="moss-one" d="M-21-35c7 2 10 6 11 13-6-5-10-6-16-5Z"/>
+      <path id="moss-two" d="M7-34c8 0 12 4 15 10-7-3-12-2-17 1Z"/>
+    </g>
+    <path id="face-shadow" d="M-11-14c15-9 34-4 40 10-8 12-24 17-39 8Z" fill="#203b3b"/>
+    <g id="eyes" fill="#b5f5d5" stroke="#183332" stroke-width="1.5">
+      <path id="upper-eye" d="m4-9 17 1L7-1Z"/>
+      <path id="lower-eye" d="m5 8 16-5L9 14Z"/>
+    </g>
+    <path id="shield-arm" d="M4 15 25 25 38 16" fill="none" stroke="#45625a" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+    <g id="ruin-shield">
+      <path id="shield-slab" d="M24-30 52-25 55 25 39 41 22 27Z" fill="url(#drowned-bulwark-shield-gradient)" stroke="#263c3a" stroke-width="3" stroke-linejoin="round"/>
+      <path id="shield-crack" d="m40-24-5 17 9 8-8 13 7 20" fill="none" stroke="#2c403e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="shield-relief" d="M29 4h20M39-16v40" fill="none" stroke="#8b9a85" stroke-width="4" opacity=".55"/>
+      <g id="shield-moss" fill="#78945b">
+        <path id="shield-moss-top" d="M24-30c8 5 16 5 28 5l1 9c-11-4-20-2-29 3Z"/>
+        <path id="shield-moss-side" d="M50-12c-6 9-5 18 4 27l1-27Z"/>
+      </g>
+    </g>
+    <g id="water-drops" fill="#86cbb9">
+      <path id="drop-one" d="M-30 11c5 7 5 10 0 13-5-3-5-6 0-13Z"/>
+      <path id="drop-two" d="M-17 24c4 6 4 8 0 11-4-3-4-5 0-11Z"/>
+    </g>
+  </g>
+</svg>

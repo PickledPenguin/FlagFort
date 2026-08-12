@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-58 -52 116 104" role="img" aria-labelledby="title description">
+  <title id="title">Sporecaster zombie</title>
+  <desc id="description">A hunched bog zombie carrying a towering fungus colony and cradling a glowing puffball ready to burst into slowing spores.</desc>
+  <defs id="sporecaster-definitions">
+    <linearGradient id="sporecaster-body-gradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#627a63"/>
+      <stop offset="1" stop-color="#304a46"/>
+    </linearGradient>
+    <radialGradient id="sporecaster-orb-gradient">
+      <stop offset="0" stop-color="#efffb8"/>
+      <stop offset=".55" stop-color="#b8db70"/>
+      <stop offset="1" stop-color="#6d8f50"/>
+    </radialGradient>
+  </defs>
+  <g id="sporecaster-zombie">
+    <g id="fungus-pack" stroke="#3e523c" stroke-width="2.5" stroke-linejoin="round">
+      <path id="large-mushroom-stem" d="M-25 2c-5-13-4-27 1-39h10c2 13 2 26-1 39Z" fill="#9b9772"/>
+      <path id="large-mushroom-cap" d="M-38-34c5-19 29-22 39-5 2 4 1 8-3 9-10-4-23-3-32 1-4 1-6-1-4-5Z" fill="#9b5d65"/>
+      <path id="small-mushroom-stem" d="M-38 9c-3-10-2-19 2-27h7c2 8 2 17 0 27Z" fill="#aaa482"/>
+      <path id="small-mushroom-cap" d="M-46-16c5-13 20-14 26-2 1 3 0 5-3 6-7-3-14-2-20 1-3 0-4-2-3-5Z" fill="#bb766f"/>
+    </g>
+    <g id="spore-cloud" fill="#d9ef98" opacity=".72">
+      <circle id="spore-one" cx="-43" cy="-39" r="2.5"/>
+      <circle id="spore-two" cx="-31" cy="-47" r="2"/>
+      <circle id="spore-three" cx="-8" cy="-43" r="3"/>
+      <circle id="spore-four" cx="1" cy="-31" r="1.8"/>
+    </g>
+    <g id="legs" fill="none" stroke="#3d5952" stroke-width="10" stroke-linecap="round">
+      <path id="rear-leg" d="M-16 20-29 39-43 36"/>
+      <path id="front-leg" d="M9 20 22 39 37 35"/>
+    </g>
+    <ellipse id="body" cx="-3" cy="4" rx="29" ry="25" fill="url(#sporecaster-body-gradient)" stroke="#213b39" stroke-width="3"/>
+    <path id="hood" d="M-24-16C-12-34 16-31 31-11L20-3C10-16-7-20-17-7Z" fill="#415d4e" stroke="#243e37" stroke-width="3" stroke-linejoin="round"/>
+    <path id="face" d="M1-10c14-4 25 2 29 13-9 9-21 11-34 3Z" fill="#263f3e"/>
+    <g id="eyes" fill="#e8ffb1">
+      <circle id="upper-eye" cx="17" cy="-3" r="4"/>
+      <circle id="lower-eye" cx="18" cy="9" r="3"/>
+    </g>
+    <g id="casting-arms" fill="none" stroke="#4d6c5c" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+      <path id="upper-arm" d="M8-14 28-25 43-17"/>
+      <path id="lower-arm" d="M9 17 28 27 43 18"/>
+    </g>
+    <circle id="puffball" cx="45" r="14" fill="url(#sporecaster-orb-gradient)" stroke="#405d3f" stroke-width="3"/>
+    <g id="puffball-spots" fill="#f3ffc9">
+      <circle id="puffball-spot-one" cx="42" cy="-5" r="2.5"/>
+      <circle id="puffball-spot-two" cx="50" cy="2" r="2"/>
+      <circle id="puffball-spot-three" cx="40" cy="6" r="1.7"/>
+    </g>
+  </g>
+</svg>

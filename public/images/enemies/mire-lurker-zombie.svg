@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-58 -52 116 104" role="img" aria-labelledby="title description">
+  <title id="title">Mire Lurker zombie</title>
+  <desc id="description">A low swamp hunter cloaked in reeds and duckweed, with grasping claws, luminous eyes, and a leech-like tongue.</desc>
+  <defs id="mire-lurker-definitions">
+    <linearGradient id="mire-lurker-body-gradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#56766b"/>
+      <stop offset="1" stop-color="#263f3d"/>
+    </linearGradient>
+    <linearGradient id="mire-lurker-tongue-gradient" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#935b69"/>
+      <stop offset="1" stop-color="#d4828a"/>
+    </linearGradient>
+  </defs>
+  <g id="mire-lurker-zombie">
+    <g id="trailing-reeds" fill="#718452" stroke="#314c3b" stroke-width="2" stroke-linejoin="round">
+      <path id="reed-one" d="m-38 7-9-42 8 5 6 37Z"/>
+      <path id="reed-two" d="m-29-6 2-43 7 8-2 37Z"/>
+      <path id="reed-three" d="m-19-8 14-35 4 10-10 29Z"/>
+    </g>
+    <g id="crawling-limbs" fill="none" stroke="#35534c" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+      <path id="foreleg" d="M12 18 31 34 47 24"/>
+      <path id="hindleg" d="M-22 17-37 32-49 25"/>
+      <path id="upper-arm" d="M10-18 31-30 46-20"/>
+    </g>
+    <ellipse id="body" cx="-5" cy="2" rx="32" ry="25" fill="url(#mire-lurker-body-gradient)" stroke="#1c3433" stroke-width="3"/>
+    <path id="reed-cowl" d="M-34-9C-25-34 2-41 28-21L19-11C4-24-14-22-25-3Z" fill="#4d6848" stroke="#263e34" stroke-width="3" stroke-linejoin="round"/>
+    <g id="duckweed" fill="#9bab5f">
+      <ellipse id="duckweed-one" cx="-19" cy="-21" rx="7" ry="3" transform="rotate(-22 -19 -21)"/>
+      <ellipse id="duckweed-two" cx="-4" cy="-27" rx="6" ry="3" transform="rotate(14 -4 -27)"/>
+      <ellipse id="duckweed-three" cx="10" cy="-21" rx="5" ry="2.5" transform="rotate(-18 10 -21)"/>
+    </g>
+    <path id="face-shadow" d="M-4-13C10-18 25-9 29 2 3 12-10 4-17-5Z" fill="#172d2e"/>
+    <g id="eyes" fill="#b9ffe0" stroke="#203c39" stroke-width="1.5">
+      <path id="upper-eye" d="m2-9 17 2L5-1Z"/>
+      <path id="lower-eye" d="m3 8 16-5L7 14Z"/>
+    </g>
+    <g id="grasping-claws" fill="none" stroke="#9fb87c" stroke-width="3" stroke-linecap="round">
+      <path id="upper-claws" d="m45-21 10-8m-9 9 11 0m-12 1 9 8"/>
+      <path id="lower-claws" d="m46 24 10-7m-9 8 10 2m-11-2 7 9"/>
+    </g>
+    <path id="leech-tongue" d="M20 7c13 1 20 7 32 3" fill="none" stroke="url(#mire-lurker-tongue-gradient)" stroke-width="5" stroke-linecap="round"/>
+    <path id="tongue-tip" d="m48 6 8 4-8 4" fill="#d4828a" stroke="#6f4858" stroke-width="1.5" stroke-linejoin="round"/>
+  </g>
+</svg>
