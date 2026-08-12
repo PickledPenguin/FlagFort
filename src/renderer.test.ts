@@ -1,7 +1,21 @@
 import { describe, expect, it, vi } from "vitest";
 import { ASSETS } from "./assets";
 import { CAMPAIGN_BIOMES, campaignTier } from "./campaign";
-import { createWeatherField, Renderer } from "./renderer";
+import { ENEMY_REGISTRY } from "./enemy-registry";
+import { createWeatherField, enemyAttackTelegraphColor, Renderer } from "./renderer";
+
+describe("enemy attack telegraphs", () => {
+  it("matches every projectile attack windup to its configured projectile color", () => {
+    for (const definition of Object.values(ENEMY_REGISTRY)) {
+      if (!definition.projectile) continue;
+      expect(enemyAttackTelegraphColor(definition.id)).toBe(definition.projectile.color);
+    }
+  });
+
+  it("retains the shared danger color for melee attack windups", () => {
+    expect(enemyAttackTelegraphColor("basic")).toBe("rgba(255,78,68,.75)");
+  });
+});
 
 describe("world-space biome weather", () => {
   it("builds varied deterministic fields from purpose-specific visual seeds", () => {

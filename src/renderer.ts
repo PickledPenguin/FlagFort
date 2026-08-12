@@ -10,7 +10,7 @@ import { costLayoutRows } from "./cost-layout";
 import { projectileVisualColor } from "./projectile-visuals";
 import { SeededRng } from "./rng";
 import type { CampaignBiomeDefinition } from "./campaign";
-import type { AreaStrike, Enemy, Player, ResourceNode, Structure } from "./types";
+import type { AreaStrike, Enemy, EnemyKind, Player, ResourceNode, Structure } from "./types";
 
 const resourceColors = {
   wood: "#315f37",
@@ -53,6 +53,10 @@ export function createWeatherField(
       weather.spawnGapRatio[1] * BALANCE.mapSize,
     ),
   }));
+}
+
+export function enemyAttackTelegraphColor(kind: EnemyKind): string {
+  return ENEMY_REGISTRY[kind].projectile?.color ?? "rgba(255,78,68,.75)";
 }
 
 const SWORD_SPRITE_BOUNDS = { x: -18, y: -72, width: 72, height: 79 } as const;
@@ -903,7 +907,7 @@ export class Renderer {
       ctx.globalAlpha = 0.82;
     }
     if (enemy.attackWindup > 0) {
-      ctx.strokeStyle = enemy.kind === "acidslinger" ? "rgba(111,235,62,.9)" : "rgba(255,78,68,.75)";
+      ctx.strokeStyle = enemyAttackTelegraphColor(enemy.kind);
       ctx.lineWidth = 5;
       ctx.beginPath();
       ctx.arc(0, 0, enemy.radius + 11, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * enemy.attackWindup);
