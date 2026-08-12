@@ -121,13 +121,16 @@ describe("data-driven campaign tiers", () => {
     });
   });
 
-  it("registers exactly three themed specials for the upcoming wasteland tier", () => {
+  it("registers a complete themed artwork set for the upcoming wasteland enemies", () => {
     expect(WASTELAND_ENEMY_ARTWORK).toEqual({
       radstalker: "enemies/radstalker-zombie",
       sludgeLobber: "enemies/sludge-lobber-zombie",
       ruinSiren: "enemies/ruin-siren-zombie",
+      reactorRevenant: {
+        armored: "enemies/reactor-revenant",
+        broken: "enemies/reactor-revenant-broken",
+      },
     });
-    expect(Object.keys(WASTELAND_ENEMY_ARTWORK)).toHaveLength(3);
   });
 
   it("defines and exposes the Desert environment through its completed tier", () => {
