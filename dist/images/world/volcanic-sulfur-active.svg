@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title description">
+  <title id="title">Volcanic sulfur-gold ore</title>
+  <desc id="description">A dark volcanic boulder threaded with bright sulfur and gold.</desc>
+  <g id="volcanic-sulfur-active">
+    <path id="ore-body" d="m10 73 10-31 24-21 30 8 13 31-15 25H27Z" fill="#454048" stroke="#1a181d" stroke-width="6" stroke-linejoin="round"/>
+    <path id="sulfur-vein" d="m19 50 18 5 9-17 12 12 18-7 7 18-18 3-9 15-13-14-21 7" fill="#e6bd35" stroke="#6f4d1e" stroke-width="4" stroke-linejoin="round"/>
+    <path id="gold-glints" d="m40 51 8-8m17 11 9-4M45 68l8 7" fill="none" stroke="#fff18b" stroke-width="4" stroke-linecap="round"/>
+  </g>
+</svg>

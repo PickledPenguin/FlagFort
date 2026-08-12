@@ -91,6 +91,7 @@ export interface TimedStatusEffect {
 
 export interface EntityStatuses {
   slow?: TimedStatusEffect;
+  burn?: TimedStatusEffect;
 }
 
 export interface EnemyStatusEffect {
@@ -129,6 +130,13 @@ export interface ResourceNode extends Circle {
   hitFlash: number;
   destroyed?: boolean;
   biomeOverlay?: boolean;
+  infected?: boolean;
+  infectionHinted?: boolean;
+  infectionHintTime?: number;
+  infectionAttackTime?: number;
+  infectionCooldown?: number;
+  harvestDamage?: number;
+  radiationDamage?: number;
 }
 
 export interface Portal extends Circle {
@@ -139,6 +147,10 @@ export interface Portal extends Circle {
   spawned: number;
   spawnCooldown: number;
   flash: number;
+  temporary?: boolean;
+  temporaryRemaining?: number;
+  temporarySpawnKind?: RosterEnemyKind;
+  temporarySpawnInterval?: number;
 }
 
 export interface Structure extends Circle {
@@ -217,6 +229,12 @@ export interface Enemy extends Circle {
   maxArmor?: number;
   areaStrikeCooldown?: number;
   areaStrikeSerial?: number;
+  ghostRemaining?: number;
+  timedLifeRemaining?: number;
+  timedLifeExpired?: boolean;
+  timedLifeRewardCounted?: boolean;
+  tunnelCooldown?: number;
+  mireTentacle?: boolean;
 }
 
 export interface Projectile extends Circle {

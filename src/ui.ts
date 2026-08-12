@@ -45,6 +45,7 @@ import {
   levelProgress,
   type DailyRewardStatus,
 } from "./profile";
+import type { RunBounty } from "./bounties";
 
 const labels: Record<StructureKind, string> = {
   wall: "Wall",
@@ -140,10 +141,11 @@ export class Ui {
   private lastClockSecond = -1;
   private seedDraft = "";
   private selectedChallenges = new Set<string>();
-  private investmentOpen = false;
   private campaignOpen = false;
+  private bountyOpen = false;
+  private bountyPausedGame = false;
+  private bountyFirstView = false;
   private selectedCampaignTierId: CampaignTierId = "forest";
-  private investmentDraft = 0;
   private profileColorDraft: string;
   private profileEyeDraft: EyeStyle;
   private dailyRewardVisible: boolean;
@@ -179,17 +181,6 @@ export class Ui {
         );
         const output = volume.parentElement?.querySelector<HTMLOutputElement>("output");
         if (output) output.value = `${volume.value}%`;
-      }
-      const investment = (event.target as HTMLElement).closest<HTMLInputElement>("[data-investment]");
-      if (investment) {
-        const minimum = Number(investment.min) || 0;
-        const maximum = Number(investment.max) || 0;
-        this.investmentDraft = Math.max(minimum, Math.min(maximum, Math.round(Number(investment.value))));
-        investment.value = `${this.investmentDraft}`;
-        investment.setAttribute("aria-valuenow", `${this.investmentDraft}`);
-        const output = investment.parentElement?.querySelector<HTMLOutputElement>("output");
-        if (output) output.innerHTML = coinAmount(this.investmentDraft);
-        this.patchInvestmentPreview();
       }
     });
     hud.addEventListener("click", (event) => this.handleHudClick(event));
@@ -241,7 +232,8 @@ export class Ui {
     this.lastOverlayKey = key;
     if (this.tutorialOpen) this.overlay.innerHTML = this.tutorialMarkup();
     else if (this.game.skipNightConfirmation) this.overlay.innerHTML = this.skipNightMarkup();
-    else if (this.investmentOpen) this.overlay.innerHTML = this.investmentMarkup();
+    else if (this.game.clockPenaltyNotice) this.overlay.innerHTML = this.clockPenaltyMarkup();
+    else if (this.bountyOpen) this.overlay.innerHTML = this.bountyMarkup();
     else if (this.game.phase === "menu") this.overlay.innerHTML = this.menuMarkup();
     else if (this.game.phase === "paused") {
       this.overlay.innerHTML = this.runExitConfirmation
@@ -259,6 +251,8 @@ export class Ui {
       this.focusDialog(".daily-rewards-modal");
     } else if (this.campaignOpen && this.game.phase === "menu") {
       this.focusDialog(".campaign-ladder-modal");
+    } else if (this.bountyOpen) {
+      this.focusDialog(".bounty-modal");
     } else if (this.game.phase === "paused" && !this.runExitConfirmation) {
       this.focusDialog(".pause-card");
     } else if (this.game.enemyWarning) {
@@ -302,10 +296,11 @@ export class Ui {
       this.game.rerollConfirmation,
       this.game.rerollsUsed,
       this.game.skipNightConfirmation,
-      this.investmentOpen,
+      this.game.clockPenaltyNotice ? `${this.game.clockPenaltyNotice.kills}:${this.game.clockPenaltyNotice.seconds}` : "",
+      this.bountyOpen,
+      this.game.activeBounties.map((bounty) => `${bounty.definition.id}:${bounty.progress}:${bounty.completed}`).join(","),
       this.campaignOpen,
       this.selectedCampaignTierId,
-      this.investmentDraft,
       this.dailyRewardVisible,
       this.game.profileManager
         ? JSON.stringify(this.game.profileManager.profile)
@@ -436,7 +431,7 @@ export class Ui {
     }).join("");
     return `<section class="screen modal-screen campaign-ladder-screen"><div class="campaign-ladder-modal" role="dialog" aria-modal="true" aria-labelledby="campaign-ladder-title">
       <header><div><p class="eyebrow">SINGLE-PLAYER CAMPAIGN</p><h2 id="campaign-ladder-title">Raise Your Standard</h2><p>Climb with XP, claim rewards, and clear each tier to unlock the next.</p></div><span class="campaign-level">LEVEL <b>${progress.level}</b></span><button class="icon-button" data-action="close-campaign" aria-label="Close">${icon("close")}</button></header>
-      <div class="campaign-ladder-viewport"><div class="campaign-ladder-rail">${tiers}</div></div>
+      <div class="campaign-ladder-viewport"><div class="campaign-ladder-rail" style="--ladder-progress:${Math.max(0, Math.min(100, (progress.level - 1) / (CAMPAIGN_TIERS.at(-1)!.unlock.level - 1) * 100))}%">${tiers}</div></div>
       <footer><div><small>SELECTED TIER</small><b>${selected.name}</b><span>${selectedUnlocked ? "Ready to defend" : "Complete every requirement to unlock"}</span></div>
         <button class="primary" data-action="start-campaign-tier" ${selectedUnlocked ? "" : "disabled"}>${icon("play")} ${selectedUnlocked ? `Play ${selected.name}` : "Tier Locked"}</button></footer>
     </div></section>`;
@@ -523,7 +518,7 @@ export class Ui {
         <p class="eyebrow">CONTROLS</p><h2>Quick field guide</h2>
         <div class="control-list">
           <span><kbd>WASD</kbd><b>Move</b></span><span>${icon("mouse", "mouse-glyph")}<b>Aim and act</b></span>
-          <span><kbd>1-8</kbd><b>Select action</b></span><span><kbd>ESC</kbd><b>Pause</b></span>
+          <span><kbd>1-8</kbd><b>Select action</b></span><span><kbd>Q / E</kbd><b>Cycle build material</b></span><span><kbd>ESC</kbd><b>Pause</b></span>
         </div>
         <button class="secondary wide" data-action="tutorial-menu">${icon("book")} Full tutorial</button>
       </div></div>`;
@@ -782,41 +777,31 @@ export class Ui {
     </div></div>`;
   }
 
-  private investmentMarkup(): string {
-    const coins = this.game.profileManager?.profile.coins ?? 0;
-    const maximum = Math.min(META_BALANCE.investment.maximum, coins);
-    this.investmentDraft = Math.min(maximum, this.investmentDraft);
-    return `<section class="screen modal-screen investment-screen"><div class="modal investment-modal" role="dialog" aria-modal="true" aria-labelledby="investment-title">
-      <button class="modal-close" data-action="cancel-investment" aria-label="Close">${icon("close")}</button>
-      <p class="eyebrow">OPTIONAL RUN INVESTMENT</p><h2 id="investment-title">Back your defense</h2>
-      <p>No investment is required. Your <em class="coin-symbol" aria-label="Coins">¢</em> stake is deducted once and settled once.</p>
-      <label class="investment-control"><span><b>Investment</b><output>${coinAmount(this.investmentDraft)}</output></span>
-        <input type="range" min="0" max="${maximum}" step="1" value="${this.investmentDraft}" data-investment
-          aria-label="Run investment in whole coins" aria-valuemin="0" aria-valuemax="${maximum}" aria-valuenow="${this.investmentDraft}">
-        <small>Available ${coinAmount(coins)} · Maximum ${coinAmount(maximum)}</small>
-      </label>
-      <div class="investment-preview" data-investment-preview>${this.investmentPreviewMarkup(this.investmentDraft)}</div>
-      <div class="investment-table">
-        <span><b>0 nights</b>Lose 100%</span><span><b>Night 1</b>Return 20%</span>
-        <span><b>Night 5</b>Return 100%</span><span><b>Night 6</b>Return 120%</span>
-        <span><b>Night 10</b>Return 200%</span>
-      </div>
-      <div class="result-actions"><button class="ghost" data-action="cancel-investment">Back</button>
-        <button class="primary" data-action="confirm-investment">${icon("play")} Start with ${coinAmount(this.investmentDraft)}</button></div>
+  private bountyMarkup(): string {
+    const rows = this.game.activeBounties.map((bounty: RunBounty) => {
+      const { definition } = bounty;
+      const target = definition.requirement.target;
+      const progress = Math.min(target, bounty.progress);
+      return `<article class="bounty-row ${bounty.completed ? "complete" : ""}">
+        <span class="bounty-icon">${icon(definition.icon)}</span>
+        <div><small>TIER ${definition.difficulty} · ${coinAmount(definition.coinReward)}</small><h3>${definition.name}</h3><p>${definition.description}</p>
+          <span class="bounty-progress"><i style="width:${progress / target * 100}%"></i></span><b>${bounty.completed ? "COMPLETE" : `${progress} / ${target}`}</b></div>
+      </article>`;
+    }).join("");
+    return `<section class="screen modal-screen bounty-screen"><div class="modal bounty-modal" role="dialog" aria-modal="true" aria-labelledby="bounty-title">
+      <button class="modal-close" data-action="close-bounties" aria-label="Close">${icon("close")}</button>
+      <p class="eyebrow">OPTIONAL SEEDED OBJECTIVES</p><h2 id="bounty-title">Bounties</h2><p>Complete any bounty during this run to claim its coin reward. Bounties never affect victory.</p>
+      <div class="bounty-list">${rows}</div><button class="primary wide" data-action="close-bounties">${this.bountyFirstView ? "Begin Defense" : this.bountyPausedGame ? "Resume Defense" : "Done"}</button>
     </div></section>`;
   }
 
-  private investmentPreviewMarkup(amount: number): string {
-    return `<span><small>Night 5 return</small><b>${coinAmount(amount)}</b></span>
-      <span><small>Night 10 return</small><b>${coinAmount(amount * 2)}</b></span>
-      <span><small>Possible profit</small><b>${coinAmount(amount, "+")}</b></span>`;
-  }
-
-  private patchInvestmentPreview(): void {
-    const preview = this.overlay.querySelector<HTMLElement>("[data-investment-preview]");
-    if (preview) preview.innerHTML = this.investmentPreviewMarkup(this.investmentDraft);
-    const start = this.overlay.querySelector<HTMLButtonElement>("[data-action='confirm-investment']");
-    if (start) start.innerHTML = `${icon("play")} Start with ${coinAmount(this.investmentDraft)}`;
+  private clockPenaltyMarkup(): string {
+    const notice = this.game.clockPenaltyNotice!;
+    return `<section class="screen modal-screen clock-penalty-screen"><div class="modal compact clock-penalty-modal" role="dialog" aria-modal="true" aria-labelledby="clock-penalty-title">
+      <p class="eyebrow">CLOCKWORK RETALIATION</p><div class="clock-penalty-face">${icon("timer")}<b>${notice.kills}</b></div>
+      <h2 id="clock-penalty-title">Time was stolen</h2><p>${notice.kills} timed zombie${notice.kills === 1 ? " was" : "s were"} defeated before clocking out.</p>
+      <strong>-${notice.seconds} SECONDS FROM THIS DAY</strong><button class="primary wide" data-action="dismiss-clock-penalty">Continue</button>
+    </div></section>`;
   }
 
   private volumeControl(
@@ -855,6 +840,13 @@ export class Ui {
   }
 
   private pauseMarkup(): string {
+    if (this.menuPanel === "controls") {
+      return `<section class="screen modal-screen"><div class="modal compact pause-card" role="dialog" aria-modal="true" aria-labelledby="pause-controls-title">
+        <button class="modal-close" data-action="close-panel" aria-label="Back to pause menu">${icon("arrow-left")}</button>
+        <p class="eyebrow">CONTROLS</p><h2 id="pause-controls-title">Quick field guide</h2>
+        <div class="control-list"><span><kbd>WASD</kbd><b>Move</b></span><span>${icon("mouse", "mouse-glyph")}<b>Aim and act</b></span><span><kbd>1-8</kbd><b>Select action</b></span><span><kbd>Q / E</kbd><b>Cycle build material</b></span><span><kbd>ESC</kbd><b>Pause</b></span></div>
+      </div></section>`;
+    }
     if (this.menuPanel === "settings") {
       return `<section class="screen modal-screen"><div class="modal compact pause-card" role="dialog" aria-modal="true" aria-labelledby="pause-settings-title">
         <button class="modal-close" data-action="close-panel" aria-label="Back to pause menu">${icon("arrow-left")}</button>
@@ -864,7 +856,7 @@ export class Ui {
     return `<section class="screen modal-screen"><div class="modal pause-card" role="dialog" aria-modal="true" aria-labelledby="pause-title">
       <h2 id="pause-title">Pause</h2>
       <button class="primary wide" data-action="resume">${icon("play")} Resume</button>
-      <button class="secondary wide" data-action="settings">${icon("sliders-horizontal")} Settings</button>
+      <div class="pause-utility-row"><button class="secondary wide" data-action="controls">${icon("gamepad-2")} Controls</button><button class="secondary wide" data-action="settings">${icon("sliders-horizontal")} Settings</button></div>
       <button class="ghost wide" data-action="request-run-exit">End run</button>
     </div></section>`;
   }
@@ -925,6 +917,8 @@ export class Ui {
   }
 
   private dawnMarkup(): string {
+    const activeTier = this.game.getCampaignTier();
+    const dawnStyle = `--biome-accent:${activeTier.accent};--biome-ground:${activeTier.biome.palette.clearingCenter};--biome-edge:${activeTier.biome.palette.viewport}`;
     if (this.game.enemyWarning) {
       const info = enemyInfo[this.game.enemyWarning];
       return `<section class="screen modal-screen danger-screen"><div class="modal warning-card" role="dialog" aria-modal="true" aria-labelledby="threat-warning-title">
@@ -946,7 +940,7 @@ export class Ui {
       </div></section>`;
     }
     if (this.game.isUpgradeSelectionExhausted()) {
-      return `<section class="screen dawn-screen"><div class="dawn-panel upgrade-cap-panel" role="region" aria-labelledby="upgrade-cap-title" tabindex="-1">
+      return `<section class="screen dawn-screen" style="${dawnStyle}"><div class="dawn-panel upgrade-cap-panel" role="region" aria-labelledby="upgrade-cap-title" tabindex="-1">
         <header><p class="eyebrow">DAWN ${this.game.night} · PROGRESSION COMPLETE</p><h2 id="upgrade-cap-title">Every available upgrade is maximized</h2>
           <span>Your fort cannot gain any more run upgrades. Choose how this run continues.</span></header>
         <div class="upgrade-cap-actions">
@@ -955,7 +949,7 @@ export class Ui {
         </div>
       </div></section>`;
     }
-    return `<section class="screen dawn-screen"><div class="dawn-panel" role="region" aria-labelledby="dawn-title" tabindex="-1">
+    return `<section class="screen dawn-screen" style="${dawnStyle}"><div class="dawn-panel" role="region" aria-labelledby="dawn-title" tabindex="-1">
       <header><p class="eyebrow">DAWN ${this.game.night} · COUNT FROZEN</p><h2 id="dawn-title">${heading}</h2><span>Each benefit empowers the horde.</span>
       </header>
         <div class="choice-viewport"><div class="choice-track" style="--card-transition-duration:${BALANCE.ui.cardTransitionDuration}ms;--card-transition-easing:${BALANCE.ui.cardTransitionEasing}"><div class="choice-set choice-pairs">${this.game.choices.map((choice, index) => this.choicePair(choice, index)).join("")}</div></div></div>
@@ -1039,16 +1033,10 @@ export class Ui {
     if (settlement) {
       const previous = levelProgress(settlement.previousLifetimeXp);
       const next = levelProgress(settlement.newLifetimeXp);
-      const profitOrLoss = settlement.coins.profitOrLoss;
       const adaptiveXp = settlement.xp.adaptiveDifficulty ?? settlement.xp.difficulty;
       const difficultyAdjustment = settlement.xp.difficultyAdjustment ?? 0;
       const difficultyPercent = settlement.xp.difficultyPercent ?? 100;
       const xpSubtotal = settlement.xp.subtotal ?? settlement.xp.total - difficultyAdjustment;
-      const investmentOutcome = profitOrLoss > 0
-        ? { className: "positive", label: "PROFIT", sign: "+" }
-        : profitOrLoss < 0
-          ? { className: "negative", label: "LOSS", sign: "-" }
-          : { className: "neutral", label: "BREAK EVEN", sign: "=" };
       const categories = [
         ["Nights Survived", settlement.xp.nights],
         ["Personal Kills", settlement.xp.personalKills],
@@ -1084,13 +1072,10 @@ export class Ui {
           <span><small>After</small><b>Level ${next.level}</b><em>${next.current}/${next.required} XP</em></span>
           ${settlement.newLevel > settlement.previousLevel ? `<strong>LEVEL UP ×${settlement.newLevel - settlement.previousLevel}</strong>` : ""}
         </div>
-        <div class="coin-settlement ${investmentOutcome.className}" style="--reveal-index:9" aria-label="Investment outcome">
-          <span><small>Invested</small><b>${coinAmount(settlement.coins.investment)}</b></span>
-          <i class="settlement-arrow" aria-hidden="true">${icon("arrow-right")}</i>
-          <span><small>Returned</small><b>${coinAmount(settlement.coins.totalReturn)}</b></span>
-          <strong class="settlement-outcome"><small>${investmentOutcome.label}</small><b>${investmentOutcome.sign}${coinAmount(Math.abs(profitOrLoss))}</b></strong>
-          <span><small>Balance</small><b>${coinAmount(settlement.newCoins)}</b></span>
-          <button class="settlement-help" aria-label="Investment rules" title="The return is based on completed nights. Investment is deducted once at run start and settled once at run end.">${icon("info")}</button>
+        <div class="bounty-settlement" style="--reveal-index:9" aria-label="Bounty outcome">
+          <span><small>Bounties completed</small><b>${this.game.activeBounties.filter((bounty) => bounty.completed).length} / 3</b></span>
+          <span><small>Bounty coins earned</small><b>${coinAmount(this.game.activeBounties.filter((bounty) => bounty.completed).reduce((sum, bounty) => sum + bounty.definition.coinReward, 0))}</b></span>
+          <span><small>Coin balance</small><b>${coinAmount(settlement.newCoins)}</b></span>
         </div>
         <div class="result-actions" style="--reveal-index:9">${victory && this.game.runMode === "campaign" ? `<button class="primary endless-continue" data-action="continue-endless">${icon("arrow-right")} Continue Endless</button>` : ""}
           <button class="${victory ? "secondary" : "primary"}" data-action="restart-same">${icon("restart")} Same seed</button>
@@ -1142,6 +1127,7 @@ export class Ui {
         </div>
         <div class="seed-chip"><b>${this.game.seed}</b><button data-action="copy-seed" aria-label="Copy seed">${icon("copy")}<span class="tooltip">Copy seed</span></button></div>
         ${this.adaptivePressureMarkup()}
+        <button class="bounty-hud-button" data-action="open-bounties" aria-label="Open Bounties">${icon("trophy")}<span>Bounties</span><b>${this.game.activeBounties.filter((bounty) => bounty.completed).length}/3</b></button>
       </div>
       <div class="countdown-stack">
         ${this.runProgressMarkup()}
@@ -1423,7 +1409,7 @@ export class Ui {
     if (key === this.lastToastKey) return;
     this.lastToastKey = key;
     this.toastLayer.innerHTML = key
-      ? `<div class="toast ${this.game.toastCritical ? "critical" : ""}">${this.game.toast}</div>`
+      ? `<div class="toast ${this.game.toastCritical ? "critical" : ""} ${this.game.toast.startsWith("Bounty Complete") ? "gold" : ""}">${this.game.toast.startsWith("Bounty Complete") ? `<strong>Bounty Complete</strong><span>${this.game.toast.split("\n")[1] ?? ""}</span>` : this.game.toast}</div>`
       : "";
   }
 
@@ -1481,30 +1467,17 @@ export class Ui {
         const input = this.overlay.querySelector<HTMLInputElement>("#seed-input");
         this.seedDraft = input?.value ?? this.seedDraft;
         this.campaignOpen = false;
-        if (this.game.profileManager) {
-          this.investmentDraft = 0;
-          this.investmentOpen = true;
-        } else {
-          this.game.startRun(this.difficulty, this.seedDraft, [...this.selectedChallenges], false, {
-            campaignTierId: this.selectedCampaignTierId,
-          });
+        const started = this.game.startRun(this.difficulty, this.seedDraft, [...this.selectedChallenges], false, {
+          campaignTierId: this.selectedCampaignTierId,
+        });
+        if (started) {
+          this.game.togglePause();
+          this.bountyPausedGame = true;
+          this.bountyFirstView = true;
+          this.bountyOpen = true;
         }
         break;
       }
-      case "confirm-investment": {
-        const started = this.game.startRun(
-          this.difficulty,
-          this.seedDraft,
-          [...this.selectedChallenges],
-          false,
-          { investment: this.investmentDraft, campaignTierId: this.selectedCampaignTierId },
-        );
-        if (started) this.investmentOpen = false;
-        break;
-      }
-      case "cancel-investment":
-        this.investmentOpen = false;
-        break;
       case "random-seed": {
         const input = this.overlay.querySelector<HTMLInputElement>("#seed-input");
         this.seedDraft = generateSeed();
@@ -1516,6 +1489,22 @@ export class Ui {
         break;
       case "pause":
         this.game.togglePause();
+        break;
+      case "open-bounties":
+        if (this.game.phase === "day" || this.game.phase === "night") {
+          this.game.togglePause();
+          this.bountyPausedGame = true;
+          this.bountyOpen = true;
+        }
+        break;
+      case "close-bounties":
+        this.bountyOpen = false;
+        if (this.bountyPausedGame && this.game.phase === "paused") this.game.togglePause();
+        this.bountyPausedGame = false;
+        this.bountyFirstView = false;
+        break;
+      case "dismiss-clock-penalty":
+        this.game.dismissClockPenaltyNotice();
         break;
       case "request-run-exit":
         this.runExitConfirmation = true;
@@ -1653,15 +1642,17 @@ export class Ui {
         this.seedDraft = this.game.seed;
         this.selectedCampaignTierId = this.game.activeCampaignTierId;
         this.game.returnToMenu();
-        this.investmentDraft = 0;
-        this.investmentOpen = true;
+        if (this.game.startRun(this.difficulty, this.seedDraft, [...this.selectedChallenges], false, { campaignTierId: this.selectedCampaignTierId })) {
+          this.game.togglePause(); this.bountyPausedGame = true; this.bountyFirstView = true; this.bountyOpen = true;
+        }
         break;
       case "restart-new":
         this.seedDraft = "";
         this.selectedCampaignTierId = this.game.activeCampaignTierId;
         this.game.returnToMenu();
-        this.investmentDraft = 0;
-        this.investmentOpen = true;
+        if (this.game.startRun(this.difficulty, this.seedDraft, [...this.selectedChallenges], false, { campaignTierId: this.selectedCampaignTierId })) {
+          this.game.togglePause(); this.bountyPausedGame = true; this.bountyFirstView = true; this.bountyOpen = true;
+        }
         break;
       case "continue-endless":
         this.game.continueIntoEndless();
@@ -1695,15 +1686,7 @@ export class Ui {
     if (action === "cancel-reroll") {
       this.overlay.querySelector<HTMLElement>('[data-action="reroll"]')?.focus();
     }
-    if (this.investmentOpen && (
-      action === "start-campaign-tier"
-      || action === "restart-same"
-      || action === "restart-new"
-    )) {
-      this.focusDialog(".investment-modal");
-    } else if (action === "cancel-investment") {
-      this.overlay.querySelector<HTMLElement>('[data-action="open-campaign"]')?.focus();
-    } else if (action === "resume") {
+    if (action === "resume") {
       this.hud.querySelector<HTMLElement>('[data-action="pause"]')?.focus();
     } else if (action === "cancel-skip-night") {
       this.hud.querySelector<HTMLElement>('[data-action="skip-night"]')?.focus();
@@ -1745,6 +1728,12 @@ export class Ui {
       this.game.copySeed();
     } else if (target.dataset.action === "fort-pulse") {
       this.game.useFortPulse();
+    } else if (target.dataset.action === "open-bounties") {
+      this.game.togglePause();
+      this.bountyPausedGame = true;
+      this.bountyOpen = true;
+      this.invalidate();
+      this.render(true);
     } else if (target.dataset.tier && target.dataset.kind) {
       this.game.selectTier(target.dataset.kind as StructureKind, target.dataset.tier as Tier);
       this.openTierPanel = target.dataset.kind as StructureKind;
@@ -1863,6 +1852,33 @@ export class Ui {
   }
 
   private handleKeydown(event: KeyboardEvent): void {
+    if (this.bountyOpen && event.code === "Tab") {
+      this.trapDialogFocus(event, ".bounty-modal");
+      return;
+    }
+    if (this.bountyOpen && event.code === "Escape") {
+      this.bountyOpen = false;
+      if (this.bountyPausedGame && this.game.phase === "paused") this.game.togglePause();
+      this.bountyPausedGame = false;
+      this.bountyFirstView = false;
+      event.preventDefault();
+      this.invalidate();
+      this.render(true);
+      return;
+    }
+    if ((this.game.phase === "day" || this.game.phase === "night")
+      && !this.game.modalLock && !this.game.skipNightConfirmation
+      && (event.code === "KeyQ" || event.code === "KeyE")) {
+      const action = this.game.getSelectedAction();
+      const kind = this.asStructure(action);
+      if (kind && this.game.cycleSelectedTier(event.code === "KeyQ" ? -1 : 1)) {
+        this.openTierPanel = kind;
+        this.hudStructureKey = "";
+        event.preventDefault();
+        this.render(true);
+      }
+      return;
+    }
     if (this.dailyRewardVisible && event.code === "Tab") {
       this.trapDialogFocus(event, ".daily-rewards-modal");
       return;
@@ -1895,10 +1911,6 @@ export class Ui {
       this.trapDialogFocus(event, ".skip-night-modal");
       return;
     }
-    if (this.investmentOpen && event.code === "Tab") {
-      this.trapDialogFocus(event, ".investment-modal");
-      return;
-    }
     if (this.campaignOpen && event.code === "Tab") {
       this.trapDialogFocus(event, ".campaign-ladder-modal");
       return;
@@ -1908,7 +1920,7 @@ export class Ui {
       return;
     }
     if (this.game.phase === "paused" && !this.runExitConfirmation && event.code === "Escape") {
-      if (this.menuPanel === "settings") {
+      if (this.menuPanel === "settings" || this.menuPanel === "controls") {
         this.menuPanel = null;
         this.game.input.escapePressed = false;
         event.preventDefault();
@@ -1923,15 +1935,6 @@ export class Ui {
       this.invalidate();
       this.render(true);
       this.hud.querySelector<HTMLElement>('[data-action="pause"]')?.focus();
-      return;
-    }
-    if (this.investmentOpen && event.code === "Escape") {
-      this.investmentOpen = false;
-      this.game.input.escapePressed = false;
-      event.preventDefault();
-      this.invalidate();
-      this.render(true);
-      this.overlay.querySelector<HTMLElement>('[data-action="open-campaign"]')?.focus();
       return;
     }
     if (this.campaignOpen && event.code === "Escape") {

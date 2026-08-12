@@ -437,7 +437,7 @@ describe("progression safety and presentation", () => {
 
   it("opens Campaign on the highest unlocked expanded tier with simple rewards", () => {
     const manager = new ProfileManager(new TestStore());
-    manager.profile.playerLevel = 4;
+    manager.profile.playerLevel = 7;
     manager.profile.campaign.defeatedTierIds = ["forest"];
     const game = new Game(new Input(document.querySelector("canvas")!), manager);
     const ui = new Ui(

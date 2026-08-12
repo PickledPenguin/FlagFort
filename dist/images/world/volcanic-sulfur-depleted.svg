@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title description">
+  <title id="title">Depleted volcanic sulfur-gold ore</title>
+  <desc id="description">A fractured volcanic rock with only faint sulfur traces remaining.</desc>
+  <g id="volcanic-sulfur-depleted">
+    <path id="ore-body" d="m12 78 12-27 22-10 28 7 13 27-16 11H28Z" fill="#403b43" stroke="#1a181d" stroke-width="6" stroke-linejoin="round"/>
+    <path id="fracture" d="m47 43-5 16 9 7-6 16m8-16 14-6" fill="none" stroke="#211e24" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path id="sulfur-traces" d="m24 63 12-3m33 14 10-2" fill="none" stroke="#9a772b" stroke-width="3" stroke-linecap="round"/>
+  </g>
+</svg>

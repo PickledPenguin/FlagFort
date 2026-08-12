@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title description">
+  <title id="title">Depleted desert sandstone</title>
+  <desc id="description">A dark cracked sandstone outcrop.</desc>
+  <g id="desert-sandstone-depleted">
+    <path id="rock" d="m10 70 10-35 25-22 32 11 10 37-23 25-39-4Z" fill="#755044" stroke="#3b2d28" stroke-width="7" stroke-linejoin="round"/>
+    <path id="cracks" d="m29 30 18 20-12 25m12-25 25-18m-25 18 21 15" fill="none" stroke="#4b3731" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

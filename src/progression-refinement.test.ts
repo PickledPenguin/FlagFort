@@ -416,7 +416,7 @@ describe("currency and reward presentation", () => {
       .toContain("sliders-horizontal.svg");
   });
 
-  it("treats run investment as a keyboard-contained dismissible dialog", () => {
+  it("replaces run investment with a keyboard-contained seeded bounty dialog", () => {
     const { game } = gameWithProfile();
     const overlay = document.querySelector<HTMLElement>("#overlay")!;
     const ui = new Ui(
@@ -433,11 +433,13 @@ describe("currency and reward presentation", () => {
     overlay.querySelector<HTMLElement>('[data-action="start-campaign-tier"]')!
       .dispatchEvent(new MouseEvent("click", { bubbles: true }));
     const dialog = overlay.querySelector<HTMLElement>('[role="dialog"]')!;
-    const close = dialog.querySelector<HTMLElement>('[data-action="cancel-investment"]')!;
-    const confirm = dialog.querySelector<HTMLElement>('[data-action="confirm-investment"]')!;
+    const close = dialog.querySelector<HTMLElement>('.modal-close[data-action="close-bounties"]')!;
+    const confirm = dialog.querySelector<HTMLElement>('.primary[data-action="close-bounties"]')!;
 
     expect(dialog.getAttribute("aria-modal")).toBe("true");
-    expect(dialog.getAttribute("aria-labelledby")).toBe("investment-title");
+    expect(dialog.getAttribute("aria-labelledby")).toBe("bounty-title");
+    expect(dialog.querySelectorAll(".bounty-row")).toHaveLength(3);
+    expect(dialog.querySelector("[data-investment]")).toBeNull();
     expect(document.activeElement).toBe(close);
 
     confirm.focus();
@@ -450,12 +452,11 @@ describe("currency and reward presentation", () => {
 
     window.dispatchEvent(new KeyboardEvent("keydown", { code: "Escape" }));
     expect(overlay.querySelector('[role="dialog"]')).toBeNull();
-    expect(document.activeElement).toBe(overlay.querySelector('[data-action="open-campaign"]'));
+    expect(game.phase).toBe("day");
   });
 
-  it("updates the native whole-coin investment range continuously and accessibly", () => {
-    const { game, manager } = gameWithProfile();
-    manager.profile.coins = 80;
+  it("shows deterministic bounty progress and rewards instead of investment controls", () => {
+    const { game } = gameWithProfile();
     const overlay = document.querySelector<HTMLElement>("#overlay")!;
     const ui = new Ui(game, document.querySelector("#hud")!, overlay, document.querySelector("#toast")!);
     game.returnToMenu();
@@ -464,15 +465,10 @@ describe("currency and reward presentation", () => {
       .dispatchEvent(new MouseEvent("click", { bubbles: true }));
     overlay.querySelector<HTMLElement>('[data-action="start-campaign-tier"]')!
       .dispatchEvent(new MouseEvent("click", { bubbles: true }));
-    const range = overlay.querySelector<HTMLInputElement>("[data-investment]")!;
-    expect(range.type).toBe("range");
-    expect(range.getAttribute("aria-label")).toBe("Run investment in whole coins");
-    expect(range.max).toBe("80");
-    range.value = "47";
-    range.dispatchEvent(new InputEvent("input", { bubbles: true }));
-    expect(range.getAttribute("aria-valuenow")).toBe("47");
-    expect(overlay.querySelector(".investment-control output")?.textContent).toContain("47¢");
-    expect(overlay.querySelector('[data-action="confirm-investment"]')?.textContent).toContain("47¢");
+    expect(game.activeBounties).toHaveLength(3);
+    expect(overlay.querySelectorAll(".bounty-progress")).toHaveLength(3);
+    expect(overlay.textContent).toContain("Bounties");
+    expect(overlay.querySelector("[data-investment]")).toBeNull();
   });
 
   it("omits obsolete structure and resource XP rows from reward summaries", () => {
@@ -501,44 +497,32 @@ describe("currency and reward presentation", () => {
     expect(markup).not.toContain("Remaining resources");
   });
 
-  it("distinguishes loss, break-even, and profit without color alone", () => {
-    expect(settleCoinInvestment(100, 0).profitOrLoss).toBeLessThan(0);
-    expect(settleCoinInvestment(100, 5).profitOrLoss).toBe(0);
-    expect(settleCoinInvestment(100, 10).profitOrLoss).toBeGreaterThan(0);
-    for (const [nights, label] of [[0, "LOSS"], [5, "BREAK EVEN"], [10, "PROFIT"]] as const) {
-      const { game } = gameWithProfile();
-      const ui = new Ui(
-        game,
-        document.querySelector("#hud")!,
-        document.querySelector("#overlay")!,
-        document.querySelector("#toast")!,
-      );
-      const coins = settleCoinInvestment(100, nights);
-      game.phase = nights === 0 ? "defeat" : "victory";
-      game.lastSettlement = {
-        id: `outcome-${nights}`,
-        xp: {
-          personalKills: 0,
-          nights: 0,
-          victory: 0,
-          difficulty: 0,
-          challenge: 0,
-          total: 0,
-        },
-        coins,
-        previousLifetimeXp: 0,
-        newLifetimeXp: 0,
-        previousSpendableXp: 0,
-        newSpendableXp: 0,
-        previousCoins: 0,
-        newCoins: coins.totalReturn,
-        previousLevel: 1,
-        newLevel: 1,
-      };
-      const markup = (ui as unknown as { resultMarkup(): string }).resultMarkup();
-      expect(markup).toContain(label);
-      expect(markup).toContain('aria-label="Investment outcome"');
-      expect(markup).toContain("coin-amount");
-    }
+  it("reports bounty completion and coins without an investment outcome", () => {
+    const { game } = gameWithProfile();
+    const ui = new Ui(
+      game,
+      document.querySelector("#hud")!,
+      document.querySelector("#overlay")!,
+      document.querySelector("#toast")!,
+    );
+    game.phase = "victory";
+    game.lastSettlement = {
+      id: "bounty-outcome",
+      xp: { personalKills: 0, nights: 0, victory: 0, difficulty: 0, challenge: 0, total: 0 },
+      coins: settleCoinInvestment(0, 10),
+      previousLifetimeXp: 0,
+      newLifetimeXp: 0,
+      previousSpendableXp: 0,
+      newSpendableXp: 0,
+      previousCoins: 0,
+      newCoins: 0,
+      previousLevel: 1,
+      newLevel: 1,
+    };
+    const markup = (ui as unknown as { resultMarkup(): string }).resultMarkup();
+    expect(markup).toContain('aria-label="Bounty outcome"');
+    expect(markup).toContain("Bounties completed");
+    expect(markup).toContain("Bounty coins earned");
+    expect(markup).not.toContain("Investment outcome");
   });
 });

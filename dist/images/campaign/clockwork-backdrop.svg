@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 180" preserveAspectRatio="xMidYMid slice" role="img" aria-labelledby="clockwork-backdrop-title clockwork-backdrop-description">
+  <title id="clockwork-backdrop-title">Clockwork Citadel campaign backdrop</title>
+  <desc id="clockwork-backdrop-description">A vast brass clock tower overlooks gearworks, ironwood trees, smokestacks, and aether-powered fortifications.</desc>
+  <g id="clockwork-backdrop">
+    <defs>
+      <linearGradient id="clockwork-sky-gradient" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#202b3d"/>
+        <stop offset=".58" stop-color="#4c4a4a"/>
+        <stop offset="1" stop-color="#826241"/>
+      </linearGradient>
+      <linearGradient id="clockwork-brass-gradient" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#e2b85d"/>
+        <stop offset="1" stop-color="#8a5b2c"/>
+      </linearGradient>
+      <radialGradient id="clockwork-aether-glow-gradient">
+        <stop offset="0" stop-color="#a4fff0" stop-opacity=".8"/>
+        <stop offset="1" stop-color="#63d9d4" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <rect id="clockwork-sky" width="800" height="180" fill="url(#clockwork-sky-gradient)"/>
+    <circle id="clockwork-aether-glow" cx="400" cy="87" r="86" fill="url(#clockwork-aether-glow-gradient)" opacity=".32"/>
+    <g id="clockwork-clouds" fill="#bec3c2" opacity=".15">
+      <path d="M0 44c55-20 113-17 174 8 48 19 93 19 135 0v28H0Z"/>
+      <path d="M529 32c75-17 166-9 271 25v31H529Z"/>
+    </g>
+    <path id="clockwork-distant-city" d="M0 128V91h31V70h20v58h37V83h28v45h31V57h24v71h39V78h23v50h40V94h26v34h31V67h22v61h45V81h27v47h34V55h25v73h42V86h31v42h36V74h25v54h42V62h23v66h38V89h29v39h36V69h25v59Z" fill="#303740" opacity=".92"/>
+    <g id="clockwork-smokestacks" fill="#3e4248" stroke="#24282e" stroke-width="4">
+      <path d="M94 137V46h25v91Zm570 0V39h27v98Z"/>
+      <path d="M89 45h35v10H89Zm570-7h37v11h-37Z" fill="#ad7938"/>
+    </g>
+    <g id="clockwork-steam" fill="none" stroke="#d0d4cf" stroke-width="12" stroke-linecap="round" opacity=".3">
+      <path d="M106 35c-19-15 15-21-3-37"/><path d="M678 29c20-15-14-24 5-39"/>
+    </g>
+    <g id="clockwork-main-citadel" stroke="#252a30" stroke-linejoin="round">
+      <path d="M277 160V103h40V78h28V40h110v38h28v25h40v57Z" fill="#555a61" stroke-width="6"/>
+      <path d="m335 42 65-41 65 41Z" fill="url(#clockwork-brass-gradient)" stroke="#604127" stroke-width="6"/>
+      <path d="M376 8h48v-21h-48Z" fill="#b27b35" stroke-width="5"/>
+      <circle cx="400" cy="62" r="31" fill="#dfbe69" stroke="#634327" stroke-width="6"/>
+      <g id="clockwork-clock-marks" stroke="#6a492c" stroke-width="3">
+        <path d="M400 35v8m0 38v8m-27-27h8m38 0h8"/>
+      </g>
+      <path d="M400 62V43m0 19 16 9" fill="none" stroke="#553a25" stroke-width="6" stroke-linecap="round"/>
+      <circle cx="400" cy="62" r="4" fill="#553a25" stroke="none"/>
+      <g id="clockwork-citadel-windows" fill="#79e7df" stroke="#28575c" stroke-width="3">
+        <path d="M298 119h15v25h-15Zm189 0h15v25h-15ZM350 105h17v29h-17Zm83 0h17v29h-17Z"/>
+      </g>
+    </g>
+    <g id="clockwork-gearworks" stroke="#553b27" stroke-width="4" stroke-linejoin="round">
+      <path d="m185 112 8-7-1-11 12-4 7 9 11 1 3 12 9 7-7 10 2 11-12 4-8-8-11 1-4-11-10-6Z" fill="#ba8239"/>
+      <circle cx="209" cy="118" r="10" fill="#343940"/>
+      <path d="m566 99 8-8-2-11 13-4 7 9 12 1 3 12 10 7-7 11 2 11-13 4-8-9-11 2-4-12-10-6Z" fill="#cc9d4a"/>
+      <circle cx="591" cy="105" r="11" fill="#343940"/>
+    </g>
+    <g id="clockwork-ironwood" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M27 175c8-25 7-46 2-69l16-9 14 9c-5 25-5 47 3 69Z" fill="#715139" stroke="#292b2c" stroke-width="6"/>
+      <path d="M38 122 11 99m36 10 25-22m-32 8L28 75" fill="none" stroke="#503b2d" stroke-width="9"/>
+      <path d="M0 94c0-14 15-22 28-17 7-14 29-16 39-5 12-9 31 1 28 17 15 5 12 25-2 29-10 4-19-1-24-8-10 11-28 10-36-1-11 9-32 3-32-12Z" fill="#4d6350" stroke="#27372f" stroke-width="6"/>
+      <g fill="none" stroke="#d1a34c" stroke-width="3"><circle cx="24" cy="96" r="9"/><circle cx="61" cy="91" r="8"/></g>
+      <path d="M738 176c7-22 6-42 2-62l14-8 13 9c-5 22-5 42 2 62Z" fill="#715139" stroke="#292b2c" stroke-width="6"/>
+      <path d="M750 130 726 109m31 9 22-20m-29 9-11-19" fill="none" stroke="#503b2d" stroke-width="8"/>
+      <path d="M711 103c0-13 14-21 26-15 6-13 26-15 35-5 11-8 28 1 26 15 13 4 11 22-2 26-9 3-17-1-21-7-9 10-25 9-32-1-11 8-29 3-29-11Z" fill="#4b614e" stroke="#27372f" stroke-width="6"/>
+    </g>
+    <path id="clockwork-ground" d="M0 157c102-11 194-8 277 7 78-13 162-13 250 0 89-14 180-16 273-6v22H0Z" fill="#292e33"/>
+    <g id="clockwork-conduits" fill="none" stroke="#bf873b" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M0 169h246l22-18h79"/><path d="M453 151h78l22 18h247"/>
+    </g>
+    <g id="clockwork-aether-core">
+      <circle cx="400" cy="153" r="30" fill="url(#clockwork-aether-glow-gradient)"/>
+      <path d="m387 161-7-24 20-22 20 22-7 24-13 14Z" fill="#78ebe2" stroke="#245b61" stroke-width="5" stroke-linejoin="round"/>
+      <path d="m400 121-4 38m-13-21 13 21 21-21" fill="none" stroke="#ddfff3" stroke-width="3" stroke-linecap="round" opacity=".9"/>
+      <path d="M371 151c0-18 13-33 29-33s29 15 29 33-13 25-29 25-29-7-29-25Z" fill="none" stroke="#cf9e4a" stroke-width="5"/>
+    </g>
+    <g id="clockwork-rivets" fill="#f1cf77">
+      <circle cx="268" cy="151" r="3"/><circle cx="531" cy="151" r="3"/><circle cx="347" cy="164" r="3"/><circle cx="453" cy="164" r="3"/>
+    </g>
+  </g>
+</svg>

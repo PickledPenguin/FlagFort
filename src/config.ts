@@ -66,6 +66,32 @@ export const BALANCE = {
       popupTextColor: "#63c6e8",
     },
   },
+  tierMechanics: {
+    desert: { sandstormRadius: 235, sandstormSpeedMultiplier: 1.3, tunnelDuration: 9, tunnelInterval: 1, tunnelExitDistance: 150 },
+    volcanic: { burnDuration: 3.5, burnDamagePerSecond: 7 },
+    wasteland: { radiationRadius: 230, radiationDamagePerSecond: 0.55 },
+    rift: {
+      ghostDuration: 2,
+      deathPortalDuration: 8,
+      deathPortalSpawns: 5,
+      deathPortalInterval: 1,
+      bossGhostCount: 5,
+      bossPortalDistance: 150,
+      bossPortalDuration: 12,
+      bossPortalSpawns: 8,
+    },
+    mire: {
+      infectedFraction: 0.12,
+      hintRadius: 190,
+      tentacleDamage: 18,
+      tentacleCooldown: 2.5,
+      bossTentacleHealthRatio: 0.28,
+      bossTentacleDamageRatio: 0.45,
+      bossTentacleSpeed: 205,
+      bossTentacleRadius: 16,
+    },
+    clockwork: { timedLifeSeconds: 15, dayPenaltyPerEarlyKill: 2, retaliationSlowSeconds: 2, rewindDuration: 3.4 },
+  },
   navigation: {
     cellSize: 72,
     obstacleMargin: 10,
@@ -321,6 +347,10 @@ export const BALANCE = {
           turretCapacity: 0,
           harvesterCapacity: 0.4,
         } satisfies Record<keyof Upgrades, number>,
+      },
+      equipment: {
+        maximumDelta: 0.38,
+        referenceStrength: 1,
       },
     },
     pressureIndicator: {

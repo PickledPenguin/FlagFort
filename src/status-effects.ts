@@ -11,12 +11,27 @@ export function applySlow(target: StatusTarget, duration: number): void {
   target.statuses.slow = { remaining: Math.max(current, duration) };
 }
 
+export function applyBurn(target: StatusTarget, duration: number): void {
+  if (!Number.isFinite(duration) || duration <= 0) return;
+  target.statuses ??= {};
+  target.statuses.burn = {
+    remaining: Math.max(target.statuses.burn?.remaining ?? 0, duration),
+  };
+}
+
 export function updateStatuses(target: StatusTarget, dt: number): void {
-  const slow = target.statuses?.slow;
-  if (!slow) return;
-  slow.remaining = Math.max(0, slow.remaining - Math.max(0, dt));
-  if (slow.remaining <= 0) delete target.statuses!.slow;
+  if (!target.statuses) return;
+  for (const kind of ["slow", "burn"] as const) {
+    const status = target.statuses[kind];
+    if (!status) continue;
+    status.remaining = Math.max(0, status.remaining - Math.max(0, dt));
+    if (status.remaining <= 0) delete target.statuses[kind];
+  }
   if (target.statuses && Object.keys(target.statuses).length === 0) delete target.statuses;
+}
+
+export function isBurning(target: StatusTarget): boolean {
+  return (target.statuses?.burn?.remaining ?? 0) > 0;
 }
 
 export function isSlowed(target: StatusTarget): boolean {

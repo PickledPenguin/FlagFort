@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-61 -56 122 112" role="img" aria-labelledby="title description">
+  <title id="title">Void Herald zombie</title>
+  <desc id="description">An astral signal caller crowned by a floating void beacon, opening a miniature rift with a star-metal tuning staff to summon allies.</desc>
+  <defs id="void-herald-definitions">
+    <radialGradient id="void-beacon-gradient" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#090d24"/>
+      <stop offset=".58" stop-color="#40367e"/>
+      <stop offset="1" stop-color="#d99cff"/>
+    </radialGradient>
+    <linearGradient id="herald-robe-gradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#514993"/>
+      <stop offset="1" stop-color="#262957"/>
+    </linearGradient>
+  </defs>
+  <g id="void-herald-zombie">
+    <g id="summoning-waves" fill="none" stroke="#b58cff" stroke-width="3" stroke-linecap="round" opacity=".8">
+      <path id="summoning-wave-inner" d="M-31-27c-9-8-9-18 0-27"/>
+      <path id="summoning-wave-outer" d="M-42-20c-16-14-16-31 0-45"/>
+    </g>
+    <g id="void-beacon">
+      <ellipse id="beacon-outer-ring" cx="-13" cy="-40" rx="24" ry="10" fill="none" stroke="#7cecff" stroke-width="3" transform="rotate(-8 -13 -40)"/>
+      <circle id="beacon-core" cx="-13" cy="-40" r="11" fill="url(#void-beacon-gradient)" stroke="#d99cff" stroke-width="2.5"/>
+      <circle id="beacon-star" cx="-17" cy="-44" r="2.5" fill="#f6eaff"/>
+    </g>
+    <path id="herald-robe" d="M-25-18C-35 1-31 31-20 43L13 45c13-15 18-44 5-63Z" fill="url(#herald-robe-gradient)" stroke="#181b42" stroke-width="3" stroke-linejoin="round"/>
+    <circle id="body" r="26" fill="#6761a5" stroke="#292c5d" stroke-width="3"/>
+    <path id="astral-cowl" d="M-25-8C-30-32-5-43 19-29l9 21-12-6C7-29-12-28-20-11Z" fill="#25295c" stroke="#15183c" stroke-width="3" stroke-linejoin="round"/>
+    <g id="eyes" fill="#f2fcff" stroke="#292c5d" stroke-width="1.5">
+      <path id="upper-eye" d="m2-12 17 3L5-3Z"/>
+      <path id="lower-eye" d="m2 12 17-3L5 3Z"/>
+    </g>
+    <g id="pupils" fill="#d99cff">
+      <circle id="upper-pupil" cx="11" cy="-8" r="2.5"/>
+      <circle id="lower-pupil" cx="11" cy="8" r="2.5"/>
+    </g>
+    <g id="staff-arm">
+      <path id="staff-arm-shape" d="M10 16 31 27" fill="none" stroke="#625da0" stroke-width="9" stroke-linecap="round"/>
+      <circle id="staff-hand" cx="33" cy="28" r="8" fill="#7770bb" stroke="#292c5d" stroke-width="2.5"/>
+    </g>
+    <g id="tuning-staff" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path id="staff-shaft" d="M38 39 44-26" stroke="#9ca6bd" stroke-width="5"/>
+      <path id="staff-fork" d="m44-26-10-12m10 12 12-10" stroke="#c9d4eb" stroke-width="4"/>
+      <path id="staff-energy" d="M36-39c7-7 14-7 20 1" stroke="#7cecff" stroke-width="3"/>
+    </g>
+    <g id="miniature-rift">
+      <ellipse id="mini-rift-ring" cx="48" cy="8" rx="10" ry="20" fill="#171a42" stroke="#c28fff" stroke-width="3"/>
+      <path id="mini-rift-light" d="M48-5v26" stroke="#7cecff" stroke-width="3" stroke-linecap="round"/>
+    </g>
+  </g>
+</svg>

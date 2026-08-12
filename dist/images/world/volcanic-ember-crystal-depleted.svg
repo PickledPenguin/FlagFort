@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title description">
+  <title id="title">Depleted volcanic ember crystals</title>
+  <desc id="description">Dim broken ember crystals scattered across a basalt base.</desc>
+  <g id="volcanic-ember-crystal-depleted">
+    <path id="base" d="m10 79 16-22 47-2 15 22-18 11H27Z" fill="#343038" stroke="#17151b" stroke-width="6" stroke-linejoin="round"/>
+    <path id="left-shard" d="m24 64 7-20 10-5 5 14-5 22Z" fill="#79332f" stroke="#4a2020" stroke-width="5" stroke-linejoin="round"/>
+    <path id="right-shard" d="m57 70 10-24 10-4 4 14-11 21Z" fill="#87352e" stroke="#4a2020" stroke-width="5" stroke-linejoin="round"/>
+    <path id="broken-center" d="m43 70 5-25 7 5 8-13 5 15-9 25Z" fill="#9b3a2e" stroke="#4a2020" stroke-width="5" stroke-linejoin="round"/>
+    <path id="fading-glow" d="m52 53-3 12m21-12-4 12" fill="none" stroke="#d56a3d" stroke-width="3" stroke-linecap="round"/>
+  </g>
+</svg>

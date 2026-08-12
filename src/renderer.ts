@@ -1,5 +1,5 @@
 import { BALANCE } from "./config";
-import { isSlowed } from "./status-effects";
+import { isBurning, isSlowed } from "./status-effects";
 import { allAssetPaths, ASSETS } from "./assets";
 import { BUILD_BAR_ICON_PATHS } from "./build-bar-icons";
 import { ENEMY_REGISTRY } from "./enemy-registry";
@@ -213,6 +213,18 @@ export class Renderer {
     }
     if (game.tutorialMode) this.drawTutorialArenaFade();
     ctx.restore();
+    if (game.timeRewind) {
+      const progress = Math.min(1, game.timeRewind.elapsed / BALANCE.tierMechanics.clockwork.rewindDuration);
+      const radius = Math.max(1, Math.hypot(BALANCE.logicalWidth, BALANCE.logicalHeight) * progress);
+      ctx.save();
+      const gradient = ctx.createRadialGradient(BALANCE.logicalWidth / 2, BALANCE.logicalHeight / 2, 0, BALANCE.logicalWidth / 2, BALANCE.logicalHeight / 2, radius);
+      gradient.addColorStop(0, "rgba(121,231,223,.08)");
+      gradient.addColorStop(0.82, "rgba(121,231,223,.18)");
+      gradient.addColorStop(1, "rgba(255,240,184,.62)");
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, BALANCE.logicalWidth, BALANCE.logicalHeight);
+      ctx.restore();
+    }
     if (game.tutorialMode) this.drawTutorialArenaBoundary();
     else {
       this.drawVignette(game);
@@ -580,6 +592,28 @@ export class Renderer {
         ctx.fill();
       }
     }
+    for (const traveler of game.infectionTravelers) {
+      ctx.save();
+      ctx.translate(traveler.x, traveler.y);
+      ctx.fillStyle = "rgba(8,25,20,.72)";
+      ctx.strokeStyle = "#79e6c1";
+      ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.ellipse(0, 0, 14, 5, this.time * 2, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      ctx.restore();
+    }
+    for (const tunnel of game.sandTunnels) {
+      ctx.save();
+      ctx.strokeStyle = "rgba(241,202,117,.78)";
+      ctx.fillStyle = "rgba(120,74,35,.58)";
+      ctx.lineWidth = 4;
+      ctx.setLineDash([9, 8]);
+      ctx.beginPath(); ctx.moveTo(tunnel.entry.x, tunnel.entry.y); ctx.lineTo(tunnel.exit.x, tunnel.exit.y); ctx.stroke();
+      ctx.setLineDash([]);
+      for (const point of [tunnel.entry, tunnel.exit]) {
+        ctx.beginPath(); ctx.ellipse(point.x, point.y, 30, 13, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      }
+      ctx.restore();
+    }
     ctx.globalAlpha = 1;
     ctx.strokeStyle = "#0a291c";
     ctx.lineWidth = 18;
@@ -597,6 +631,10 @@ export class Renderer {
       const ctx = this.ctx;
       ctx.save();
       ctx.translate(node.x, node.y);
+      if ((node.infectionHintTime ?? 0) > 0) {
+        const progress = node.infectionHintTime! / 0.42;
+        ctx.rotate(Math.sin(this.time * 34 + node.id) * 0.065 * progress);
+      }
       if (node.hitFlash > 0) ctx.globalAlpha = 0.6;
       const size = node.radius * 2.55;
       ctx.drawImage(sprite, -size / 2, -size / 2, size, size);
@@ -621,6 +659,26 @@ export class Renderer {
       }
       ctx.restore();
     }
+    if ((node.infectionAttackTime ?? 0) > 0) {
+      const ctx = this.ctx;
+      const reveal = Math.sin(Math.min(1, node.infectionAttackTime! / 0.7) * Math.PI);
+      ctx.save();
+      ctx.strokeStyle = "#79e6c1";
+      ctx.lineWidth = 7;
+      for (let index = 0; index < 5; index += 1) {
+        const angle = index / 5 * Math.PI * 2 + this.time * 0.7;
+        ctx.beginPath();
+        ctx.moveTo(node.x, node.y + node.radius * 0.4);
+        ctx.quadraticCurveTo(
+          node.x + Math.cos(angle + 0.5) * node.radius,
+          node.y + Math.sin(angle + 0.5) * node.radius,
+          node.x + Math.cos(angle) * node.radius * (1.25 + reveal),
+          node.y + Math.sin(angle) * node.radius * (1.25 + reveal),
+        );
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
     if (node.health > 0 && node.health < node.maxHealth) {
       this.healthBar(
         node.x,
@@ -629,6 +687,12 @@ export class Renderer {
         node.health / node.maxHealth,
         resourceColors[node.kind],
       );
+      if ((node.radiationDamage ?? 0) > 0) {
+        const width = node.radius * 1.5;
+        const radiationWidth = width * Math.min(1, (node.radiationDamage ?? 0) / node.maxHealth);
+        this.ctx.fillStyle = "#b7dd63";
+        this.ctx.fillRect(node.x + width / 2 - radiationWidth, node.y - node.radius - 7, radiationWidth, 3);
+      }
     }
   }
 
@@ -702,6 +766,10 @@ export class Renderer {
 
   private drawStructure(structure: Structure, player: Player): void {
     const ctx = this.ctx;
+    if (isBurning(structure)) {
+      ctx.save(); ctx.fillStyle = "rgba(255,105,32,.24)"; ctx.beginPath();
+      ctx.arc(structure.x, structure.y, structure.radius + 9 + Math.sin(this.time * 9) * 3, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+    }
     ctx.save();
     ctx.translate(structure.x, structure.y);
     if (structure.kind === "turret" && isSlowed(structure)) {
@@ -892,6 +960,52 @@ export class Renderer {
     const angle = enemy.angle ?? Math.atan2(center - enemy.y, center - enemy.x);
     ctx.save();
     ctx.translate(enemy.x, enemy.y);
+    if (enemy.mireTentacle) {
+      ctx.fillStyle = "rgba(34,80,70,.62)";
+      ctx.beginPath();
+      ctx.ellipse(0, 7, enemy.radius * 1.7, enemy.radius * 0.65, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 0.86;
+      ctx.scale(1.05, 0.5);
+    }
+    if ((enemy.kind === "basic" || enemy.kind === "runner")
+      && game.activeCampaignTierId !== "forest") {
+      const biomeFilters: Record<Exclude<typeof game.activeCampaignTierId, "forest">, string> = {
+        snowy: "hue-rotate(135deg) saturate(.55) brightness(1.55)",
+        desert: "hue-rotate(300deg) saturate(.72) sepia(.45) brightness(1.12)",
+        volcanic: "hue-rotate(265deg) saturate(.85) brightness(.62)",
+        wasteland: "hue-rotate(28deg) saturate(.75) brightness(.78)",
+        rift: "hue-rotate(160deg) saturate(1.35) brightness(.82)",
+        mire: "hue-rotate(48deg) saturate(.58) brightness(.62)",
+        clockwork: "sepia(.8) saturate(.65) brightness(.82)",
+      };
+      ctx.filter = biomeFilters[game.activeCampaignTierId];
+    }
+    if ((enemy.ghostRemaining ?? 0) > 0) {
+      ctx.globalAlpha = 0.38 + Math.sin(this.time * 18 + enemy.id) * 0.12;
+      ctx.shadowColor = "#d99cff";
+      ctx.shadowBlur = 20;
+    }
+    if (enemy.kind === "sandcaster") {
+      const radius = BALANCE.tierMechanics.desert.sandstormRadius;
+      ctx.fillStyle = "rgba(225,177,83,.10)";
+      ctx.strokeStyle = "rgba(241,202,117,.5)";
+      ctx.lineWidth = 4;
+      ctx.setLineDash([18, 13]);
+      ctx.beginPath(); ctx.arc(0, 0, radius, this.time, Math.PI * 2 + this.time); ctx.fill(); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    if (enemy.timedLifeRemaining !== undefined) {
+      if (enemy.timedLifeExpired) ctx.filter = "grayscale(1) brightness(.72)";
+      else {
+        ctx.fillStyle = "rgba(19,27,33,.9)";
+        ctx.strokeStyle = "#e2b85d";
+        ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(0, -enemy.radius - 18, 17, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = "#fff0b8"; ctx.font = "900 12px system-ui"; ctx.textAlign = "center";
+        ctx.fillText(`${Math.ceil(enemy.timedLifeRemaining)}`, 0, -enemy.radius - 14);
+      }
+    }
     if (enemy.burning) {
       ctx.fillStyle = "rgba(255,125,42,.18)";
       ctx.beginPath();
@@ -1176,6 +1290,10 @@ export class Renderer {
 
   private drawPlayer(game: Game): void {
     const ctx = this.ctx;
+    if (isBurning(game.player)) {
+      ctx.save(); ctx.fillStyle = "rgba(255,105,32,.25)"; ctx.beginPath();
+      ctx.arc(game.player.x, game.player.y, game.player.radius + 11 + Math.sin(this.time * 10) * 3, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+    }
     const player = game.player;
     const angle = player.angle;
     const punching = player.cooldown > 0 && game.getSelectedAction() === "fists";

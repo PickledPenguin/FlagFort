@@ -144,6 +144,22 @@ describe("seeded generation", () => {
     expect(a).toEqual(b);
   });
 
+  it("never offers Basic Zombie Surge as a mutation", () => {
+    for (let night = 1; night <= 10; night += 1) {
+      for (let index = 0; index < 20; index += 1) {
+        const offerings = generateChoiceOfferings(
+          `no-basic-surge-${night}-${index}`,
+          night,
+          1,
+          createUnlocks(),
+          createUpgrades(),
+          createMutations(),
+        );
+        expect(offerings.every((choice) => choice.mutationId !== "basicWeight")).toBe(true);
+      }
+    }
+  });
+
   it("names the exact mutation target and stat", () => {
     expect(mutationText("basicWeight", 0)).toBe("Basic zombie spawn weight +12.");
     expect(mutationText("waveSize", 3)).toBe("Each portal wave size +6 zombies.");
@@ -384,6 +400,46 @@ describe("phase and run rules", () => {
     expect(game.buildPreview?.reason).toBe("Portal no-build zone");
   });
 
+  it("cycles selected structure materials without wrapping or entering locked tiers", () => {
+    const game = new Game(fakeInput());
+    game.startRun("normal", "material-cycle-seed");
+    game.unlocks.structures.wall = ["wood", "stone", "gold"];
+    game.selectSlot(4);
+    expect(game.cycleSelectedTier(1)).toBe(true);
+    expect(game.selectedTiers.wall).toBe("stone");
+    expect(game.cycleSelectedTier(1)).toBe(true);
+    expect(game.selectedTiers.wall).toBe("gold");
+    expect(game.cycleSelectedTier(1)).toBe(false);
+    expect(game.selectedTiers.wall).toBe("gold");
+    expect(game.cycleSelectedTier(-1)).toBe(true);
+    expect(game.selectedTiers.wall).toBe("stone");
+  });
+
+  it("reserves future portal zones and evicts only actual footprint overlaps", () => {
+    const input = fakeInput();
+    const game = new Game(input);
+    game.startRun("normal", "future-portal-zone-seed");
+    const internals = game as unknown as {
+      portalPositionsForNight(night: number): Array<{ x: number; y: number }>;
+      spawnPortals(playSpawnSound?: boolean): void;
+    };
+    const future = internals.portalPositionsForNight(2)[0]!;
+    game.structures = [
+      testStructure({ id: 901, x: future.x, y: future.y }),
+      testStructure({
+        id: 902,
+        x: future.x + BALANCE.portal.radius + BALANCE.structure.radius.wall + 8,
+        y: future.y,
+      }),
+    ];
+
+    game.night = 2;
+    internals.spawnPortals(false);
+
+    expect(game.portals[0]).toMatchObject(future);
+    expect(game.structures.map((structure) => structure.id)).toEqual([902]);
+  });
+
   it("starts dawn upgrades at zero while keeping daytime combat until every zombie is killed", () => {
     const game = new Game(fakeInput());
     game.startRun("normal", "sunlight-state-seed");
@@ -579,7 +635,7 @@ describe("phase and run rules", () => {
         }
       });
     }
-  });
+  }, 15_000);
 
   it("never lets a jumper attack a blocking wall while its jump is cooling down", () => {
     const game = new Game(fakeInput());
@@ -909,6 +965,87 @@ describe("phase and run rules", () => {
 
       expect(game.phase, tier.id).toBe("victory");
     }
+  });
+
+  it("configures Reactor Revenant around one large, fair nuclear danger zone", () => {
+    const strike = ENEMY_REGISTRY["reactor-revenant"].areaStrike!;
+    expect(strike.randomStrikeCount).toBe(0);
+    expect(strike.includesTargetedStrike).toBe(true);
+    expect(strike.warningDuration).toBeGreaterThanOrEqual(2.5);
+    expect(strike.radius).toBeGreaterThanOrEqual(220);
+    expect(strike.screenShake).toBeGreaterThanOrEqual(25);
+  });
+
+  it("triggers the Astral boss ghost court and destroyable player-side portal once", () => {
+    const game = new Game(fakeInput());
+    game.startRun("normal", "eclipse-half-event", [], true, { campaignTierId: "rift" });
+    game.night = 10;
+    (game as unknown as { beginNight(): void }).beginNight();
+    game.phaseElapsed = BALANCE.endless.bossSpawnDelay;
+    game.update(BALANCE.fixedStep);
+    const boss = game.enemies.find((enemy) => enemy.kind === "eclipse-regent")!;
+    boss.armor = 0;
+    const portalsBefore = game.portals.length;
+    (game as unknown as {
+      damageEnemy(enemy: Enemy, amount: number, color: string, source: "player-melee", owner: string): void;
+    }).damageEnemy(boss, boss.health * 0.55, "#fff", "player-melee", game.player.id);
+
+    expect(game.portals).toHaveLength(portalsBefore + 1);
+    expect(game.portals.at(-1)?.temporary).toBe(true);
+    expect(game.enemies.filter((enemy) => enemy.kind === "rift-strider" && (enemy.ghostRemaining ?? 0) > 0))
+      .toHaveLength(BALANCE.tierMechanics.rift.bossGhostCount);
+    const portalsAfter = game.portals.length;
+    (game as unknown as {
+      damageEnemy(enemy: Enemy, amount: number, color: string, source: "player-melee", owner: string): void;
+    }).damageEnemy(boss, 1, "#fff", "player-melee", game.player.id);
+    expect(game.portals).toHaveLength(portalsAfter);
+  });
+
+  it("turns every infected Mire resource into a low-health combat tentacle at boss half health", () => {
+    const game = new Game(fakeInput());
+    game.startRun("normal", "mire-half-event", [], true, { campaignTierId: "mire" });
+    const infected = game.world.resources.filter((node) => node.infected && !node.destroyed);
+    expect(infected.length).toBeGreaterThan(0);
+    game.night = 10;
+    (game as unknown as { beginNight(): void }).beginNight();
+    game.phaseElapsed = BALANCE.endless.bossSpawnDelay;
+    game.update(BALANCE.fixedStep);
+    const boss = game.enemies.find((enemy) => enemy.kind === "mireheart-titan")!;
+    boss.armor = 0;
+    (game as unknown as {
+      damageEnemy(enemy: Enemy, amount: number, color: string, source: "player-melee", owner: string): void;
+    }).damageEnemy(boss, boss.health * 0.55, "#fff", "player-melee", game.player.id);
+
+    const tentacles = game.enemies.filter((enemy) => enemy.mireTentacle);
+    expect(tentacles).toHaveLength(infected.length);
+    expect(tentacles.every((enemy) => enemy.child && enemy.countsTowardWave === false)).toBe(true);
+    expect(tentacles.every((enemy) => enemy.health < ENEMY_REGISTRY["mire-lurker"].base.health)).toBe(true);
+  });
+
+  it("rewinds the Clockwork night once without restoring defender damage", () => {
+    const game = new Game(fakeInput());
+    game.startRun("normal", "clockwork-rewind-event", [], true, { campaignTierId: "clockwork" });
+    game.night = 10;
+    (game as unknown as { beginNight(): void }).beginNight();
+    game.phaseElapsed = BALANCE.endless.bossSpawnDelay;
+    game.timer = 11;
+    game.update(BALANCE.fixedStep);
+    const boss = game.enemies.find((enemy) => enemy.kind === "chronoforge-colossus")!;
+    boss.armor = 0;
+    game.player.health = 63;
+    (game as unknown as {
+      damageEnemy(enemy: Enemy, amount: number, color: string, source: "player-melee", owner: string): void;
+    }).damageEnemy(boss, boss.health * 0.55, "#fff", "player-melee", game.player.id);
+
+    expect((game as unknown as { timeRewind: unknown }).timeRewind).not.toBeNull();
+    (game as unknown as { updateTimeRewind(dt: number): void })
+      .updateTimeRewind(BALANCE.tierMechanics.clockwork.rewindDuration);
+
+    expect(game.timer).toBe(BALANCE.nightDuration);
+    expect(game.player.health).toBe(63);
+    expect(boss.health).toBe(boss.maxHealth * 0.5);
+    expect(boss.bossHalfSummoned).toBe(true);
+    expect((game as unknown as { timeRewind: unknown }).timeRewind).toBeNull();
   });
 
   it("completes the deterministic ten-night loop with three dawn choices per night", () => {

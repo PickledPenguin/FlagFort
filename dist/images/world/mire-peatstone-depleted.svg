@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title description">
+  <title id="title">Depleted drowned mire peatstone</title>
+  <desc id="description">Small broken slate fragments half sunk into muddy peat.</desc>
+  <g id="mire-peatstone-depleted">
+    <ellipse id="shadow" cx="49" cy="87" rx="37" ry="6" fill="#132827" opacity=".7"/>
+    <path id="left-fragment" d="m10 77 13-20 19-3 10 18-12 13-23 2Z" fill="#4f615d" stroke="#213b38" stroke-width="6" stroke-linejoin="round"/>
+    <path id="right-fragment" d="m48 78 10-22 20-1 10 17-13 14-20 1Z" fill="#5d706a" stroke="#213b38" stroke-width="6" stroke-linejoin="round"/>
+    <path id="cracks" d="m29 61 6 8-7 9m44-15-8 7 7 9" fill="none" stroke="#344b47" stroke-width="3" stroke-linecap="round"/>
+    <path id="faded-moss" d="M18 58c6-3 9 2 14 0m32-1c5-2 7 2 12 0" fill="none" stroke="#687d51" stroke-width="3" stroke-linecap="round"/>
+  </g>
+</svg>

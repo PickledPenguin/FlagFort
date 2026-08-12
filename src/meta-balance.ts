@@ -120,6 +120,12 @@ export const META_BALANCE = {
     },
   },
   equipment: {
+    adaptiveStrength: {
+      helmet: { wood: 0.03, stone: 0.07, gold: 0.13, diamond: 0.2 },
+      wrench: { wood: 0.03, stone: 0.07, gold: 0.13, diamond: 0.2 },
+      sword: { wood: 0.08, stone: 0.18, gold: 0.32, diamond: 0.5 },
+      mallet: { wood: 0.02, stone: 0.05, gold: 0.1, diamond: 0.16 },
+    } satisfies Record<EquipmentKind, Record<Tier, number>>,
     tierPrices: { wood: 100, stone: 250, gold: 500, diamond: 900 } satisfies Record<Tier, number>,
     helmetMitigation: { wood: 0.1, stone: 0.22, gold: 0.35, diamond: 0.5 } satisfies Record<Tier, number>,
     wrenchFreeRepairChance: { wood: 0.1, stone: 0.22, gold: 0.35, diamond: 0.5 } satisfies Record<Tier, number>,

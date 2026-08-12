@@ -91,6 +91,7 @@ describe("production controls and challenge accessibility", () => {
     expect(overlay.textContent).toContain("+175% VICTORY XP");
     (overlay.querySelector('[data-action="open-campaign"]') as HTMLElement).click();
     (overlay.querySelector('[data-action="start-campaign-tier"]') as HTMLElement).click();
+    (overlay.querySelector('[data-action="close-bounties"]') as HTMLElement).click();
     expect(hud.querySelector<HTMLButtonElement>('[aria-label="Repair"]')?.disabled).toBe(true);
   });
 

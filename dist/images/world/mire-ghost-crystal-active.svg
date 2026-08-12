@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title description">
+  <title id="title">Drowned mire ghost crystal</title>
+  <desc id="description">A cluster of pale teal crystals glowing like will-o-wisps above black water.</desc>
+  <g id="mire-ghost-crystal-active">
+    <ellipse id="water-shadow" cx="48" cy="88" rx="38" ry="6" fill="#102827" opacity=".78"/>
+    <path id="left-crystal" d="m13 73 11-35 13-12 9 15-5 39Z" fill="#79d8c7" stroke="#245a57" stroke-width="5" stroke-linejoin="round"/>
+    <path id="center-crystal" d="m34 77 14-53 12-14 10 19-8 53Z" fill="#a2f0dd" stroke="#245a57" stroke-width="5" stroke-linejoin="round"/>
+    <path id="right-crystal" d="m59 79 8-37 12-10 9 17-8 31Z" fill="#63c9bd" stroke="#245a57" stroke-width="5" stroke-linejoin="round"/>
+    <path id="facets" d="m27 38 5 34m24-47-4 45m25-28-6 30" fill="none" stroke="#d8fff3" stroke-width="3" stroke-linecap="round" opacity=".82"/>
+    <circle id="wisp-left" cx="16" cy="27" r="4" fill="#baffdf" opacity=".9"/>
+    <circle id="wisp-right" cx="83" cy="23" r="3" fill="#baffdf" opacity=".82"/>
+  </g>
+</svg>

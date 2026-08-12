@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title description">
+  <title id="title">Depleted astral rift void crystals</title>
+  <desc id="description">Shattered blue-violet crystal shards surrounding a dormant void core.</desc>
+  <g id="rift-void-crystal-depleted">
+    <path id="base" d="m8 82 17-18 48-3 15 18-18 10H25Z" fill="#292641" stroke="#151329" stroke-width="6" stroke-linejoin="round"/>
+    <path id="left-shard" d="m21 70 9-21 10-7 5 17-7 22Z" fill="#465ca9" stroke="#293379" stroke-width="4" stroke-linejoin="round"/>
+    <path id="center-shard" d="m42 72 8-28 10-5 5 20-7 23Z" fill="#654ba9" stroke="#39246f" stroke-width="4" stroke-linejoin="round"/>
+    <path id="right-shard" d="m62 72 9-19 10-4 3 15-10 17Z" fill="#327e96" stroke="#1e5878" stroke-width="4" stroke-linejoin="round"/>
+    <circle id="dormant-core" cx="55" cy="73" r="6" fill="#171126" stroke="#735b99" stroke-width="3"/>
+    <path id="faint-glint" d="m53 48-3 12m27-5-5 10" fill="none" stroke="#88a0c7" stroke-width="3" stroke-linecap="round"/>
+  </g>
+</svg>

@@ -40,7 +40,6 @@ function availableMutationKeys(
   additionalRoster: readonly RosterEnemyKind[],
 ): Array<keyof Mutations> {
   const keys: Array<keyof Mutations> = [
-    "basicWeight",
     "health",
     "damage",
     "speed",
@@ -50,6 +49,7 @@ function availableMutationKeys(
   ];
   for (const kind of currentRosterKinds(night, roster, additionalRoster)) {
     const key = mutationWeightKey(kind);
+    if (key === "basicWeight") continue;
     if (!keys.includes(key)) keys.push(key);
   }
   return keys;

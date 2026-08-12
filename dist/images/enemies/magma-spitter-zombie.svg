@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-56 -50 112 100" role="img" aria-labelledby="title description">
+  <title id="title">Magma Spitter zombie</title>
+  <desc id="description">A volcanic zombie with a furnace-like throat, an obsidian face guard, and a bright glob of magma gathering at its mouth.</desc>
+  <defs id="magma-spitter-definitions">
+    <linearGradient id="magma-gradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff29c"/>
+      <stop offset=".42" stop-color="#ff9d2f"/>
+      <stop offset="1" stop-color="#df3d23"/>
+    </linearGradient>
+  </defs>
+  <g id="magma-spitter-zombie">
+    <g id="magma-trail" fill="url(#magma-gradient)" stroke="#9a2f22" stroke-width="2">
+      <path id="magma-stream" d="M29-3c9-5 15-15 23-11-4 5-3 10 4 14-8 7-17 3-27 5Z"/>
+      <circle id="magma-glob" cx="49" cy="-2" r="7"/>
+      <circle id="magma-drop" cx="42" cy="14" r="3.5"/>
+    </g>
+    <g id="hands" fill="#61785b" stroke="#29382e" stroke-width="2.5">
+      <circle id="upper-hand" cx="33" cy="-23" r="8"/>
+      <circle id="lower-hand" cx="35" cy="23" r="8"/>
+    </g>
+    <path id="mantle-cloak" d="M-28-25C-43-7-41 23-24 39L8 37c12-16 16-43 2-61Z" fill="#4a3432" stroke="#261f21" stroke-width="3" stroke-linejoin="round"/>
+    <circle id="body" r="24" fill="#67845f" stroke="#29382e" stroke-width="3"/>
+    <path id="obsidian-face-guard" d="M-5-23 21-17 30 0 21 17-5 23 3 10 0 0 3-10Z" fill="#303034" stroke="#17171a" stroke-width="3" stroke-linejoin="round"/>
+    <path id="furnace-mouth" d="M16-5c10 0 15 3 17 5-2 3-7 6-17 6l-7-6Z" fill="url(#magma-gradient)" stroke="#8e3023" stroke-width="2.5"/>
+    <g id="heat-vents" fill="#ff8c32" stroke="#8e3023" stroke-width="1.5">
+      <path id="upper-vent" d="m-13-19 8-7 3 9-7 5Z"/>
+      <path id="lower-vent" d="m-14 18 7-5 5 9-8 5Z"/>
+    </g>
+    <g id="eyes" fill="#fff3c0">
+      <ellipse id="upper-eye" cx="10" cy="-11" rx="6" ry="4" transform="rotate(18 10 -11)"/>
+      <ellipse id="lower-eye" cx="10" cy="11" rx="6" ry="4" transform="rotate(-18 10 11)"/>
+    </g>
+    <g id="pupils" fill="#ef5728">
+      <circle id="upper-pupil" cx="13" cy="-10" r="2.5"/>
+      <circle id="lower-pupil" cx="13" cy="10" r="2.5"/>
+    </g>
+    <g id="rising-heat" fill="none" stroke="#ffad46" stroke-width="2.5" stroke-linecap="round" opacity=".85">
+      <path id="heat-line-one" d="M-23-30c-5-6 5-8 0-14"/>
+      <path id="heat-line-two" d="M-8-34c-5-6 5-8 1-14"/>
+    </g>
+  </g>
+</svg>

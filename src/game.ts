@@ -43,10 +43,11 @@ import {
   EQUIPMENT_ORDER,
   META_BALANCE,
   permanentUpgradePercent,
+  type EquipmentKind,
   type PermanentUpgradeId,
 } from "./meta-balance";
 import { resolveActionCooldown, resolveEffectiveStat } from "./modifiers";
-import { applySlow, isSlowed, updateStatuses } from "./status-effects";
+import { applyBurn, applySlow, isBurning, isSlowed, updateStatuses } from "./status-effects";
 import {
   performanceDifficultyDelta,
   type NightPerformanceSnapshot,
@@ -57,6 +58,7 @@ import type { ProfileManager, RunSettlementResult } from "./profile";
 import { campaignTier } from "./campaign";
 import { calculateXpRewards, settleCoinInvestment } from "./rewards";
 import { biomePopupColor } from "./popup-colors";
+import { selectRunBounties, type BountyMetric, type RunBounty } from "./bounties";
 import {
   emptyPlaytestActivity,
   finishRunDifficultyLog,
@@ -221,6 +223,12 @@ export class Game {
   particles: Particle[] = [];
   areaEffects: AreaEffect[] = [];
   areaStrikes: AreaStrike[] = [];
+  radiationHazards: Array<{ x: number; y: number; radius: number; createdNight: number }> = [];
+  infectionTravelers: Array<{ x: number; y: number; targetId: number; speed: number }> = [];
+  sandTunnels: Array<{ id: number; entry: Vec2; exit: Vec2; remaining: number; cooldown: number }> = [];
+  clockworkEarlyKills = 0;
+  clockPenaltyNotice: { kills: number; seconds: number } | null = null;
+  timeRewind: { bossId: number; elapsed: number; startTimer: number; removed: number } | null = null;
   selectedSlot = 1;
   selectedTiers: Record<StructureKind, Tier> = {
     wall: "wood",
@@ -241,8 +249,14 @@ export class Game {
   };
   directPlayerKills: Record<EnemyKind, number> = emptyEnemyCounts();
   runSettlementId: string | null = null;
-  runInvestment = 0;
   lastSettlement: RunSettlementResult | null = null;
+  activeBounties: RunBounty[] = [];
+  bountyCounters: Record<BountyMetric, number> = {
+    zombiesDefeated: 0, personalKills: 0, meleeKills: 0, bowKills: 0,
+    resourcesGathered: 0, structuresBuilt: 0, turretsBuilt: 0, harvestersBuilt: 0,
+    structuresUpgraded: 0, structuresRepaired: 0, structuresRecycled: 0,
+    portalsDestroyed: 0, nightsSurvived: 0,
+  };
   choices: Choice[] = [];
   dawnScreen = 0;
   dawnPicked = new Set<string>();
@@ -343,7 +357,7 @@ export class Game {
     requestedSeed: string,
     challengeIds: readonly string[] = [],
     suppressPortalAudio = false,
-    runOptions: { investment?: number; settle?: boolean; settlementId?: string; campaignTierId?: CampaignTierId } = {},
+    runOptions: { settle?: boolean; settlementId?: string; campaignTierId?: CampaignTierId } = {},
   ): boolean {
     this.tutorialMode = false;
     this.flagPresent = true;
@@ -360,12 +374,9 @@ export class Game {
     this.runSettlementId = shouldSettle
       ? runOptions.settlementId ?? this.createSettlementId()
       : null;
-    this.runInvestment = 0;
     this.lastSettlement = null;
     if (this.runSettlementId && this.profileManager) {
-      const requestedInvestment = Math.max(0, Math.floor(runOptions.investment ?? 0));
-      if (!this.profileManager.beginRunSettlement(this.runSettlementId, requestedInvestment)) return false;
-      this.runInvestment = this.profileManager.profile.pendingRunSettlement?.investment ?? 0;
+      if (!this.profileManager.beginRunSettlement(this.runSettlementId, 0)) return false;
     }
     this.rng = new SeededRng(`${this.seed}:gameplay:${difficulty}:${this.activeCampaignTierId}`);
     this.summonRng = new SeededRng(`${this.seed}:summons:${difficulty}:${this.activeCampaignTierId}`);
@@ -413,6 +424,12 @@ export class Game {
     this.particles = [];
     this.areaEffects = [];
     this.areaStrikes = [];
+    this.radiationHazards = [];
+    this.infectionTravelers = [];
+    this.sandTunnels = [];
+    this.clockworkEarlyKills = 0;
+    this.clockPenaltyNotice = null;
+    this.timeRewind = null;
     this.navigationFields.clear();
     this.structureRevision = 0;
     this.nightWaveScheduled = false;
@@ -424,6 +441,12 @@ export class Game {
     this.mutations = createMutations();
     this.stats = { resourcesGathered: 0, structuresBuilt: 0, zombiesDefeated: 0, elapsed: 0, nightsSurvived: 0 };
     this.directPlayerKills = emptyEnemyCounts();
+    this.activeBounties = selectRunBounties(this.seed).map((definition) => ({
+      definition, progress: 0, completed: false,
+    }));
+    for (const metric of Object.keys(this.bountyCounters) as BountyMetric[]) {
+      this.bountyCounters[metric] = 0;
+    }
     this.waveSchedule = [];
     this.waveScheduleCursor = 0;
     this.choices = [];
@@ -502,7 +525,6 @@ export class Game {
     this.cyclePlaytestActivity = emptyPlaytestActivity();
     this.runPlaytestActivity = emptyPlaytestActivity();
     this.lastSettlement = null;
-    this.runInvestment = 0;
     this.runSettlementId = this.profileManager ? this.createSettlementId() : null;
     if (this.runSettlementId && this.profileManager
       && !this.profileManager.beginRunSettlement(this.runSettlementId, 0)) {
@@ -862,6 +884,22 @@ export class Game {
     this.markUi();
   }
 
+  cycleSelectedTier(direction: -1 | 1): boolean {
+    const action = this.getSelectedAction();
+    if (!action || !STRUCTURE_ORDER.includes(action as StructureKind)) return false;
+    const kind = action as StructureKind;
+    const unlocked = TIER_ORDER.filter((tier) =>
+      this.unlocks.structures[kind].includes(tier) && this.isTutorialTierAllowed(kind, tier));
+    const currentIndex = unlocked.indexOf(this.selectedTiers[kind]);
+    const next = unlocked[currentIndex + direction];
+    if (!next) return false;
+    this.selectedTiers[kind] = next;
+    emitAudioCue({ cue: "ui-click" });
+    this.recordTutorialEvent(`selected-${kind}`);
+    this.markUi();
+    return true;
+  }
+
   chooseDawn(index: number): void {
     if (this.phase !== "dawn") return;
     const choice = this.choices[index];
@@ -1040,6 +1078,11 @@ export class Game {
     }
     if (this.input.escapePressed) this.togglePause();
     if (this.input.numberPressed) this.selectSlot(this.input.numberPressed);
+    if (this.timeRewind) {
+      this.updateTimeRewind(dt);
+      this.input.endFrame();
+      return;
+    }
     if (this.phase !== "day" && this.phase !== "night") {
       this.input.endFrame();
       return;
@@ -1056,6 +1099,9 @@ export class Game {
     const playerAttackSpeed = this.statusAttackSpeedMultiplier(this.player);
     this.player.cooldown = Math.max(0, this.player.cooldown - dt * playerAttackSpeed);
     this.player.toolCooldown = Math.max(0, this.player.toolCooldown - dt * playerAttackSpeed);
+    if (isBurning(this.player)) {
+      this.applyIncomingDamage(this.player, BALANCE.tierMechanics.volcanic.burnDamagePerSecond * dt, "cinderburst", "cinderburst-burst");
+    }
     updateStatuses(this.player, dt);
     this.player.hurtFlash = Math.max(0, this.player.hurtFlash - dt);
     if (this.flagPresent) this.flag.hurtFlash = Math.max(0, this.flag.hurtFlash - dt);
@@ -1073,6 +1119,7 @@ export class Game {
     this.rebuildSpatial();
     this.updateAim();
     this.updatePlayer(dt);
+    this.updateResourceMechanics(dt);
     this.updateMeleeSwing(dt);
     this.updateStructures(dt);
     this.updatePortals(dt);
@@ -1088,6 +1135,7 @@ export class Game {
     this.updateToolPreview();
     this.handleAction();
     this.updateCamera(dt);
+    this.updateBounties();
     if (this.audioSpatialCooldown <= 0) {
       this.audioSpatialCooldown = 0.2;
       this.syncSpatialAudio(true);
@@ -1233,6 +1281,7 @@ export class Game {
   private resolveMeleeImpact(sword: ReturnType<typeof swordStats>): void {
     const range = sword?.range ?? BALANCE.player.punchRange;
     const candidates = this.enemyHash.query(this.player.x, this.player.y, range + 40)
+      .filter((enemy) => (enemy.ghostRemaining ?? 0) <= 0)
       .filter((enemy) => this.inMeleeArc(enemy, range, sword?.arc ?? BALANCE.player.punchArc))
       .sort((a, b) => distance(this.player, a) - distance(this.player, b));
     const targets = sword ? candidates : candidates.slice(0, 1);
@@ -1269,7 +1318,10 @@ export class Game {
       portal.health -= BALANCE.glovePortalDamage[this.getBestGlove()];
       portal.flash = 0.16;
       this.burst(portal.x, portal.y, "#9c73ff", 8);
-      if (portal.health <= 0) this.relocatePortal(portal);
+      if (portal.health <= 0) {
+        if (portal.temporary) this.portals = this.portals.filter((item) => item !== portal);
+        else this.relocatePortal(portal);
+      }
       return;
     }
     const node = this.obstacleHash.query(this.player.x, this.player.y, range + 70)
@@ -1371,6 +1423,7 @@ export class Game {
     if (!free) this.spendResources(preview.cost);
     structure.health = structure.maxHealth;
     this.recordStructureActivity("repaired", structure.kind, structure.tier);
+    this.bountyCounters.structuresRepaired += 1;
     this.burst(structure.x, structure.y, "#74f3a5", 16, free ? "FREE REPAIR" : "FULL REPAIR");
     if (!free) this.floatWallet(structure.x, structure.y + 30, preview.cost, "-");
     emitAudioCue({ cue: "structure-repair", position: { x: structure.x, y: structure.y } });
@@ -1392,6 +1445,7 @@ export class Game {
     addWallet(this.resources, preview.refund);
     this.recordResources("refunded", preview.refund);
     this.structures = this.structures.filter((item) => item !== structure);
+    this.bountyCounters.structuresRecycled += 1;
     this.invalidateStructureTargets(structure.id);
     this.recalculateStructureScore();
     this.structureRevision += 1;
@@ -1534,7 +1588,8 @@ export class Game {
     } else if (this.flagPresent && distance(this.flag, candidate) < BALANCE.flagProtectedRadius + radius) {
       valid = false;
       reason = "Flag no-build zone";
-    } else if (this.portals.some((portal) => distance(portal, candidate) < BALANCE.portal.noBuildRadius + radius)) {
+    } else if (this.portalNoBuildZones().some((portal) =>
+      distance(portal, candidate) < BALANCE.portal.noBuildRadius + radius)) {
       valid = false;
       reason = "Portal no-build zone";
     } else if (x < radius || y < radius || x > BALANCE.mapSize - radius || y > BALANCE.mapSize - radius) {
@@ -1609,6 +1664,7 @@ export class Game {
       );
       structure.health = structure.maxHealth * ratio;
       this.recordStructureActivity("upgraded", structure.kind, structure.tier);
+      this.bountyCounters.structuresUpgraded += 1;
       this.burst(structure.x, structure.y, BALANCE.tierColors[preview.tier], 12, "UPGRADE");
       emitAudioCue({ cue: "structure-upgrade", position: { x: structure.x, y: structure.y } });
       this.recordTutorialEvent(`upgraded-${kind}`);
@@ -1632,6 +1688,9 @@ export class Game {
         flash: 0,
       });
       this.stats.structuresBuilt += 1;
+      this.bountyCounters.structuresBuilt += 1;
+      if (kind === "turret") this.bountyCounters.turretsBuilt += 1;
+      if (kind === "harvester") this.bountyCounters.harvestersBuilt += 1;
       this.recordStructureActivity("built", kind, preview.tier);
       this.burst(preview.x, preview.y, BALANCE.tierColors[preview.tier], 10, "BUILT");
       emitAudioCue({ cue: "structure-place", position: { x: preview.x, y: preview.y } });
@@ -1648,6 +1707,9 @@ export class Game {
 
   private updateStructures(dt: number): void {
     for (const structure of this.structures) {
+      if (isBurning(structure)) {
+        this.applyIncomingDamage(structure, BALANCE.tierMechanics.volcanic.burnDamagePerSecond * dt, "cinderburst", "cinderburst-burst");
+      }
       structure.cooldown = Math.max(
         0,
         structure.cooldown - dt * this.statusAttackSpeedMultiplier(structure),
@@ -1666,6 +1728,7 @@ export class Game {
     const ownerId = structure.ownerId ?? this.player.id;
     const range = this.getTurretRange(structure.tier, ownerId);
     const target = this.enemyHash.query(structure.x, structure.y, range)
+      .filter((enemy) => (enemy.ghostRemaining ?? 0) <= 0)
       .filter((enemy) => distance(structure, enemy) <= range)
       .sort((a, b) => distance(structure, a) - distance(structure, b))[0];
     if (!target) return;
@@ -1732,7 +1795,7 @@ export class Game {
       const node = item;
       if (node.health > 0 && overlaps(tip, node) && !structure.harvesterHitResourceIds.has(node.id)) {
         structure.harvesterHitResourceIds.add(node.id);
-        this.harvestNode(node, structure.tier, 0.2, "harvester");
+        this.harvestNode(node, structure.tier, 0.2, "harvester", structure);
         if (this.tutorialMode) {
           this.tutorialHarvestedNodeIds.add(node.id);
           if (this.tutorialHarvestedNodeIds.size >= 2) this.recordTutorialEvent("harvested-two-nodes");
@@ -1746,14 +1809,32 @@ export class Game {
     tier: Tier,
     damageScale: number,
     audioOrigin: "player" | "harvester" = "player",
+    harvester?: Structure,
   ): void {
     if (node.health <= 0) return;
+    if (node.infected && (node.infectionCooldown ?? 0) <= 0) {
+      node.infectionAttackTime = 0.7;
+      node.infectionCooldown = BALANCE.tierMechanics.mire.tentacleCooldown;
+      const target = audioOrigin === "harvester" && harvester ? harvester : this.player;
+      this.applyIncomingDamage(
+        target,
+        BALANCE.tierMechanics.mire.tentacleDamage,
+        "mire-lurker",
+        "enemy",
+      );
+      if ("tier" in target) target.flash = 0.3;
+      else target.hurtFlash = 0.3;
+      this.burst(node.x, node.y, "#79e6c1", 18, "TENTACLES");
+      emitAudioCue({ cue: "zombie-attack", position: { x: node.x, y: node.y } });
+      return;
+    }
     const amount = BALANCE.harvest[tier][node.kind];
     if (amount <= 0) {
       if (damageScale >= 1) this.notify(`Need better gloves for ${node.kind}`);
       return;
     }
     node.health = Math.max(0, node.health - Math.max(1, amount * damageScale));
+    node.harvestDamage = Math.min(node.maxHealth, (node.harvestDamage ?? 0) + Math.max(1, amount * damageScale));
     node.hitFlash = 0.16;
     this.resources[node.kind] += amount;
     this.stats.resourcesGathered += amount;
@@ -1775,9 +1856,55 @@ export class Game {
     }
   }
 
+  private updateResourceMechanics(dt: number): void {
+    for (const node of this.world.resources) {
+      node.infectionHintTime = Math.max(0, (node.infectionHintTime ?? 0) - dt);
+      node.infectionAttackTime = Math.max(0, (node.infectionAttackTime ?? 0) - dt);
+      node.infectionCooldown = Math.max(0, (node.infectionCooldown ?? 0) - dt);
+      if (!node.infected || node.infectionHinted
+        || distance(node, this.player) > BALANCE.tierMechanics.mire.hintRadius) continue;
+      node.infectionHinted = true;
+      node.infectionHintTime = 0.42;
+    }
+    for (const hazard of this.radiationHazards) {
+      for (const node of this.world.resources) {
+        if (node.destroyed || distance(hazard, node) > hazard.radius + node.radius) continue;
+        const remaining = Math.max(0, node.maxHealth - (node.harvestDamage ?? 0) - (node.radiationDamage ?? 0));
+        const damage = Math.min(remaining, BALANCE.tierMechanics.wasteland.radiationDamagePerSecond * dt);
+        node.radiationDamage = (node.radiationDamage ?? 0) + damage;
+        node.health = Math.max(0, node.health - damage);
+      }
+    }
+    this.infectionTravelers = this.infectionTravelers.filter((traveler) => {
+      const target = this.world.resources.find((node) => node.id === traveler.targetId && !node.infected);
+      if (!target) return false;
+      const angle = Math.atan2(target.y - traveler.y, target.x - traveler.x);
+      const travel = Math.min(distance(traveler, target), traveler.speed * dt);
+      traveler.x += Math.cos(angle) * travel;
+      traveler.y += Math.sin(angle) * travel;
+      if (distance(traveler, target) > target.radius) return true;
+      target.infected = true;
+      target.infectionHinted = false;
+      target.infectionAttackTime = 0.45;
+      this.burst(target.x, target.y, "#79e6c1", 16, "INFECTED");
+      return false;
+    });
+  }
+
   private updatePortals(dt: number): void {
     for (const portal of this.portals) {
       portal.flash = Math.max(0, portal.flash - dt);
+      if (portal.temporary) {
+        portal.temporaryRemaining = Math.max(0, (portal.temporaryRemaining ?? 0) - dt);
+        portal.spawnCooldown -= dt;
+        if ((portal.temporaryRemaining ?? 0) > 0 && portal.spawned < portal.assignedSpawns
+          && portal.spawnCooldown <= 0) {
+          portal.spawnCooldown = portal.temporarySpawnInterval ?? 1;
+          portal.spawned += 1;
+          this.spawnEnemy(portal, portal.temporarySpawnKind ?? "basic", portal.id, false, false);
+        }
+        continue;
+      }
       if (this.phase !== "night" || this.timer <= 0 || portal.spawned >= portal.assignedSpawns) continue;
       const scheduleProgress = Math.min(
         1,
@@ -1798,6 +1925,8 @@ export class Game {
         boundedWork += 1;
       }
     }
+    this.portals = this.portals.filter((portal) =>
+      !portal.temporary || (portal.temporaryRemaining ?? 0) > 0);
   }
 
   private updateBossSpawn(): void {
@@ -1966,6 +2095,11 @@ export class Game {
         : undefined,
       areaStrikeCooldown: definition.areaStrike?.initialCooldown,
       areaStrikeSerial: definition.areaStrike ? 0 : undefined,
+      timedLifeRemaining: kind === "springjack"
+        ? BALANCE.tierMechanics.clockwork.timedLifeSeconds
+        : undefined,
+      timedLifeExpired: false,
+      tunnelCooldown: kind === "dune-hopper" ? 1.5 : undefined,
     });
     const spawned = this.enemies.at(-1);
     if (spawned) {
@@ -2082,7 +2216,11 @@ export class Game {
       remaining -= ENEMY_REGISTRY[kind].threat;
       if (kind !== "basic") specialThreat += ENEMY_REGISTRY[kind].threat;
     }
-    return rng.shuffle(result);
+    const shuffled = rng.shuffle(result);
+    const heralds = shuffled.filter((kind) => kind === "void-herald");
+    return heralds.length > 0
+      ? [...heralds, ...shuffled.filter((kind) => kind !== "void-herald")]
+      : shuffled;
   }
 
   getWaveForecast(): Array<{ kind: EnemyKind; count: number; threat: number }> {
@@ -2093,6 +2231,13 @@ export class Game {
 
   private updateEnemies(dt: number): void {
     for (const enemy of this.enemies) {
+      if ((enemy.ghostRemaining ?? 0) > 0) {
+        enemy.ghostRemaining = Math.max(0, enemy.ghostRemaining! - dt);
+        if (enemy.ghostRemaining <= 0) {
+          enemy.deathReason = "forced";
+          enemy.health = 0;
+        }
+      }
       this.updateSunlight(enemy, dt);
       if (enemy.health <= 0) continue;
       enemy.cooldown = Math.max(0, enemy.cooldown - dt);
@@ -2102,6 +2247,34 @@ export class Game {
       enemy.jumpCooldown = Math.max(0, enemy.jumpCooldown - dt);
       enemy.routeCommitment = Math.max(0, enemy.routeCommitment - dt);
       enemy.bossSlamWave = Math.max(0, (enemy.bossSlamWave ?? 0) - dt);
+      if (enemy.kind === "dune-hopper") {
+        enemy.tunnelCooldown = Math.max(0, (enemy.tunnelCooldown ?? 0) - dt);
+        if (enemy.tunnelCooldown <= 0) {
+          const blocker = this.structures.filter((structure) => distance(enemy, structure) <= 210)
+            .sort((a, b) => distance(enemy, a) - distance(enemy, b) || a.id - b.id)[0];
+          if (blocker) {
+            const angleToFlag = Math.atan2(this.flag.y - blocker.y, this.flag.x - blocker.x);
+            this.sandTunnels.push({
+              id: this.nextId++, entry: { x: enemy.x, y: enemy.y },
+              exit: {
+                x: blocker.x + Math.cos(angleToFlag) * BALANCE.tierMechanics.desert.tunnelExitDistance,
+                y: blocker.y + Math.sin(angleToFlag) * BALANCE.tierMechanics.desert.tunnelExitDistance,
+              },
+              remaining: BALANCE.tierMechanics.desert.tunnelDuration,
+              cooldown: 0,
+            });
+            enemy.tunnelCooldown = BALANCE.tierMechanics.desert.tunnelDuration;
+            this.burst(enemy.x, enemy.y, "#f1ca75", 18, "TUNNEL");
+          }
+        }
+      }
+      if (enemy.timedLifeRemaining !== undefined && !enemy.timedLifeExpired) {
+        enemy.timedLifeRemaining = Math.max(0, enemy.timedLifeRemaining - dt);
+        if (enemy.timedLifeRemaining <= 0) {
+          enemy.timedLifeExpired = true;
+          this.burst(enemy.x, enemy.y, "#909090", 10, "CLOCKED OUT");
+        }
+      }
       const definition = ENEMY_REGISTRY[enemy.kind];
       if (typeof enemy.targetId === "number"
         && !this.structures.some((structure) =>
@@ -2191,6 +2364,7 @@ export class Game {
     }
 
     this.separateEnemies();
+    this.updateSandTunnels(dt);
     if (this.tutorialMode) {
       for (const enemy of this.enemies) this.constrainToTutorialArena(enemy);
     }
@@ -2223,6 +2397,26 @@ export class Game {
       this.navigationFields.clear();
     }
     this.recalculateStructureScore();
+  }
+
+  private updateSandTunnels(dt: number): void {
+    for (const tunnel of this.sandTunnels) {
+      tunnel.remaining -= dt;
+      tunnel.cooldown = Math.max(0, tunnel.cooldown - dt);
+      if (tunnel.cooldown > 0) continue;
+      const user = this.enemies.filter((enemy) => enemy.health > 0
+        && distance(enemy, tunnel.entry) <= enemy.radius + 32)
+        .sort((a, b) => distance(a, tunnel.entry) - distance(b, tunnel.entry) || a.id - b.id)[0];
+      if (!user) continue;
+      user.x = tunnel.exit.x;
+      user.y = tunnel.exit.y;
+      user.path = [];
+      user.pathIndex = 0;
+      user.pathCooldown = 0;
+      tunnel.cooldown = BALANCE.tierMechanics.desert.tunnelInterval;
+      this.burst(user.x, user.y, "#f1ca75", 10, "EMERGED");
+    }
+    this.sandTunnels = this.sandTunnels.filter((tunnel) => tunnel.remaining > 0);
   }
 
   private updateSunlight(enemy: Enemy, dt: number): void {
@@ -2569,7 +2763,12 @@ export class Game {
     }
     const sunlightMultiplier = enemy.burning && this.phase === "day" ? BALANCE.sunlight.movementMultiplier : 1;
     const windupMovementMultiplier = preserveMeleeWindup ? 1 : enemy.attackWindup > 0 ? 0.2 : 1;
-    const speed = enemy.speed * sunlightMultiplier * windupMovementMultiplier;
+    const sandstormMultiplier = enemy.kind !== "sandcaster" && this.enemies.some((support) =>
+      support.kind === "sandcaster" && support.health > 0
+        && distance(support, enemy) <= BALANCE.tierMechanics.desert.sandstormRadius)
+      ? BALANCE.tierMechanics.desert.sandstormSpeedMultiplier
+      : 1;
+    const speed = enemy.speed * sunlightMultiplier * windupMovementMultiplier * sandstormMultiplier;
     const beforeX = enemy.x;
     const beforeY = enemy.y;
     enemy.x += Math.cos(angle) * speed * dt;
@@ -2987,6 +3186,9 @@ export class Game {
       if (enemy.lastHitByPlayerId === this.player.id
         && (enemy.lastDamageSource === "player-melee" || enemy.lastDamageSource === "player-bow")) {
         this.directPlayerKills[enemy.kind] += 1;
+        this.bountyCounters.personalKills += 1;
+        if (enemy.lastDamageSource === "player-melee") this.bountyCounters.meleeKills += 1;
+        if (enemy.lastDamageSource === "player-bow") this.bountyCounters.bowKills += 1;
       }
     }
     emitAudioCue({
@@ -2997,6 +3199,36 @@ export class Game {
     if (definition.death.mode === "burst"
       && (reason === "combat" || (reason === "sunlight" && definition.death.triggersFromSunlight))) {
       this.resolveDeathBurst(enemy);
+    }
+    if (enemy.kind === "void-herald" && reason === "combat") {
+      this.portals.push({
+        id: this.nextId++, x: enemy.x, y: enemy.y, radius: BALANCE.portal.radius,
+        health: BALANCE.portal.health, maxHealth: BALANCE.portal.health,
+        assignedSpawns: BALANCE.tierMechanics.rift.deathPortalSpawns,
+        spawned: 0, spawnCooldown: BALANCE.tierMechanics.rift.deathPortalInterval,
+        flash: 0, temporary: true,
+        temporaryRemaining: BALANCE.tierMechanics.rift.deathPortalDuration,
+        temporarySpawnKind: "basic",
+        temporarySpawnInterval: BALANCE.tierMechanics.rift.deathPortalInterval,
+      });
+      emitAudioCue({ cue: "portal-spawn", position: { x: enemy.x, y: enemy.y } });
+      this.burst(enemy.x, enemy.y, "#a878ff", 24, "DEATH GATE");
+    }
+    if (enemy.kind === "radstalker" && reason === "combat") {
+      this.radiationHazards.push({
+        x: enemy.x, y: enemy.y,
+        radius: BALANCE.tierMechanics.wasteland.radiationRadius,
+        createdNight: this.night,
+      });
+      this.burst(enemy.x, enemy.y, "#b7dd63", 20, "FALLOUT");
+    }
+    if (enemy.kind === "mire-lurker" && reason === "combat") {
+      const target = this.world.resources.filter((node) => !node.infected && !node.destroyed)
+        .sort((a, b) => distance(enemy, a) - distance(enemy, b) || a.id - b.id)[0];
+      if (target) {
+        this.infectionTravelers.push({ x: enemy.x, y: enemy.y, targetId: target.id, speed: 330 });
+        this.burst(enemy.x, enemy.y, "#79e6c1", 14, "PARASITE");
+      }
     }
   }
 
@@ -3070,6 +3302,10 @@ export class Game {
       if (damage <= 0) continue;
       this.applyIncomingDamage(structure, damage, enemy.kind, damageSource);
       structure.flash = 0.25;
+      if (enemy.kind === "cinderburst") applyBurn(structure, BALANCE.tierMechanics.volcanic.burnDuration);
+    }
+    if (enemy.kind === "cinderburst" && distance(enemy, this.player) <= outer + this.player.radius) {
+      applyBurn(this.player, BALANCE.tierMechanics.volcanic.burnDuration);
     }
     const duration = death.burstWaveDuration ?? 0.38;
     this.areaEffects.push({ kind: "death-burst", sourceEnemyKind: enemy.kind, x: enemy.x, y: enemy.y, radius: outer, remaining: duration, duration });
@@ -3587,17 +3823,28 @@ export class Game {
     source: import("./types").DamageSource,
     ownerPlayerId: PlayerId | null,
   ): void {
+    if ((enemy.ghostRemaining ?? 0) > 0) return;
     enemy.lastDamageSource = source;
     enemy.lastHitByPlayerId = ownerPlayerId;
     const healthBefore = Math.max(0, enemy.health);
     const appliedDamage = this.routeEnemyDamage(enemy, amount, source);
+    if (!enemy.bossHalfSummoned
+      && (enemy.kind === "eclipse-regent"
+        || enemy.kind === "mireheart-titan"
+        || enemy.kind === "chronoforge-colossus")
+      && healthBefore > enemy.maxHealth * 0.5
+      && enemy.health <= enemy.maxHealth * 0.5) {
+      enemy.bossHalfSummoned = true;
+      this.triggerTierBossHalfHealth(enemy);
+    }
     const phaseSlam = ENEMY_REGISTRY[enemy.kind].phaseSlam;
     if (phaseSlam
       && !enemy.bossHalfSummoned
       && healthBefore > enemy.maxHealth * phaseSlam.triggerHealthRatio
       && enemy.health <= enemy.maxHealth * phaseSlam.triggerHealthRatio) {
       enemy.bossHalfSummoned = true;
-      enemy.bossSmashWindup = Number.EPSILON;
+      if (enemy.kind === "chronoforge-colossus") this.beginTimeRewind(enemy);
+      else enemy.bossSmashWindup = Number.EPSILON;
     }
     this.recordOutgoingDamage(source, appliedDamage);
     enemy.flash = 0.18;
@@ -3607,7 +3854,30 @@ export class Game {
       ? appliedDamage
       : amount;
     this.burst(enemy.x, enemy.y, color, 6, `-${Math.round(displayedDamage)}`);
+    if (enemy.health <= 0 && enemy.kind === "rift-strider") {
+      enemy.health = 1;
+      enemy.ghostRemaining = BALANCE.tierMechanics.rift.ghostDuration;
+      enemy.flash = 0;
+      this.burst(enemy.x, enemy.y, "#d99cff", 18, "ECHO");
+      return;
+    }
     if (enemy.health <= 0) {
+      if (enemy.kind === "springjack" && !enemy.timedLifeExpired
+        && (enemy.timedLifeRemaining ?? 0) > 0 && !enemy.timedLifeRewardCounted) {
+        enemy.timedLifeRewardCounted = true;
+        this.clockworkEarlyKills += 1;
+        emitAudioCue({ cue: "countdown-final-tick", position: { x: enemy.x, y: enemy.y } });
+        this.burst(enemy.x, enemy.y, "#e2b85d", 16, "TIME STOLEN");
+      }
+      if (enemy.kind === "aether-gunner") {
+        if (source === "player-melee" || source === "player-bow") {
+          this.applySlowStatus(this.player, BALANCE.tierMechanics.clockwork.retaliationSlowSeconds, "#e2b85d", "#79e7df", "Time Drag");
+        } else if (source === "turret") {
+          const turret = this.structures.filter((item) => item.kind === "turret")
+            .sort((a, b) => distance(enemy, a) - distance(enemy, b) || a.id - b.id)[0];
+          if (turret) this.applySlowStatus(turret, BALANCE.tierMechanics.clockwork.retaliationSlowSeconds, "#e2b85d", "#79e7df", "Time Drag");
+        }
+      }
       if (healthBefore > 0) this.recordEnemyKill(enemy, source);
       enemy.deathReason = source === "sunlight" ? "sunlight" : "combat";
       const definition = ENEMY_REGISTRY[enemy.kind];
@@ -3616,6 +3886,9 @@ export class Game {
         this.stats.zombiesDefeated += 1;
         if (ownerPlayerId === this.player.id && (source === "player-melee" || source === "player-bow")) {
           this.directPlayerKills[enemy.kind] += 1;
+          this.bountyCounters.personalKills += 1;
+          if (source === "player-melee") this.bountyCounters.meleeKills += 1;
+          if (source === "player-bow") this.bountyCounters.bowKills += 1;
           if (this.nightPerformance?.waveEnemyIds.has(enemy.id)) {
             this.nightPerformance.personalWaveZombieKills += 1;
           }
@@ -3766,6 +4039,11 @@ export class Game {
 
   private beginNight(): void {
     this.phase = "night";
+    this.radiationHazards = this.radiationHazards.filter((hazard) => hazard.createdNight >= this.night);
+    for (const node of this.world.resources) {
+      node.radiationDamage = 0;
+      node.health = Math.max(0, node.maxHealth - (node.harvestDamage ?? 0));
+    }
     this.combatMode = true;
     this.phaseElapsed = 0;
     this.timer = BALANCE.nightDuration;
@@ -3909,6 +4187,7 @@ export class Game {
     this.phaseElapsed = 0;
     this.phaseTransitionImpact = 0.55;
     this.stats.nightsSurvived = Math.max(0, this.night - this.runStartNight + 1);
+    this.bountyCounters.nightsSurvived = this.stats.nightsSurvived;
     this.platform?.reportProgress(Math.min(90, this.night * 10));
     if (
       !this.hasChallenge("permanent-player-damage")
@@ -3916,7 +4195,10 @@ export class Game {
     ) {
       this.player.health = this.player.maxHealth;
     }
-    for (const node of this.world.resources) if (!node.destroyed) node.health = node.maxHealth;
+    for (const node of this.world.resources) if (!node.destroyed) {
+      node.harvestDamage = 0;
+      node.health = Math.max(0, node.maxHealth - (node.radiationDamage ?? 0));
+    }
     this.dawnScreen = availableUnlocks(this.unlocks).length > 0 ? 0 : 1;
     this.dawnPicked = new Set();
     this.choices = generateChoiceOfferings(
@@ -3950,7 +4232,17 @@ export class Game {
     this.phaseElapsed = 0;
     this.phaseTransitionImpact = 0.55;
     for (const structure of this.structures) structure.harvesterHitResourceIds.clear();
-    this.timer = this.getDayDuration();
+    const earlyKills = this.clockworkEarlyKills;
+    const penaltySeconds = Math.min(
+      this.getDayDuration(),
+      earlyKills * BALANCE.tierMechanics.clockwork.dayPenaltyPerEarlyKill,
+    );
+    this.timer = Math.max(0, this.getDayDuration() - penaltySeconds);
+    this.clockworkEarlyKills = 0;
+    if (earlyKills > 0) {
+      this.clockPenaltyNotice = { kills: earlyKills, seconds: penaltySeconds };
+      this.modalLock = true;
+    }
     this.combatMode = this.enemies.some((enemy) => enemy.health > 0);
     if (!this.combatMode) this.selectedSlot = 1;
     else if (this.selectedSlot > 2) this.selectedSlot = 1;
@@ -3986,14 +4278,19 @@ export class Game {
   }
 
   private spawnPortals(playSpawnSound = true): void {
-    const baseCount = this.night >= 7 ? 4 : this.night >= 4 ? 3 : 2;
-    const count = Math.max(
-      1,
-      Math.round(baseCount * this.getChallengeModifiers().portalCountMultiplier),
-    );
+    const positions = this.portalPositionsForNight(this.night);
     this.portals = [];
-    for (let i = 0; i < count; i += 1) {
-      const position = this.findPortalPosition(i);
+    let structureRemoved = false;
+    for (const position of positions) {
+      const survivingStructures = this.structures.filter((structure) => {
+        const overlapsFootprint = distance(position, structure)
+          < BALANCE.portal.radius + structure.radius;
+        if (!overlapsFootprint) return true;
+        this.burst(structure.x, structure.y, "#a77cff", 18, "PORTAL BREACH");
+        structureRemoved = true;
+        return false;
+      });
+      this.structures = survivingStructures;
       this.portals.push({
         id: this.nextId++,
         ...position,
@@ -4006,22 +4303,54 @@ export class Game {
         flash: 0,
       });
     }
+    if (structureRemoved) {
+      this.structureRevision += 1;
+      this.navigationFields.clear();
+      this.recalculateStructureScore();
+      this.rebuildSpatial();
+    }
     const first = this.portals[0];
     if (playSpawnSound && first) {
       emitAudioCue({ cue: "portal-spawn", position: { x: first.x, y: first.y } });
     }
   }
 
-  private findPortalPosition(index: number, ignore?: Portal): Vec2 {
-    const portalRng = new SeededRng(`${this.seed}:portals:${this.night}:${index}:${ignore ? this.nextId : 0}`);
+  private portalCountForNight(night: number): number {
+    const baseCount = night >= 7 ? 4 : night >= 4 ? 3 : 2;
+    return Math.max(
+      1,
+      Math.round(baseCount * this.getChallengeModifiers().portalCountMultiplier),
+    );
+  }
+
+  private portalPositionsForNight(night: number): Vec2[] {
+    const positions: Vec2[] = [];
+    for (let index = 0; index < this.portalCountForNight(night); index += 1) {
+      positions.push(this.findPortalPosition(index, night, positions));
+    }
+    return positions;
+  }
+
+  private portalNoBuildZones(): Vec2[] {
+    if (this.tutorialMode) return this.portals;
+    const finalReservedNight = this.runMode === "campaign"
+      ? 10
+      : Math.max(this.night + 10, 20);
+    const zones = [...this.portals.map(({ x, y }) => ({ x, y }))];
+    for (let night = this.night + 1; night <= finalReservedNight; night += 1) {
+      zones.push(...this.portalPositionsForNight(night));
+    }
+    return zones;
+  }
+
+  private findPortalPosition(index: number, night = this.night, selected: readonly Vec2[] = []): Vec2 {
+    const portalRng = new SeededRng(`${this.seed}:portals:${night}:${index}`);
     const isValid = (candidate: Vec2): boolean => {
       const circle = { ...candidate, radius: BALANCE.portal.noBuildRadius };
-      if (distance(candidate, this.player) < 650) return false;
       if (distance(candidate, this.flag) < BALANCE.flagGenerationRadius) return false;
       if (this.world.resources.some((node) => overlaps(circle, node, 12))) return false;
-      if (this.structures.some((item) => overlaps(circle, item, 12))) return false;
-      if (this.portals.some((item) => item !== ignore
-        && distance(circle, item) < BALANCE.portal.noBuildRadius * 2)) return false;
+      if (selected.some((item) =>
+        distance(circle, item) < BALANCE.portal.noBuildRadius * 2)) return false;
       return true;
     };
     for (let attempt = 0; attempt < 200; attempt += 1) {
@@ -4043,12 +4372,18 @@ export class Game {
         if (isValid(candidate)) return candidate;
       }
     }
-    if (ignore) return { x: ignore.x, y: ignore.y };
-    throw new Error("Unable to place a portal outside all restricted zones.");
+    // Static world generation normally leaves many valid sites. This deterministic
+    // final position guarantees a scheduled portal is never canceled by live state.
+    const angle = ((index * 17 + night * 29) % 96) / 96 * Math.PI * 2;
+    return {
+      x: center + Math.cos(angle) * BALANCE.portal.edgeMax,
+      y: center + Math.sin(angle) * BALANCE.portal.edgeMax,
+    };
   }
 
   private relocatePortal(portal: Portal): void {
-    const position = this.findPortalPosition(portal.id, portal);
+    this.bountyCounters.portalsDestroyed += 1;
+    const position = this.findPortalPosition(portal.id, this.night, this.portals.filter((item) => item !== portal));
     emitAudioCue({ cue: "portal-destroyed", position: { x: portal.x, y: portal.y } });
     this.burst(portal.x, portal.y, "#a77cff", 24, "RELOCATING");
     portal.x = position.x;
@@ -4206,6 +4541,148 @@ export class Game {
     }
   }
 
+  dismissClockPenaltyNotice(): void {
+    this.clockPenaltyNotice = null;
+    this.modalLock = false;
+    this.markUi(true);
+  }
+
+  private updateBounties(): void {
+    this.bountyCounters.zombiesDefeated = this.stats.zombiesDefeated;
+    this.bountyCounters.resourcesGathered = this.stats.resourcesGathered;
+    for (const bounty of this.activeBounties) {
+      if (bounty.completed) continue;
+      bounty.progress = Math.min(
+        bounty.definition.requirement.target,
+        this.bountyCounters[bounty.definition.requirement.metric],
+      );
+      if (bounty.progress < bounty.definition.requirement.target) continue;
+      bounty.completed = true;
+      this.profileManager?.grantCoins(bounty.definition.coinReward);
+      emitAudioCue({ cue: "ui-confirm" });
+      this.notify(`Bounty Complete\n${bounty.definition.name}`);
+      this.markUi();
+    }
+  }
+
+  private beginTimeRewind(boss: Enemy): void {
+    if (this.timeRewind) return;
+    this.timeRewind = { bossId: boss.id, elapsed: 0, startTimer: this.timer, removed: 0 };
+    boss.bossSmashWindup = 0;
+    boss.health = Math.max(boss.health, boss.maxHealth * 0.5);
+    this.shake = 18;
+    this.burst(boss.x, boss.y, "#79e7df", 52, "TIME REWINDS");
+    emitAudioCue({ cue: "countdown-final-tick" });
+  }
+
+  private triggerTierBossHalfHealth(boss: Enemy): void {
+    if (boss.kind === "chronoforge-colossus") {
+      this.beginTimeRewind(boss);
+      return;
+    }
+    if (boss.kind === "eclipse-regent") {
+      const config = BALANCE.tierMechanics.rift;
+      for (let index = 0; index < config.bossGhostCount; index += 1) {
+        const angle = (Math.PI * 2 * index / config.bossGhostCount) + boss.id * 0.17;
+        this.spawnEnemy({
+          x: boss.x + Math.cos(angle) * (boss.radius + 42),
+          y: boss.y + Math.sin(angle) * (boss.radius + 42),
+        }, "rift-strider", boss.id, true, false);
+        const ghost = this.enemies.at(-1);
+        if (ghost) {
+          ghost.ghostRemaining = config.ghostDuration;
+          ghost.health = 1;
+          ghost.maxHealth = 1;
+        }
+      }
+      const portalAngle = new SeededRng(`${this.seed}:eclipse-half:${this.night}`).range(0, Math.PI * 2);
+      const portal = {
+        id: this.nextId++,
+        x: this.player.x + Math.cos(portalAngle) * config.bossPortalDistance,
+        y: this.player.y + Math.sin(portalAngle) * config.bossPortalDistance,
+        radius: BALANCE.portal.radius,
+        health: BALANCE.portal.health,
+        maxHealth: BALANCE.portal.health,
+        assignedSpawns: config.bossPortalSpawns,
+        spawned: 0,
+        spawnCooldown: 0,
+        flash: 0,
+        temporary: true,
+        temporaryRemaining: config.bossPortalDuration,
+        temporarySpawnKind: "basic" as const,
+        temporarySpawnInterval: config.deathPortalInterval,
+      };
+      this.portals.push(portal);
+      this.burst(portal.x, portal.y, "#a878ff", 34, "ECLIPSE GATE");
+      emitAudioCue({ cue: "portal-spawn", position: portal });
+      return;
+    }
+
+    if (boss.kind === "mireheart-titan") {
+      const config = BALANCE.tierMechanics.mire;
+      const infected = this.world.resources.filter((node) => node.infected && !node.destroyed)
+        .sort((a, b) => a.id - b.id);
+      for (const node of infected) {
+        node.infectionAttackTime = 0.75;
+        this.spawnEnemy(node, "mire-lurker", boss.id, true, false);
+        const tentacle = this.enemies.at(-1);
+        if (!tentacle) continue;
+        tentacle.mireTentacle = true;
+        tentacle.radius = config.bossTentacleRadius;
+        tentacle.health *= config.bossTentacleHealthRatio;
+        tentacle.maxHealth = tentacle.health;
+        tentacle.damage *= config.bossTentacleDamageRatio;
+        tentacle.structureDamage *= config.bossTentacleDamageRatio;
+        tentacle.speed = config.bossTentacleSpeed;
+        tentacle.targetId = "flag";
+      }
+      this.burst(boss.x, boss.y, "#79e6c1", 46, "THE MIRE RISES");
+      emitAudioCue({ cue: "summoner-cast", position: { x: boss.x, y: boss.y } });
+    }
+  }
+
+  private updateTimeRewind(dt: number): void {
+    const rewind = this.timeRewind;
+    if (!rewind) return;
+    rewind.elapsed += dt;
+    const duration = BALANCE.tierMechanics.clockwork.rewindDuration;
+    const progress = Math.min(1, rewind.elapsed / duration);
+    const accelerated = progress * progress;
+    this.timer = rewind.startTimer + (BALANCE.nightDuration - rewind.startTimer) * accelerated;
+    const removable = this.enemies.filter((enemy) => enemy.id !== rewind.bossId && enemy.health > 0)
+      .sort((a, b) => a.id - b.id);
+    const shouldRemove = Math.ceil(progress * removable.length);
+    for (let index = 0; index < shouldRemove && removable[index]; index += 1) {
+      const enemy = removable[index]!;
+      enemy.health = 0;
+      enemy.deathReason = "forced";
+      this.burst(enemy.x, enemy.y, "#79e7df", 9, "POOF");
+    }
+    this.shake = Math.max(this.shake, 6 + progress * 15);
+    if (progress < 1) return;
+    this.enemies = this.enemies.filter((enemy) => enemy.id === rewind.bossId);
+    const boss = this.enemies[0];
+    if (boss) {
+      boss.health = boss.maxHealth * 0.5;
+      boss.bossHalfSummoned = true;
+      boss.bossSmashWindup = 0;
+      boss.path = [];
+      boss.pathIndex = 0;
+      boss.pathCooldown = 0;
+    }
+    this.timer = BALANCE.nightDuration;
+    this.phaseElapsed = 0;
+    this.waveScheduleCursor = 0;
+    for (const portal of this.portals) {
+      if (portal.temporary) continue;
+      portal.spawned = 0;
+      portal.spawnCooldown = 0;
+    }
+    this.timeRewind = null;
+    this.notify("THE NIGHT BEGINS AGAIN", true);
+    emitAudioCue({ cue: "night-start" });
+  }
+
   private endRun(victory: boolean, reason: string): void {
     if (this.phase === "victory" || this.phase === "defeat") return;
     if (this.nightPerformance) this.finalizeNightPerformance(victory ? "complete" : "partial");
@@ -4217,6 +4694,8 @@ export class Game {
     }
     this.defeatReason = reason;
     if (victory && this.runMode === "campaign") this.stats.nightsSurvived = 10;
+    this.bountyCounters.nightsSurvived = this.stats.nightsSurvived;
+    this.updateBounties();
     this.recalculateStructureScore();
     if (this.runSettlementId && this.profileManager) {
       const xp = calculateXpRewards({
@@ -4227,7 +4706,7 @@ export class Game {
         challengeIds: [...this.activeChallenges],
         selectedDifficulty: this.difficulty,
       });
-      const coins = settleCoinInvestment(this.runInvestment, this.stats.nightsSurvived);
+      const coins = settleCoinInvestment(0, this.stats.nightsSurvived);
       this.lastSettlement = this.profileManager.settleRun(
         this.runSettlementId,
         xp,
@@ -4695,6 +5174,10 @@ export class Game {
       turretDps,
       turretCoverageRatio: maximumRange / Math.max(1, BALANCE.portal.edgeMin),
       upgrades: { ...this.upgrades },
+      equipmentStrength: Object.entries(this.profileManager?.profile.equipment ?? {})
+        .reduce((total, [kind, item]) => total + (item.equipped && item.tier
+          ? META_BALANCE.equipment.adaptiveStrength[kind as EquipmentKind][item.tier]
+          : 0), 0),
     };
   }
 

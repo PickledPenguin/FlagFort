@@ -284,7 +284,7 @@ async function bootstrap(): Promise<void> {
       night: game.night,
       tutorialMode: game.tutorialMode,
       bossNight: game.isBossNight(),
-    }));
+    }), game.getCampaignTier().music);
   }
 
   syncMusic();

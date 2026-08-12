@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-58 -52 116 104" role="img" aria-labelledby="title description">
+  <title id="title">Obsidian Charger zombie with broken armor</title>
+  <desc id="description">A broad volcanic zombie charging forward after its obsidian headplate and shoulder armor have shattered, exposing glowing cracks and scattered shards.</desc>
+  <g id="obsidian-charger-zombie-broken">
+    <g id="braced-arms" fill="#536b53" stroke="#26342a" stroke-width="3">
+      <path id="upper-arm" d="M10-20c17-14 32-12 41-3l-8 12c-10-6-17-5-27 4Z"/>
+      <path id="lower-arm" d="M10 20c17 14 32 12 41 3l-8-12c-10 6-17 5-27-4Z"/>
+      <circle id="upper-fist" cx="45" cy="-20" r="10"/>
+      <circle id="lower-fist" cx="45" cy="20" r="10"/>
+    </g>
+    <circle id="body" cx="-4" r="30" fill="#587258" stroke="#26342a" stroke-width="3"/>
+    <path id="exposed-head" d="m-37 0 17-23 22-4 22 15 4 12-4 12L2 27l-22-4Z" fill="#4f684f" stroke="#26342a" stroke-width="3" stroke-linejoin="round"/>
+    <g id="exposed-lava-cracks" fill="none" stroke="#ff7a2d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <path id="central-crack" d="m-29-5 11 5-9 8 12 6"/>
+      <path id="upper-crack" d="m-10-23 7 9 10-6"/>
+      <path id="lower-crack" d="m-9 23 8-8 9 6"/>
+    </g>
+    <g id="remaining-obsidian-shards" fill="#292630" stroke="#141419" stroke-width="2" stroke-linejoin="round">
+      <path id="upper-shard" d="m6-29 12-7 10 12-12 7Z"/>
+      <path id="lower-shard" d="m7 28 12 7 9-13-12-6Z"/>
+      <path id="rear-shard" d="m-40-17 9-8 5 10Z"/>
+    </g>
+    <g id="eyes" fill="#ffd47a" stroke="#1c1b20" stroke-width="1.5">
+      <path id="upper-eye" d="m6-12 13 2-11 6Z"/>
+      <path id="lower-eye" d="m6 12 13-2-11-6Z"/>
+    </g>
+    <g id="charge-debris" fill="#4b424f" opacity=".9">
+      <path id="flying-shard" d="m-48-27 8-5 4 9-9 3Z"/>
+      <path id="fallen-shard" d="m-53 34 12-5 4 8Z"/>
+      <circle id="dust-grain" cx="-48" cy="22" r="3" fill="#6c4a42"/>
+    </g>
+  </g>
+</svg>

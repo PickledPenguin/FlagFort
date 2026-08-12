@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title description">
+  <title id="title">Drowned mire bog gold</title>
+  <desc id="description">Warm gold nuggets gleaming through a dark iron-rich bog rock.</desc>
+  <g id="mire-bog-gold-active">
+    <ellipse id="shadow" cx="48" cy="87" rx="37" ry="6" fill="#132827" opacity=".72"/>
+    <path id="ore-body" d="m9 75 14-32 27-13 29 16 10 28-19 13H27Z" fill="#4b5149" stroke="#213531" stroke-width="6" stroke-linejoin="round"/>
+    <path id="gold-vein" d="m24 60 13-8 10 4 10-13 14 7-8 10 14 7-14 10-12-8-13 9-15-6Z" fill="#e5b94c" stroke="#71572b" stroke-width="4" stroke-linejoin="round"/>
+    <path id="gold-highlight" d="m35 57 10 3 11-11m3 17 8 3" fill="none" stroke="#fff0a1" stroke-width="3" stroke-linecap="round"/>
+    <path id="moss" d="M16 50c8-4 13 4 20-1" fill="none" stroke="#7f9a58" stroke-width="4" stroke-linecap="round"/>
+  </g>
+</svg>

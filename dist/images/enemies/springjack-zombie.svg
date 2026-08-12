@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-58 -52 116 104" role="img" aria-labelledby="title description">
+  <title id="title">Springjack zombie</title>
+  <desc id="description">A lean clockwork zombie mounted on powerful brass spring legs, with a wind-up key and cyan aether eyes.</desc>
+  <defs id="springjack-definitions">
+    <linearGradient id="springjack-coat-gradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#66717a"/>
+      <stop offset="1" stop-color="#303841"/>
+    </linearGradient>
+    <linearGradient id="springjack-brass-gradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f0cf72"/>
+      <stop offset="1" stop-color="#9b682d"/>
+    </linearGradient>
+  </defs>
+  <g id="springjack-zombie">
+    <g id="spring-legs" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path id="rear-spring" d="M-17 20-29 29-13 35-34 44" stroke="#b77f35" stroke-width="7"/>
+      <path id="front-spring" d="M13 20 26 28 11 35 35 43" stroke="#d3a64c" stroke-width="7"/>
+      <path id="rear-foot" d="m-34 44-13 2" stroke="#404951" stroke-width="8"/>
+      <path id="front-foot" d="m35 43 14-2" stroke="#404951" stroke-width="8"/>
+    </g>
+    <path id="coat" d="M-28-10C-27-33-9-43 14-35 31-28 34-4 24 25H-22C-30 12-32 1-28-10Z" fill="url(#springjack-coat-gradient)" stroke="#202831" stroke-width="3" stroke-linejoin="round"/>
+    <path id="face" d="M-16-29C0-40 22-30 27-14 24 3 12 11-4 7-17 4-24-15-16-29Z" fill="#6f8478" stroke="#273b3b" stroke-width="3"/>
+    <path id="jaw-plate" d="M-8-5 20-10 17 5-4 8Z" fill="#9a6b32" stroke="#543d25" stroke-width="2"/>
+    <g id="aether-eyes" fill="#80fff2" stroke="#205b5d" stroke-width="1.5">
+      <path id="left-eye" d="m-9-21 10-3-2 8Z"/>
+      <path id="right-eye" d="m7-25 11 2-7 7Z"/>
+    </g>
+    <g id="wind-up-key" fill="none" stroke="url(#springjack-brass-gradient)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+      <path id="key-shaft" d="M-25-15-43-23"/>
+      <path id="key-bow" d="m-43-23-8-10m8 10-12 3"/>
+    </g>
+    <path id="shoulder-gear" d="m25-19 5-5 6 3 1 7-5 5-7-2Z" fill="#d0a24a" stroke="#654923" stroke-width="2"/>
+    <g id="arms" fill="none" stroke="#586a63" stroke-width="9" stroke-linecap="round">
+      <path id="rear-arm" d="M-23-7-40 7-49-1"/>
+      <path id="front-arm" d="M25-4 40 7 49-1"/>
+    </g>
+    <g id="claws" fill="none" stroke="#d6b35c" stroke-width="3" stroke-linecap="round">
+      <path id="rear-claw" d="m-48-2-7-7m7 8-9 1"/>
+      <path id="front-claw" d="m48-2 7-8m-6 9 8 1"/>
+    </g>
+    <circle id="chest-cog" cx="4" cy="17" r="8" fill="url(#springjack-brass-gradient)" stroke="#5b4023" stroke-width="2"/>
+    <circle id="chest-axle" cx="4" cy="17" r="3" fill="#79e7df"/>
+  </g>
+</svg>

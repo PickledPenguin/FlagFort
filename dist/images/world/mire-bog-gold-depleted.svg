@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title description">
+  <title id="title">Depleted drowned mire bog gold</title>
+  <desc id="description">A split bog rock with only dim traces left in its mined gold seam.</desc>
+  <g id="mire-bog-gold-depleted">
+    <ellipse id="shadow" cx="48" cy="87" rx="37" ry="6" fill="#132827" opacity=".72"/>
+    <path id="left-shell" d="m9 76 15-28 24-8 7 27-15 18H19Z" fill="#464c45" stroke="#213531" stroke-width="6" stroke-linejoin="round"/>
+    <path id="right-shell" d="m54 67 2-27 23 10 10 25-17 12Z" fill="#535951" stroke="#213531" stroke-width="6" stroke-linejoin="round"/>
+    <path id="empty-seam" d="m46 49-8 11 9 8m12-20 8 10-9 10" fill="none" stroke="#272d29" stroke-width="5" stroke-linecap="round"/>
+    <path id="gold-traces" d="m34 55 4-2m29 4 4 3" fill="none" stroke="#9e7b36" stroke-width="3" stroke-linecap="round"/>
+  </g>
+</svg>

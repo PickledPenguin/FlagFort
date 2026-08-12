@@ -1,13 +1,108 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="-50 -50 100 100" role="img" aria-labelledby="title desc">
-  <title id="title">Frostbite zombie</title><desc id="desc">A quick blue zombie with icy claws and a trailing frost crest.</desc>
-  <g id="frostbite-zombie" stroke="#173746" stroke-width="4" stroke-linejoin="round">
-    <path id="frost-trail" d="M-40 0-25-14-27-3-12-20-15-3" fill="#b9f3ff" opacity=".9"/>
-    <circle id="body" r="27" fill="#66bed1"/>
-    <path id="ice-crest" d="m-17-22 6-20 8 17L8-44l4 23 17-12-8 21" fill="#dffaff"/>
-    <path id="upper-claw" d="m20-15 22-13-9 13 15-3-18 16" fill="#bff5ff"/>
-    <path id="lower-claw" d="m22 14 21 14-9-14 15 4L30 2" fill="#bff5ff"/>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="-50 -50 100 100"
+   role="img"
+   aria-labelledby="title desc"
+   version="1.1"
+   id="svg3"
+   sodipodi:docname="frostbite-zombie.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs3" />
+  <sodipodi:namedview
+     id="namedview3"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="3.571007"
+     inkscape:cx="51.666099"
+     inkscape:cy="37.804462"
+     inkscape:window-width="1688"
+     inkscape:window-height="903"
+     inkscape:window-x="0"
+     inkscape:window-y="33"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg3" />
+  <title
+     id="title">Frostbite zombie</title>
+  <desc
+     id="desc">A quick blue zombie with icy claws and a trailing frost crest.</desc>
+  <g
+     id="frostbite-zombie"
+     stroke="#173746"
+     stroke-width="4"
+     stroke-linejoin="round">
+    <circle
+       id="body"
+       r="27"
+       fill="#66bed1"
+       cx="-6"
+       cy="0" />
+    <path
+       id="upper-claw"
+       d="m 20.433424,-28.550616 24.953417,-5.506995 -12.599115,9.55313 15.188687,1.817632 -22.085817,9.602952 c -3.206789,-5.123935 -7.326933,-10.227047 -5.457172,-15.466714 z"
+       fill="#bff5ff"
+       sodipodi:nodetypes="cccccc" />
+    <path
+       id="lower-claw"
+       d="M 21.776133,28.392857 46.704447,32.339903 32.678863,23.379825 47.978285,20.747779 24.031588,14.148106 c -2.985959,5.061982 -5.273541,10.025892 -2.255455,14.244751 z"
+       fill="#bff5ff"
+       sodipodi:nodetypes="cccccc" />
   </g>
-  <g id="face" fill="#f8ffff"><ellipse cx="9" cy="-9" rx="8" ry="6"/><ellipse cx="9" cy="9" rx="8" ry="6"/></g>
-  <g id="pupils" fill="#19455f"><circle cx="13" cy="-8" r="3"/><circle cx="13" cy="8" r="3"/></g>
-  <path id="brows" d="M-4-15 13-12M-3 15 14 11" fill="none" stroke="#173746" stroke-width="4"/>
+  <g
+     id="face"
+     fill="#f8ffff"
+     transform="translate(-6)">
+    <ellipse
+       cx="9"
+       cy="-9"
+       rx="8"
+       ry="6"
+       id="ellipse1" />
+    <ellipse
+       cx="9"
+       cy="9"
+       rx="8"
+       ry="6"
+       id="ellipse2" />
+  </g>
+  <g
+     id="pupils"
+     fill="#19455f"
+     transform="translate(-6)">
+    <circle
+       cx="13"
+       cy="-8"
+       r="3"
+       id="circle2" />
+    <circle
+       cx="13"
+       cy="8"
+       r="3"
+       id="circle3" />
+  </g>
+  <path
+     id="frost-trail"
+     d="m -16.312823,-22.80167 0.08743,21.0802647 -6.715124,-8.9390777 2.289302,22.555689 -10.337452,-13.5437915 c 0.807856,-10.7729715 7.482553,-17.6600535 14.675844,-21.1530845 z"
+     fill="#b9f3ff"
+     opacity="0.9"
+     sodipodi:nodetypes="cccccc" />
+  <path
+     d="M -9.1315846,14.760072 -1.4537551,1.622771"
+     style="fill:none;stroke:#173746;stroke-width:4"
+     id="path1"
+     sodipodi:nodetypes="cc" />
+  <path
+     d="m -10.14342,-16.851853 7.6778297,13.1373012"
+     style="fill:none;stroke:#173746;stroke-width:4"
+     id="path1-6"
+     sodipodi:nodetypes="cc" />
 </svg>

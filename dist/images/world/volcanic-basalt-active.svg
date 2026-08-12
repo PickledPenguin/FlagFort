@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title description">
+  <title id="title">Volcanic basalt formation</title>
+  <desc id="description">A cluster of angular basalt columns ready to be quarried.</desc>
+  <g id="volcanic-basalt-active">
+    <path id="left-column" d="m12 78 5-39 13-9 13 10-2 40Z" fill="#494652" stroke="#1e1b24" stroke-width="6" stroke-linejoin="round"/>
+    <path id="center-column" d="m35 79 4-55 14-12 14 12 4 55Z" fill="#5c5764" stroke="#1e1b24" stroke-width="6" stroke-linejoin="round"/>
+    <path id="right-column" d="m63 80-2-38 13-10 12 9-2 38Z" fill="#3e3b46" stroke="#1e1b24" stroke-width="6" stroke-linejoin="round"/>
+    <path id="facets" d="m53 18-3 53M25 38l5 34m45-32-3 31" fill="none" stroke="#817782" stroke-width="3" stroke-linecap="round" opacity=".75"/>
+    <path id="lava-glow" d="M15 83c20-5 45-5 67 0" fill="none" stroke="#e75b2f" stroke-width="4" stroke-linecap="round"/>
+  </g>
+</svg>

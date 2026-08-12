@@ -12,6 +12,12 @@ export interface MusicTrack {
   volume: number;
 }
 
+export interface TierMusicSelection {
+  day: string;
+  upgrade: string;
+  night: string;
+}
+
 /**
  * Assign music by changing only the `file` value for a context below.
  * Files live in `public/music` and are served from `./music`.
@@ -45,6 +51,7 @@ type AudioFactory = (file: string) => HTMLAudioElement;
 
 interface ActiveTrack {
   context: MusicContext;
+  file: string;
   audio: HTMLAudioElement;
   targetVolume: number;
 }
@@ -91,22 +98,27 @@ export class MusicManager {
     }
   }
 
-  setContext(context: MusicContext | null): void {
-    if (this.context === context) return;
+  setContext(context: MusicContext | null, tierMusic?: TierMusicSelection): void {
+    const definition = context ? MUSIC_TRACKS[context] : null;
+    const file = context && context !== "countdown"
+      ? tierMusic?.[context] ?? definition!.file
+      : definition?.file;
+    if (this.context === context && this.active?.file === file) return;
     if (context === null) {
       this.stop();
       return;
     }
+    const activeDefinition = MUSIC_TRACKS[context];
     this.context = context;
-    const definition = MUSIC_TRACKS[context];
-    const audio = this.createAudio(definition.file);
-    audio.loop = definition.loop;
+    const audio = this.createAudio(file!);
+    audio.loop = activeDefinition.loop;
     audio.preload = "auto";
     audio.volume = 0;
     const incoming: ActiveTrack = {
       context,
+      file: file!,
       audio,
-      targetVolume: definition.volume,
+      targetVolume: activeDefinition.volume,
     };
     const outgoing = this.active;
     this.tracks.add(incoming);

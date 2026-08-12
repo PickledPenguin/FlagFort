@@ -473,6 +473,14 @@ export class ProfileManager {
     return { granted: true, amount: status.amount, date: status.today };
   }
 
+  grantCoins(amount: number): number {
+    const granted = Math.max(0, Math.floor(amount));
+    if (granted === 0) return 0;
+    this.profile.coins += granted;
+    this.commit();
+    return granted;
+  }
+
   beginRunSettlement(id: string, requestedInvestment: number, startedAt = new Date()): boolean {
     const runId = id.trim().slice(0, 96);
     if (!runId || this.profile.completedSettlementIds.includes(runId)) return false;

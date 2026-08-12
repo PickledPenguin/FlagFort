@@ -1,17 +1,125 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" role="img" aria-labelledby="title desc">
-  <title id="title">Frost Warden boss</title><desc id="desc">A huge six-armed frozen zombie wearing a jagged crown of ice.</desc>
-  <g id="frost-warden" transform="translate(90 92)" stroke="#183b4d" stroke-width="7" stroke-linejoin="round">
-    <g id="six-arms" fill="#5799aa">
-      <path d="M-48-34-78-54-88-37-68-13-47-16Z"/><path d="M48-34 78-54 88-37 68-13 47-16Z"/>
-      <path d="M-58-3-91-12-94 9-65 25-48 14Z"/><path d="M58-3 91-12 94 9 65 25 48 14Z"/>
-      <path d="M-50 31-78 47-67 67-37 56-32 38Z"/><path d="M50 31 78 47 67 67 37 56 32 38Z"/>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 180 180"
+   role="img"
+   aria-labelledby="title desc"
+   version="1.1"
+   id="svg8"
+   sodipodi:docname="frost-warden.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs8" />
+  <sodipodi:namedview
+     id="namedview8"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="2.3987993"
+     inkscape:cx="59.404719"
+     inkscape:cy="81.290669"
+     inkscape:window-width="1636"
+     inkscape:window-height="749"
+     inkscape:window-x="22"
+     inkscape:window-y="77"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="frost-warden" />
+  <title
+     id="title">Frost Warden boss</title>
+  <desc
+     id="desc">A huge six-armed frozen zombie wearing a jagged crown of ice.</desc>
+  <g
+     id="frost-warden"
+     transform="translate(90 92)"
+     stroke="#183b4d"
+     stroke-width="7"
+     stroke-linejoin="round">
+    <g
+       id="six-arms"
+       fill="#5799aa"
+       transform="matrix(0.91866231,0,0,0.91866231,0,-0.85402847)">
+      <path
+         d="m -48,-34 -30,-20 -10,17 20,24 21,-3 z"
+         id="path1" />
+      <path
+         d="m 48,-34 30,-20 10,17 -20,24 -21,-3 z"
+         id="path2" />
+      <path
+         d="m -58,-3 -33,-9 -3,21 29,16 17,-11 z"
+         id="path3" />
+      <path
+         d="M 58,-3 91,-12 94,9 65,25 48,14 Z"
+         id="path4" />
+      <path
+         d="m -50,31 -28,16 11,20 30,-11 5,-18 z"
+         id="path5" />
+      <path
+         d="M 50,31 78,47 67,67 37,56 32,38 Z"
+         id="path6" />
     </g>
-    <circle id="body" r="58" fill="#4d8797"/>
-    <path id="ice-crown" d="m-43-41 7-40 21 26L0-88l15 34 23-29 4 43" fill="#bff5ff" stroke="#e9feff"/>
-    <path id="ice-armor" d="m-52-18 18-26 18 12 17-19 17 20 24-11 13 29-19 12 17 20-23 25-26-9-20 17-22-28 9-22Z" fill="#91dce9" fill-opacity=".58" stroke="#caeff5"/>
-    <path id="armor-cracks" d="M-17-30-4-12l-13 17L3 19-5 43M26-31 14-11l14 13-13 18" fill="none" stroke="#397b92" stroke-width="4"/>
-    <g id="eyes" fill="#f3feff" stroke="none"><ellipse cx="17" cy="-11" rx="12" ry="9"/><ellipse cx="17" cy="15" rx="12" ry="9"/></g>
-    <g id="pupils" fill="#7b1743" stroke="none"><circle cx="22" cy="-10" r="5"/><circle cx="22" cy="14" r="5"/></g>
-    <path id="mouth" d="m-9 10 8 8 8-7 8 9 9-9 8 10" fill="none" stroke="#173746" stroke-width="6"/>
+    <circle
+       id="body"
+       r="53.282413"
+       fill="#4d8797"
+       cx="0"
+       cy="-0.85402846"
+       style="stroke-width:6.43064" />
+    <path
+       id="ice-crown"
+       d="m -39.502479,-38.519183 6.430636,-36.746493 19.291908,23.88522 L 0,-81.696312 13.779935,-50.461793 34.909168,-77.103 l 3.674649,39.502479 c -29.9279117,15.290365 -54.528786,9.272581 -78.086296,-0.918662 z"
+       fill="#bff5ff"
+       stroke="#e9feff"
+       style="stroke-width:6.43064"
+       sodipodi:nodetypes="cccccccc" />
+    <path
+       id="ice-armor"
+       d="m -47.77044,-17.38995 16.535921,-23.88522 16.535922,11.023948 L 0.91866231,-47.705806 16.535922,-29.33256 38.583817,-39.437846 50.526427,-12.796639 33.071843,-1.7726908 48.689103,16.600555 27.559869,39.567113 3.6746493,31.299152 -14.698597,46.916412 -34.909168,21.193867 -26.641207,0.98329616 Z"
+       fill="#91dce9"
+       fill-opacity="0.58"
+       stroke="#caeff5"
+       style="stroke-width:6.43064;fill:#91dce9;fill-opacity:1" />
+    <path
+       id="armor-cracks"
+       d="M -15.617259,-28.413898 -3.6746493,-11.877976 -19.369136,3.3224079 2.7559869,16.600555 -7.0945629,33.645948 M 23.88522,-29.33256 12.861272,-10.959314 25.722545,0.98329616 20.449939,23.772346"
+       fill="none"
+       stroke="#397b92"
+       stroke-width="3.67465"
+       sodipodi:nodetypes="ccccccccc" />
+    <g
+       id="eyes"
+       fill="#f3feff"
+       stroke="none"
+       transform="matrix(0,0.91866231,-0.91866231,0,16.363729,-28.087841)">
+      <ellipse
+         cx="17"
+         cy="15"
+         rx="12"
+         ry="9"
+         id="ellipse7" />
+    </g>
+    <g
+       id="pupils"
+       fill="#7b1743"
+       stroke="none"
+       transform="matrix(0,0.91866231,-0.91866231,0,15.866384,-32.317535)">
+      <circle
+         cx="22"
+         cy="14"
+         r="5"
+         id="circle8" />
+    </g>
+    <path
+       id="mouth"
+       d="M -15.903945,7.2417398 -8.554647,14.591038 -1.2053485,8.1604021 6.14395,16.428362 14.411911,8.1604021 21.761209,17.347025"
+       fill="none"
+       stroke="#173746"
+       stroke-width="5.51197" />
   </g>
 </svg>

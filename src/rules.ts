@@ -162,6 +162,8 @@ export interface AdaptiveDifficulty {
   expectedTurretDps: number;
   turretCoverageRatio: number;
   playerUpgradeFraction: number;
+  equipmentStrength: number;
+  equipmentDelta: number;
   powerDelta: number;
   otherDelta: number;
   rawMultiplier: number;
@@ -173,6 +175,7 @@ export interface AdaptivePowerInput {
   turretDps: number;
   turretCoverageRatio: number;
   upgrades: Upgrades;
+  equipmentStrength?: number;
 }
 
 function clamp(value: number, minimum: number, maximum: number): number {
@@ -241,7 +244,14 @@ export function adaptiveDifficulty(
     ? weightedUpgradeProgress / totalUpgradeWeight
     : 0;
   const playerUpgradeDelta = playerUpgradeFraction * powerConfig.playerUpgrades.maximumDelta;
-  const powerDelta = turretDpsDelta + coverageDelta + playerUpgradeDelta;
+  const equipmentStrength = Math.max(0, power?.equipmentStrength ?? 0);
+  const equipmentDelta = clamp(
+    equipmentStrength / Math.max(1e-9, powerConfig.equipment.referenceStrength)
+      * powerConfig.equipment.maximumDelta,
+    0,
+    powerConfig.equipment.maximumDelta,
+  );
+  const powerDelta = turretDpsDelta + coverageDelta + playerUpgradeDelta + equipmentDelta;
   const baseMultiplier = BALANCE.adaptive.effective.baseMultiplier;
   const structureDelta = structureMultiplier - baseMultiplier;
   const levelDelta = levelMultiplier - baseMultiplier;
@@ -278,6 +288,8 @@ export function adaptiveDifficulty(
     expectedTurretDps,
     turretCoverageRatio,
     playerUpgradeFraction,
+    equipmentStrength,
+    equipmentDelta,
     powerDelta,
     otherDelta,
     rawMultiplier,

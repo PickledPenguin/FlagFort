@@ -1,15 +1,136 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="-55 -55 110 110" role="img" aria-labelledby="title desc">
-  <title id="title">Snowballer zombie</title><desc id="desc">A bundled blue zombie holding a large packed snowball.</desc>
-  <g id="snowballer-zombie" stroke="#173746" stroke-width="4" stroke-linejoin="round">
-    <circle id="body" r="28" fill="#72b4c5"/>
-    <path id="scarf" d="M-24-16Q3-2 27-12l2 12Q2 12-26-4Z" fill="#e66156"/>
-    <path id="wool-cap" d="M-24-19Q0-48 25-19L14-12h-30Z" fill="#375c82"/>
-    <circle id="pom" cy="-43" r="8" fill="#f2fbff"/>
-    <circle id="snowball" cx="39" cy="-19" r="18" fill="#f5ffff" stroke="#9bcbd5"/>
-    <circle id="throwing-hand" cx="24" cy="-9" r="8" fill="#72b4c5"/>
-    <circle id="lower-hand" cx="31" cy="18" r="8" fill="#72b4c5"/>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="-55 -55 110 110"
+   role="img"
+   aria-labelledby="title desc"
+   version="1.1"
+   id="svg3"
+   sodipodi:docname="snowballer-zombie.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs3" />
+  <sodipodi:namedview
+     id="namedview3"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="3.6123283"
+     inkscape:cx="10.934776"
+     inkscape:cy="57.442177"
+     inkscape:window-width="1666"
+     inkscape:window-height="684"
+     inkscape:window-x="0"
+     inkscape:window-y="33"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="snowballer-zombie" />
+  <title
+     id="title">Snowballer zombie</title>
+  <desc
+     id="desc">A bundled blue zombie holding a large packed snowball.</desc>
+  <g
+     id="snowballer-zombie"
+     stroke="#173746"
+     stroke-width="4"
+     stroke-linejoin="round">
+    <circle
+       id="body"
+       r="28"
+       fill="#72b4c5"
+       cx="-4.3345761"
+       cy="0" />
+    <path
+       id="wool-cap"
+       d="m -20.818593,24.279067 q -28.624418,-24.44673216 0.759698,-48.99411 l 6.828613,11.107206 -0.465121,29.996394 z"
+       fill="#375c82" />
+    <circle
+       id="pom"
+       cy="-1.0204812"
+       r="8"
+       fill="#f2fbff"
+       cx="-42.61795" />
+    <circle
+       id="throwing-hand"
+       cx="31.041019"
+       cy="-17.029831"
+       r="8"
+       fill="#72b4c5" />
+    <circle
+       id="lower-hand"
+       cx="31.349493"
+       cy="17.330847"
+       r="8"
+       fill="#72b4c5" />
+    <circle
+       id="snowball"
+       cx="39.222393"
+       cy="-0.58003068"
+       r="13.628825"
+       fill="#f5ffff"
+       stroke="#9bcbd5"
+       style="stroke-width:3.02863" />
   </g>
-  <g id="face" fill="#f8ffff"><ellipse cx="7" cy="-8" rx="7" ry="5"/><ellipse cx="7" cy="9" rx="7" ry="5"/></g>
-  <g id="pupils" fill="#263c51"><circle cx="11" cy="-8" r="3"/><circle cx="11" cy="9" r="3"/></g>
-  <path id="brows" d="M-5-14 11-12M-4 14 12 11" fill="none" stroke="#173746" stroke-width="4"/>
+  <g
+     id="face"
+     fill="#f8ffff"
+     transform="rotate(15,13.705239,-28.60385)">
+    <ellipse
+       cx="7"
+       cy="-8"
+       rx="7"
+       ry="5"
+       id="ellipse1" />
+  </g>
+  <g
+     id="pupils"
+     fill="#263c51"
+     transform="translate(-7.1458699,-1.5624977)">
+    <circle
+       cx="11"
+       cy="-8"
+       r="3"
+       id="circle2" />
+  </g>
+  <path
+     d="m -7.2260857,-17.741356 6.82705081,14.6079221"
+     style="fill:none;stroke:#173746;stroke-width:4"
+     id="path1" />
+  <g
+     id="face-0"
+     fill="#f8ffff"
+     transform="matrix(0.96592583,-0.25881905,-0.25881905,-0.96592583,-6.148278,4.8186297)">
+    <ellipse
+       cx="7"
+       cy="-8"
+       rx="7"
+       ry="5"
+       id="ellipse1-3" />
+  </g>
+  <g
+     id="pupils-9"
+     fill="#263c51"
+     transform="matrix(1,0,0,-1,-6.3579216,1.8592976)">
+    <circle
+       cx="11"
+       cy="-8"
+       r="3"
+       id="circle2-8" />
+  </g>
+  <path
+     d="M -6.4381374,18.038156 0.38891338,3.4302346"
+     style="fill:none;stroke:#173746;stroke-width:4"
+     id="path1-6" />
+  <path
+     id="scarf"
+     d="M 7.744404,24.486926 C 13.294575,5.6204379 12.296279,-11.183222 4.7495157,-25.92405 l 9.9055203,0.908428 C 24.756831,-8.5000027 24.711884,0.04469027 17.422039,19.74389 Z"
+     fill="#e66156"
+     style="stroke:#173746;stroke-width:3.649;stroke-dasharray:none;stroke-opacity:1"
+     sodipodi:nodetypes="ccccc" />
 </svg>

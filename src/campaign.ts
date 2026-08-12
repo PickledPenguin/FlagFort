@@ -323,7 +323,18 @@ export interface CampaignTierDefinition {
   unlock: CampaignUnlockRequirement;
   milestones: readonly CampaignMilestone[];
   biome: CampaignBiomeDefinition;
+  music: {
+    day: string;
+    upgrade: string;
+    night: string;
+  };
 }
+
+const DEFAULT_TIER_MUSIC = {
+  day: "./music/day.ogg",
+  upgrade: "./music/upgrade.ogg",
+  night: "./music/night.ogg",
+} as const;
 
 export const CAMPAIGN_TIERS: readonly CampaignTierDefinition[] = [
   {
@@ -338,10 +349,11 @@ export const CAMPAIGN_TIERS: readonly CampaignTierDefinition[] = [
     specialEnemies: [],
     unlock: { level: 1 },
     milestones: [
-      { id: "forest-level-2-coins", level: 2, reward: { kind: "coins", amount: 25 } },
-      { id: "forest-level-3-coins", level: 3, reward: { kind: "coins", amount: 35 } },
+      { id: "forest-level-2-coins", level: 3, reward: { kind: "coins", amount: 25 } },
+      { id: "forest-level-3-coins", level: 5, reward: { kind: "coins", amount: 35 } },
     ],
     biome: CAMPAIGN_BIOMES.forest,
+    music: DEFAULT_TIER_MUSIC,
   },
   {
     id: "snowy",
@@ -353,12 +365,13 @@ export const CAMPAIGN_TIERS: readonly CampaignTierDefinition[] = [
     ...CAMPAIGN_TIER_ARTWORK.snowy,
     boss: "frost-warden",
     specialEnemies: ["frostbite", "snowballer", "icebound"],
-    unlock: { level: 4, previousTierId: "forest" },
+    unlock: { level: 7, previousTierId: "forest" },
     milestones: [
-      { id: "snowy-level-5-coins", level: 5, reward: { kind: "coins", amount: 50 } },
-      { id: "snowy-level-6-coins", level: 6, reward: { kind: "coins", amount: 65 } },
+      { id: "snowy-level-5-coins", level: 9, reward: { kind: "coins", amount: 50 } },
+      { id: "snowy-level-6-coins", level: 11, reward: { kind: "coins", amount: 65 } },
     ],
     biome: CAMPAIGN_BIOMES.snow,
+    music: DEFAULT_TIER_MUSIC,
   },
   {
     id: "desert",
@@ -370,12 +383,13 @@ export const CAMPAIGN_TIERS: readonly CampaignTierDefinition[] = [
     ...CAMPAIGN_TIER_ARTWORK.desert,
     boss: "dune-colossus",
     specialEnemies: ["dune-hopper", "sandcaster", "tombguard"],
-    unlock: { level: 7, previousTierId: "snowy" },
+    unlock: { level: 13, previousTierId: "snowy" },
     milestones: [
-      { id: "desert-level-8-coins", level: 8, reward: { kind: "coins", amount: 85 } },
-      { id: "desert-level-9-coins", level: 9, reward: { kind: "coins", amount: 105 } },
+      { id: "desert-level-8-coins", level: 15, reward: { kind: "coins", amount: 85 } },
+      { id: "desert-level-9-coins", level: 17, reward: { kind: "coins", amount: 105 } },
     ],
     biome: CAMPAIGN_BIOMES.desert,
+    music: DEFAULT_TIER_MUSIC,
   },
   {
     id: "volcanic",
@@ -387,12 +401,13 @@ export const CAMPAIGN_TIERS: readonly CampaignTierDefinition[] = [
     ...CAMPAIGN_TIER_ARTWORK.volcanic,
     boss: "caldera-sovereign",
     specialEnemies: ["cinderburst", "magma-spitter", "obsidian-charger"],
-    unlock: { level: 10, previousTierId: "desert" },
+    unlock: { level: 19, previousTierId: "desert" },
     milestones: [
-      { id: "volcanic-level-11-coins", level: 11, reward: { kind: "coins", amount: 130 } },
-      { id: "volcanic-level-12-coins", level: 12, reward: { kind: "coins", amount: 155 } },
+      { id: "volcanic-level-11-coins", level: 21, reward: { kind: "coins", amount: 130 } },
+      { id: "volcanic-level-12-coins", level: 23, reward: { kind: "coins", amount: 155 } },
     ],
     biome: CAMPAIGN_BIOMES.volcanic,
+    music: DEFAULT_TIER_MUSIC,
   },
   {
     id: "wasteland",
@@ -404,12 +419,13 @@ export const CAMPAIGN_TIERS: readonly CampaignTierDefinition[] = [
     ...CAMPAIGN_TIER_ARTWORK.wasteland,
     boss: "reactor-revenant",
     specialEnemies: ["radstalker", "sludge-lobber", "ruin-siren"],
-    unlock: { level: 13, previousTierId: "volcanic" },
+    unlock: { level: 25, previousTierId: "volcanic" },
     milestones: [
-      { id: "wasteland-level-14-coins", level: 14, reward: { kind: "coins", amount: 185 } },
-      { id: "wasteland-level-15-coins", level: 15, reward: { kind: "coins", amount: 220 } },
+      { id: "wasteland-level-14-coins", level: 27, reward: { kind: "coins", amount: 185 } },
+      { id: "wasteland-level-15-coins", level: 29, reward: { kind: "coins", amount: 220 } },
     ],
     biome: CAMPAIGN_BIOMES.wasteland,
+    music: DEFAULT_TIER_MUSIC,
   },
   {
     id: "rift",
@@ -421,12 +437,13 @@ export const CAMPAIGN_TIERS: readonly CampaignTierDefinition[] = [
     ...CAMPAIGN_TIER_ARTWORK.rift,
     boss: "eclipse-regent",
     specialEnemies: ["rift-strider", "comet-slinger", "void-herald"],
-    unlock: { level: 16, previousTierId: "wasteland" },
+    unlock: { level: 31, previousTierId: "wasteland" },
     milestones: [
-      { id: "rift-level-17-coins", level: 17, reward: { kind: "coins", amount: 260 } },
-      { id: "rift-level-18-coins", level: 18, reward: { kind: "coins", amount: 305 } },
+      { id: "rift-level-17-coins", level: 33, reward: { kind: "coins", amount: 260 } },
+      { id: "rift-level-18-coins", level: 35, reward: { kind: "coins", amount: 305 } },
     ],
     biome: CAMPAIGN_BIOMES.rift,
+    music: DEFAULT_TIER_MUSIC,
   },
   {
     id: "mire",
@@ -438,12 +455,13 @@ export const CAMPAIGN_TIERS: readonly CampaignTierDefinition[] = [
     ...CAMPAIGN_TIER_ARTWORK.mire,
     boss: "mireheart-titan",
     specialEnemies: ["mire-lurker", "sporecaster", "drowned-bulwark"],
-    unlock: { level: 19, previousTierId: "rift" },
+    unlock: { level: 37, previousTierId: "rift" },
     milestones: [
-      { id: "mire-level-20-coins", level: 20, reward: { kind: "coins", amount: 355 } },
-      { id: "mire-level-21-coins", level: 21, reward: { kind: "coins", amount: 410 } },
+      { id: "mire-level-20-coins", level: 39, reward: { kind: "coins", amount: 355 } },
+      { id: "mire-level-21-coins", level: 41, reward: { kind: "coins", amount: 410 } },
     ],
     biome: CAMPAIGN_BIOMES.mire,
+    music: DEFAULT_TIER_MUSIC,
   },
   {
     id: "clockwork",
@@ -455,12 +473,13 @@ export const CAMPAIGN_TIERS: readonly CampaignTierDefinition[] = [
     ...CAMPAIGN_TIER_ARTWORK.clockwork,
     boss: "chronoforge-colossus",
     specialEnemies: ["springjack", "aether-gunner", "gearwright"],
-    unlock: { level: 22, previousTierId: "mire" },
+    unlock: { level: 43, previousTierId: "mire" },
     milestones: [
-      { id: "clockwork-level-23-coins", level: 23, reward: { kind: "coins", amount: 470 } },
-      { id: "clockwork-level-24-coins", level: 24, reward: { kind: "coins", amount: 535 } },
+      { id: "clockwork-level-23-coins", level: 45, reward: { kind: "coins", amount: 470 } },
+      { id: "clockwork-level-24-coins", level: 47, reward: { kind: "coins", amount: 535 } },
     ],
     biome: CAMPAIGN_BIOMES.clockwork,
+    music: DEFAULT_TIER_MUSIC,
   },
 ] as const;
 

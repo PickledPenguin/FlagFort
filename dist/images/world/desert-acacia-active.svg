@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title description">
+  <title id="title">Desert acacia tree</title>
+  <desc id="description">A broad flat-topped acacia with a forked trunk.</desc>
+  <g id="desert-acacia-active">
+    <path id="trunk" d="M46 88 48 50 34 39l6-7 11 9 7-20 8 3-8 23 10 41Z" fill="#87512f" stroke="#39291d" stroke-width="5" stroke-linejoin="round"/>
+    <path id="canopy" d="M9 36c1-12 13-18 25-15 5-11 22-13 30-5 14-3 25 5 24 17-2 11-12 16-25 15H31C18 49 8 44 9 36Z" fill="#6f8635" stroke="#30391f" stroke-width="6" stroke-linejoin="round"/>
+    <path id="canopy-highlight" d="M22 31c13-7 33-8 53-2" fill="none" stroke="#a8a34a" stroke-width="5" stroke-linecap="round"/>
+  </g>
+</svg>

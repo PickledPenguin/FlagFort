@@ -201,6 +201,16 @@ export function generateWorld(
       node.biomeOverlay = overlayRng.next() < resourceOverlay.chance;
     }
   }
+  if (campaignTierId === "mire") {
+    const infectionRng = new SeededRng(`${seed}:world:mire-infections:v1`);
+    const infectedCount = Math.max(
+      1,
+      Math.round(selectedResources.length * BALANCE.tierMechanics.mire.infectedFraction),
+    );
+    for (const node of infectionRng.shuffle(selectedResources).slice(0, infectedCount)) {
+      node.infected = true;
+    }
+  }
   const clearings = createClearings(sceneryRng);
   const foliage = Array.from({ length: 260 }, () => {
     const x = sceneryRng.range(30, BALANCE.mapSize - 30);

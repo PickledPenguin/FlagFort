@@ -71,6 +71,21 @@ describe("endless balance package", () => {
     expect(powered.multiplier).toBeGreaterThan(baseline.multiplier);
   });
 
+  it("moderately includes configurable equipped-material strength", () => {
+    const upgrades = createUpgrades();
+    const wood = adaptiveDifficulty(300, 4, 1, [], {
+      turretDps: 0, turretCoverageRatio: 0, upgrades, equipmentStrength: 0.08,
+    });
+    const diamond = adaptiveDifficulty(300, 4, 1, [], {
+      turretDps: 0, turretCoverageRatio: 0, upgrades, equipmentStrength: 0.9,
+    });
+    expect(diamond.equipmentDelta).toBeGreaterThan(wood.equipmentDelta);
+    expect(diamond.equipmentDelta).toBeLessThanOrEqual(
+      BALANCE.adaptive.powerAwareness.equipment.maximumDelta,
+    );
+    expect(diamond.multiplier).toBeGreaterThan(wood.multiplier);
+  });
+
   it("makes high-tier nodes both rarer and lower-yield than low-tier nodes", () => {
     expect(BALANCE.resource.counts.gold).toBeLessThan(BALANCE.resource.counts.stone / 2);
     expect(BALANCE.resource.counts.diamond).toBeLessThan(BALANCE.resource.counts.gold / 2);

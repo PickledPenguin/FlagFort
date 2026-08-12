@@ -210,13 +210,13 @@ describe("wasteland enemies", () => {
       brokenSprite: "enemies/reactor-revenant-broken",
     });
     expect(definition.areaStrike).toMatchObject({
-      rngSeedKey: "reactor-revenant:toxic-ruptures",
+      rngSeedKey: "reactor-revenant:nuclear-zone",
       damageSource: "reactor-revenant",
-      statusEffect: {
-        kind: "slow",
-        duration: 3.8,
-        targets: ["player", "turret"],
-      },
+      randomStrikeCount: 0,
+      includesTargetedStrike: true,
+      warningDuration: 2.8,
+      radius: 245,
+      screenShake: 30,
     });
     expect(definition.phaseSlam).toMatchObject({
       reinforcementKind: "ruin-siren",
@@ -224,7 +224,7 @@ describe("wasteland enemies", () => {
     });
   });
 
-  it("creates deterministic toxic-rupture warnings around the defender", () => {
+  it("creates one deterministic nuclear warning centered on the defender", () => {
     const first = gameFixture();
     const second = gameFixture();
     const firstBoss = spawn(first, "reactor-revenant", first.player.x + 460, first.player.y);

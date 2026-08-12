@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title description">
+  <title id="title">Depleted wasteland concrete</title>
+  <desc id="description">Low piles of shattered concrete and bent rusted rebar.</desc>
+  <g id="wasteland-concrete-depleted">
+    <path id="left-rubble" d="m9 80 14-22 22 4 6 21Z" fill="#70716d" stroke="#2d3030" stroke-width="6" stroke-linejoin="round"/>
+    <path id="right-rubble" d="m43 82 10-26 22-4 13 27-16 8Z" fill="#85847c" stroke="#2d3030" stroke-width="6" stroke-linejoin="round"/>
+    <path id="fractures" d="m58 59 4 13 13 8M23 65l10 10" fill="none" stroke="#4a4d4b" stroke-width="3" stroke-linecap="round"/>
+    <path id="rebar" d="M28 61 20 45m50 10 8-19" fill="none" stroke="#87472f" stroke-width="4" stroke-linecap="round"/>
+  </g>
+</svg>

@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="mire-tier-title mire-tier-description">
+  <title id="mire-tier-title">Drowned Mire campaign tier</title>
+  <desc id="mire-tier-description">A moss-draped cypress rises from moonlit swamp water among ghost crystals and wandering wisps.</desc>
+  <g id="mire-tier-icon">
+    <defs>
+      <linearGradient id="mire-icon-sky-gradient" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#172d32"/>
+        <stop offset="1" stop-color="#29443e"/>
+      </linearGradient>
+      <linearGradient id="mire-icon-water-gradient" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#244943"/>
+        <stop offset="1" stop-color="#112d2e"/>
+      </linearGradient>
+    </defs>
+    <circle id="mire-sky" cx="60" cy="60" r="53" fill="url(#mire-icon-sky-gradient)" stroke="#142827" stroke-width="5"/>
+    <circle id="mire-moon" cx="83" cy="30" r="14" fill="#d8e5b2" opacity=".88"/>
+    <path id="mire-fog" d="M16 55c20-8 37-7 51 1 13 7 26 7 39 0" fill="none" stroke="#91aaa0" stroke-width="7" stroke-linecap="round" opacity=".28"/>
+    <path id="mire-water" d="M8 78c20-7 37-5 53 2 17 8 34 7 51-1v30H8Z" fill="url(#mire-icon-water-gradient)" stroke="#173534" stroke-width="4" stroke-linejoin="round"/>
+    <g id="mire-cypress" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M48 84 41 97h13l5-10 5 10h13L62 79Z" fill="#6f5138" stroke="#283629" stroke-width="4"/>
+      <path d="M47 84c5-17 4-31 1-46l11-7 9 7c-5 19-5 33 0 47Z" fill="#76573d" stroke="#283629" stroke-width="5"/>
+      <path d="M55 56 33 42m29 8 19-18m-25 9L45 27" fill="none" stroke="#4d3b2d" stroke-width="7"/>
+      <path d="M22 37c0-10 11-16 20-11 5-11 21-12 28-3 9-7 23-1 22 10 10 3 10 17 1 22-9 5-17 0-21-5-7 8-21 8-27 0-8 6-22 2-23-9Z" fill="#3f714f" stroke="#203d35" stroke-width="4"/>
+      <path d="M34 44v17m9-14v21m30-23v17m9-22v16" fill="none" stroke="#86a75f" stroke-width="3"/>
+    </g>
+    <g id="mire-ghost-crystals" fill="#8be3d2" stroke="#245a57" stroke-width="2.5" stroke-linejoin="round">
+      <path d="m18 98 5-19 7 10-3 11Z"/>
+      <path d="m91 100 5-23 8 14-4 10Z"/>
+    </g>
+    <g id="mire-wisps" fill="#d8f3a0">
+      <circle cx="20" cy="67" r="3"/><circle cx="91" cy="62" r="2.5"/><circle cx="78" cy="77" r="2"/>
+    </g>
+    <path id="mire-water-ripple" d="M15 105c20-4 37-3 51 1 15 4 29 4 42-1" fill="none" stroke="#5b8175" stroke-width="3" stroke-linecap="round" opacity=".7"/>
+  </g>
+</svg>

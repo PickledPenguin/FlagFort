@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title description">
+  <title id="title">Depleted drowned mire cypress</title>
+  <desc id="description">A mossy cypress stump with cut branches and roots standing in dark swamp water.</desc>
+  <g id="mire-cypress-depleted">
+    <ellipse id="water-shadow" cx="48" cy="87" rx="38" ry="6" fill="#152b2b" opacity=".72"/>
+    <path id="raised-roots" d="M43 58 27 87h17l7-13 8 13h16L57 57Z" fill="#604832" stroke="#283629" stroke-width="5" stroke-linejoin="round"/>
+    <path id="stump" d="M38 63 40 35l9-6 13 6-2 29Z" fill="#71543c" stroke="#283629" stroke-width="6" stroke-linejoin="round"/>
+    <path id="cut-face" d="m40 35 9-6 13 6-11 8Z" fill="#a08058" stroke="#283629" stroke-width="4" stroke-linejoin="round"/>
+    <path id="rings" d="m46 35 4-2 6 2-5 3Z" fill="none" stroke="#5b4532" stroke-width="2"/>
+    <path id="moss" d="M38 51c6-4 8 3 13-1 4-3 6 2 10 0" fill="none" stroke="#718c55" stroke-width="4" stroke-linecap="round"/>
+  </g>
+</svg>
