@@ -2837,7 +2837,8 @@ export class Game {
       previousX: enemy.x, previousY: enemy.y,
       vx: Math.cos(angle) * projectile.speed, vy: Math.sin(angle) * projectile.speed,
       radius: projectile.radius,
-      damage: structureTarget ? enemy.structureDamage : enemy.damage,
+      damage: enemy.damage,
+      structureDamage: enemy.structureDamage,
       rangeLeft: projectile.range, lifetime: projectile.lifetime,
       hitIds: new Set(), color: projectile.color,
       sourceEnemyKind: enemy.kind,
@@ -3435,7 +3436,7 @@ export class Game {
           projectile.hitIds.add(structure.id);
           this.applyIncomingDamage(
             structure,
-            projectile.damage,
+            projectile.structureDamage ?? projectile.damage,
             projectileEnemyKind,
             projectileDamageSource,
           );

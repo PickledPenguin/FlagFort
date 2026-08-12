@@ -84,7 +84,7 @@ describe("staged Desert enemies", () => {
 
     (game as unknown as { updateProjectiles(dt: number): void }).updateProjectiles(0.5);
 
-    expect(wall.health).toBe(wall.maxHealth - sandcaster.damage);
+    expect(wall.health).toBe(wall.maxHealth - sandcaster.structureDamage);
     expect(game.player.health).toBe(game.player.maxHealth - sandcaster.damage);
     expect(game.projectiles).toHaveLength(1);
     expect(game.projectiles[0]!.hitIds).toEqual(new Set([wall.id, "player"]));

@@ -127,7 +127,8 @@ describe("volcanic enemies", () => {
       sourceEnemyKind: "magma-spitter",
       damageSource: "magma-spitter",
       intendedTargetId: harvester.id,
-      damage: magmaSpitter.structureDamage,
+      damage: magmaSpitter.damage,
+      structureDamage: magmaSpitter.structureDamage,
       appearance: "magma",
       pierces: false,
     });

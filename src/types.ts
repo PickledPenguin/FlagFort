@@ -231,6 +231,7 @@ export interface Projectile extends Circle {
   vx: number;
   vy: number;
   damage: number;
+  structureDamage?: number;
   rangeLeft: number;
   lifetime: number;
   hitIds: Set<number | "player" | "flag">;

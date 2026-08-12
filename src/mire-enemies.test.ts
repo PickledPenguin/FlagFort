@@ -147,12 +147,14 @@ describe("mire enemies", () => {
       intendedTargetId: target.id,
       appearance: "spore",
       pierces: true,
+      damage: caster.damage,
+      structureDamage: caster.structureDamage,
     });
     (game as unknown as { updateProjectiles(dt: number): void }).updateProjectiles(0.9);
 
     expect(target.health).toBe(target.maxHealth - caster.structureDamage);
     expect(target.statuses?.slow?.remaining).toBe(3);
-    expect(game.player.health).toBeLessThan(game.player.maxHealth);
+    expect(game.player.health).toBe(game.player.maxHealth - caster.damage);
     expect(game.player.statuses?.slow?.remaining).toBe(3);
     expect(game.projectiles).toHaveLength(1);
     expect(game.particles.some((particle) => particle.color === "#68cda6")).toBe(true);

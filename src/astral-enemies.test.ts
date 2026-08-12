@@ -136,10 +136,12 @@ describe("astral enemies", () => {
       intendedTargetId: "flag",
       appearance: "comet",
       pierces: true,
+      damage: slinger.damage,
+      structureDamage: slinger.structureDamage,
     });
     (game as unknown as { updateProjectiles(dt: number): void }).updateProjectiles(0.7);
 
-    expect(blocker.health).toBe(blocker.maxHealth - slinger.damage);
+    expect(blocker.health).toBe(blocker.maxHealth - slinger.structureDamage);
     expect(game.flag.health).toBe(game.flag.maxHealth - slinger.damage);
     expect(game.projectiles).toHaveLength(1);
     expect(game.particles.some((particle) => particle.color === "#b89cff")).toBe(true);
