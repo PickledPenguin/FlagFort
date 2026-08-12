@@ -210,6 +210,23 @@ export const CAMPAIGN_TIERS: readonly CampaignTierDefinition[] = [
     ],
     biome: CAMPAIGN_BIOMES.snow,
   },
+  {
+    id: "desert",
+    order: 2,
+    name: "Sunscorched Dominion",
+    subtitle: "Siege beneath the dunes",
+    description: "Cross the burning sands where leapers breach lines, sandblasts pierce defenses, and ancient armor endures.",
+    accent: "#f1ca75",
+    ...CAMPAIGN_TIER_ARTWORK.desert,
+    boss: "dune-colossus",
+    specialEnemies: ["dune-hopper", "sandcaster", "tombguard"],
+    unlock: { level: 7, previousTierId: "snowy" },
+    milestones: [
+      { id: "desert-level-8-coins", level: 8, reward: { kind: "coins", amount: 85 } },
+      { id: "desert-level-9-coins", level: 9, reward: { kind: "coins", amount: 105 } },
+    ],
+    biome: CAMPAIGN_BIOMES.desert,
+  },
 ] as const;
 
 export function campaignTier(id: CampaignTierId): CampaignTierDefinition {

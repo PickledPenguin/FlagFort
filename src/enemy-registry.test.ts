@@ -2,52 +2,55 @@ import { describe, expect, it } from "vitest";
 import { ENEMY_REGISTRY, ROSTER_TIERS, introducedRosterEnemies, rosterMilestones, selectEnemyRoster } from "./enemy-registry";
 
 describe("deterministic enemy roster", () => {
-  it("stages the Dune Hopper as a complete Desert leap enemy without exposing it to unfinished rosters", () => {
+  it("registers the Dune Hopper as the Desert leap enemy", () => {
     const definition = ENEMY_REGISTRY["dune-hopper"];
     expect(definition.assets.portrait).toBe("enemies/dune-hopper-zombie");
     expect(definition.render).toEqual({ aspectRatio: 104 / 96, width: 78, height: 72 });
     expect(definition.tier).toBe(3);
     expect(definition.introductionNight).toBe(3);
-    expect(definition.rosterEligible).toBe(false);
+    expect(definition.rosterEligible).toBe(true);
+    expect(definition.campaignTierIds).toEqual(["desert"]);
     expect(definition.leap).toMatchObject({
       range: 230,
       cooldown: 2.4,
       arcHeight: 42,
       particleColor: "#e9b85f",
     });
-    expect(Object.values(selectEnemyRoster("desert-staging"))).not.toContain("dune-hopper");
+    expect(selectEnemyRoster("desert-roster", "desert")[3]).toBe("dune-hopper");
   });
 
-  it("stages the Sandcaster as a piercing Desert ranged enemy without exposing it to unfinished rosters", () => {
+  it("registers the Sandcaster as the Desert piercing ranged enemy", () => {
     const definition = ENEMY_REGISTRY.sandcaster;
     expect(definition.assets.portrait).toBe("enemies/sandcaster-zombie");
     expect(definition.render).toEqual({ aspectRatio: 88 / 104, width: 68, height: 80 });
     expect(definition.tier).toBe(5);
     expect(definition.introductionNight).toBe(5);
-    expect(definition.rosterEligible).toBe(false);
+    expect(definition.rosterEligible).toBe(true);
+    expect(definition.campaignTierIds).toEqual(["desert"]);
     expect(definition.projectile).toMatchObject({
       appearance: "sandblast",
       damageSource: "sandcaster",
       pierces: true,
       color: "#d8a84f",
     });
-    expect(Object.values(selectEnemyRoster("desert-staging"))).not.toContain("sandcaster");
+    expect(selectEnemyRoster("desert-roster", "desert")[5]).toBe("sandcaster");
   });
 
-  it("stages the Tombguard as an armored Desert bruiser without exposing it to unfinished rosters", () => {
+  it("registers the Tombguard as the Desert armored bruiser", () => {
     const definition = ENEMY_REGISTRY.tombguard;
     expect(definition.assets.portrait).toBe("enemies/tombguard-zombie");
     expect(definition.render).toEqual({ aspectRatio: 112 / 100, width: 102, height: 91 });
     expect(definition.tier).toBe(7);
     expect(definition.introductionNight).toBe(7);
-    expect(definition.rosterEligible).toBe(false);
+    expect(definition.rosterEligible).toBe(true);
+    expect(definition.campaignTierIds).toEqual(["desert"]);
     expect(definition.armor).toMatchObject({
       health: 110,
       projectileResistance: 0.65,
       label: "TOMB ARMOR",
       brokenSprite: "enemies/tombguard-zombie-broken",
     });
-    expect(Object.values(selectEnemyRoster("desert-staging"))).not.toContain("tombguard");
+    expect(selectEnemyRoster("desert-roster", "desert")[7]).toBe("tombguard");
   });
 
   it("selects exactly one configured enemy per tier from a dedicated stable stream", () => {

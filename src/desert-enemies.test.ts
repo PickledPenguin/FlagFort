@@ -95,6 +95,7 @@ describe("staged Desert enemies", () => {
 
     expect(isBossEnemyKind("dune-colossus")).toBe(true);
     expect(definition.rosterEligible).toBe(false);
+    expect(definition.campaignTierIds).toEqual(["desert"]);
     expect(definition.assets.portrait).toBe("enemies/dune-colossus");
     expect(definition.armor?.brokenSprite).toBe("enemies/dune-colossus-broken");
     expect(definition.armor?.scalesWithHealth).toBe(true);

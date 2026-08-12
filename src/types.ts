@@ -1,6 +1,6 @@
 export type Difficulty = "easy" | "normal" | "hard" | "extreme";
 export type RunMode = "campaign" | "endless";
-export const CAMPAIGN_TIER_IDS = ["forest", "snowy"] as const;
+export const CAMPAIGN_TIER_IDS = ["forest", "snowy", "desert"] as const;
 export type CampaignTierId = typeof CAMPAIGN_TIER_IDS[number];
 
 export function isCampaignTierId(value: unknown): value is CampaignTierId {
@@ -27,9 +27,12 @@ export type RosterEnemyKind =
   | "rammer"
   | "frostbite"
   | "snowballer"
-  | "icebound";
+  | "icebound"
+  | "dune-hopper"
+  | "sandcaster"
+  | "tombguard";
 export type BossEnemyKind = "boss" | "frost-warden" | "dune-colossus";
-export type EnemyKind = RosterEnemyKind | "splitter-child" | "dune-hopper" | "sandcaster" | "tombguard" | BossEnemyKind;
+export type EnemyKind = RosterEnemyKind | "splitter-child" | BossEnemyKind;
 export type PlayerId = string;
 export type DamageSource =
   | "player-melee"

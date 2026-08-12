@@ -62,7 +62,7 @@ describe("data-driven campaign tiers", () => {
     });
   });
 
-  it("defines the upcoming Desert environment without exposing an unfinished tier", () => {
+  it("defines and exposes the Desert environment through its completed tier", () => {
     expect(CAMPAIGN_BIOMES.desert).toMatchObject({
       ground: "desert",
       minimapLabel: "SUNSCORCHED MAP",
@@ -79,7 +79,7 @@ describe("data-driven campaign tiers", () => {
         seedKey: "desert-dust-weather",
       },
     });
-    expect(CAMPAIGN_TIERS.some((tier) => tier.biome === CAMPAIGN_BIOMES.desert)).toBe(false);
+    expect(campaignTier("desert").biome).toBe(CAMPAIGN_BIOMES.desert);
   });
 
   it("provides complete centralized selection artwork for current and upcoming biomes", () => {
@@ -93,6 +93,7 @@ describe("data-driven campaign tiers", () => {
     });
     expect(campaignTier("forest")).toMatchObject(CAMPAIGN_TIER_ARTWORK.forest);
     expect(campaignTier("snowy")).toMatchObject(CAMPAIGN_TIER_ARTWORK.snowy);
+    expect(campaignTier("desert")).toMatchObject(CAMPAIGN_TIER_ARTWORK.desert);
   });
 
   it("keeps tier order, requirements, rewards, enemies, bosses, and effects on definitions", () => {
@@ -127,6 +128,13 @@ describe("data-driven campaign tiers", () => {
       },
     });
     expect(campaignTier("snowy").milestones.every((item) => item.reward.kind === "coins")).toBe(true);
+    expect(campaignTier("desert")).toMatchObject({
+      order: 2,
+      unlock: { level: 7, previousTierId: "snowy" },
+      boss: "dune-colossus",
+      specialEnemies: ["dune-hopper", "sandcaster", "tombguard"],
+      biome: CAMPAIGN_BIOMES.desert,
+    });
   });
 
   it("classifies every configured campaign boss through registry metadata", () => {
@@ -201,11 +209,19 @@ describe("data-driven campaign tiers", () => {
 
   it("requires both player level and the previous clear", () => {
     const snowy = campaignTier("snowy");
+    const desert = campaignTier("desert");
     expect(isCampaignTierUnlocked(snowy, { level: 4, defeatedTierIds: [] })).toBe(false);
     expect(isCampaignTierUnlocked(snowy, { level: 3, defeatedTierIds: ["forest"] })).toBe(false);
     expect(isCampaignTierUnlocked(snowy, { level: 4, defeatedTierIds: ["forest"] })).toBe(true);
     expect(highestUnlockedCampaignTierId({ level: 3, defeatedTierIds: ["forest"] })).toBe("forest");
     expect(highestUnlockedCampaignTierId({ level: 4, defeatedTierIds: ["forest"] })).toBe("snowy");
+    expect(isCampaignTierUnlocked(desert, { level: 7, defeatedTierIds: ["forest"] })).toBe(false);
+    expect(isCampaignTierUnlocked(desert, { level: 6, defeatedTierIds: ["forest", "snowy"] })).toBe(false);
+    expect(isCampaignTierUnlocked(desert, { level: 7, defeatedTierIds: ["forest", "snowy"] })).toBe(true);
+    expect(highestUnlockedCampaignTierId({
+      level: 7,
+      defeatedTierIds: ["forest", "snowy"],
+    })).toBe("desert");
   });
 
   it("guarantees the three Snowbound threats in stable roster slots", () => {
@@ -219,6 +235,18 @@ describe("data-driven campaign tiers", () => {
     expect(selectEnemyRoster("same-seed", "snowy")).toEqual(selectEnemyRoster("same-seed", "snowy"));
     expect(Object.values(selectEnemyRoster("same-seed", "forest")))
       .not.toEqual(expect.arrayContaining(["frostbite", "snowballer", "icebound"]));
+  });
+
+  it("guarantees the three Desert threats in stable roster slots and forecasts its boss", () => {
+    expect(selectEnemyRoster("same-seed", "desert")).toEqual({
+      1: "basic",
+      2: "runner",
+      3: "dune-hopper",
+      5: "sandcaster",
+      7: "tombguard",
+    });
+    expect(selectEnemyRoster("same-seed", "desert"))
+      .toEqual(selectEnemyRoster("same-seed", "desert"));
   });
 
   it("assigns biome resource overlays deterministically without changing Forest", () => {
@@ -260,5 +288,34 @@ describe("data-driven campaign tiers", () => {
       structureScore: 100,
       campaignTierId: "forest",
     })).toBeNull();
+  });
+
+  it("persists a Snowbound clear and announces Desert when its level gate is met", () => {
+    const store = new MemoryStore();
+    const profile = createDefaultProfile();
+    profile.lifetimeXp = lifetimeXpAtLevel(7);
+    profile.spendableXp = profile.lifetimeXp;
+    profile.playerLevel = 7;
+    profile.campaign.defeatedTierIds = ["forest"];
+    profile.campaign.claimedRewardIds = [
+      "forest-level-2-coins",
+      "forest-level-3-coins",
+      "snowy-level-5-coins",
+      "snowy-level-6-coins",
+    ];
+    store.setItem("flagfort-profile-v2", JSON.stringify(profile));
+    const manager = new ProfileManager(store);
+
+    expect(manager.beginRunSettlement("snowbound-clear", 0)).toBe(true);
+    const result = manager.settleRun("snowbound-clear", zeroXp, zeroCoins, {
+      nightsSurvived: 10,
+      victory: true,
+      structureScore: 120,
+      campaignTierId: "snowy",
+    });
+
+    expect(result?.newlyUnlockedTierIds).toEqual(["desert"]);
+    expect(result?.grantedCampaignRewards).toEqual([]);
+    expect(manager.profile.campaign.defeatedTierIds).toEqual(["forest", "snowy"]);
   });
 });
