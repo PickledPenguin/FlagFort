@@ -155,13 +155,16 @@ describe("data-driven campaign tiers", () => {
     });
   });
 
-  it("registers exactly three themed special-enemy artworks for the upcoming Astral Rift tier", () => {
+  it("registers a complete themed artwork set for the upcoming Astral Rift enemies", () => {
     expect(ASTRAL_ENEMY_ARTWORK).toEqual({
       riftStrider: "enemies/rift-strider-zombie",
       cometSlinger: "enemies/comet-slinger-zombie",
       voidHerald: "enemies/void-herald-zombie",
+      eclipseRegent: {
+        armored: "enemies/eclipse-regent",
+        broken: "enemies/eclipse-regent-broken",
+      },
     });
-    expect(Object.keys(ASTRAL_ENEMY_ARTWORK)).toHaveLength(3);
   });
 
   it("defines and exposes the Desert environment through its completed tier", () => {
