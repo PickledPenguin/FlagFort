@@ -157,4 +157,58 @@ describe("clockwork enemies", () => {
       particle.text === "Aether Locked" && particle.color === "#d9fffb"))
       .toBe(true);
   });
+
+  it("registers Gearwright as a complete but staged reinforcement engineer", () => {
+    const definition = ENEMY_REGISTRY.gearwright;
+
+    expect(definition.assets.portrait).toBe("enemies/gearwright-zombie");
+    expect(definition.render).toEqual({ aspectRatio: 116 / 104, width: 92, height: 83 });
+    expect(definition.tier).toBe(7);
+    expect(definition.introductionNight).toBe(7);
+    expect(definition.summon).toMatchObject({
+      cooldown: 6.4,
+      cappedRetryCooldown: 2,
+      maximumLiving: 3,
+      kinds: ["springjack"],
+      particleColor: "#e2b85d",
+      popupText: "ASSEMBLY LINE",
+    });
+    expect(definition.rosterEligible).toBe(false);
+    for (const tier of ["forest", "snowy", "desert", "volcanic", "wasteland", "rift", "mire"] as const) {
+      expect(Object.values(selectEnemyRoster("staged-gearwright", tier)))
+        .not.toContain("gearwright");
+    }
+  });
+
+  it("assembles a capped Springjack squad outside scheduled wave accounting", () => {
+    const game = gameFixture();
+    const definition = ENEMY_REGISTRY.gearwright;
+    const gearwright = spawn(game, "gearwright", game.flag.x + 320, game.flag.y);
+    gearwright.summonCooldown = 0;
+
+    (game as unknown as { updateEnemySummon(enemy: Enemy, dt: number): void })
+      .updateEnemySummon(gearwright, BALANCE.fixedStep);
+
+    const assembled = game.enemies.find((enemy) => enemy.summonedBy === gearwright.id);
+    expect(assembled).toMatchObject({ kind: "springjack", countsTowardWave: false });
+    expect(gearwright.summonCooldown).toBe(definition.summon!.cooldown);
+    expect(game.particles.some((particle) => particle.color === "#e2b85d")).toBe(true);
+    expect(game.particles.some((particle) => particle.text === "ASSEMBLY LINE")).toBe(true);
+
+    game.enemies = [
+      gearwright,
+      ...Array.from({ length: definition.summon!.maximumLiving }, (_, index) => ({
+        ...assembled!,
+        id: 2300 + index,
+        summonedBy: gearwright.id,
+        health: 1,
+      })),
+    ];
+    gearwright.summonCooldown = 0;
+    (game as unknown as { updateEnemySummon(enemy: Enemy, dt: number): void })
+      .updateEnemySummon(gearwright, BALANCE.fixedStep);
+
+    expect(game.enemies).toHaveLength(definition.summon!.maximumLiving + 1);
+    expect(gearwright.summonCooldown).toBe(definition.summon!.cappedRetryCooldown);
+  });
 });

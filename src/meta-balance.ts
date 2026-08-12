@@ -90,6 +90,7 @@ export const META_BALANCE = {
       "drowned-bulwark": 19,
       springjack: 15,
       "aether-gunner": 17,
+      gearwright: 21,
       popper: 6,
       archer: 6,
       summoner: 8,

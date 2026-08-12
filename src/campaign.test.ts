@@ -64,17 +64,15 @@ describe("data-driven campaign tiers", () => {
       gearwright: "enemies/gearwright-zombie",
     });
     expect(Object.keys(CLOCKWORK_ENEMY_ARTWORK)).toHaveLength(3);
-    const stagedArtwork = new Set<string>([
-      CLOCKWORK_ENEMY_ARTWORK.gearwright,
-    ]);
-    expect(Object.values(ENEMY_REGISTRY).every((enemy) =>
-      !stagedArtwork.has(enemy.assets.portrait))).toBe(true);
     expect(ENEMY_REGISTRY.springjack.assets.portrait)
       .toBe(CLOCKWORK_ENEMY_ARTWORK.springjack);
     expect(ENEMY_REGISTRY.springjack.rosterEligible).toBe(false);
     expect(ENEMY_REGISTRY["aether-gunner"].assets.portrait)
       .toBe(CLOCKWORK_ENEMY_ARTWORK.aetherGunner);
     expect(ENEMY_REGISTRY["aether-gunner"].rosterEligible).toBe(false);
+    expect(ENEMY_REGISTRY.gearwright.assets.portrait)
+      .toBe(CLOCKWORK_ENEMY_ARTWORK.gearwright);
+    expect(ENEMY_REGISTRY.gearwright.rosterEligible).toBe(false);
   });
 
   it("registers Clockwork Citadel selection artwork without exposing the unfinished tier", () => {
