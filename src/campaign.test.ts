@@ -997,4 +997,33 @@ describe("data-driven campaign tiers", () => {
     expect(manager.profile.campaign.defeatedTierIds)
       .toEqual(["forest", "snowy", "desert", "volcanic", "wasteland", "rift", "mire"]);
   });
+
+  it("persists the terminal Clockwork Citadel clear without announcing another tier", () => {
+    const store = new MemoryStore();
+    const profile = createDefaultProfile();
+    profile.lifetimeXp = lifetimeXpAtLevel(24);
+    profile.spendableXp = profile.lifetimeXp;
+    profile.playerLevel = 24;
+    profile.campaign.defeatedTierIds = [
+      "forest", "snowy", "desert", "volcanic", "wasteland", "rift", "mire",
+    ];
+    profile.campaign.claimedRewardIds = CAMPAIGN_TIERS
+      .flatMap((tier) => tier.milestones)
+      .filter((milestone) => milestone.level <= 24)
+      .map((milestone) => milestone.id);
+    store.setItem("flagfort-profile-v2", JSON.stringify(profile));
+    const manager = new ProfileManager(store);
+
+    expect(manager.beginRunSettlement("clockwork-clear", 0)).toBe(true);
+    const result = manager.settleRun("clockwork-clear", zeroXp, zeroCoins, {
+      nightsSurvived: 10,
+      victory: true,
+      structureScore: 240,
+      campaignTierId: "clockwork",
+    });
+
+    expect(result?.newlyUnlockedTierIds).toEqual([]);
+    expect(result?.grantedCampaignRewards).toEqual([]);
+    expect(manager.profile.campaign.defeatedTierIds).toEqual(CAMPAIGN_TIER_IDS);
+  });
 });
