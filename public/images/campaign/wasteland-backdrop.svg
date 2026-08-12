@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 180" preserveAspectRatio="xMidYMid slice" role="img" aria-labelledby="wasteland-backdrop-title wasteland-backdrop-description">
+  <title id="wasteland-backdrop-title">Nuclear wasteland campaign backdrop</title>
+  <desc id="wasteland-backdrop-description">A radioactive green haze hangs over a ruined city, fractured highway, dead trees, uranium ore, and toxic runoff.</desc>
+  <g id="wasteland-backdrop">
+    <defs>
+      <linearGradient id="wasteland-sky-gradient" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#303b39"/>
+        <stop offset="1" stop-color="#7d8464"/>
+      </linearGradient>
+      <linearGradient id="wasteland-toxic-gradient" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#58732e"/>
+        <stop offset=".5" stop-color="#b2d448"/>
+        <stop offset="1" stop-color="#58732e"/>
+      </linearGradient>
+    </defs>
+    <rect id="wasteland-sky" width="800" height="180" fill="url(#wasteland-sky-gradient)"/>
+    <circle id="haze-sun" cx="650" cy="40" r="31" fill="#d9df83" opacity=".55"/>
+    <g id="fallout-clouds" fill="#4a5750" opacity=".72">
+      <path d="M0 40c42-22 86-20 123 4 25 16 57 17 93 3v39H0Z"/>
+      <path d="M503 23c35-17 68-14 91 7 30-20 78-7 82 24 38-10 71 5 91 31H492Z"/>
+    </g>
+    <path id="distant-rubble" d="M0 126 62 90l47 21 45-49 48 39 49-20 42 34 60-60 55 58 46-25 55 27 43-52 60 49 73-31 57 36 108-18v81H0Z" fill="#4b504a"/>
+    <g id="ruined-city" fill="#363d39" stroke="#252b29" stroke-width="3" stroke-linejoin="round">
+      <path d="M103 132V66h49v17h16v49Z"/>
+      <path d="M147 132V48l14 10 15-17 15 14 14-8v85Z"/>
+      <path d="M584 132V72h31V53h42v79Z"/>
+      <path d="M654 132V43l17 11 15-10 17 15v73Z"/>
+    </g>
+    <g id="broken-windows" fill="#a8ba65" opacity=".7">
+      <path d="M116 79h10v12h-10Zm22 0h10v12h-10Zm24-10h10v12h-10Zm22 4h10v12h-10Zm413 12h10v12h-10Zm28-19h11v13h-11Zm40 3h10v13h-10Zm22 15h10v13h-10Z"/>
+    </g>
+    <path id="fractured-highway" d="M0 138c113-16 218-13 315 8 108 23 218 22 330-2 54-12 106-12 155-4v40H0Z" fill="#343936"/>
+    <path id="road-cracks" d="m91 145 22 12-15 17m193-22 25 10-8 18m277-29 19 13-10 16" fill="none" stroke="#1f2523" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    <path id="toxic-runoff" d="M313 146c50-5 96 0 139 12 45 13 93 11 147-4l69 26H245Z" fill="url(#wasteland-toxic-gradient)"/>
+    <path id="toxic-highlight" d="M286 166c58-7 106-3 152 7 43 9 84 7 128-5" fill="none" stroke="#d2ee68" stroke-width="4" stroke-linecap="round"/>
+    <g id="dead-trees" fill="none" stroke="#272d29" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M56 162 61 111 37 92m23 36 27-31m-27 18-10-26" stroke-width="9"/>
+      <path d="M744 165 740 127l-21-19m22 29 25-25" stroke-width="8"/>
+    </g>
+    <g id="uranium-ore" fill="#80a83d" stroke="#2f4329" stroke-width="3" stroke-linejoin="round">
+      <path d="m203 168 10-28 15-7 15 15-3 23Z"/><path d="m222 169 13-20 14-3 8 18-6 7Z"/>
+      <path d="m711 168 8-23 11-7 11 13-4 19Z"/>
+    </g>
+    <g id="fallout-specks" fill="#c2dc67" opacity=".8">
+      <circle cx="238" cy="35" r="2"/><circle cx="285" cy="67" r="2.5"/><circle cx="441" cy="39" r="2"/><circle cx="532" cy="70" r="2"/><circle cx="739" cy="31" r="2.5"/>
+    </g>
+    <path id="foreground-rubble" d="M0 174c75-12 143-10 205 3 77-14 150-14 220 0 81-16 157-15 230 0 54-10 103-11 145-4v7H0Z" fill="#222825"/>
+  </g>
+</svg>

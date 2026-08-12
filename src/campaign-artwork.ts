@@ -17,4 +17,8 @@ export const CAMPAIGN_TIER_ARTWORK = {
     icon: campaignImage("volcanic-tier"),
     backdrop: campaignImage("volcanic-backdrop"),
   },
+  wasteland: {
+    icon: campaignImage("wasteland-tier"),
+    backdrop: campaignImage("wasteland-backdrop"),
+  },
 } as const satisfies Record<string, { icon: string; backdrop: string }>;

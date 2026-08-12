@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="wasteland-tier-title wasteland-tier-description">
+  <title id="wasteland-tier-title">Nuclear wasteland campaign tier</title>
+  <desc id="wasteland-tier-description">A radioactive warning sign rises over ruined concrete, toxic pools, and dead trees.</desc>
+  <g id="wasteland-tier-icon">
+    <circle id="sickly-sky" cx="60" cy="60" r="53" fill="#69705f" stroke="#282d2a" stroke-width="5"/>
+    <path id="ruined-skyline" d="M10 83h18V61h12v9h12V47h18v17h12v-8h18v27Z" fill="#4b5049" stroke="#292e2b" stroke-width="4" stroke-linejoin="round"/>
+    <path id="broken-building" d="M28 83V61h12v9h12V47l9 7 9-7v36Z" fill="#5b5f56"/>
+    <path id="dead-tree" d="M93 91 91 65 80 56m11 17 13-12m-13 3-4-14" fill="none" stroke="#34372f" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    <path id="toxic-ground" d="M9 87c18-8 35-6 50 1 17 8 34 7 52-2v23H9Z" fill="#7e9f38" stroke="#354523" stroke-width="4" stroke-linejoin="round"/>
+    <path id="toxic-ripple" d="M18 99c15-5 27-4 39 1 13 5 26 5 42-1" fill="none" stroke="#c7e65a" stroke-width="4" stroke-linecap="round"/>
+    <g id="radiation-sign" transform="translate(58 68)">
+      <circle r="21" fill="#d7d947" stroke="#252a27" stroke-width="4"/>
+      <circle r="4" fill="#252a27"/>
+      <path d="M-3-6-10-17a18 18 0 0 1 19 0L3-6ZM7 1l13 1a18 18 0 0 1-9 16L4 7ZM-4 7l-7 11a18 18 0 0 1-9-16l13-1Z" fill="#252a27"/>
+    </g>
+  </g>
+</svg>
