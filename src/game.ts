@@ -2953,7 +2953,7 @@ export class Game {
       position: { x: enemy.x, y: enemy.y },
     });
     if (definition.death.mode === "split" && reason === "combat") this.spawnDeathChildren(enemy);
-    if (definition.death.mode === "acid-burst"
+    if (definition.death.mode === "burst"
       && (reason === "combat" || (reason === "sunlight" && definition.death.triggersFromSunlight))) {
       this.resolveDeathBurst(enemy);
     }
@@ -2995,6 +2995,7 @@ export class Game {
   private resolveDeathBurst(enemy: Enemy): void {
     const definition = ENEMY_REGISTRY[enemy.kind];
     const death = definition.death;
+    const damageSource = death.burstDamageSource ?? "enemy";
     const inner = death.burstInnerRadius ?? 52;
     const outer = death.burstOuterRadius ?? 145;
     const playerScale = enemy.damage / Math.max(1, definition.base.damage);
@@ -3009,14 +3010,14 @@ export class Game {
     if (death.burstTargets?.includes("player")) {
       const damage = damageAt(this.player, (death.burstPlayerDamage ?? death.burstDamage ?? 30) * playerScale);
       if (damage > 0) {
-        this.applyIncomingDamage(this.player, damage, enemy.kind, "popper-burst");
+        this.applyIncomingDamage(this.player, damage, enemy.kind, damageSource);
         this.player.hurtFlash = 0.25;
       }
     }
     if (this.flagPresent && death.burstTargets?.includes("flag")) {
       const damage = damageAt(this.flag, (death.burstFlagDamage ?? death.burstDamage ?? 30) * playerScale);
       if (damage > 0) {
-        this.applyIncomingDamage(this.flag, damage, enemy.kind, "popper-burst");
+        this.applyIncomingDamage(this.flag, damage, enemy.kind, damageSource);
         this.flag.hurtFlash = 0.25;
         emitAudioCue({ cue: "flag-damaged" });
       }
@@ -3026,11 +3027,11 @@ export class Game {
       if (!death.burstTargets?.includes(structure.kind)) continue;
       const damage = damageAt(structure, (death.burstStructureDamage ?? death.burstDamage ?? 30) * structureScale);
       if (damage <= 0) continue;
-      this.applyIncomingDamage(structure, damage, enemy.kind, "popper-burst");
+      this.applyIncomingDamage(structure, damage, enemy.kind, damageSource);
       structure.flash = 0.25;
     }
     const duration = death.burstWaveDuration ?? 0.38;
-    this.areaEffects.push({ kind: "popper-acid", x: enemy.x, y: enemy.y, radius: outer, remaining: duration, duration });
+    this.areaEffects.push({ kind: "death-burst", sourceEnemyKind: enemy.kind, x: enemy.x, y: enemy.y, radius: outer, remaining: duration, duration });
     this.burst(enemy.x, enemy.y, death.particleColor ?? "#67d73e",
       death.particleCount ?? 34, death.popupText ?? "ACID BURST");
     this.shake = Math.max(this.shake, death.screenShake ?? 7);

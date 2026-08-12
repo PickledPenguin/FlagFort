@@ -76,6 +76,7 @@ export const META_BALANCE = {
       "dune-hopper": 4,
       sandcaster: 8,
       tombguard: 14,
+      cinderburst: 8,
       popper: 6,
       archer: 6,
       summoner: 8,

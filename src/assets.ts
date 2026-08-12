@@ -79,6 +79,9 @@ export const ASSETS = {
     .map((entry) => [entry.id, image(entry.armor!.brokenSprite)])) as Partial<Record<EnemyKind, string>>,
   enemyBodies: Object.fromEntries(Object.values(ENEMY_REGISTRY).map((entry) => [entry.id, image(entry.assets.body)])) as Record<EnemyKind, string>,
   enemyHands: Object.fromEntries(Object.values(ENEMY_REGISTRY).map((entry) => [entry.id, image(entry.assets.hand)])) as Record<EnemyKind, string>,
+  enemyDeathBursts: Object.fromEntries(Object.values(ENEMY_REGISTRY)
+    .filter((entry) => entry.death.burstWaveSprite)
+    .map((entry) => [entry.id, image(entry.death.burstWaveSprite!)])) as Partial<Record<EnemyKind, string>>,
   player: {
     body: image("gameplay/player/body-base"),
     bodyDetails: image("gameplay/player/body-details"),
@@ -125,7 +128,6 @@ export const ASSETS = {
   },
   effects: {
     bossSlamWave: image("effects/boss-slam-wave"),
-    popperAcidBurst: image("effects/popper-acid-burst"),
   },
   cursors: {
     ringAllowed: image("gameplay/cursors/ring-allowed"),

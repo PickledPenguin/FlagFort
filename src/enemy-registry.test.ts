@@ -108,7 +108,7 @@ describe("deterministic enemy roster", () => {
         expect(definition.death.particleCount).toBeGreaterThan(0);
         expect(definition.death.popupText).toBeTruthy();
       }
-      if (definition.death.mode === "acid-burst") {
+      if (definition.death.mode === "burst") {
         expect(definition.death.burstInnerRadius).toBeGreaterThan(0);
         expect(definition.death.burstOuterRadius)
           .toBeGreaterThan(definition.death.burstInnerRadius ?? 0);
@@ -117,6 +117,8 @@ describe("deterministic enemy roster", () => {
         expect(definition.death.particleCount).toBeGreaterThan(0);
         expect(definition.death.popupText).toBeTruthy();
         expect(definition.death.screenShake).toBeGreaterThanOrEqual(0);
+        expect(definition.death.burstDamageSource).toBeTruthy();
+        expect(definition.death.burstWaveSprite).toMatch(/^effects\//);
       }
       if (definition.armor) {
         expect(definition.armor.health).toBeGreaterThan(0);

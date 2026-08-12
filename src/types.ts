@@ -32,7 +32,7 @@ export type RosterEnemyKind =
   | "sandcaster"
   | "tombguard";
 export type BossEnemyKind = "boss" | "frost-warden" | "dune-colossus";
-export type EnemyKind = RosterEnemyKind | "splitter-child" | BossEnemyKind;
+export type EnemyKind = RosterEnemyKind | "splitter-child" | "cinderburst" | BossEnemyKind;
 export type PlayerId = string;
 export type DamageSource =
   | "player-melee"
@@ -45,6 +45,7 @@ export type DamageSource =
   | "enemy-acid"
   | "sandcaster"
   | "dune-colossus"
+  | "cinderburst-burst"
   | "popper-burst"
   | "rammer-charge"
   | "frost-warden"
@@ -231,7 +232,8 @@ export interface Particle extends Vec2 {
 }
 
 export interface AreaEffect extends Vec2 {
-  kind: "boss-slam" | "frost-slam" | "popper-acid";
+  kind: "boss-slam" | "frost-slam" | "death-burst";
+  sourceEnemyKind?: EnemyKind;
   radius: number;
   remaining: number;
   duration: number;

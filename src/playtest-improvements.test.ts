@@ -253,7 +253,8 @@ describe("true player-side area attacks", () => {
     expect(game.flag.health).toBeLessThan(flagBefore);
     expect(game.structures.every((item) => item.health < item.maxHealth)).toBe(true);
     expect(game.areaEffects.at(-1)).toMatchObject({
-      kind: "popper-acid",
+      kind: "death-burst",
+      sourceEnemyKind: "popper",
       radius: ENEMY_REGISTRY.popper.death.burstOuterRadius,
     });
 
@@ -292,7 +293,8 @@ describe("true player-side area attacks", () => {
       (game as unknown as { resolveEnemyDeath(enemy: Enemy): void }).resolveEnemyDeath(runner);
       expect(game.player.health).toBeLessThan(healthBefore);
       expect(game.areaEffects.at(-1)).toMatchObject({
-        kind: "popper-acid",
+        kind: "death-burst",
+        sourceEnemyKind: "runner",
         radius: popperDeath.burstOuterRadius,
       });
     } finally {

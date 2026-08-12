@@ -953,7 +953,10 @@ export class Renderer {
       ctx.restore();
       return;
     }
-    const path = effect.kind === "boss-slam" ? ASSETS.effects.bossSlamWave : ASSETS.effects.popperAcidBurst;
+    const path = effect.kind === "boss-slam"
+      ? ASSETS.effects.bossSlamWave
+      : ASSETS.enemyDeathBursts[effect.sourceEnemyKind ?? "popper"];
+    if (!path) return;
     const size = radius * 2;
     this.ctx.save();
     this.ctx.globalAlpha = reducedMotion ? 0.72 : Math.max(0.24, 1 - progress * 0.58);
