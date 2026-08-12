@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-58 -52 116 104" role="img" aria-labelledby="title description">
+  <title id="title">Drowned Bulwark zombie with broken shield</title>
+  <desc id="description">A massive drowned zombie advancing after its mossy ruin shield has shattered into stone fragments.</desc>
+  <defs id="drowned-bulwark-broken-definitions">
+    <linearGradient id="drowned-bulwark-broken-body-gradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#60776d"/>
+      <stop offset="1" stop-color="#2b4543"/>
+    </linearGradient>
+  </defs>
+  <g id="drowned-bulwark-broken-zombie">
+    <g id="heavy-legs" fill="none" stroke="#304c49" stroke-width="13" stroke-linecap="round" stroke-linejoin="round">
+      <path id="rear-leg" d="M-18 18-30 39-46 36"/>
+      <path id="front-leg" d="M12 19 25 39 42 35"/>
+    </g>
+    <ellipse id="body" cx="-5" cy="1" rx="34" ry="29" fill="url(#drowned-bulwark-broken-body-gradient)" stroke="#1d3736" stroke-width="3"/>
+    <path id="broken-stone-crown" d="m-26-19 4-15 10 5 9-19 9 17 11-5 6 18Z" fill="#596a64" stroke="#2c403d" stroke-width="3" stroke-linejoin="round"/>
+    <g id="crown-moss" fill="#78925b">
+      <path id="moss-one" d="M-21-35c7 2 10 6 11 13-6-5-10-6-16-5Z"/>
+      <path id="moss-two" d="M7-34c8 0 12 4 15 10-7-3-12-2-17 1Z"/>
+    </g>
+    <path id="face-shadow" d="M-11-14c15-9 34-4 40 10-8 12-24 17-39 8Z" fill="#203b3b"/>
+    <g id="eyes" fill="#b5f5d5" stroke="#183332" stroke-width="1.5">
+      <path id="upper-eye" d="m4-9 17 1L7-1Z"/>
+      <path id="lower-eye" d="m5 8 16-5L9 14Z"/>
+    </g>
+    <path id="exposed-shield-arm" d="M4 15 27 27 43 17" fill="none" stroke="#45625a" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+    <g id="shield-remnants" fill="#53635f" stroke="#263c3a" stroke-width="2.5" stroke-linejoin="round">
+      <path id="gripped-remnant" d="m27 12 17-5 10 12-13 19-15-10Z"/>
+      <path id="upper-fragment" d="m33-29 18 4-5 18-17-7Z"/>
+      <path id="lower-fragment" d="m46 40 9-13 8 11-9 10Z"/>
+    </g>
+    <g id="remnant-moss" fill="#78945b">
+      <path id="upper-moss" d="m33-29 18 4-3 7c-7-4-12-3-18-1Z"/>
+      <path id="grip-moss" d="m28 13 16-5 5 6c-8-2-14 1-20 6Z"/>
+    </g>
+    <g id="water-drops" fill="#86cbb9">
+      <path id="drop-one" d="M-30 11c5 7 5 10 0 13-5-3-5-6 0-13Z"/>
+      <path id="drop-two" d="M-17 24c4 6 4 8 0 11-4-3-4-5 0-11Z"/>
+    </g>
+  </g>
+</svg>

@@ -55,7 +55,10 @@ describe("data-driven campaign tiers", () => {
     expect(MIRE_ENEMY_ARTWORK).toEqual({
       mireLurker: "enemies/mire-lurker-zombie",
       sporecaster: "enemies/sporecaster-zombie",
-      drownedBulwark: "enemies/drowned-bulwark-zombie",
+      drownedBulwark: {
+        armored: "enemies/drowned-bulwark-zombie",
+        broken: "enemies/drowned-bulwark-zombie-broken",
+      },
     });
     expect(Object.keys(MIRE_ENEMY_ARTWORK)).toHaveLength(3);
   });

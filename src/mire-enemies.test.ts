@@ -6,7 +6,7 @@ import { CAMPAIGN_TIER_IDS } from "./types";
 import { ENEMY_REGISTRY, selectEnemyRoster } from "./enemy-registry";
 import { Game } from "./game";
 import { Input } from "./input";
-import type { Enemy, Structure } from "./types";
+import type { Enemy, Structure, StructureKind } from "./types";
 
 function gameFixture(): Game {
   document.body.innerHTML = "<canvas></canvas>";
@@ -29,6 +29,14 @@ function turret(id: number, x: number, y: number): Structure {
   return {
     id, kind: "turret", tier: "wood", x, y,
     radius: BALANCE.structure.radius.turret, health: 500, maxHealth: 500,
+    cooldown: 0, angle: 0, lastArmAngle: 0, harvesterHitResourceIds: new Set(), flash: 0,
+  };
+}
+
+function structure(id: number, kind: StructureKind, x: number, y: number): Structure {
+  return {
+    id, kind, tier: "wood", x, y,
+    radius: BALANCE.structure.radius[kind], health: 600, maxHealth: 600,
     cooldown: 0, angle: 0, lastArmAngle: 0, harvesterHitResourceIds: new Set(), flash: 0,
   };
 }
@@ -151,5 +159,64 @@ describe("mire enemies", () => {
     expect(game.particles.some((particle) =>
       particle.text === "Spored" && particle.color === "#c9ffe8"))
       .toBe(true);
+  });
+
+  it("registers Drowned Bulwark as a staged armored breacher", () => {
+    const definition = ENEMY_REGISTRY["drowned-bulwark"];
+
+    expect(definition.assets.portrait).toBe("enemies/drowned-bulwark-zombie");
+    expect(definition.render).toEqual({ aspectRatio: 116 / 104, width: 109, height: 98 });
+    expect(definition.armor).toMatchObject({
+      health: 150,
+      projectileResistance: 0.72,
+      brokenSprite: "enemies/drowned-bulwark-zombie-broken",
+    });
+    expect(definition.ram).toMatchObject({
+      damage: 440,
+      distance: 460,
+      targetKinds: ["wall", "door", "spikes"],
+    });
+    expect(definition.rosterEligible).toBe(false);
+    for (const tier of CAMPAIGN_TIER_IDS) {
+      expect(Object.values(selectEnemyRoster("staged-drowned-bulwark", tier)))
+        .not.toContain("drowned-bulwark");
+    }
+  });
+
+  it("resists arrows, loses its shield, then breaches an aligned wall", () => {
+    const game = gameFixture();
+    game.phase = "night";
+    const definition = ENEMY_REGISTRY["drowned-bulwark"];
+    const wall = structure(1800, "wall", game.flag.x + 120, game.flag.y);
+    wall.health = 400;
+    wall.maxHealth = 400;
+    const bulwark = spawn(game, "drowned-bulwark", wall.x + 190, wall.y);
+    game.structures = [wall];
+    for (const resource of game.world.resources) resource.destroyed = true;
+    const damageEnemy = (damage: number, source: "player-bow" | "player-melee") => {
+      (game as unknown as {
+        damageEnemy(enemy: Enemy, amount: number, color: string, damageSource: typeof source, ownerPlayerId: string): void;
+      }).damageEnemy(bulwark, damage, "#ffffff", source, game.player.id);
+    };
+
+    damageEnemy(50, "player-bow");
+    expect(bulwark.armor).toBe(definition.armor!.health - 14);
+    damageEnemy(definition.armor!.health - 14, "player-melee");
+    expect(bulwark.armor).toBe(0);
+    expect(bulwark.health).toBe(bulwark.maxHealth);
+    expect(game.particles.some((particle) => particle.text === "SHIELD SUNK")).toBe(true);
+
+    const updateRam = (dt: number) => (game as unknown as {
+      updateEnemyRam(enemy: Enemy, dt: number): boolean;
+    }).updateEnemyRam(bulwark, dt);
+    expect(updateRam(0.1)).toBe(true);
+    expect(bulwark.chargeTargetId).toBe(wall.id);
+    updateRam(definition.ram!.loadSeconds);
+    expect(bulwark.charging).toBe(true);
+    updateRam(0.6);
+
+    expect(wall.health).toBe(0);
+    expect(bulwark.chargeHitIds).toContain(wall.id);
+    expect(game.particles.some((particle) => particle.text === "DROWNED BREACH")).toBe(true);
   });
 });

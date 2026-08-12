@@ -87,6 +87,7 @@ export const META_BALANCE = {
       "void-herald": 17,
       "mire-lurker": 13,
       sporecaster: 15,
+      "drowned-bulwark": 19,
       popper: 6,
       archer: 6,
       summoner: 8,
