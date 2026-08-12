@@ -80,6 +80,7 @@ export const META_BALANCE = {
       "magma-spitter": 10,
       "obsidian-charger": 16,
       radstalker: 9,
+      "sludge-lobber": 12,
       popper: 6,
       archer: 6,
       summoner: 8,

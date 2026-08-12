@@ -315,6 +315,33 @@ export class Renderer {
     for (const strike of game.areaStrikes) this.drawAreaStrike(strike);
     if (game.buildPreview) this.drawBuildPreview(game);
     for (const projectile of game.projectiles) {
+      if (projectile.appearance === "sludge") {
+        ctx.save();
+        ctx.translate(projectile.x, projectile.y);
+        ctx.rotate(Math.atan2(projectile.vy, projectile.vx));
+        const trail = Math.max(22, projectile.radius * 3.6);
+        const gradient = ctx.createLinearGradient(-trail, 0, projectile.radius, 0);
+        gradient.addColorStop(0, "rgba(117,200,59,0)");
+        gradient.addColorStop(0.58, "rgba(117,200,59,.52)");
+        gradient.addColorStop(1, "#c4f46e");
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.ellipse(-trail * 0.32, 0, trail * 0.7, projectile.radius * 0.72, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#75c83b";
+        ctx.strokeStyle = "#356b2f";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(0, 0, projectile.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = "#efff9c";
+        ctx.beginPath();
+        ctx.arc(-projectile.radius * 0.25, -projectile.radius * 0.3, projectile.radius * 0.3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+        continue;
+      }
       if (projectile.appearance === "magma") {
         ctx.save();
         ctx.translate(projectile.x, projectile.y);

@@ -1,10 +1,11 @@
 // @vitest-environment jsdom
 
 import { describe, expect, it } from "vitest";
+import { BALANCE } from "./config";
 import { ENEMY_REGISTRY, selectEnemyRoster } from "./enemy-registry";
 import { Game } from "./game";
 import { Input } from "./input";
-import type { Enemy } from "./types";
+import type { Enemy, Structure } from "./types";
 
 function gameFixture(): Game {
   document.body.innerHTML = "<canvas></canvas>";
@@ -21,6 +22,14 @@ function spawn(game: Game, kind: Enemy["kind"], x: number, y: number): Enemy {
   enemy.x = x;
   enemy.y = y;
   return enemy;
+}
+
+function turret(id: number, x: number, y: number): Structure {
+  return {
+    id, kind: "turret", tier: "wood", x, y,
+    radius: BALANCE.structure.radius.turret, health: 500, maxHealth: 500,
+    cooldown: 0, angle: 0, lastArmAngle: 0, harvesterHitResourceIds: new Set(), flash: 0,
+  };
 }
 
 describe("wasteland enemies", () => {
@@ -77,5 +86,64 @@ describe("wasteland enemies", () => {
       .selectEnemyTarget(radstalker);
 
     expect(radstalker.targetId).toBe("flag");
+  });
+
+  it("registers the staged Sludge Lobber with a complete ranged suppression role", () => {
+    const definition = ENEMY_REGISTRY["sludge-lobber"];
+
+    expect(definition.assets.portrait).toBe("enemies/sludge-lobber-zombie");
+    expect(definition.render).toEqual({ aspectRatio: 118 / 104, width: 85, height: 75 });
+    expect(definition.targeting).toMatchObject({ mode: "archer", attackRange: 440, innerRadius: 190 });
+    expect(definition.projectile).toMatchObject({
+      appearance: "sludge",
+      damageSource: "sludge-lobber",
+      pierces: false,
+      targets: ["turret", "player", "flag"],
+      statusEffect: {
+        kind: "slow",
+        duration: 3.4,
+        targets: ["player", "turret"],
+        popupTextColor: "#dfff86",
+        particleColor: "#75c83b",
+        popupText: "Sludged",
+      },
+    });
+    expect(definition.rosterEligible).toBe(false);
+    for (const tier of ["forest", "snowy", "desert", "volcanic"] as const) {
+      expect(Object.values(selectEnemyRoster("staged-sludge-lobber", tier)))
+        .not.toContain("sludge-lobber");
+    }
+  });
+
+  it("suppresses a priority turret with a damaging non-piercing sludge bomb", () => {
+    const game = gameFixture();
+    const definition = ENEMY_REGISTRY["sludge-lobber"];
+    const target = turret(980, game.player.x, game.player.y);
+    game.structures = [target];
+    const lobber = spawn(game, "sludge-lobber", target.x - 300, target.y);
+
+    (game as unknown as { selectEnemyTarget(enemy: Enemy): void })
+      .selectEnemyTarget(lobber);
+    expect(lobber.targetId).toBe(target.id);
+
+    (game as unknown as {
+      enemyRangedAttack(enemy: Enemy, target: Structure, dt: number): void;
+    }).enemyRangedAttack(lobber, target, definition.attack.chargeSeconds);
+
+    expect(game.projectiles.at(-1)).toMatchObject({
+      sourceEnemyKind: "sludge-lobber",
+      damageSource: "sludge-lobber",
+      intendedTargetId: target.id,
+      appearance: "sludge",
+      pierces: false,
+    });
+    (game as unknown as { updateProjectiles(dt: number): void }).updateProjectiles(0.8);
+
+    expect(target.health).toBe(target.maxHealth - lobber.structureDamage);
+    expect(target.statuses?.slow?.remaining).toBe(3.4);
+    expect(game.particles.some((particle) => particle.color === "#75c83b")).toBe(true);
+    expect(game.particles.some((particle) =>
+      particle.text === "Sludged" && particle.color === "#dfff86"))
+      .toBe(true);
   });
 });

@@ -120,8 +120,8 @@ describe("volcanic enemies", () => {
     expect(magmaSpitter.targetId).toBe(harvester.id);
 
     (game as unknown as {
-      enemyRangedAttack(enemy: Enemy, target: Structure, dt: number, obstacleFallback: boolean): void;
-    }).enemyRangedAttack(magmaSpitter, harvester, definition.attack.chargeSeconds, true);
+      enemyRangedAttack(enemy: Enemy, target: Structure, dt: number): void;
+    }).enemyRangedAttack(magmaSpitter, harvester, definition.attack.chargeSeconds);
 
     expect(game.projectiles.at(-1)).toMatchObject({
       sourceEnemyKind: "magma-spitter",

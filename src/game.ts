@@ -2179,7 +2179,7 @@ export class Game {
       if (blocker && distance(enemy, blocker) <= enemy.radius + blocker.radius + blockerReach) {
         if (definition.attack.mode === "arrow" || definition.attack.mode === "acid") {
           if (definition.projectile?.targets.includes(blocker.kind)) {
-            this.enemyRangedAttack(enemy, blocker, dt, true);
+            this.enemyRangedAttack(enemy, blocker, dt);
           } else {
             this.moveEnemyToward(enemy, target, dt);
           }
@@ -2789,7 +2789,6 @@ export class Game {
     enemy: Enemy,
     target: Player | Flag | Structure,
     dt: number,
-    obstacleFallback = false,
   ): void {
     if (enemy.cooldown > 0) return;
     const definition = ENEMY_REGISTRY[enemy.kind];
@@ -2817,7 +2816,7 @@ export class Game {
       previousX: enemy.x, previousY: enemy.y,
       vx: Math.cos(angle) * projectile.speed, vy: Math.sin(angle) * projectile.speed,
       radius: projectile.radius,
-      damage: obstacleFallback ? enemy.structureDamage : enemy.damage,
+      damage: structureTarget ? enemy.structureDamage : enemy.damage,
       rangeLeft: projectile.range, lifetime: projectile.lifetime,
       hitIds: new Set(), color: projectile.color,
       sourceEnemyKind: enemy.kind,
