@@ -234,7 +234,7 @@ describe("data-driven campaign tiers", () => {
     expect(campaignTier("wasteland").biome).toBe(CAMPAIGN_BIOMES.wasteland);
   });
 
-  it("defines a complete astral rift environment while keeping its tier hidden", () => {
+  it("defines and exposes the Astral Rift environment through its completed tier", () => {
     expect(CAMPAIGN_BIOMES.rift).toMatchObject({
       ground: "rift",
       minimapLabel: "ASTRAL RIFT MAP",
@@ -256,7 +256,7 @@ describe("data-driven campaign tiers", () => {
         particleCount: 76,
       },
     });
-    expect(CAMPAIGN_TIERS.some((tier) => tier.biome === CAMPAIGN_BIOMES.rift)).toBe(false);
+    expect(campaignTier("rift").biome).toBe(CAMPAIGN_BIOMES.rift);
   });
 
   it("provides complete centralized selection artwork for current and upcoming biomes", () => {
@@ -285,6 +285,7 @@ describe("data-driven campaign tiers", () => {
     expect(campaignTier("desert")).toMatchObject(CAMPAIGN_TIER_ARTWORK.desert);
     expect(campaignTier("volcanic")).toMatchObject(CAMPAIGN_TIER_ARTWORK.volcanic);
     expect(campaignTier("wasteland")).toMatchObject(CAMPAIGN_TIER_ARTWORK.wasteland);
+    expect(campaignTier("rift")).toMatchObject(CAMPAIGN_TIER_ARTWORK.rift);
   });
 
   it("keeps tier order, requirements, rewards, enemies, bosses, and effects on definitions", () => {
@@ -339,6 +340,13 @@ describe("data-driven campaign tiers", () => {
       boss: "reactor-revenant",
       specialEnemies: ["radstalker", "sludge-lobber", "ruin-siren"],
       biome: CAMPAIGN_BIOMES.wasteland,
+    });
+    expect(campaignTier("rift")).toMatchObject({
+      order: 5,
+      unlock: { level: 16, previousTierId: "wasteland" },
+      boss: "eclipse-regent",
+      specialEnemies: ["rift-strider", "comet-slinger", "void-herald"],
+      biome: CAMPAIGN_BIOMES.rift,
     });
   });
 
@@ -461,6 +469,23 @@ describe("data-driven campaign tiers", () => {
       level: 13,
       defeatedTierIds: ["forest", "snowy", "desert", "volcanic"],
     })).toBe("wasteland");
+    const rift = campaignTier("rift");
+    expect(isCampaignTierUnlocked(rift, {
+      level: 16,
+      defeatedTierIds: ["forest", "snowy", "desert", "volcanic"],
+    })).toBe(false);
+    expect(isCampaignTierUnlocked(rift, {
+      level: 15,
+      defeatedTierIds: ["forest", "snowy", "desert", "volcanic", "wasteland"],
+    })).toBe(false);
+    expect(isCampaignTierUnlocked(rift, {
+      level: 16,
+      defeatedTierIds: ["forest", "snowy", "desert", "volcanic", "wasteland"],
+    })).toBe(true);
+    expect(highestUnlockedCampaignTierId({
+      level: 16,
+      defeatedTierIds: ["forest", "snowy", "desert", "volcanic", "wasteland"],
+    })).toBe("rift");
   });
 
   it("guarantees the three Snowbound threats in stable roster slots", () => {
@@ -513,6 +538,20 @@ describe("data-driven campaign tiers", () => {
       .toEqual(roster);
     expect(rosterMilestones(roster, campaignTier("wasteland").boss).at(-1))
       .toEqual({ night: 10, enemy: "reactor-revenant", label: "Reactor Revenant" });
+  });
+
+  it("guarantees the three Astral Rift threats in stable roster slots", () => {
+    const roster = selectEnemyRoster("same-seed", "rift");
+    expect(roster).toEqual({
+      1: "basic",
+      2: "runner",
+      3: "rift-strider",
+      5: "comet-slinger",
+      7: "void-herald",
+    });
+    expect(selectEnemyRoster("same-seed", "rift")).toEqual(roster);
+    expect(rosterMilestones(roster, campaignTier("rift").boss).at(-1))
+      .toEqual({ night: 10, enemy: "eclipse-regent", label: "Eclipse Regent" });
   });
 
   it("assigns biome resource overlays deterministically without changing Forest", () => {
@@ -638,5 +677,33 @@ describe("data-driven campaign tiers", () => {
     expect(result?.grantedCampaignRewards).toEqual([]);
     expect(manager.profile.campaign.defeatedTierIds)
       .toEqual(["forest", "snowy", "desert", "volcanic"]);
+  });
+
+  it("persists a Fallout clear and announces Astral Rift when its level gate is met", () => {
+    const store = new MemoryStore();
+    const profile = createDefaultProfile();
+    profile.lifetimeXp = lifetimeXpAtLevel(16);
+    profile.spendableXp = profile.lifetimeXp;
+    profile.playerLevel = 16;
+    profile.campaign.defeatedTierIds = ["forest", "snowy", "desert", "volcanic"];
+    profile.campaign.claimedRewardIds = CAMPAIGN_TIERS
+      .flatMap((tier) => tier.milestones)
+      .filter((milestone) => milestone.level <= 16)
+      .map((milestone) => milestone.id);
+    store.setItem("flagfort-profile-v2", JSON.stringify(profile));
+    const manager = new ProfileManager(store);
+
+    expect(manager.beginRunSettlement("fallout-clear", 0)).toBe(true);
+    const result = manager.settleRun("fallout-clear", zeroXp, zeroCoins, {
+      nightsSurvived: 10,
+      victory: true,
+      structureScore: 180,
+      campaignTierId: "wasteland",
+    });
+
+    expect(result?.newlyUnlockedTierIds).toEqual(["rift"]);
+    expect(result?.grantedCampaignRewards).toEqual([]);
+    expect(manager.profile.campaign.defeatedTierIds)
+      .toEqual(["forest", "snowy", "desert", "volcanic", "wasteland"]);
   });
 });

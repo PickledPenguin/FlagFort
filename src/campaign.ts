@@ -349,6 +349,23 @@ export const CAMPAIGN_TIERS: readonly CampaignTierDefinition[] = [
     ],
     biome: CAMPAIGN_BIOMES.wasteland,
   },
+  {
+    id: "rift",
+    order: 5,
+    name: "Astral Rift",
+    subtitle: "Hold fast beyond the veil",
+    description: "Anchor the fort among shattered stars where striders cross defenses, comets pierce the line, and heralds open gates to the void.",
+    accent: "#8eeaff",
+    ...CAMPAIGN_TIER_ARTWORK.rift,
+    boss: "eclipse-regent",
+    specialEnemies: ["rift-strider", "comet-slinger", "void-herald"],
+    unlock: { level: 16, previousTierId: "wasteland" },
+    milestones: [
+      { id: "rift-level-17-coins", level: 17, reward: { kind: "coins", amount: 260 } },
+      { id: "rift-level-18-coins", level: 18, reward: { kind: "coins", amount: 305 } },
+    ],
+    biome: CAMPAIGN_BIOMES.rift,
+  },
 ] as const;
 
 export function campaignTier(id: CampaignTierId): CampaignTierDefinition {

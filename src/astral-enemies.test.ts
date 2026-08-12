@@ -33,7 +33,7 @@ function wall(id: number, x: number, y: number): Structure {
 }
 
 describe("astral enemies", () => {
-  it("registers the staged Rift Strider as a complete phasing attacker", () => {
+  it("registers Rift Strider as a complete Astral Rift phasing attacker", () => {
     const definition = ENEMY_REGISTRY["rift-strider"];
 
     expect(definition.assets.portrait).toBe("enemies/rift-strider-zombie");
@@ -46,7 +46,8 @@ describe("astral enemies", () => {
       launchPopupText: "PHASE",
       landingPopupText: "RETURN",
     });
-    expect(definition.rosterEligible).toBe(false);
+    expect(definition.rosterEligible).toBe(true);
+    expect(definition.campaignTierIds).toEqual(["rift"]);
     for (const tier of ["forest", "snowy", "desert", "volcanic", "wasteland"] as const) {
       expect(Object.values(selectEnemyRoster("staged-rift-strider", tier)))
         .not.toContain("rift-strider");
@@ -94,7 +95,7 @@ describe("astral enemies", () => {
     expect(wall.health).toBe(wall.maxHealth);
   });
 
-  it("registers the staged Comet Slinger as a flag-line ranged attacker", () => {
+  it("registers Comet Slinger as an Astral Rift flag-line ranged attacker", () => {
     const definition = ENEMY_REGISTRY["comet-slinger"];
 
     expect(definition.assets.portrait).toBe("enemies/comet-slinger-zombie");
@@ -106,7 +107,8 @@ describe("astral enemies", () => {
       pierces: true,
       targets: ["player", "wall", "door", "spikes", "harvester", "turret", "flag"],
     });
-    expect(definition.rosterEligible).toBe(false);
+    expect(definition.rosterEligible).toBe(true);
+    expect(definition.campaignTierIds).toEqual(["rift"]);
     for (const tier of ["forest", "snowy", "desert", "volcanic", "wasteland"] as const) {
       expect(Object.values(selectEnemyRoster("staged-comet-slinger", tier)))
         .not.toContain("comet-slinger");
@@ -143,7 +145,7 @@ describe("astral enemies", () => {
     expect(game.particles.some((particle) => particle.color === "#b89cff")).toBe(true);
   });
 
-  it("registers the staged Void Herald as a capped Rift Strider caller", () => {
+  it("registers Void Herald as an Astral Rift caller of Rift Striders", () => {
     const definition = ENEMY_REGISTRY["void-herald"];
 
     expect(definition.assets.portrait).toBe("enemies/void-herald-zombie");
@@ -156,7 +158,8 @@ describe("astral enemies", () => {
       particleColor: "#a878ff",
       popupText: "ASTRAL GATE",
     });
-    expect(definition.rosterEligible).toBe(false);
+    expect(definition.rosterEligible).toBe(true);
+    expect(definition.campaignTierIds).toEqual(["rift"]);
     for (const tier of ["forest", "snowy", "desert", "volcanic", "wasteland"] as const) {
       expect(Object.values(selectEnemyRoster("staged-void-herald", tier)))
         .not.toContain("void-herald");
@@ -200,6 +203,7 @@ describe("astral enemies", () => {
 
     expect(isBossEnemyKind("eclipse-regent")).toBe(true);
     expect(definition.rosterEligible).toBe(false);
+    expect(definition.campaignTierIds).toEqual(["rift"]);
     expect(definition.assets.portrait).toBe("enemies/eclipse-regent");
     expect(definition.armor).toMatchObject({
       scalesWithHealth: true,
