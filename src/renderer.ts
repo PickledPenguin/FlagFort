@@ -553,8 +553,8 @@ export class Renderer {
           ctx.textAlign = "left";
           ctx.fillText(particle.text, left + 22, particle.y);
         } else {
-          if (particle.color === BALANCE.snowyEnemies.slow.popupTextColor) {
-            ctx.strokeStyle = "rgba(9,40,52,.92)";
+          if (particle.textStrokeColor) {
+            ctx.strokeStyle = particle.textStrokeColor;
             ctx.lineWidth = 4;
             ctx.lineJoin = "round";
             ctx.strokeText(particle.text, particle.x, particle.y);

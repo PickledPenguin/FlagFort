@@ -95,6 +95,7 @@ export const BALANCE = {
     flagWarningCooldown: 1.1,
     doorFadeRadius: 112,
     doorFadedOpacity: 0.38,
+    statusPopupStrokeColor: "rgba(9,40,52,.92)",
     cardSelectionDuration: 420,
     cardTransitionDuration: 520,
     cardTransitionEasing: "ease-in-out",

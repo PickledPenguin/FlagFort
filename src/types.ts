@@ -255,6 +255,7 @@ export interface Particle extends Vec2 {
   radius: number;
   color: string;
   text?: string;
+  textStrokeColor?: string;
   resource?: ResourceKind;
   shape?: "shard";
 }

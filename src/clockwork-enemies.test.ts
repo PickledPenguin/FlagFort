@@ -154,7 +154,9 @@ describe("clockwork enemies", () => {
     expect(game.projectiles).toHaveLength(0);
     expect(game.particles.some((particle) => particle.color === "#79e7df")).toBe(true);
     expect(game.particles.some((particle) =>
-      particle.text === "Aether Locked" && particle.color === "#d9fffb"))
+      particle.text === "Aether Locked"
+      && particle.color === "#d9fffb"
+      && particle.textStrokeColor === BALANCE.ui.statusPopupStrokeColor))
       .toBe(true);
   });
 

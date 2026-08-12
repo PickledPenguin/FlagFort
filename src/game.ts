@@ -2773,6 +2773,8 @@ export class Game {
       8,
       popupText,
       popupTextColor,
+      -24,
+      BALANCE.ui.statusPopupStrokeColor,
     );
   }
 
@@ -4093,6 +4095,7 @@ export class Game {
     text?: string,
     textColor = color,
     textOffsetY = -24,
+    textStrokeColor?: string,
   ): void {
     for (let i = 0; i < count; i += 1) {
       const angle = this.rng.range(0, Math.PI * 2);
@@ -4117,7 +4120,7 @@ export class Game {
       );
       this.particles.push({
         x, y: y + textOffsetY, vx: 0, vy: -38, life: 0.9, maxLife: 0.9, radius: 0,
-        color: resolvedTextColor, text,
+        color: resolvedTextColor, text, textStrokeColor,
       });
     }
   }
