@@ -29,7 +29,7 @@ export type RosterEnemyKind =
   | "snowballer"
   | "icebound";
 export type BossEnemyKind = "boss" | "frost-warden";
-export type EnemyKind = RosterEnemyKind | "splitter-child" | BossEnemyKind;
+export type EnemyKind = RosterEnemyKind | "splitter-child" | "dune-hopper" | BossEnemyKind;
 export type PlayerId = string;
 export type DamageSource =
   | "player-melee"

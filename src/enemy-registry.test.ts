@@ -2,6 +2,22 @@ import { describe, expect, it } from "vitest";
 import { ENEMY_REGISTRY, ROSTER_TIERS, introducedRosterEnemies, rosterMilestones, selectEnemyRoster } from "./enemy-registry";
 
 describe("deterministic enemy roster", () => {
+  it("stages the Dune Hopper as a complete Desert leap enemy without exposing it to unfinished rosters", () => {
+    const definition = ENEMY_REGISTRY["dune-hopper"];
+    expect(definition.assets.portrait).toBe("enemies/dune-hopper-zombie");
+    expect(definition.render).toEqual({ aspectRatio: 104 / 96, width: 78, height: 72 });
+    expect(definition.tier).toBe(3);
+    expect(definition.introductionNight).toBe(3);
+    expect(definition.rosterEligible).toBe(false);
+    expect(definition.leap).toMatchObject({
+      range: 230,
+      cooldown: 2.4,
+      arcHeight: 42,
+      particleColor: "#e9b85f",
+    });
+    expect(Object.values(selectEnemyRoster("desert-staging"))).not.toContain("dune-hopper");
+  });
+
   it("selects exactly one configured enemy per tier from a dedicated stable stream", () => {
     const first = selectEnemyRoster("fort-seed");
     const repeated = selectEnemyRoster("fort-seed");
