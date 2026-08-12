@@ -5,7 +5,7 @@ import { BALANCE } from "./config";
 import { Game } from "./game";
 import { Input } from "./input";
 import { applySlow, isSlowed, updateStatuses } from "./status-effects";
-import { projectileVisualColor, SNOW_ARROW_COLOR } from "./projectile-visuals";
+import { projectileVisualColor } from "./projectile-visuals";
 import type { DamageSource, Enemy, PlayerId, Structure, StructureKind } from "./types";
 
 function gameFixture(): Game {
@@ -315,10 +315,10 @@ describe("Frost Warden", () => {
 describe("snow projectile visuals", () => {
   const projectile = { owner: "player" as const, color: "#f6e2a8" };
 
-  it("uses a centralized brown override for player and turret arrows only in snow", () => {
-    expect(projectileVisualColor(projectile, "snowy")).toBe(SNOW_ARROW_COLOR);
+  it("uses the biome's configured override for friendly projectiles only", () => {
+    expect(projectileVisualColor(projectile, "snowy")).toBe("#704321");
     expect(projectileVisualColor({ owner: "turret", color: "#42c9d4" }, "snowy"))
-      .toBe(SNOW_ARROW_COLOR);
+      .toBe("#704321");
     expect(projectileVisualColor(projectile, "forest")).toBe(projectile.color);
     expect(projectileVisualColor({ owner: "enemy-arrow", color: "#111" }, "snowy"))
       .toBe("#111");

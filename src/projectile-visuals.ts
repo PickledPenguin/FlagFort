@@ -1,14 +1,14 @@
+import { campaignTier } from "./campaign";
 import type { CampaignTierId, Projectile } from "./types";
-
-export const SNOW_ARROW_COLOR = "#704321";
 
 export function projectileVisualColor(
   projectile: Pick<Projectile, "owner" | "color">,
   campaignTierId: CampaignTierId,
 ): string {
-  if (campaignTierId === "snowy"
+  const friendlyProjectileColor = campaignTier(campaignTierId).biome.friendlyProjectileColor;
+  if (friendlyProjectileColor
     && (projectile.owner === "player" || projectile.owner === "turret")) {
-    return SNOW_ARROW_COLOR;
+    return friendlyProjectileColor;
   }
   return projectile.color;
 }

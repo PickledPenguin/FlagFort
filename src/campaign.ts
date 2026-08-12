@@ -21,6 +21,7 @@ export interface CampaignBiomeDefinition {
   ground: "forest" | "snow";
   minimapLabel: string;
   resourceSnowChance: number;
+  friendlyProjectileColor?: string;
   palette: {
     viewport: string;
     ground: string;
@@ -105,6 +106,7 @@ export const CAMPAIGN_TIERS: readonly CampaignTierDefinition[] = [
       ground: "snow",
       minimapLabel: "SNOWBOUND MAP",
       resourceSnowChance: 0.58,
+      friendlyProjectileColor: "#704321",
       palette: {
         viewport: "#b9d6db",
         ground: "#d7e7e8",

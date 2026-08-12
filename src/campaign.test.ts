@@ -51,6 +51,7 @@ describe("data-driven campaign tiers", () => {
       biome: {
         ground: "snow",
         resourceSnowChance: 0.58,
+        friendlyProjectileColor: "#704321",
         palette: {
           viewport: "#b9d6db",
           ground: "#d7e7e8",
@@ -77,6 +78,8 @@ describe("data-driven campaign tiers", () => {
       expect(Object.values(tier.biome.palette).flat().every((color) => (
         typeof color === "string" && /^#[0-9a-f]{6}$/i.test(color)
       ))).toBe(true);
+      expect(tier.biome.friendlyProjectileColor === undefined
+        || /^#[0-9a-f]{6}$/i.test(tier.biome.friendlyProjectileColor)).toBe(true);
     }
   });
 
