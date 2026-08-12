@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="clockwork-tier-title clockwork-tier-description">
+  <title id="clockwork-tier-title">Clockwork Citadel campaign tier</title>
+  <desc id="clockwork-tier-description">A brass clock tower rises above a fortified mechanical city powered by a glowing aether core.</desc>
+  <g id="clockwork-tier-icon">
+    <defs>
+      <linearGradient id="clockwork-icon-sky-gradient" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#273347"/>
+        <stop offset="1" stop-color="#5a5148"/>
+      </linearGradient>
+      <linearGradient id="clockwork-icon-brass-gradient" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#e0b85f"/>
+        <stop offset="1" stop-color="#8b5d2d"/>
+      </linearGradient>
+    </defs>
+    <circle id="clockwork-sky" cx="60" cy="60" r="53" fill="url(#clockwork-icon-sky-gradient)" stroke="#1c222c" stroke-width="5"/>
+    <g id="clockwork-smokestacks" fill="#353940" stroke="#20242a" stroke-width="3">
+      <path d="M16 76V45h13v31Z"/><path d="M91 76V38h13v38Z"/>
+      <path d="M14 45h17v7H14Zm75-7h17v7H89Z" fill="#a26f35"/>
+    </g>
+    <g id="clockwork-steam" fill="none" stroke="#bbc5c5" stroke-width="6" stroke-linecap="round" opacity=".48">
+      <path d="M22 37c-7-8 7-11 1-20"/><path d="M98 30c7-8-6-12 1-20"/>
+    </g>
+    <path id="clockwork-citadel" d="M12 102V72h19V59h13V37h32v22h13v13h19v30Z" fill="#51555b" stroke="#22272d" stroke-width="4" stroke-linejoin="round"/>
+    <path id="clockwork-roof" d="m40 39 20-19 20 19Z" fill="url(#clockwork-icon-brass-gradient)" stroke="#5d4028" stroke-width="4" stroke-linejoin="round"/>
+    <g id="clockwork-clock" stroke="#5b3e26">
+      <circle cx="60" cy="49" r="13" fill="#e2c270" stroke-width="4"/>
+      <path d="M60 49V40m0 9 8 4" fill="none" stroke-width="3.5" stroke-linecap="round"/>
+      <circle cx="60" cy="49" r="2.5" fill="#5b3e26"/>
+    </g>
+    <g id="clockwork-windows" fill="#78e5df" stroke="#29545a" stroke-width="2">
+      <path d="M22 83h9v13h-9Zm67 0h9v13h-9ZM51 72h8v13h-8Zm13 0h8v13h-8Z"/>
+    </g>
+    <g id="clockwork-gears" fill="#c99442" stroke="#593e28" stroke-width="2.5" stroke-linejoin="round">
+      <path d="m29 65 4-3v-5l6-1 3 4 5 1v6l4 3-3 5 1 5-6 2-4-3-5 1-2-6-5-2Z"/>
+      <circle cx="39" cy="69" r="5" fill="#30343b"/>
+      <path d="m78 64 4-4-1-5 6-2 3 4 5 1 1 6 4 3-3 5 1 5-6 2-4-3-5 1-2-5-5-3Z"/>
+      <circle cx="88" cy="66" r="5" fill="#30343b"/>
+    </g>
+    <path id="clockwork-aether-conduit" d="M13 101h33l5-9h18l6 9h33" fill="none" stroke="#76e7df" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    <path id="clockwork-aether-core" d="m54 103-4-9 10-10 10 10-4 9-6 6Z" fill="#8cf1e3" stroke="#245a61" stroke-width="3" stroke-linejoin="round"/>
+  </g>
+</svg>

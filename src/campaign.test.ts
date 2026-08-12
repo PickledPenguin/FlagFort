@@ -51,6 +51,15 @@ const zeroCoins: CoinSettlement = {
 };
 
 describe("data-driven campaign tiers", () => {
+  it("registers Clockwork Citadel selection artwork without exposing the unfinished tier", () => {
+    expect(CAMPAIGN_TIER_ARTWORK.clockwork).toEqual({
+      icon: "./images/campaign/clockwork-tier.svg",
+      backdrop: "./images/campaign/clockwork-backdrop.svg",
+    });
+    expect(CAMPAIGN_TIERS.every((tier) => tier.icon !== CAMPAIGN_TIER_ARTWORK.clockwork.icon))
+      .toBe(true);
+  });
+
   it("registers a complete Clockwork Citadel resource-art skin for the upcoming eighth tier", () => {
     expect(RESOURCE_STATE_SKINS.clockwork).toEqual({
       wood: {

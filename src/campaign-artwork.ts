@@ -29,4 +29,8 @@ export const CAMPAIGN_TIER_ARTWORK = {
     icon: campaignImage("mire-tier"),
     backdrop: campaignImage("mire-backdrop"),
   },
+  clockwork: {
+    icon: campaignImage("clockwork-tier"),
+    backdrop: campaignImage("clockwork-backdrop"),
+  },
 } as const satisfies Record<string, { icon: string; backdrop: string }>;
