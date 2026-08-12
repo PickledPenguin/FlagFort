@@ -35,7 +35,8 @@ export type RosterEnemyKind =
   | "magma-spitter"
   | "obsidian-charger"
   | "radstalker"
-  | "sludge-lobber";
+  | "sludge-lobber"
+  | "ruin-siren";
 export type BossEnemyKind = "boss" | "frost-warden" | "dune-colossus" | "caldera-sovereign";
 export type EnemyKind = RosterEnemyKind | "splitter-child" | BossEnemyKind;
 export type PlayerId = string;

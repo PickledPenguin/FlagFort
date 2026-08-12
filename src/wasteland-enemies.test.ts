@@ -146,4 +146,56 @@ describe("wasteland enemies", () => {
       particle.text === "Sludged" && particle.color === "#dfff86"))
       .toBe(true);
   });
+
+  it("registers the staged Ruin Siren with a capped reinforcement-caller role", () => {
+    const definition = ENEMY_REGISTRY["ruin-siren"];
+
+    expect(definition.assets.portrait).toBe("enemies/ruin-siren-zombie");
+    expect(definition.render).toEqual({ aspectRatio: 120 / 108, width: 94, height: 85 });
+    expect(definition.summon).toMatchObject({
+      cooldown: 5.2,
+      cappedRetryCooldown: 1.8,
+      maximumLiving: 4,
+      kinds: ["radstalker"],
+      particleColor: "#e65340",
+      popupText: "RALLY SIGNAL",
+    });
+    expect(definition.rosterEligible).toBe(false);
+    for (const tier of ["forest", "snowy", "desert", "volcanic"] as const) {
+      expect(Object.values(selectEnemyRoster("staged-ruin-siren", tier)))
+        .not.toContain("ruin-siren");
+    }
+  });
+
+  it("rallies capped Radstalker reinforcements without adding them to wave accounting", () => {
+    const game = gameFixture();
+    const definition = ENEMY_REGISTRY["ruin-siren"];
+    const siren = spawn(game, "ruin-siren", game.flag.x + 300, game.flag.y);
+    siren.summonCooldown = 0;
+
+    (game as unknown as { updateEnemySummon(enemy: Enemy, dt: number): void })
+      .updateEnemySummon(siren, BALANCE.fixedStep);
+
+    const summoned = game.enemies.find((enemy) => enemy.summonedBy === siren.id);
+    expect(summoned).toMatchObject({ kind: "radstalker", countsTowardWave: false });
+    expect(siren.summonCooldown).toBe(definition.summon!.cooldown);
+    expect(game.particles.some((particle) => particle.color === "#e65340")).toBe(true);
+    expect(game.particles.some((particle) => particle.text === "RALLY SIGNAL")).toBe(true);
+
+    game.enemies = [
+      siren,
+      ...Array.from({ length: definition.summon!.maximumLiving }, (_, index) => ({
+        ...summoned!,
+        id: 900 + index,
+        summonedBy: siren.id,
+        health: 1,
+      })),
+    ];
+    siren.summonCooldown = 0;
+    (game as unknown as { updateEnemySummon(enemy: Enemy, dt: number): void })
+      .updateEnemySummon(siren, BALANCE.fixedStep);
+
+    expect(game.enemies).toHaveLength(definition.summon!.maximumLiving + 1);
+    expect(siren.summonCooldown).toBe(definition.summon!.cappedRetryCooldown);
+  });
 });
