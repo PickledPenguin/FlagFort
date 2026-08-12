@@ -15,6 +15,7 @@ import type { CoinSettlement, XpRewardBreakdown } from "./rewards";
 import { CAMPAIGN_TIER_IDS } from "./types";
 import { RESOURCE_STATE_SKINS } from "./assets";
 import { CAMPAIGN_TIER_ARTWORK } from "./campaign-artwork";
+import { DESERT_ENEMY_ARTWORK } from "./desert-enemy-artwork";
 
 class MemoryStore implements KeyValueStore {
   private values = new Map<string, string>();
@@ -46,6 +47,14 @@ const zeroCoins: CoinSettlement = {
 };
 
 describe("data-driven campaign tiers", () => {
+  it("registers a complete themed artwork set for the upcoming Desert specials", () => {
+    expect(DESERT_ENEMY_ARTWORK).toEqual({
+      duneHopper: "enemies/dune-hopper-zombie",
+      sandcaster: "enemies/sandcaster-zombie",
+      tombguard: "enemies/tombguard-zombie",
+    });
+  });
+
   it("defines the upcoming Desert environment without exposing an unfinished tier", () => {
     expect(CAMPAIGN_BIOMES.desert).toMatchObject({
       ground: "desert",

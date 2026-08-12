@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-56 -50 112 100" role="img" aria-labelledby="title description">
+  <title id="title">Tombguard zombie</title>
+  <desc id="description">A broad desert zombie encased in layered sandstone tomb armor with a scarab crest and a visible cracked weak point.</desc>
+  <g id="tombguard-zombie">
+    <g id="rear-hands" fill="#52775a" stroke="#294735" stroke-width="2"><circle id="upper-hand" cx="38" cy="-18" r="10"/><circle id="lower-hand" cx="38" cy="18" r="10"/></g>
+    <circle id="body" r="28" fill="#567d5d" stroke="#294735" stroke-width="3"/>
+    <g id="sandstone-armor" fill="#d5a657" stroke="#765234" stroke-width="3" stroke-linejoin="round"><path id="upper-armor-plate" d="M-31-25-2-34 25-22 19-7-8-11-29-5Z"/><path id="lower-armor-plate" d="M-29 5-7 11 20 7 27 23-1 35-31 25Z"/><path id="face-guard" d="M-5-13 23-16 31 0 22 16-6 12 2 0Z" fill="#e2b962"/></g>
+    <g id="armor-bands" fill="none" stroke="#9a6a3c" stroke-width="4" stroke-linecap="round"><path id="upper-band" d="M-24-18-7-23 16-17"/><path id="lower-band" d="M-22 18-2 25 18 18"/></g>
+    <g id="scarab-crest" fill="#32aeb0" stroke="#235f65" stroke-width="2"><ellipse id="scarab-body" cx="-12" cy="0" rx="7" ry="10"/><path id="scarab-wings" d="M-17-3-29-12l3 14 9 4M-7-3 5-12 2 2-7 6Z"/></g>
+    <path id="armor-crack" d="m-2-29 5 7-6 6 7 8-6 7" fill="none" stroke="#72452f" stroke-width="3" stroke-linecap="round"/>
+    <g id="eyes" fill="#fff2bd" stroke="#765234" stroke-width="1.5"><ellipse id="upper-eye" cx="15" cy="-8" rx="6" ry="4" transform="rotate(18 15 -8)"/><ellipse id="lower-eye" cx="15" cy="8" rx="6" ry="4" transform="rotate(-18 15 8)"/></g>
+    <g id="pupils" fill="#782f2b"><circle id="upper-pupil" cx="18" cy="-7" r="2.5"/><circle id="lower-pupil" cx="18" cy="7" r="2.5"/></g>
+  </g>
+</svg>

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-52 -48 104 96" role="img" aria-labelledby="title description">
+  <title id="title">Dune Hopper zombie</title>
+  <desc id="description">A lean desert zombie wearing a wind-swept scarf, with powerful springing legs and sand kicking from its feet.</desc>
+  <g id="dune-hopper-zombie">
+    <g id="sand-trail" fill="#e9b85f" opacity=".8"><ellipse id="sand-cloud-left" cx="-29" cy="27" rx="12" ry="6"/><ellipse id="sand-cloud-right" cx="17" cy="32" rx="15" ry="7"/><circle id="sand-grain-left" cx="-39" cy="17" r="2.5"/><circle id="sand-grain-right" cx="35" cy="23" r="3"/></g>
+    <g id="springing-legs" fill="none" stroke="#315f48" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"><path id="rear-leg" d="M-11 15-24 29-36 19"/><path id="front-leg" d="M10 17 24 30 38 18"/></g>
+    <g id="body-and-hands" fill="#58a86b" stroke="#264a38" stroke-width="2"><circle id="body" r="24"/><circle id="upper-hand" cx="32" cy="-14" r="8"/><circle id="lower-hand" cx="32" cy="13" r="8"/></g>
+    <path id="desert-scarf-tail" d="M-18-14C-32-20-41-13-47-19c8 1 12-8 23-7 8 0 13 4 17 8Z" fill="#c75c3e" stroke="#713626" stroke-width="2" stroke-linejoin="round"/>
+    <path id="desert-scarf-wrap" d="M-20-14C-7-7 8-7 20-15l3 9C10 1-8 1-23-7Z" fill="#df7047" stroke="#713626" stroke-width="2"/>
+    <g id="eyes" fill="#fff1c4" stroke="#264a38" stroke-width="1.5"><ellipse id="upper-eye" cx="8" cy="-10" rx="7" ry="5" transform="rotate(25 8 -10)"/><ellipse id="lower-eye" cx="8" cy="10" rx="7" ry="5" transform="rotate(-25 8 10)"/></g>
+    <g id="pupils" fill="#8f3428"><circle id="upper-pupil" cx="11" cy="-9" r="3"/><circle id="lower-pupil" cx="11" cy="9" r="3"/></g>
+    <path id="determined-brows" d="M-8-9 2-5M-7 11 3 6" fill="none" stroke="#264a38" stroke-width="3" stroke-linecap="round"/>
+  </g>
+</svg>

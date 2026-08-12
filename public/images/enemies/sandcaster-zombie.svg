@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-54 -46 108 92" role="img" aria-labelledby="title description">
+  <title id="title">Sandcaster zombie</title>
+  <desc id="description">A robed desert zombie holding a cracked clay vessel that swirls with a clearly visible cloud of stinging sand.</desc>
+  <defs id="sandcaster-definitions"><linearGradient id="robe-gradient" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#b85d3b"/><stop offset="1" stop-color="#7f3d31"/></linearGradient></defs>
+  <g id="sandcaster-zombie">
+    <path id="robe" d="M-24-22C-35-7-34 20-24 35L7 40c17-13 23-40 8-61Z" fill="url(#robe-gradient)" stroke="#542d2b" stroke-width="3" stroke-linejoin="round"/>
+    <circle id="body" r="22" fill="#6fa06a" stroke="#315640" stroke-width="2"/>
+    <path id="hood" d="M-25-8C-28-32-4-42 18-27l8 18-10-4C8-29-12-30-20-12Z" fill="#d68149" stroke="#6d3e2d" stroke-width="3" stroke-linejoin="round"/>
+    <g id="eyes" fill="#fff0bd"><ellipse id="upper-eye" cx="8" cy="-9" rx="6.5" ry="4.5" transform="rotate(24 8 -9)"/><ellipse id="lower-eye" cx="8" cy="9" rx="6.5" ry="4.5" transform="rotate(-24 8 9)"/></g>
+    <g id="pupils" fill="#693129"><circle id="upper-pupil" cx="11" cy="-8" r="2.7"/><circle id="lower-pupil" cx="11" cy="8" r="2.7"/></g>
+    <g id="casting-arm" stroke="#315640" stroke-width="2"><circle id="casting-hand" cx="32" cy="-17" r="8" fill="#6fa06a"/><circle id="vessel-hand" cx="29" cy="20" r="8" fill="#6fa06a"/></g>
+    <g id="sand-vessel" stroke="#6f432b" stroke-width="2"><path id="clay-jar" d="M31 13h16l3 8-4 18H30l-4-18Z" fill="#d89450" stroke-linejoin="round"/><path id="jar-crack" d="m39 20-4 6 5 4-3 7" fill="none" stroke="#7b442c" stroke-width="2.5"/><path id="jar-rim" d="M29 13h20" fill="none" stroke-linecap="round" stroke-width="4"/></g>
+    <g id="stinging-sand" fill="#f3c96d"><path id="sand-stream" d="M34 10C30-1 41-7 43-17c2-9-5-14-2-22 10 9 14 18 8 28-5 8-3 15 0 21Z" opacity=".82"/><circle id="sand-grain-one" cx="47" cy="-25" r="3"/><circle id="sand-grain-two" cx="35" cy="-18" r="2"/><circle id="sand-grain-three" cx="50" cy="-7" r="2.5"/></g>
+  </g>
+</svg>
