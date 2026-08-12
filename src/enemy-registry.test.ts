@@ -92,6 +92,13 @@ describe("deterministic enemy roster", () => {
       expect(definition.xp).toBeGreaterThanOrEqual(0);
       expect(definition.targeting.mode).toBeTruthy();
       expect(definition.attack.mode).toBeTruthy();
+      if (definition.attack.lifeSteal) {
+        expect(definition.attack.lifeSteal.healingRatio).toBeGreaterThan(0);
+        expect(definition.attack.lifeSteal.targets.length).toBeGreaterThan(0);
+        expect(definition.attack.lifeSteal.particleColor).toMatch(/^#[0-9a-f]{6}$/i);
+        expect(definition.attack.lifeSteal.particleCount).toBeGreaterThan(0);
+        expect(definition.attack.lifeSteal.popupText).toBeTruthy();
+      }
       expect(definition.death.mode).toBeTruthy();
       if (definition.render) {
         expect(definition.render.aspectRatio).toBeGreaterThan(0);

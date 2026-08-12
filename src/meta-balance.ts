@@ -85,6 +85,7 @@ export const META_BALANCE = {
       "rift-strider": 11,
       "comet-slinger": 13,
       "void-herald": 17,
+      "mire-lurker": 13,
       popper: 6,
       archer: 6,
       summoner: 8,

@@ -2479,8 +2479,30 @@ export class Game {
     const isStructure = "kind" in target && "tier" in target;
     const rawDamage = isStructure ? enemy.structureDamage : enemy.damage;
     const playerWasFull = target === this.player && this.player.health >= this.player.maxHealth;
+    const targetHealthBefore = Math.max(0, target.health);
     const damage = this.applyIncomingDamage(target, rawDamage, enemy.kind, "enemy");
-    this.applyEnemyStatusEffect(ENEMY_REGISTRY[enemy.kind].attack.statusEffect, target);
+    const attack = ENEMY_REGISTRY[enemy.kind].attack;
+    this.applyEnemyStatusEffect(attack.statusEffect, target);
+    const lifeSteal = attack.lifeSteal;
+    const targetKind = target === this.player
+      ? "player"
+      : "tier" in target
+        ? target.kind
+        : "flag";
+    if (lifeSteal?.targets.includes(targetKind)) {
+      const appliedDamage = Math.min(targetHealthBefore, damage);
+      const healed = Math.min(enemy.maxHealth - enemy.health, appliedDamage * lifeSteal.healingRatio);
+      if (healed > 0) {
+        enemy.health += healed;
+        this.burst(
+          enemy.x,
+          enemy.y,
+          lifeSteal.particleColor,
+          lifeSteal.particleCount,
+          lifeSteal.popupText,
+        );
+      }
+    }
     emitAudioCue({
       cue: (ENEMY_REGISTRY[enemy.kind].audio.attack ?? "zombie-attack") as import("./audio").SoundId,
       position: { x: enemy.x, y: enemy.y },
