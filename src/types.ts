@@ -43,7 +43,8 @@ export type RosterEnemyKind =
   | "mire-lurker"
   | "sporecaster"
   | "drowned-bulwark"
-  | "springjack";
+  | "springjack"
+  | "aether-gunner";
 export type BossEnemyKind = "boss" | "frost-warden" | "dune-colossus" | "caldera-sovereign" | "reactor-revenant" | "eclipse-regent" | "mireheart-titan";
 export type EnemyKind = RosterEnemyKind | "splitter-child" | BossEnemyKind;
 export type PlayerId = string;
@@ -61,6 +62,7 @@ export type DamageSource =
   | "sludge-lobber"
   | "comet-slinger"
   | "sporecaster"
+  | "aether-gunner"
   | "reactor-revenant"
   | "eclipse-regent"
   | "mireheart-titan"
@@ -233,7 +235,7 @@ export interface Projectile extends Circle {
   intendedTargetId?: number | "player" | "flag";
   color: string;
   sourceEnemyKind?: EnemyKind;
-  appearance?: "arrow" | "snowball" | "sandblast" | "magma" | "sludge" | "comet" | "spore";
+  appearance?: "arrow" | "snowball" | "sandblast" | "magma" | "sludge" | "comet" | "spore" | "aether";
   pierces?: boolean;
   statusEffect?: EnemyStatusEffect;
   impactBurst?: {

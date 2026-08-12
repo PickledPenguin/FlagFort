@@ -315,6 +315,37 @@ export class Renderer {
     for (const strike of game.areaStrikes) this.drawAreaStrike(strike);
     if (game.buildPreview) this.drawBuildPreview(game);
     for (const projectile of game.projectiles) {
+      if (projectile.appearance === "aether") {
+        ctx.save();
+        ctx.translate(projectile.x, projectile.y);
+        ctx.rotate(Math.atan2(projectile.vy, projectile.vx));
+        const trail = Math.max(34, projectile.radius * 5.2);
+        const gradient = ctx.createLinearGradient(-trail, 0, projectile.radius, 0);
+        gradient.addColorStop(0, "rgba(121,231,223,0)");
+        gradient.addColorStop(0.48, "rgba(121,231,223,.4)");
+        gradient.addColorStop(1, "rgba(229,255,251,.92)");
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.ellipse(-trail * 0.36, 0, trail * 0.78, projectile.radius * 0.58, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = "#255f63";
+        ctx.lineWidth = 2;
+        ctx.fillStyle = "#79e7df";
+        ctx.beginPath();
+        ctx.moveTo(projectile.radius * 1.4, 0);
+        ctx.lineTo(-projectile.radius * 0.55, -projectile.radius * 0.72);
+        ctx.lineTo(-projectile.radius * 0.9, 0);
+        ctx.lineTo(-projectile.radius * 0.55, projectile.radius * 0.72);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = "#effffc";
+        ctx.beginPath();
+        ctx.ellipse(projectile.radius * 0.32, -projectile.radius * 0.16, projectile.radius * 0.48, projectile.radius * 0.2, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+        continue;
+      }
       if (projectile.appearance === "spore") {
         ctx.save();
         ctx.translate(projectile.x, projectile.y);

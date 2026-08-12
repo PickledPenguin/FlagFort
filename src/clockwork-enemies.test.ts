@@ -24,6 +24,14 @@ function spawn(game: Game, kind: Enemy["kind"], x: number, y: number): Enemy {
   return enemy;
 }
 
+function turret(id: number, x: number, y: number): Structure {
+  return {
+    id, kind: "turret", tier: "wood", x, y,
+    radius: BALANCE.structure.radius.turret, health: 500, maxHealth: 500,
+    cooldown: 0, angle: 0, lastArmAngle: 0, harvesterHitResourceIds: new Set(), flash: 0,
+  };
+}
+
 describe("clockwork enemies", () => {
   it("registers Springjack as a complete but staged spring-powered skirmisher", () => {
     const definition = ENEMY_REGISTRY.springjack;
@@ -86,5 +94,67 @@ describe("clockwork enemies", () => {
     expect(springjack.x).toBeCloseTo(springjack.jumpEndX);
     expect(game.particles.some((particle) => particle.text === "CLANG")).toBe(true);
     expect(wall.health).toBe(wall.maxHealth);
+  });
+
+  it("registers Aether Gunner as a complete but staged turret suppressor", () => {
+    const definition = ENEMY_REGISTRY["aether-gunner"];
+
+    expect(definition.assets.portrait).toBe("enemies/aether-gunner-zombie");
+    expect(definition.render).toEqual({ aspectRatio: 116 / 104, width: 86, height: 77 });
+    expect(definition.targeting).toMatchObject({ mode: "archer", attackRange: 490, innerRadius: 220 });
+    expect(definition.projectile).toMatchObject({
+      appearance: "aether",
+      damageSource: "aether-gunner",
+      speed: 820,
+      pierces: false,
+      targets: ["turret", "player", "flag"],
+      statusEffect: {
+        kind: "slow",
+        duration: 2.6,
+        targets: ["turret"],
+        popupTextColor: "#d9fffb",
+        particleColor: "#79e7df",
+        popupText: "Aether Locked",
+      },
+    });
+    expect(definition.rosterEligible).toBe(false);
+    for (const tier of ["forest", "snowy", "desert", "volcanic", "wasteland", "rift", "mire"] as const) {
+      expect(Object.values(selectEnemyRoster("staged-aether-gunner", tier)))
+        .not.toContain("aether-gunner");
+    }
+  });
+
+  it("prioritizes a turret and stalls it with a high-velocity aether bolt", () => {
+    const game = gameFixture();
+    const definition = ENEMY_REGISTRY["aether-gunner"];
+    const gunner = spawn(game, "aether-gunner", game.flag.x - 390, game.flag.y);
+    const target = turret(2200, game.flag.x - 130, game.flag.y);
+    game.player.x = game.flag.x + 30;
+    game.player.y = game.flag.y;
+    game.structures = [target];
+
+    (game as unknown as { selectEnemyTarget(enemy: Enemy): void }).selectEnemyTarget(gunner);
+    expect(gunner.targetId).toBe(target.id);
+
+    (game as unknown as {
+      enemyRangedAttack(enemy: Enemy, target: Structure, dt: number): void;
+    }).enemyRangedAttack(gunner, target, definition.attack.chargeSeconds);
+
+    expect(game.projectiles.at(-1)).toMatchObject({
+      sourceEnemyKind: "aether-gunner",
+      damageSource: "aether-gunner",
+      intendedTargetId: target.id,
+      appearance: "aether",
+      pierces: false,
+    });
+    (game as unknown as { updateProjectiles(dt: number): void }).updateProjectiles(0.5);
+
+    expect(target.health).toBe(target.maxHealth - gunner.structureDamage);
+    expect(target.statuses?.slow?.remaining).toBe(2.6);
+    expect(game.projectiles).toHaveLength(0);
+    expect(game.particles.some((particle) => particle.color === "#79e7df")).toBe(true);
+    expect(game.particles.some((particle) =>
+      particle.text === "Aether Locked" && particle.color === "#d9fffb"))
+      .toBe(true);
   });
 });

@@ -89,6 +89,7 @@ export const META_BALANCE = {
       sporecaster: 15,
       "drowned-bulwark": 19,
       springjack: 15,
+      "aether-gunner": 17,
       popper: 6,
       archer: 6,
       summoner: 8,
