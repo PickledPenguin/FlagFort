@@ -18,6 +18,7 @@ import { CAMPAIGN_TIER_ARTWORK } from "./campaign-artwork";
 import { DESERT_ENEMY_ARTWORK } from "./desert-enemy-artwork";
 import { VOLCANIC_ENEMY_ARTWORK } from "./volcanic-enemy-artwork";
 import { WASTELAND_ENEMY_ARTWORK } from "./wasteland-enemy-artwork";
+import { ASTRAL_ENEMY_ARTWORK } from "./astral-enemy-artwork";
 
 class MemoryStore implements KeyValueStore {
   private values = new Map<string, string>();
@@ -152,6 +153,15 @@ describe("data-driven campaign tiers", () => {
         broken: "enemies/reactor-revenant-broken",
       },
     });
+  });
+
+  it("registers exactly three themed special-enemy artworks for the upcoming Astral Rift tier", () => {
+    expect(ASTRAL_ENEMY_ARTWORK).toEqual({
+      riftStrider: "enemies/rift-strider-zombie",
+      cometSlinger: "enemies/comet-slinger-zombie",
+      voidHerald: "enemies/void-herald-zombie",
+    });
+    expect(Object.keys(ASTRAL_ENEMY_ARTWORK)).toHaveLength(3);
   });
 
   it("defines and exposes the Desert environment through its completed tier", () => {
