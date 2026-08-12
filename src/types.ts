@@ -1,6 +1,12 @@
 export type Difficulty = "easy" | "normal" | "hard" | "extreme";
 export type RunMode = "campaign" | "endless";
-export type CampaignTierId = "forest" | "snowy";
+export const CAMPAIGN_TIER_IDS = ["forest", "snowy"] as const;
+export type CampaignTierId = typeof CAMPAIGN_TIER_IDS[number];
+
+export function isCampaignTierId(value: unknown): value is CampaignTierId {
+  return typeof value === "string"
+    && (CAMPAIGN_TIER_IDS as readonly string[]).includes(value);
+}
 export type Phase = "menu" | "day" | "night" | "dawn" | "paused" | "victory" | "defeat";
 export type ResourceKind = "wood" | "stone" | "gold" | "diamond";
 export type Tier = ResourceKind;

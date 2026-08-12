@@ -10,6 +10,7 @@ import { ProfileManager, createDefaultProfile, lifetimeXpAtLevel } from "./profi
 import { generateWorld } from "./world";
 import type { KeyValueStore } from "./platform";
 import type { CoinSettlement, XpRewardBreakdown } from "./rewards";
+import { CAMPAIGN_TIER_IDS } from "./types";
 
 class MemoryStore implements KeyValueStore {
   private values = new Map<string, string>();
@@ -42,7 +43,7 @@ const zeroCoins: CoinSettlement = {
 
 describe("data-driven campaign tiers", () => {
   it("keeps tier order, requirements, rewards, enemies, bosses, and effects on definitions", () => {
-    expect(CAMPAIGN_TIERS.map((tier) => tier.id)).toEqual(["forest", "snowy"]);
+    expect(CAMPAIGN_TIERS.map((tier) => tier.id)).toEqual(CAMPAIGN_TIER_IDS);
     expect(campaignTier("snowy")).toMatchObject({
       unlock: { level: 4, previousTierId: "forest" },
       boss: "frost-warden",

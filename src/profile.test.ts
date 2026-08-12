@@ -50,6 +50,16 @@ describe("versioned profile persistence", () => {
     expect(profile.completedSettlementIds).toEqual(["a"]);
   });
 
+  it("retains only registered campaign clears during migration", () => {
+    const profile = migrateProfile({
+      campaign: {
+        defeatedTierIds: ["snowy", "future-placeholder", "forest", "snowy", 7],
+      },
+    });
+
+    expect(profile.campaign.defeatedTierIds).toEqual(["snowy", "forest"]);
+  });
+
   it("infers total nights from the separate legacy run history", () => {
     const store = new TestStore();
     store.setItem(META_BALANCE.legacyRecordsKey, JSON.stringify([

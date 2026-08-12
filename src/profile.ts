@@ -16,8 +16,7 @@ import {
 } from "./equipment";
 import type { KeyValueStore } from "./platform";
 import type { CoinSettlement, XpRewardBreakdown } from "./rewards";
-import type { RunRecord } from "./types";
-import type { CampaignTierId } from "./types";
+import { isCampaignTierId, type CampaignTierId, type RunRecord } from "./types";
 import {
   CAMPAIGN_TIERS,
   earnedCampaignMilestones,
@@ -325,9 +324,7 @@ export function migrateProfile(raw: unknown): PlayerProfile {
     finiteNonNegative(progressSource.highestNight),
   );
   const defeatedTierIds: CampaignTierId[] = Array.isArray(campaignSource.defeatedTierIds)
-    ? [...new Set(campaignSource.defeatedTierIds.filter(
-      (id): id is CampaignTierId => id === "forest" || id === "snowy",
-    ))]
+    ? [...new Set(campaignSource.defeatedTierIds.filter(isCampaignTierId))]
     : finiteNonNegative(progressSource.campaignWins) > 0 ? ["forest" as const] : [];
   const claimedRewardIds = Array.isArray(campaignSource.claimedRewardIds)
     ? [...new Set(campaignSource.claimedRewardIds.filter(
