@@ -23,6 +23,19 @@ describe("world-space biome weather", () => {
       .not.toEqual(volcanic);
     expect(volcanic).toHaveLength(72);
   });
+
+  it("keeps staged wasteland fallout deterministic and purpose-seeded", () => {
+    const wasteland = createWeatherField(
+      "campaign-seed",
+      64,
+      CAMPAIGN_BIOMES.wasteland.weather!,
+    );
+    expect(createWeatherField("campaign-seed", 64, CAMPAIGN_BIOMES.wasteland.weather!))
+      .toEqual(wasteland);
+    expect(createWeatherField("campaign-seed", 64, CAMPAIGN_BIOMES.volcanic.weather!))
+      .not.toEqual(wasteland);
+    expect(wasteland).toHaveLength(64);
+  });
 });
 
 describe("player appearance rendering", () => {

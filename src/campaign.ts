@@ -21,7 +21,7 @@ export interface CampaignUnlockRequirement {
 }
 
 export interface CampaignBiomeDefinition {
-  ground: "forest" | "snow" | "desert" | "volcanic";
+  ground: "forest" | "snow" | "desert" | "volcanic" | "wasteland";
   minimapLabel: string;
   resourceStateSkin: ResourceStateSkinId;
   resourceOverlay?: {
@@ -177,6 +177,37 @@ export const CAMPAIGN_BIOMES = {
       driftAmplitude: [8, 38],
       driftSpeed: [0.28, 0.92],
       spawnGapRatio: [0, 0.14],
+    },
+  },
+  wasteland: {
+    ground: "wasteland",
+    minimapLabel: "FALLOUT MAP",
+    resourceStateSkin: "wasteland",
+    friendlyProjectileColor: "#d9f27c",
+    popupContrast: {
+      protectedColors: ["#8fe65c", "#67d8e8"],
+      perceivedBrightnessThreshold: 138,
+      darkenMultiplier: 0.46,
+    },
+    palette: {
+      viewport: "#172019",
+      ground: "#31382a",
+      clearingCenter: "#4b5137",
+      clearingEdge: "#282f25",
+      foliage: ["#19231d", "#242d23", "#303728", "#3c422e"],
+    },
+    weather: {
+      kind: "falling-particles",
+      activeDuring: "always",
+      color: "#b7dd63",
+      seedKey: "wasteland-fallout-weather",
+      particleCount: 64,
+      fadeSeconds: 2.2,
+      fallSpeed: [5, 19],
+      radius: [0.6, 1.9],
+      driftAmplitude: [18, 58],
+      driftSpeed: [0.12, 0.48],
+      spawnGapRatio: [0, 0.16],
     },
   },
 } as const satisfies Record<string, CampaignBiomeDefinition>;

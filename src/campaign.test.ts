@@ -162,6 +162,31 @@ describe("data-driven campaign tiers", () => {
     expect(campaignTier("volcanic").biome).toBe(CAMPAIGN_BIOMES.volcanic);
   });
 
+  it("defines a complete nuclear wasteland environment without exposing an unfinished tier", () => {
+    expect(CAMPAIGN_BIOMES.wasteland).toMatchObject({
+      ground: "wasteland",
+      minimapLabel: "FALLOUT MAP",
+      resourceStateSkin: "wasteland",
+      friendlyProjectileColor: "#d9f27c",
+      popupContrast: {
+        protectedColors: ["#8fe65c", "#67d8e8"],
+      },
+      palette: {
+        viewport: "#172019",
+        ground: "#31382a",
+        clearingCenter: "#4b5137",
+        clearingEdge: "#282f25",
+      },
+      weather: {
+        activeDuring: "always",
+        color: "#b7dd63",
+        seedKey: "wasteland-fallout-weather",
+        particleCount: 64,
+      },
+    });
+    expect(CAMPAIGN_TIERS.some((tier) => tier.biome === CAMPAIGN_BIOMES.wasteland)).toBe(false);
+  });
+
   it("provides complete centralized selection artwork for current and upcoming biomes", () => {
     for (const artwork of Object.values(CAMPAIGN_TIER_ARTWORK)) {
       expect(artwork.icon).toMatch(/^\.\/images\/campaign\/.+-tier\.svg$/);
