@@ -62,6 +62,13 @@ export interface EntityStatuses {
   slow?: TimedStatusEffect;
 }
 
+export interface EnemyStatusEffect {
+  kind: "slow";
+  duration: number;
+  targets: readonly ("player" | "turret")[];
+  popupTextColor: string;
+}
+
 export interface Player extends Circle {
   id: PlayerId;
   health: number;
@@ -198,12 +205,7 @@ export interface Projectile extends Circle {
   color: string;
   sourceEnemyKind?: EnemyKind;
   appearance?: "arrow" | "snowball";
-  statusEffect?: {
-    kind: "slow";
-    duration: number;
-    targets: readonly ("player" | "turret")[];
-    popupTextColor: string;
-  };
+  statusEffect?: EnemyStatusEffect;
   impactBurst?: {
     color: string;
     count: number;

@@ -102,16 +102,17 @@ describe("shared snowy slow status", () => {
     expect(game.player.toolCooldown).toBeCloseTo(1 - BALANCE.snowyEnemies.slow.attackSpeedMultiplier);
   });
 
-  it("applies Frostbiter's longer slow only to the player and turrets", () => {
+  it("applies Frostbiter's registry-defined melee slow only to eligible targets", () => {
     const game = gameFixture();
+    const effect = ENEMY_REGISTRY.frostbite.attack.statusEffect!;
     const frostbiter = spawn(game, "frostbite", game.player.x - 50, game.player.y);
     frostbiter.attackWindup = 0.99;
     (game as unknown as {
       enemyAttack(enemy: Enemy, target: typeof game.player, dt: number): void;
     }).enemyAttack(frostbiter, game.player, 0.1);
-    expect(game.player.statuses?.slow?.remaining).toBe(BALANCE.snowyEnemies.slow.frostbiterDuration);
+    expect(game.player.statuses?.slow?.remaining).toBe(effect.duration);
     expect(game.particles.some((particle) => particle.text === "Slowed"
-      && particle.color === BALANCE.snowyEnemies.slow.popupTextColor)).toBe(true);
+      && particle.color === effect.popupTextColor)).toBe(true);
 
     const wall = structure(710, "wall", frostbiter.x, frostbiter.y);
     frostbiter.cooldown = 0;
@@ -127,7 +128,7 @@ describe("shared snowy slow status", () => {
     (game as unknown as {
       enemyAttack(enemy: Enemy, target: Structure, dt: number): void;
     }).enemyAttack(frostbiter, turret, 0.1);
-    expect(turret.statuses?.slow?.remaining).toBe(BALANCE.snowyEnemies.slow.frostbiterDuration);
+    expect(turret.statuses?.slow?.remaining).toBe(effect.duration);
   });
 
   it("builds Snowballer range and projectile effects entirely from its registry definition", () => {
@@ -189,7 +190,8 @@ describe("shared snowy slow status", () => {
     expect(node.health).toBe(node.maxHealth);
     expect(game.player.statuses?.slow?.remaining)
       .toBe(ENEMY_REGISTRY.snowballer.projectile!.statusEffect!.duration);
-    expect(game.player.statuses!.slow!.remaining).toBeLessThan(BALANCE.snowyEnemies.slow.frostbiterDuration);
+    expect(game.player.statuses!.slow!.remaining)
+      .toBeLessThan(ENEMY_REGISTRY.frostbite.attack.statusEffect!.duration);
     expect(game.projectiles).toHaveLength(0);
     expect(game.particles.filter((particle) => particle.color === BALANCE.snowyEnemies.slow.tint).length)
       .toBeGreaterThan(8);

@@ -89,6 +89,7 @@ import type {
   Difficulty,
   Enemy,
   EnemyKind,
+  EnemyStatusEffect,
   Flag,
   IcicleStrike,
   Particle,
@@ -2452,11 +2453,7 @@ export class Game {
     const rawDamage = isStructure ? enemy.structureDamage : enemy.damage;
     const playerWasFull = target === this.player && this.player.health >= this.player.maxHealth;
     const damage = this.applyIncomingDamage(target, rawDamage, enemy.kind, "enemy");
-    if (enemy.kind === "frostbite" && target === this.player) {
-      this.applySlowStatus(this.player, BALANCE.snowyEnemies.slow.frostbiterDuration);
-    } else if (enemy.kind === "frostbite" && isStructure && "kind" in target && target.kind === "turret") {
-      this.applySlowStatus(target, BALANCE.snowyEnemies.slow.frostbiterDuration);
-    }
+    this.applyEnemyStatusEffect(ENEMY_REGISTRY[enemy.kind].attack.statusEffect, target);
     emitAudioCue({
       cue: (ENEMY_REGISTRY[enemy.kind].audio.attack ?? "zombie-attack") as import("./audio").SoundId,
       position: { x: enemy.x, y: enemy.y },
@@ -2713,7 +2710,11 @@ export class Game {
     return isSlowed(target) ? BALANCE.snowyEnemies.slow.attackSpeedMultiplier : 1;
   }
 
-  private applySlowStatus(target: Player | Structure, duration: number): void {
+  private applySlowStatus(
+    target: Player | Structure,
+    duration: number,
+    popupTextColor: string = BALANCE.snowyEnemies.slow.popupTextColor,
+  ): void {
     applySlow(target, duration);
     this.burst(
       target.x,
@@ -2721,8 +2722,26 @@ export class Game {
       BALANCE.snowyEnemies.slow.tint,
       8,
       "Slowed",
-      BALANCE.snowyEnemies.slow.popupTextColor,
+      popupTextColor,
     );
+  }
+
+  private applyEnemyStatusEffect(
+    effect: EnemyStatusEffect | undefined,
+    target: Player | Flag | Structure,
+  ): void {
+    if (!effect) return;
+    if (target === this.player && effect.targets.includes("player")) {
+      if (effect.kind === "slow") {
+        this.applySlowStatus(this.player, effect.duration, effect.popupTextColor);
+      }
+      return;
+    }
+    if ("tier" in target && target.kind === "turret" && effect.targets.includes("turret")) {
+      if (effect.kind === "slow") {
+        this.applySlowStatus(target, effect.duration, effect.popupTextColor);
+      }
+    }
   }
 
   private enemyRangedAttack(
@@ -3269,7 +3288,11 @@ export class Game {
             ? projectile.statusEffect
             : undefined;
           if (playerStatusEffect?.kind === "slow") {
-            this.applySlowStatus(this.player, playerStatusEffect.duration);
+            this.applySlowStatus(
+              this.player,
+              playerStatusEffect.duration,
+              playerStatusEffect.popupTextColor,
+            );
           }
           emitAudioCue({ cue: "player-hurt", position: { x: this.player.x, y: this.player.y } });
           this.burst(
@@ -3309,7 +3332,11 @@ export class Game {
           if (projectile.statusEffect?.kind === "slow"
             && structure.kind === "turret"
             && projectile.statusEffect.targets.includes("turret")) {
-            this.applySlowStatus(structure, projectile.statusEffect.duration);
+            this.applySlowStatus(
+              structure,
+              projectile.statusEffect.duration,
+              projectile.statusEffect.popupTextColor,
+            );
           }
           this.burst(structure.x, structure.y, projectile.color, 8);
         }

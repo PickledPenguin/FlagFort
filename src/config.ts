@@ -62,7 +62,6 @@ export const BALANCE = {
     slow: {
       movementMultiplier: 0.65,
       attackSpeedMultiplier: 0.65,
-      frostbiterDuration: 3,
       tint: "#e7fbff",
       popupTextColor: "#63c6e8",
     },
