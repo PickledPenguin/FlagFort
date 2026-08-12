@@ -2054,10 +2054,9 @@ export class Game {
     let remaining = Math.max(1, threatBudget);
     for (const kind of guaranteedSpecials) {
       const definition = ENEMY_REGISTRY[kind];
-      if (definition.threat > remaining) continue;
       result.push(kind);
       counts.set(kind, 1);
-      remaining -= definition.threat;
+      remaining = Math.max(0, remaining - definition.threat);
     }
     let guard = 0;
     const specialThreatTarget = this.runMode === "endless"

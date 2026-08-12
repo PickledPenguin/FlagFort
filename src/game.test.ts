@@ -549,6 +549,37 @@ describe("phase and run rules", () => {
     for (const kind of introducedSpecials) expect(scheduledKinds).toContain(kind);
   });
 
+  it("warns about and forecasts every campaign special on its introduction night", () => {
+    const introductionNights = [3, 5, 7] as const;
+
+    for (const tier of CAMPAIGN_TIERS) {
+      tier.specialEnemies.forEach((special, index) => {
+        const introductionNight = introductionNights[index];
+        if (!introductionNight) throw new Error(`Missing introduction night for ${special}`);
+        const game = new Game(fakeInput());
+        game.startRun("normal", `special-introduction-${tier.id}-${special}`, [], true, {
+          campaignTierId: tier.id,
+        });
+        game.night = introductionNight - 1;
+        game.phase = "dawn";
+
+        (game as unknown as { beginNextDayWithWarning(): void }).beginNextDayWithWarning();
+
+        expect(game.enemyWarning, `${tier.id} Night ${introductionNight} warning`).toBe(special);
+        game.dismissEnemyWarning();
+        expect(game.phase).toBe("day");
+        expect(game.night).toBe(introductionNight);
+
+        (game as unknown as { beginNight(): void }).beginNight();
+        const forecastKinds = game.getWaveForecast().map((entry) => entry.kind);
+        for (const introducedSpecial of tier.specialEnemies.slice(0, index + 1)) {
+          expect(forecastKinds, `${tier.id} Night ${introductionNight} forecast`)
+            .toContain(introducedSpecial);
+        }
+      });
+    }
+  });
+
   it("never lets a jumper attack a blocking wall while its jump is cooling down", () => {
     const game = new Game(fakeInput());
     game.startRun("normal", "jumper-obstacle");
