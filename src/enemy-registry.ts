@@ -109,6 +109,11 @@ export const ENEMY_REGISTRY: Record<EnemyKind, EnemyDefinition> = {
 
 export const ROSTER_TIERS: readonly RosterTier[] = [1, 2, 3, 5, 7];
 
+export function isBossEnemyKind(kind: EnemyKind): kind is BossEnemyKind {
+  const definition = ENEMY_REGISTRY[kind];
+  return definition.tier === 10 && !definition.rosterEligible;
+}
+
 export type EnemyRoster = Record<RosterTier, RosterEnemyKind>;
 
 export function selectEnemyRoster(seed: string, campaignTierId: CampaignTierId = "forest"): EnemyRoster {

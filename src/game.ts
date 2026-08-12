@@ -73,6 +73,7 @@ import {
   activeRosterEnemies,
   endlessRosterAdditions,
   endlessRosterMilestones,
+  isBossEnemyKind,
   mutationWeightKey,
   rosterMilestones,
   selectEnemyRoster,
@@ -81,6 +82,7 @@ import {
 import type {
   ActionKind,
   AreaEffect,
+  BossEnemyKind,
   Choice,
   CampaignTierId,
   DamageSource,
@@ -472,12 +474,12 @@ export class Game {
     return campaignTier(this.activeCampaignTierId);
   }
 
-  getBossKind(): EnemyKind {
+  getBossKind(): BossEnemyKind {
     return this.getCampaignTier().boss;
   }
 
-  isBossEnemyKind(kind: EnemyKind): boolean {
-    return kind === "boss" || kind === "frost-warden";
+  isBossEnemyKind(kind: EnemyKind): kind is BossEnemyKind {
+    return isBossEnemyKind(kind);
   }
 
   continueIntoEndless(): boolean {

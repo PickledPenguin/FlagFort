@@ -5,7 +5,7 @@ import {
   highestUnlockedCampaignTierId,
   isCampaignTierUnlocked,
 } from "./campaign";
-import { selectEnemyRoster } from "./enemy-registry";
+import { isBossEnemyKind, selectEnemyRoster } from "./enemy-registry";
 import { ProfileManager, createDefaultProfile, lifetimeXpAtLevel } from "./profile";
 import { generateWorld } from "./world";
 import type { KeyValueStore } from "./platform";
@@ -61,6 +61,14 @@ describe("data-driven campaign tiers", () => {
       },
     });
     expect(campaignTier("snowy").milestones.every((item) => item.reward.kind === "coins")).toBe(true);
+  });
+
+  it("classifies every configured campaign boss through registry metadata", () => {
+    for (const tier of CAMPAIGN_TIERS) {
+      expect(isBossEnemyKind(tier.boss)).toBe(true);
+    }
+    expect(isBossEnemyKind("basic")).toBe(false);
+    expect(isBossEnemyKind("splitter-child")).toBe(false);
   });
 
   it("defines complete render palettes for every biome", () => {
