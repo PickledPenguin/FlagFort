@@ -733,7 +733,10 @@ export class Renderer {
       ctx.fill();
     }
     if (enemy.jumpTime > 0) {
-      const lift = Math.sin((enemy.jumpTime / BALANCE.jumper.jumpDuration) * Math.PI) * 28;
+      const leap = ENEMY_REGISTRY[enemy.kind].leap;
+      const lift = leap
+        ? Math.sin((enemy.jumpTime / leap.duration) * Math.PI) * leap.arcHeight
+        : 0;
       ctx.translate(0, -lift);
       ctx.globalAlpha = 0.82;
     }

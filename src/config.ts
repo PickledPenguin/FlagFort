@@ -227,15 +227,6 @@ export const BALANCE = {
       waveDuration: 0.48,
     },
   },
-  jumper: {
-    jumpRange: 180,
-    jumpCooldown: 0,
-    jumpDuration: 0.55,
-    telegraphDuration: 0.22,
-    arcHeight: 36,
-    landingClearance: 10,
-    failedRetryDelay: 0.6,
-  },
   punchHands: ["right", "left"] as const,
   harvester: {
     revolutionRadians: Math.PI * 2,

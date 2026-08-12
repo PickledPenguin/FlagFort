@@ -65,6 +65,22 @@ describe("deterministic enemy roster", () => {
         expect(definition.summon.popupText).toBeTruthy();
         expect(definition.audio.charge).toBeTruthy();
       }
+      if (definition.leap) {
+        expect(definition.leap.range).toBeGreaterThan(definition.base.radius * 2);
+        expect(definition.leap.cooldown).toBeGreaterThanOrEqual(0);
+        expect(definition.leap.duration).toBeGreaterThan(0);
+        expect(definition.leap.arcHeight).toBeGreaterThan(0);
+        expect(definition.leap.landingClearance).toBeGreaterThanOrEqual(0);
+        expect(definition.leap.landingDistancePadding).toBeGreaterThanOrEqual(0);
+        expect(definition.leap.landingAttempts).toBeGreaterThan(0);
+        expect(definition.leap.failedRetryCooldown).toBeGreaterThan(0);
+        expect(definition.leap.particleColor).toMatch(/^#[0-9a-f]{6}$/i);
+        expect(definition.leap.launchParticleCount).toBeGreaterThan(0);
+        expect(definition.leap.landingParticleCount).toBeGreaterThan(0);
+        expect(definition.leap.launchPopupText).toBeTruthy();
+        expect(definition.leap.landingPopupText).toBeTruthy();
+        expect(definition.audio.move).toBeTruthy();
+      }
     }
   });
 });

@@ -4,6 +4,7 @@
 import { describe, expect, it } from "vitest";
 import { BALANCE } from "./config";
 import { resourceCostLayout } from "./cost-layout";
+import { ENEMY_REGISTRY } from "./enemy-registry";
 import { Game } from "./game";
 import type { Input } from "./input";
 import { dismantleRefund, emptyWallet } from "./rules";
@@ -228,13 +229,14 @@ describe("combat and navigation refinements", () => {
     game.structures = [wall];
     game.enemies = [jumper];
     const didJump = (game as unknown as {
-      tryJumperLeap: (e: Enemy, blocker: Structure, target: typeof game.flag) => boolean;
-    }).tryJumperLeap(jumper, wall, target);
+      tryEnemyLeap: (e: Enemy, blocker: Structure, target: typeof game.flag) => boolean;
+    }).tryEnemyLeap(jumper, wall, target);
     expect(didJump).toBe(true);
-    expect(jumper.jumpTime).toBe(BALANCE.jumper.jumpDuration);
+    const leap = ENEMY_REGISTRY.jumper.leap!;
+    expect(jumper.jumpTime).toBe(leap.duration);
     expect(jumper.x).toBe(jumper.jumpStartX);
-    (game as unknown as { updateJumperAirborne: (e: Enemy, dt: number) => void })
-      .updateJumperAirborne(jumper, BALANCE.jumper.jumpDuration);
+    (game as unknown as { updateEnemyAirborne: (e: Enemy, dt: number) => void })
+      .updateEnemyAirborne(jumper, leap.duration);
     expect(jumper.jumpTime).toBe(0);
     expect(jumper.x).toBeCloseTo(jumper.jumpEndX);
   });

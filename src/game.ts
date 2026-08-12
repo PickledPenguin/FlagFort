@@ -1923,7 +1923,7 @@ export class Game {
         : 0,
       summonedBy,
       countsTowardWave,
-      jumpCooldown: kind === "jumper" ? BALANCE.jumper.jumpCooldown : 0,
+      jumpCooldown: definition.leap?.cooldown ?? 0,
       jumpTime: 0,
       bossSmashWindup: 0,
       bossSlamWave: 0,
@@ -2115,7 +2115,7 @@ export class Game {
       this.resolveEnemyStructureOverlap(enemy, dt);
       if (enemy.kind === "rammer" && this.updateRammer(enemy, dt)) continue;
       if (enemy.jumpTime > 0) {
-        this.updateJumperAirborne(enemy, dt);
+        this.updateEnemyAirborne(enemy, dt);
         continue;
       }
       if (definition.summon) this.updateEnemySummon(enemy, dt);
@@ -2169,11 +2169,11 @@ export class Game {
         this.moveEnemyToward(enemy, target, dt);
         continue;
       }
-      if (enemy.kind === "jumper") {
+      if (definition.leap) {
         const jumpBlocker = blocker ?? this.firstBlockingResource(enemy, movementTarget);
         if (jumpBlocker
           && distance(enemy, jumpBlocker) <= enemy.radius + jumpBlocker.radius + blockerReach) {
-          if (enemy.jumpCooldown <= 0 && this.tryJumperLeap(enemy, jumpBlocker, target)) continue;
+          if (enemy.jumpCooldown <= 0 && this.tryEnemyLeap(enemy, jumpBlocker, target)) continue;
           this.moveEnemyToward(enemy, target, dt);
           continue;
         }
@@ -2371,18 +2371,21 @@ export class Game {
     }
   }
 
-  private tryJumperLeap(
+  private tryEnemyLeap(
     enemy: Enemy,
     blocker: Pick<Structure, "x" | "y" | "radius">,
     target: Player | Flag | Structure,
   ): boolean {
+    const leap = ENEMY_REGISTRY[enemy.kind].leap;
+    if (!leap) return false;
     const angle = Math.atan2(target.y - enemy.y, target.x - enemy.x);
-    const minimumDistance = blocker.radius + enemy.radius + BALANCE.jumper.landingClearance + 24;
-    const attempts = 5;
+    const minimumDistance = blocker.radius + enemy.radius
+      + leap.landingClearance + leap.landingDistancePadding;
     let landing: { x: number; y: number; radius: number } | null = null;
-    for (let attempt = 0; attempt < attempts; attempt += 1) {
+    for (let attempt = 0; attempt < leap.landingAttempts; attempt += 1) {
       const leapDistance = minimumDistance
-        + (BALANCE.jumper.jumpRange - minimumDistance) * (attempt / Math.max(1, attempts - 1));
+        + (leap.range - minimumDistance)
+          * (attempt / Math.max(1, leap.landingAttempts - 1));
       const candidate = {
         x: enemy.x + Math.cos(angle) * leapDistance,
         y: enemy.y + Math.sin(angle) * leapDistance,
@@ -2393,11 +2396,11 @@ export class Game {
         && candidate.y <= BALANCE.mapSize - enemy.radius;
       const withinArena = this.isInsideTutorialArena(candidate.x, candidate.y, candidate.radius);
       const blockedByStructure = this.structures.some((structure) =>
-        overlaps(candidate, structure, BALANCE.jumper.landingClearance));
+        overlaps(candidate, structure, leap.landingClearance));
       const blockedByResource = this.world.resources.some((node) =>
-        !node.destroyed && overlaps(candidate, node, BALANCE.jumper.landingClearance));
-      const blockedByEntity = overlaps(candidate, this.player, BALANCE.jumper.landingClearance)
-        || (this.flagPresent && overlaps(candidate, this.flag, BALANCE.jumper.landingClearance))
+        !node.destroyed && overlaps(candidate, node, leap.landingClearance));
+      const blockedByEntity = overlaps(candidate, this.player, leap.landingClearance)
+        || (this.flagPresent && overlaps(candidate, this.flag, leap.landingClearance))
         || this.enemies.some((other) => other !== enemy && overlaps(candidate, other, 2));
       if (withinMap && withinArena && !blockedByStructure && !blockedByResource && !blockedByEntity) {
         landing = candidate;
@@ -2405,14 +2408,14 @@ export class Game {
       }
     }
     if (!landing) {
-      enemy.jumpCooldown = BALANCE.jumper.failedRetryDelay;
+      enemy.jumpCooldown = leap.failedRetryCooldown;
       enemy.path = [];
       enemy.pathIndex = 0;
       return false;
     }
-    enemy.jumpTime = BALANCE.jumper.jumpDuration;
+    enemy.jumpTime = leap.duration;
     enemy.jumpElapsed = 0;
-    enemy.jumpCooldown = BALANCE.jumper.jumpCooldown;
+    enemy.jumpCooldown = leap.cooldown;
     enemy.jumpStartX = enemy.x;
     enemy.jumpStartY = enemy.y;
     enemy.jumpEndX = landing.x;
@@ -2420,18 +2423,32 @@ export class Game {
     enemy.pathCooldown = 0;
     enemy.path = [];
     enemy.pathIndex = 0;
-    emitAudioCue({ cue: "jumper-jump", position: { x: enemy.x, y: enemy.y } });
-    this.burst(enemy.x, enemy.y, "#b7ff8a", 9, "JUMP");
+    emitAudioCue({
+      cue: (ENEMY_REGISTRY[enemy.kind].audio.move ?? "jumper-jump") as import("./audio").SoundId,
+      position: { x: enemy.x, y: enemy.y },
+    });
+    this.burst(
+      enemy.x,
+      enemy.y,
+      leap.particleColor,
+      leap.launchParticleCount,
+      leap.launchPopupText,
+    );
     return true;
   }
 
-  private updateJumperAirborne(enemy: Enemy, dt: number): void {
-    enemy.jumpElapsed = Math.min(BALANCE.jumper.jumpDuration, enemy.jumpElapsed + dt);
-    const progress = Math.min(1, enemy.jumpElapsed / BALANCE.jumper.jumpDuration);
+  private updateEnemyAirborne(enemy: Enemy, dt: number): void {
+    const leap = ENEMY_REGISTRY[enemy.kind].leap;
+    if (!leap) {
+      enemy.jumpTime = 0;
+      return;
+    }
+    enemy.jumpElapsed = Math.min(leap.duration, enemy.jumpElapsed + dt);
+    const progress = Math.min(1, enemy.jumpElapsed / leap.duration);
     const eased = progress * progress * (3 - 2 * progress);
     enemy.x = enemy.jumpStartX + (enemy.jumpEndX - enemy.jumpStartX) * eased;
     enemy.y = enemy.jumpStartY + (enemy.jumpEndY - enemy.jumpStartY) * eased;
-    enemy.jumpTime = Math.max(0, BALANCE.jumper.jumpDuration - enemy.jumpElapsed);
+    enemy.jumpTime = Math.max(0, leap.duration - enemy.jumpElapsed);
     enemy.attackWindup = 0;
     if (progress >= 1) {
       enemy.jumpTime = 0;
@@ -2440,7 +2457,13 @@ export class Game {
       enemy.pathIndex = 0;
       enemy.stuckTime = 0;
       enemy.fullyStuckTime = 0;
-      this.burst(enemy.x, enemy.y, "#b7ff8a", 7, "LAND");
+      this.burst(
+        enemy.x,
+        enemy.y,
+        leap.particleColor,
+        leap.landingParticleCount,
+        leap.landingPopupText,
+      );
     }
   }
 
@@ -2508,7 +2531,7 @@ export class Game {
     dt: number,
     preserveMeleeWindup = false,
   ): void {
-    if (enemy.kind === "jumper") {
+    if (ENEMY_REGISTRY[enemy.kind].leap) {
       enemy.path = [];
       enemy.pathIndex = 0;
       enemy.routeIncludesStructures = false;
