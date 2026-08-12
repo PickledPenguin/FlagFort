@@ -48,6 +48,27 @@ const zeroCoins: CoinSettlement = {
 };
 
 describe("data-driven campaign tiers", () => {
+  it("registers a complete nuclear wasteland resource-art skin for the upcoming fifth tier", () => {
+    expect(RESOURCE_STATE_SKINS.wasteland).toEqual({
+      wood: {
+        active: "./images/world/wasteland-deadwood-active.svg",
+        depleted: "./images/world/wasteland-deadwood-depleted.svg",
+      },
+      stone: {
+        active: "./images/world/wasteland-concrete-active.svg",
+        depleted: "./images/world/wasteland-concrete-depleted.svg",
+      },
+      gold: {
+        active: "./images/world/wasteland-uranium-active.svg",
+        depleted: "./images/world/wasteland-uranium-depleted.svg",
+      },
+      diamond: {
+        active: "./images/world/wasteland-isotope-crystal-active.svg",
+        depleted: "./images/world/wasteland-isotope-crystal-depleted.svg",
+      },
+    });
+  });
+
   it("registers a complete volcanic resource-art skin for the upcoming fourth tier", () => {
     expect(RESOURCE_STATE_SKINS.volcanic).toEqual({
       wood: {

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title description">
+  <title id="title">Wasteland isotope crystal cluster</title>
+  <desc id="description">A cluster of luminous cyan isotope crystals rising from contaminated earth.</desc>
+  <g id="wasteland-isotope-crystal-active">
+    <path id="base" d="m8 81 16-20 50-4 14 22-19 10H26Z" fill="#3f4541" stroke="#1d2421" stroke-width="6" stroke-linejoin="round"/>
+    <path id="left-crystal" d="m22 68 8-33 11-10 9 17-5 36Z" fill="#3ccbc5" stroke="#175c5b" stroke-width="5" stroke-linejoin="round"/>
+    <path id="center-crystal" d="m42 71 8-53 11-10 10 18-10 53Z" fill="#67eee0" stroke="#175c5b" stroke-width="5" stroke-linejoin="round"/>
+    <path id="right-crystal" d="m60 71 11-30 11-7 4 18-12 28Z" fill="#28acae" stroke="#175c5b" stroke-width="5" stroke-linejoin="round"/>
+    <path id="bright-cores" d="m56 23-6 31m28-10-8 20M36 39l-5 21" fill="none" stroke="#d2fff2" stroke-width="4" stroke-linecap="round"/>
+    <ellipse id="glow" cx="53" cy="78" rx="30" ry="8" fill="#54e8cf" opacity=".25"/>
+  </g>
+</svg>

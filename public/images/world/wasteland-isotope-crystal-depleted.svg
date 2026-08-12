@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title description">
+  <title id="title">Depleted wasteland isotope crystals</title>
+  <desc id="description">Dim broken isotope crystal shards scattered across contaminated earth.</desc>
+  <g id="wasteland-isotope-crystal-depleted">
+    <path id="base" d="m9 80 17-23 48-2 14 23-18 11H26Z" fill="#3f4541" stroke="#1d2421" stroke-width="6" stroke-linejoin="round"/>
+    <path id="left-shard" d="m24 65 7-21 10-5 5 14-5 23Z" fill="#277979" stroke="#184b4b" stroke-width="5" stroke-linejoin="round"/>
+    <path id="right-shard" d="m57 71 10-25 10-4 4 14-11 22Z" fill="#2d8582" stroke="#184b4b" stroke-width="5" stroke-linejoin="round"/>
+    <path id="broken-center" d="m43 71 5-26 7 5 8-13 5 15-9 26Z" fill="#34938c" stroke="#184b4b" stroke-width="5" stroke-linejoin="round"/>
+    <path id="fading-glow" d="m52 53-3 13m21-13-4 12" fill="none" stroke="#67bdb2" stroke-width="3" stroke-linecap="round"/>
+  </g>
+</svg>
