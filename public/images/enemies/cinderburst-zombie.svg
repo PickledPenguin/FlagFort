@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-54 -50 108 100" role="img" aria-labelledby="title description">
+  <title id="title">Cinderburst zombie</title>
+  <desc id="description">A scorched volcanic zombie with a swollen glowing cinder core, cracked charcoal skin, and sparks leaking from its body.</desc>
+  <defs id="cinderburst-definitions">
+    <radialGradient id="cinder-core-gradient" cx="45%" cy="42%" r="58%">
+      <stop offset="0" stop-color="#fff0a3"/>
+      <stop offset=".45" stop-color="#ff9b3d"/>
+      <stop offset="1" stop-color="#d94725"/>
+    </radialGradient>
+  </defs>
+  <g id="cinderburst-zombie">
+    <g id="escaping-sparks" fill="#ffb13b">
+      <path id="spark-upper" d="m-25-32 4-10 4 10-4 5Z"/>
+      <path id="spark-rear" d="m-40 3-10-4 7 9 6 1Z"/>
+      <circle id="spark-lower" cx="-34" cy="31" r="3"/>
+      <circle id="spark-front" cx="42" cy="-27" r="2.5"/>
+    </g>
+    <g id="scorched-hands" fill="#51674f" stroke="#252d2a" stroke-width="2.5">
+      <circle id="upper-hand" cx="36" cy="-19" r="9"/>
+      <circle id="lower-hand" cx="36" cy="19" r="9"/>
+    </g>
+    <circle id="body" r="29" fill="#4d6550" stroke="#252d2a" stroke-width="3"/>
+    <circle id="swollen-cinder-core" cx="-7" cy="2" r="21" fill="url(#cinder-core-gradient)" stroke="#742d23" stroke-width="3"/>
+    <g id="charcoal-shell" fill="#343332" stroke="#1e2020" stroke-width="2.5" stroke-linejoin="round">
+      <path id="upper-shell" d="M-27-18-13-29 4-27 0-16-11-12Z"/>
+      <path id="rear-shell" d="m-29-7 11 5-2 13-10 7-5-12Z"/>
+      <path id="lower-shell" d="m-17 17 13-5 8 12-13 8-13-5Z"/>
+    </g>
+    <g id="core-cracks" fill="none" stroke="#fff09a" stroke-width="2.5" stroke-linecap="round">
+      <path id="upper-crack" d="m-6-18-4 9 6 4-5 8"/>
+      <path id="lower-crack" d="m-20 5 9 3 2 10"/>
+    </g>
+    <g id="eyes" fill="#fff4c5" stroke="#344338" stroke-width="1.5">
+      <ellipse id="upper-eye" cx="13" cy="-10" rx="6.5" ry="4.5" transform="rotate(22 13 -10)"/>
+      <ellipse id="lower-eye" cx="13" cy="10" rx="6.5" ry="4.5" transform="rotate(-22 13 10)"/>
+    </g>
+    <g id="pupils" fill="#bd3724">
+      <circle id="upper-pupil" cx="16" cy="-9" r="2.7"/>
+      <circle id="lower-pupil" cx="16" cy="9" r="2.7"/>
+    </g>
+  </g>
+</svg>

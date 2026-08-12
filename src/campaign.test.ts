@@ -16,6 +16,7 @@ import { CAMPAIGN_TIER_IDS } from "./types";
 import { RESOURCE_STATE_SKINS } from "./assets";
 import { CAMPAIGN_TIER_ARTWORK } from "./campaign-artwork";
 import { DESERT_ENEMY_ARTWORK } from "./desert-enemy-artwork";
+import { VOLCANIC_ENEMY_ARTWORK } from "./volcanic-enemy-artwork";
 
 class MemoryStore implements KeyValueStore {
   private values = new Map<string, string>();
@@ -80,6 +81,14 @@ describe("data-driven campaign tiers", () => {
         armored: "enemies/dune-colossus",
         broken: "enemies/dune-colossus-broken",
       },
+    });
+  });
+
+  it("registers a complete themed artwork set for the upcoming volcanic specials", () => {
+    expect(VOLCANIC_ENEMY_ARTWORK).toEqual({
+      cinderburst: "enemies/cinderburst-zombie",
+      magmaSpitter: "enemies/magma-spitter-zombie",
+      obsidianCharger: "enemies/obsidian-charger-zombie",
     });
   });
 
