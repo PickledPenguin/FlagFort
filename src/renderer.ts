@@ -9,6 +9,7 @@ import { affordability, type ResourceWallet } from "./rules";
 import { costLayoutRows } from "./cost-layout";
 import { projectileVisualColor } from "./projectile-visuals";
 import { SeededRng } from "./rng";
+import type { CampaignBiomeDefinition } from "./campaign";
 import type { Enemy, IcicleStrike, Player, ResourceNode, Structure } from "./types";
 
 const resourceColors = {
@@ -20,7 +21,7 @@ const resourceColors = {
 
 const center = BALANCE.mapSize / 2;
 
-export interface SnowParticleDefinition {
+export interface WeatherParticleDefinition {
   x: number;
   y: number;
   fallSpeed: number;
@@ -31,17 +32,26 @@ export interface SnowParticleDefinition {
   spawnGap: number;
 }
 
-export function createSnowField(seed: string, count: number): SnowParticleDefinition[] {
-  const rng = new SeededRng(`${seed}:visual:snow-weather`);
+type ParticleWeather = NonNullable<CampaignBiomeDefinition["weather"]>;
+
+export function createWeatherField(
+  seed: string,
+  count: number,
+  weather: ParticleWeather,
+): WeatherParticleDefinition[] {
+  const rng = new SeededRng(`${seed}:visual:${weather.seedKey}`);
   return Array.from({ length: count }, () => ({
     x: rng.range(0, BALANCE.mapSize),
     y: rng.range(0, BALANCE.mapSize),
-    fallSpeed: rng.range(38, 112),
-    radius: rng.range(1.1, 3.4),
-    driftAmplitude: rng.range(5, 34),
-    driftSpeed: rng.range(0.35, 1.35),
+    fallSpeed: rng.range(...weather.fallSpeed),
+    radius: rng.range(...weather.radius),
+    driftAmplitude: rng.range(...weather.driftAmplitude),
+    driftSpeed: rng.range(...weather.driftSpeed),
     phase: rng.range(0, Math.PI * 2),
-    spawnGap: rng.range(0, BALANCE.mapSize * 0.18),
+    spawnGap: rng.range(
+      weather.spawnGapRatio[0] * BALANCE.mapSize,
+      weather.spawnGapRatio[1] * BALANCE.mapSize,
+    ),
   }));
 }
 
@@ -81,9 +91,9 @@ export class Renderer {
   private readonly images = new Map<string, HTMLImageElement>();
   private readonly tintedSprites = new Map<string, HTMLCanvasElement>();
   private time = 0;
-  private snowIntensity = 0;
-  private snowFieldKey = "";
-  private snowField: SnowParticleDefinition[] = [];
+  private weatherIntensity = 0;
+  private weatherFieldKey = "";
+  private weatherField: WeatherParticleDefinition[] = [];
 
   constructor(private readonly canvas: HTMLCanvasElement) {
     const ctx = canvas.getContext("2d");
@@ -193,7 +203,7 @@ export class Renderer {
       ctx.clip();
     }
     this.drawWorld(game);
-    this.drawSnowWeather(game, dt);
+    this.drawBiomeWeather(game, dt);
     for (const effect of game.areaEffects) {
       if (effect.kind === "frost-slam") this.drawAreaEffect(effect);
     }
@@ -1278,28 +1288,29 @@ export class Renderer {
     ctx.restore();
   }
 
-  private drawSnowWeather(game: Game, dt: number): void {
+  private drawBiomeWeather(game: Game, dt: number): void {
     const weather = game.getCampaignTier().biome.weather;
-    const target = weather?.kind === "snow" && game.phase === "night" ? 1 : 0;
+    const target = weather
+      && (weather.activeDuring === "always" || game.phase === weather.activeDuring) ? 1 : 0;
     const fadeSeconds = weather?.fadeSeconds ?? 1;
-    this.snowIntensity += Math.sign(target - this.snowIntensity)
-      * Math.min(Math.abs(target - this.snowIntensity), dt / Math.max(0.1, fadeSeconds));
-    if (!weather || this.snowIntensity <= 0.002) return;
+    this.weatherIntensity += Math.sign(target - this.weatherIntensity)
+      * Math.min(Math.abs(target - this.weatherIntensity), dt / Math.max(0.1, fadeSeconds));
+    if (!weather || this.weatherIntensity <= 0.002) return;
     const fieldCount = Math.ceil(
       weather.particleCount * BALANCE.mapSize * BALANCE.mapSize
       / (BALANCE.logicalWidth * BALANCE.logicalHeight),
     );
     const fieldKey = `${game.seed}:${game.activeCampaignTierId}:${fieldCount}`;
-    if (fieldKey !== this.snowFieldKey) {
-      this.snowFieldKey = fieldKey;
-      this.snowField = createSnowField(fieldKey, fieldCount);
+    if (fieldKey !== this.weatherFieldKey) {
+      this.weatherFieldKey = fieldKey;
+      this.weatherField = createWeatherField(fieldKey, fieldCount, weather);
     }
     const ctx = this.ctx;
     ctx.save();
-    ctx.globalAlpha = this.snowIntensity;
-    ctx.fillStyle = "#f7ffff";
+    ctx.globalAlpha = this.weatherIntensity;
+    ctx.fillStyle = weather.color;
     const elapsed = game.stats.elapsed;
-    for (const particle of this.snowField) {
+    for (const particle of this.weatherField) {
       const cycleHeight = BALANCE.mapSize + particle.spawnGap;
       const y = (particle.y + elapsed * particle.fallSpeed) % cycleHeight - particle.spawnGap;
       const x = particle.x

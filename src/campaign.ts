@@ -30,9 +30,17 @@ export interface CampaignBiomeDefinition {
     foliage: readonly [string, string, string, string];
   };
   weather?: {
-    kind: "snow";
+    kind: "falling-particles";
+    activeDuring: "night" | "always";
+    color: string;
+    seedKey: string;
     particleCount: number;
     fadeSeconds: number;
+    fallSpeed: readonly [number, number];
+    radius: readonly [number, number];
+    driftAmplitude: readonly [number, number];
+    driftSpeed: readonly [number, number];
+    spawnGapRatio: readonly [number, number];
   };
 }
 
@@ -114,7 +122,19 @@ export const CAMPAIGN_TIERS: readonly CampaignTierDefinition[] = [
         clearingEdge: "#c7dcdd",
         foliage: ["#acc7c9", "#b9d0d0", "#c5d9d8", "#d0e2e0"],
       },
-      weather: { kind: "snow", particleCount: 120, fadeSeconds: 1.4 },
+      weather: {
+        kind: "falling-particles",
+        activeDuring: "night",
+        color: "#f7ffff",
+        seedKey: "snow-weather",
+        particleCount: 120,
+        fadeSeconds: 1.4,
+        fallSpeed: [38, 112],
+        radius: [1.1, 3.4],
+        driftAmplitude: [5, 34],
+        driftSpeed: [0.35, 1.35],
+        spawnGapRatio: [0, 0.18],
+      },
     },
   },
 ] as const;

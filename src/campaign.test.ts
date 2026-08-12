@@ -80,6 +80,23 @@ describe("data-driven campaign tiers", () => {
       ))).toBe(true);
       expect(tier.biome.friendlyProjectileColor === undefined
         || /^#[0-9a-f]{6}$/i.test(tier.biome.friendlyProjectileColor)).toBe(true);
+      const weather = tier.biome.weather;
+      if (weather) {
+        expect(weather.color).toMatch(/^#[0-9a-f]{6}$/i);
+        expect(weather.seedKey).not.toHaveLength(0);
+        expect(weather.particleCount).toBeGreaterThan(0);
+        expect(weather.fadeSeconds).toBeGreaterThan(0);
+        for (const range of [
+          weather.fallSpeed,
+          weather.radius,
+          weather.driftAmplitude,
+          weather.driftSpeed,
+          weather.spawnGapRatio,
+        ]) {
+          expect(range[0]).toBeGreaterThanOrEqual(0);
+          expect(range[1]).toBeGreaterThan(range[0]);
+        }
+      }
     }
   });
 

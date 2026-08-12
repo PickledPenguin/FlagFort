@@ -1,13 +1,15 @@
 import { describe, expect, it, vi } from "vitest";
 import { ASSETS } from "./assets";
-import { createSnowField, Renderer } from "./renderer";
+import { campaignTier } from "./campaign";
+import { createWeatherField, Renderer } from "./renderer";
 
-describe("world-space snow", () => {
+describe("world-space biome weather", () => {
   it("builds varied deterministic fields from purpose-specific visual seeds", () => {
-    const first = createSnowField("snow-run", 120);
-    const second = createSnowField("snow-run", 120);
+    const weather = campaignTier("snowy").biome.weather!;
+    const first = createWeatherField("snow-run", 120, weather);
+    const second = createWeatherField("snow-run", 120, weather);
     expect(first).toEqual(second);
-    expect(createSnowField("other-run", 120)).not.toEqual(first);
+    expect(createWeatherField("other-run", 120, weather)).not.toEqual(first);
     expect(new Set(first.map((particle) => particle.y)).size).toBe(120);
     expect(new Set(first.map((particle) => particle.fallSpeed.toFixed(3))).size).toBeGreaterThan(110);
     expect(new Set(first.map((particle) => particle.radius.toFixed(3))).size).toBeGreaterThan(100);
