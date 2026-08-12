@@ -38,7 +38,11 @@ export interface CampaignTierDefinition {
   icon: string;
   backdrop: string;
   boss: BossEnemyKind;
-  specialEnemies: readonly RosterEnemyKind[];
+  specialEnemies: readonly [] | readonly [
+    RosterEnemyKind,
+    RosterEnemyKind,
+    RosterEnemyKind,
+  ];
   unlock: CampaignUnlockRequirement;
   milestones: readonly CampaignMilestone[];
   biome: CampaignBiomeDefinition;

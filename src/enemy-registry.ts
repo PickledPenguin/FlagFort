@@ -1,4 +1,5 @@
 import { SeededRng } from "./rng";
+import { campaignTier } from "./campaign";
 import type { BossEnemyKind, CampaignTierId, DamageSource, EnemyKind, RosterEnemyKind, RosterTier, StructureKind } from "./types";
 
 export type EnemyTargetingMode = "standard" | "flag" | "harvester" | "archer" | "acidslinger" | "rammer";
@@ -120,10 +121,12 @@ export function selectEnemyRoster(seed: string, campaignTierId: CampaignTierId =
     );
     return [tier, rng.weighted(candidates.map((entry) => ({ value: entry.id, weight: entry.selectionWeight })))];
   })) as EnemyRoster;
-  if (campaignTierId === "snowy") {
-    selected[3] = "frostbite";
-    selected[5] = "snowballer";
-    selected[7] = "icebound";
+  for (const kind of campaignTier(campaignTierId).specialEnemies) {
+    const tier = ENEMY_REGISTRY[kind].tier;
+    if (tier === 10) {
+      throw new Error(`Campaign special enemy ${kind} must occupy a roster tier.`);
+    }
+    selected[tier] = kind;
   }
   return selected;
 }

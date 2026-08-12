@@ -53,6 +53,15 @@ describe("data-driven campaign tiers", () => {
     expect(campaignTier("snowy").milestones.every((item) => item.reward.kind === "coins")).toBe(true);
   });
 
+  it("assigns every biome's three configured specials to distinct roster tiers", () => {
+    for (const tier of CAMPAIGN_TIERS.filter((item) => item.specialEnemies.length > 0)) {
+      const roster = selectEnemyRoster("campaign-special-slots", tier.id);
+      const specialEnemies = new Set<string>(tier.specialEnemies);
+      expect(Object.values(roster).filter((kind) => specialEnemies.has(kind))).toHaveLength(3);
+      expect(new Set(Object.values(roster)).size).toBe(5);
+    }
+  });
+
   it("requires both player level and the previous clear", () => {
     const snowy = campaignTier("snowy");
     expect(isCampaignTierUnlocked(snowy, { level: 4, defeatedTierIds: [] })).toBe(false);
