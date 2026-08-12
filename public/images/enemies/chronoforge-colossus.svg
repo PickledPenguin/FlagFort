@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" viewBox="0 0 180 180" role="img" aria-labelledby="title description" version="1.1" id="chronoforge-colossus-svg" sodipodi:docname="chronoforge-colossus.svg" inkscape:version="1.4.4">
+  <title id="title">Chronoforge Colossus boss</title>
+  <desc id="description">A colossal clockwork zombie sealed in riveted brass armor, with piston fists, a gear halo, and a clock face guarding its aether heart.</desc>
+  <defs id="definitions">
+    <linearGradient id="brass-armor" x1="0" y1="0" x2="1" y2="1">
+      <stop id="brass-highlight" offset="0" stop-color="#f1cf77"/>
+      <stop id="brass-mid" offset=".5" stop-color="#b87935"/>
+      <stop id="brass-shadow" offset="1" stop-color="#644326"/>
+    </linearGradient>
+    <linearGradient id="steel-body" x1="0" y1="0" x2="0" y2="1">
+      <stop id="steel-highlight" offset="0" stop-color="#68747b"/>
+      <stop id="steel-shadow" offset="1" stop-color="#30383e"/>
+    </linearGradient>
+    <radialGradient id="sealed-aether-core">
+      <stop id="core-center" offset="0" stop-color="#eaffff"/>
+      <stop id="core-mid" offset=".48" stop-color="#79e7df"/>
+      <stop id="core-edge" offset="1" stop-color="#28575c"/>
+    </radialGradient>
+  </defs>
+  <g id="chronoforge-colossus" transform="translate(90 92)" stroke-linejoin="round">
+    <g id="flywheel-halo" fill="none" stroke="url(#brass-armor)" stroke-width="8">
+      <circle id="outer-flywheel" cx="0" cy="-22" r="61" stroke="#6a492c" stroke-width="15" stroke-dasharray="12 8"/>
+      <circle id="inner-flywheel" cx="0" cy="-22" r="52"/>
+      <path id="flywheel-spokes" d="M0-74v18M0 12v18M-52-22h18M34-22h18M-37-59l13 13M24 2l13 13M37-59 24-46M-24 2-37 15" stroke="#d39b48" stroke-width="6"/>
+    </g>
+    <g id="piston-legs" fill="url(#steel-body)" stroke="#22292e" stroke-width="7">
+      <path id="left-leg" d="M-41 36-54 71-77 77-44 82-18 59-13 32Z"/>
+      <path id="right-leg" d="M15 32 20 59 45 82 77 76 53 70 41 35Z"/>
+    </g>
+    <g id="piston-arms" stroke="#2a3035" stroke-width="7">
+      <path id="left-arm" d="M-44-27-72-18-83 15-65 42-39 17Z" fill="url(#steel-body)"/>
+      <path id="right-arm" d="M43-28 71-18 83 14 66 42 39 17Z" fill="url(#steel-body)"/>
+      <path id="left-piston" d="m-70-8-13 23 16 24 12-28Z" fill="url(#brass-armor)"/>
+      <path id="right-piston" d="m70-8 13 22-16 25-12-28Z" fill="url(#brass-armor)"/>
+    </g>
+    <ellipse id="iron-body" cx="0" cy="5" rx="55" ry="62" fill="url(#steel-body)" stroke="#22292e" stroke-width="7"/>
+    <circle id="sealed-core" cx="0" cy="18" r="27" fill="url(#sealed-aether-core)" stroke="#24484d" stroke-width="8"/>
+    <g id="citadel-armor" fill="url(#brass-armor)" stroke="#5c3e27" stroke-width="6">
+      <path id="clock-crown" d="M-42-39-34-68-16-57 0-78 16-56 35-69 43-38 19-24-19-25Z"/>
+      <path id="left-shoulder" d="M-57-34-29-51-8-31-20-8-54-2Z"/>
+      <path id="right-shoulder" d="M9-31 30-51 57-33 54-2 20-8Z"/>
+      <path id="clock-breastplate" d="M-31-2-15-19 13-17 31 2 31 31 13 49-15 45-32 26Z"/>
+      <path id="boiler-waist" d="M-49 36-28 26-10 51 11 51 28 27 49 36 39 63 15 72 0 62-16 72-40 62Z"/>
+    </g>
+    <g id="clock-face" fill="#e2b85d" stroke="#62442a" stroke-linecap="round">
+      <circle id="clock-dial" cx="0" cy="16" r="21" fill="#e8d39c" stroke-width="4"/>
+      <path id="hour-marks" d="M0-1v5M0 28v5M-17 16h5M12 16h5M-12 4l4 4M8 24l4 4M12 4 8 8M-8 24l-4 4" fill="none" stroke-width="3"/>
+      <path id="clock-hands" d="M0 16-8 8M0 16l10-3" fill="none" stroke="#30383e" stroke-width="4"/>
+      <circle id="hand-pivot" cx="0" cy="16" r="3" fill="#79e7df" stroke-width="2"/>
+    </g>
+    <g id="armor-rivets" fill="#f8df96" stroke="#704c2d" stroke-width="2">
+      <circle id="rivet-one" cx="-35" cy="-27" r="3"/>
+      <circle id="rivet-two" cx="35" cy="-27" r="3"/>
+      <circle id="rivet-three" cx="-24" cy="46" r="3"/>
+      <circle id="rivet-four" cx="24" cy="46" r="3"/>
+    </g>
+    <g id="face" stroke="#20272c" stroke-width="4" stroke-linecap="round">
+      <path id="left-eye" d="m-27-25 14-4 7 9-16 5Z" fill="#91f5ee"/>
+      <path id="right-eye" d="m8-20 15-5 7 9-17 6Z" fill="#91f5ee"/>
+      <path id="mouth" d="m-19-4 10-7 13 9 12-8" fill="none" stroke-width="5"/>
+    </g>
+    <g id="steam" fill="none" stroke="#d6dedb" stroke-width="5" stroke-linecap="round" opacity=".75">
+      <path id="left-steam" d="M-67-43c-11-8 5-16-3-25"/>
+      <path id="right-steam" d="M68-42c11-9-4-17 4-26"/>
+    </g>
+  </g>
+</svg>

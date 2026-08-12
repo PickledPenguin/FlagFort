@@ -57,13 +57,17 @@ const zeroCoins: CoinSettlement = {
 };
 
 describe("data-driven campaign tiers", () => {
-  it("registers exactly three themed special-enemy sprites for the hidden Clockwork tier", () => {
+  it("registers a complete themed artwork set for the hidden Clockwork tier", () => {
     expect(CLOCKWORK_ENEMY_ARTWORK).toEqual({
       springjack: "enemies/springjack-zombie",
       aetherGunner: "enemies/aether-gunner-zombie",
       gearwright: "enemies/gearwright-zombie",
+      chronoforgeColossus: {
+        armored: "enemies/chronoforge-colossus",
+        broken: "enemies/chronoforge-colossus-broken",
+      },
     });
-    expect(Object.keys(CLOCKWORK_ENEMY_ARTWORK)).toHaveLength(3);
+    expect(Object.keys(CLOCKWORK_ENEMY_ARTWORK)).toHaveLength(4);
     expect(ENEMY_REGISTRY.springjack.assets.portrait)
       .toBe(CLOCKWORK_ENEMY_ARTWORK.springjack);
     expect(ENEMY_REGISTRY.springjack.rosterEligible).toBe(false);
