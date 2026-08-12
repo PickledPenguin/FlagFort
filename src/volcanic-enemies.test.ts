@@ -32,8 +32,8 @@ function structure(id: number, kind: StructureKind, x: number, y: number): Struc
   };
 }
 
-describe("staged volcanic enemies", () => {
-  it("keeps Cinderburst staged while defining its complete production behavior", () => {
+describe("volcanic enemies", () => {
+  it("registers Cinderburst for the volcanic roster with complete production behavior", () => {
     const definition = ENEMY_REGISTRY.cinderburst;
     expect(definition.assets.portrait).toBe("enemies/cinderburst-zombie");
     expect(definition.render).toMatchObject({ aspectRatio: 108 / 100, width: 81, height: 75 });
@@ -43,7 +43,8 @@ describe("staged volcanic enemies", () => {
       burstWaveSprite: "effects/cinderburst-wave",
       popupText: "CINDER BLAST",
     });
-    expect(definition.rosterEligible).toBe(false);
+    expect(definition.rosterEligible).toBe(true);
+    expect(definition.campaignTierIds).toEqual(["volcanic"]);
     for (const tier of ["forest", "snowy", "desert"] as const) {
       expect(Object.values(selectEnemyRoster("staged-cinderburst", tier))).not.toContain("cinderburst");
     }
@@ -85,7 +86,7 @@ describe("staged volcanic enemies", () => {
     expect(game.areaEffects).toHaveLength(0);
   });
 
-  it("keeps Magma Spitter staged with a complete ranged siege role", () => {
+  it("registers Magma Spitter for the volcanic roster with a complete ranged siege role", () => {
     const definition = ENEMY_REGISTRY["magma-spitter"];
     expect(definition.assets.portrait).toBe("enemies/magma-spitter-zombie");
     expect(definition.render).toEqual({ aspectRatio: 112 / 104, width: 82, height: 76 });
@@ -99,7 +100,8 @@ describe("staged volcanic enemies", () => {
       damageSource: "magma-spitter",
       pierces: false,
     });
-    expect(definition.rosterEligible).toBe(false);
+    expect(definition.rosterEligible).toBe(true);
+    expect(definition.campaignTierIds).toEqual(["volcanic"]);
     for (const tier of ["forest", "snowy", "desert"] as const) {
       expect(Object.values(selectEnemyRoster("staged-magma-spitter", tier)))
         .not.toContain("magma-spitter");
@@ -134,7 +136,7 @@ describe("staged volcanic enemies", () => {
     expect(game.projectiles).toHaveLength(0);
   });
 
-  it("keeps Obsidian Charger staged with armor and a complete breach role", () => {
+  it("registers Obsidian Charger for the volcanic roster with armor and a complete breach role", () => {
     const definition = ENEMY_REGISTRY["obsidian-charger"];
     expect(definition.assets.portrait).toBe("enemies/obsidian-charger-zombie");
     expect(definition.render).toEqual({ aspectRatio: 116 / 104, width: 106, height: 95 });
@@ -148,7 +150,8 @@ describe("staged volcanic enemies", () => {
       distance: 440,
       targetKinds: ["wall", "door", "spikes"],
     });
-    expect(definition.rosterEligible).toBe(false);
+    expect(definition.rosterEligible).toBe(true);
+    expect(definition.campaignTierIds).toEqual(["volcanic"]);
     for (const tier of ["forest", "snowy", "desert"] as const) {
       expect(Object.values(selectEnemyRoster("staged-obsidian-charger", tier)))
         .not.toContain("obsidian-charger");
@@ -190,11 +193,12 @@ describe("staged volcanic enemies", () => {
     expect(charger.chargeHitIds).toContain(wall.id);
   });
 
-  it("stages the Caldera Sovereign as a complete armored volcanic boss", () => {
+  it("registers the Caldera Sovereign as the complete armored volcanic boss", () => {
     const definition = ENEMY_REGISTRY["caldera-sovereign"];
 
     expect(isBossEnemyKind("caldera-sovereign")).toBe(true);
     expect(definition.rosterEligible).toBe(false);
+    expect(definition.campaignTierIds).toEqual(["volcanic"]);
     expect(definition.assets.portrait).toBe("enemies/caldera-sovereign");
     expect(definition.armor).toMatchObject({
       scalesWithHealth: true,

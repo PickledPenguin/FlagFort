@@ -119,7 +119,7 @@ describe("data-driven campaign tiers", () => {
     expect(campaignTier("desert").biome).toBe(CAMPAIGN_BIOMES.desert);
   });
 
-  it("defines a complete volcanic environment without exposing an unfinished tier", () => {
+  it("defines and exposes the volcanic environment through its completed tier", () => {
     expect(CAMPAIGN_BIOMES.volcanic).toMatchObject({
       ground: "volcanic",
       minimapLabel: "VOLCANIC MAP",
@@ -138,7 +138,7 @@ describe("data-driven campaign tiers", () => {
         particleCount: 72,
       },
     });
-    expect(CAMPAIGN_TIERS.every((tier) => tier.biome !== CAMPAIGN_BIOMES.volcanic)).toBe(true);
+    expect(campaignTier("volcanic").biome).toBe(CAMPAIGN_BIOMES.volcanic);
   });
 
   it("provides complete centralized selection artwork for current and upcoming biomes", () => {
@@ -157,6 +157,7 @@ describe("data-driven campaign tiers", () => {
     expect(campaignTier("forest")).toMatchObject(CAMPAIGN_TIER_ARTWORK.forest);
     expect(campaignTier("snowy")).toMatchObject(CAMPAIGN_TIER_ARTWORK.snowy);
     expect(campaignTier("desert")).toMatchObject(CAMPAIGN_TIER_ARTWORK.desert);
+    expect(campaignTier("volcanic")).toMatchObject(CAMPAIGN_TIER_ARTWORK.volcanic);
   });
 
   it("keeps tier order, requirements, rewards, enemies, bosses, and effects on definitions", () => {
@@ -197,6 +198,13 @@ describe("data-driven campaign tiers", () => {
       boss: "dune-colossus",
       specialEnemies: ["dune-hopper", "sandcaster", "tombguard"],
       biome: CAMPAIGN_BIOMES.desert,
+    });
+    expect(campaignTier("volcanic")).toMatchObject({
+      order: 3,
+      unlock: { level: 10, previousTierId: "desert" },
+      boss: "caldera-sovereign",
+      specialEnemies: ["cinderburst", "magma-spitter", "obsidian-charger"],
+      biome: CAMPAIGN_BIOMES.volcanic,
     });
   });
 
@@ -285,6 +293,23 @@ describe("data-driven campaign tiers", () => {
       level: 7,
       defeatedTierIds: ["forest", "snowy"],
     })).toBe("desert");
+    const volcanic = campaignTier("volcanic");
+    expect(isCampaignTierUnlocked(volcanic, {
+      level: 10,
+      defeatedTierIds: ["forest", "snowy"],
+    })).toBe(false);
+    expect(isCampaignTierUnlocked(volcanic, {
+      level: 9,
+      defeatedTierIds: ["forest", "snowy", "desert"],
+    })).toBe(false);
+    expect(isCampaignTierUnlocked(volcanic, {
+      level: 10,
+      defeatedTierIds: ["forest", "snowy", "desert"],
+    })).toBe(true);
+    expect(highestUnlockedCampaignTierId({
+      level: 10,
+      defeatedTierIds: ["forest", "snowy", "desert"],
+    })).toBe("volcanic");
   });
 
   it("guarantees the three Snowbound threats in stable roster slots", () => {
@@ -310,6 +335,18 @@ describe("data-driven campaign tiers", () => {
     });
     expect(selectEnemyRoster("same-seed", "desert"))
       .toEqual(selectEnemyRoster("same-seed", "desert"));
+  });
+
+  it("guarantees the three volcanic threats in stable roster slots", () => {
+    expect(selectEnemyRoster("same-seed", "volcanic")).toEqual({
+      1: "basic",
+      2: "runner",
+      3: "cinderburst",
+      5: "magma-spitter",
+      7: "obsidian-charger",
+    });
+    expect(selectEnemyRoster("same-seed", "volcanic"))
+      .toEqual(selectEnemyRoster("same-seed", "volcanic"));
   });
 
   it("assigns biome resource overlays deterministically without changing Forest", () => {
@@ -380,5 +417,32 @@ describe("data-driven campaign tiers", () => {
     expect(result?.newlyUnlockedTierIds).toEqual(["desert"]);
     expect(result?.grantedCampaignRewards).toEqual([]);
     expect(manager.profile.campaign.defeatedTierIds).toEqual(["forest", "snowy"]);
+  });
+
+  it("persists a Desert clear and announces the Caldera Crucible when its level gate is met", () => {
+    const store = new MemoryStore();
+    const profile = createDefaultProfile();
+    profile.lifetimeXp = lifetimeXpAtLevel(10);
+    profile.spendableXp = profile.lifetimeXp;
+    profile.playerLevel = 10;
+    profile.campaign.defeatedTierIds = ["forest", "snowy"];
+    profile.campaign.claimedRewardIds = CAMPAIGN_TIERS
+      .flatMap((tier) => tier.milestones)
+      .filter((milestone) => milestone.level <= 10)
+      .map((milestone) => milestone.id);
+    store.setItem("flagfort-profile-v2", JSON.stringify(profile));
+    const manager = new ProfileManager(store);
+
+    expect(manager.beginRunSettlement("desert-clear", 0)).toBe(true);
+    const result = manager.settleRun("desert-clear", zeroXp, zeroCoins, {
+      nightsSurvived: 10,
+      victory: true,
+      structureScore: 140,
+      campaignTierId: "desert",
+    });
+
+    expect(result?.newlyUnlockedTierIds).toEqual(["volcanic"]);
+    expect(result?.grantedCampaignRewards).toEqual([]);
+    expect(manager.profile.campaign.defeatedTierIds).toEqual(["forest", "snowy", "desert"]);
   });
 });

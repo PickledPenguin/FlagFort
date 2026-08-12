@@ -253,6 +253,23 @@ export const CAMPAIGN_TIERS: readonly CampaignTierDefinition[] = [
     ],
     biome: CAMPAIGN_BIOMES.desert,
   },
+  {
+    id: "volcanic",
+    order: 3,
+    name: "Caldera Crucible",
+    subtitle: "Fortress at the fireline",
+    description: "Hold the blackened slopes where volatile dead erupt, magma hunts industry, and obsidian charges break the line.",
+    accent: "#ff8a3d",
+    ...CAMPAIGN_TIER_ARTWORK.volcanic,
+    boss: "caldera-sovereign",
+    specialEnemies: ["cinderburst", "magma-spitter", "obsidian-charger"],
+    unlock: { level: 10, previousTierId: "desert" },
+    milestones: [
+      { id: "volcanic-level-11-coins", level: 11, reward: { kind: "coins", amount: 130 } },
+      { id: "volcanic-level-12-coins", level: 12, reward: { kind: "coins", amount: 155 } },
+    ],
+    biome: CAMPAIGN_BIOMES.volcanic,
+  },
 ] as const;
 
 export function campaignTier(id: CampaignTierId): CampaignTierDefinition {
