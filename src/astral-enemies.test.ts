@@ -2,7 +2,7 @@
 
 import { describe, expect, it } from "vitest";
 import { BALANCE } from "./config";
-import { ENEMY_REGISTRY, selectEnemyRoster } from "./enemy-registry";
+import { ENEMY_REGISTRY, isBossEnemyKind, selectEnemyRoster } from "./enemy-registry";
 import { Game } from "./game";
 import { Input } from "./input";
 import type { Enemy, Structure } from "./types";
@@ -193,5 +193,103 @@ describe("astral enemies", () => {
 
     expect(game.enemies).toHaveLength(definition.summon!.maximumLiving + 1);
     expect(herald.summonCooldown).toBe(definition.summon!.cappedRetryCooldown);
+  });
+
+  it("registers the Eclipse Regent as a complete armored Astral boss", () => {
+    const definition = ENEMY_REGISTRY["eclipse-regent"];
+
+    expect(isBossEnemyKind("eclipse-regent")).toBe(true);
+    expect(definition.rosterEligible).toBe(false);
+    expect(definition.assets.portrait).toBe("enemies/eclipse-regent");
+    expect(definition.armor).toMatchObject({
+      scalesWithHealth: true,
+      brokenSprite: "enemies/eclipse-regent-broken",
+      breakStatusPulse: {
+        statusEffect: {
+          kind: "slow",
+          duration: 4.6,
+          targets: ["player", "turret"],
+        },
+      },
+    });
+    expect(definition.areaStrike).toMatchObject({
+      rngSeedKey: "eclipse-regent:gravity-ruptures",
+      damageSource: "eclipse-regent",
+      randomStrikeCount: 6,
+      statusEffect: {
+        kind: "slow",
+        duration: 3.2,
+        targets: ["player", "turret"],
+      },
+    });
+    expect(definition.summon).toMatchObject({
+      kinds: ["void-herald"],
+      maximumLiving: 2,
+      popupText: "ECLIPSE GATE",
+    });
+  });
+
+  it("creates deterministic gravity ruptures around the defender", () => {
+    const first = gameFixture();
+    const second = gameFixture();
+    const firstBoss = spawn(first, "eclipse-regent", first.player.x + 480, first.player.y);
+    const secondBoss = spawn(second, "eclipse-regent", second.player.x + 480, second.player.y);
+    const config = ENEMY_REGISTRY["eclipse-regent"].areaStrike!;
+
+    (first as unknown as { createAreaStrikeAttack(enemy: Enemy): void })
+      .createAreaStrikeAttack(firstBoss);
+    (second as unknown as { createAreaStrikeAttack(enemy: Enemy): void })
+      .createAreaStrikeAttack(secondBoss);
+
+    expect(first.areaStrikes).toEqual(second.areaStrikes);
+    expect(first.areaStrikes).toHaveLength(
+      config.randomStrikeCount + Number(config.includesTargetedStrike),
+    );
+    expect(first.areaStrikes.every((strike) =>
+      strike.sourceEnemyKind === "eclipse-regent")).toBe(true);
+    expect(first.areaStrikes.some((strike) =>
+      strike.x === first.player.x && strike.y === first.player.y)).toBe(true);
+  });
+
+  it("breaks moon plates before health, gravity-binds defenders, and opens capped gates", () => {
+    const game = gameFixture();
+    const boss = spawn(game, "eclipse-regent", game.flag.x + 760, game.flag.y);
+    const definition = ENEMY_REGISTRY["eclipse-regent"];
+    const nearbyTurret: Structure = {
+      id: 1600,
+      kind: "turret",
+      tier: "wood",
+      x: boss.x + 50,
+      y: boss.y,
+      radius: BALANCE.structure.radius.turret,
+      health: 500,
+      maxHealth: 500,
+      cooldown: 0,
+      angle: 0,
+      lastArmAngle: 0,
+      harvesterHitResourceIds: new Set(),
+      flash: 0,
+    };
+    game.structures = [nearbyTurret];
+    game.player.x = boss.x - 50;
+    game.player.y = boss.y;
+
+    (game as unknown as {
+      damageEnemy(enemy: Enemy, amount: number, color: string, damageSource: "player-melee", ownerPlayerId: string): void;
+    }).damageEnemy(boss, boss.armor!, "#ffffff", "player-melee", game.player.id);
+
+    expect(boss.health).toBe(boss.maxHealth);
+    expect(boss.armor).toBe(0);
+    expect(game.player.statuses?.slow?.remaining).toBe(4.6);
+    expect(nearbyTurret.statuses?.slow?.remaining).toBe(4.6);
+    expect(game.particles.some((particle) => particle.text === "GRAVITY COLLAPSE"))
+      .toBe(true);
+
+    boss.summonCooldown = 0;
+    (game as unknown as { updateEnemySummon(enemy: Enemy, dt: number): void })
+      .updateEnemySummon(boss, BALANCE.fixedStep);
+    expect(game.enemies.find((enemy) => enemy.summonedBy === boss.id))
+      .toMatchObject({ kind: "void-herald", countsTowardWave: false });
+    expect(boss.summonCooldown).toBe(definition.summon!.cooldown);
   });
 });

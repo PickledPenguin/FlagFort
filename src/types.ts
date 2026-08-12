@@ -40,7 +40,7 @@ export type RosterEnemyKind =
   | "rift-strider"
   | "comet-slinger"
   | "void-herald";
-export type BossEnemyKind = "boss" | "frost-warden" | "dune-colossus" | "caldera-sovereign" | "reactor-revenant";
+export type BossEnemyKind = "boss" | "frost-warden" | "dune-colossus" | "caldera-sovereign" | "reactor-revenant" | "eclipse-regent";
 export type EnemyKind = RosterEnemyKind | "splitter-child" | BossEnemyKind;
 export type PlayerId = string;
 export type DamageSource =
@@ -57,6 +57,7 @@ export type DamageSource =
   | "sludge-lobber"
   | "comet-slinger"
   | "reactor-revenant"
+  | "eclipse-regent"
   | "caldera-sovereign"
   | "dune-colossus"
   | "cinderburst-burst"
@@ -253,6 +254,13 @@ export interface AreaEffect extends Vec2 {
   radius: number;
   remaining: number;
   duration: number;
+  appearance?: {
+    center: string;
+    middle: string;
+    edge: string;
+    stroke: string;
+    highlight: string;
+  };
 }
 
 export interface AreaStrike extends Vec2 {

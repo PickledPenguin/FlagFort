@@ -1012,22 +1012,29 @@ export class Renderer {
     const progress = Math.max(0, Math.min(1, 1 - effect.remaining / effect.duration));
     const radius = reducedMotion ? effect.radius : effect.radius * progress;
     if (effect.kind === "frost-slam") {
+      const appearance = effect.appearance ?? {
+        center: "rgba(99,198,232,.04)",
+        middle: "rgba(99,198,232,.12)",
+        edge: "rgba(119,220,244,.2)",
+        stroke: "rgba(82,202,238,.98)",
+        highlight: "rgba(232,253,255,.92)",
+      };
       const ctx = this.ctx;
       ctx.save();
       ctx.globalAlpha = Math.max(0.22, 0.72 - progress * 0.38);
       const gradient = ctx.createRadialGradient(effect.x, effect.y, 0, effect.x, effect.y, radius);
-      gradient.addColorStop(0, "rgba(99,198,232,.04)");
-      gradient.addColorStop(0.72, "rgba(99,198,232,.12)");
-      gradient.addColorStop(0.9, "rgba(119,220,244,.2)");
-      gradient.addColorStop(1, "rgba(78,181,218,.74)");
+      gradient.addColorStop(0, appearance.center);
+      gradient.addColorStop(0.72, appearance.middle);
+      gradient.addColorStop(0.9, appearance.edge);
+      gradient.addColorStop(1, appearance.stroke);
       ctx.fillStyle = gradient;
       ctx.beginPath();
       ctx.arc(effect.x, effect.y, radius, 0, Math.PI * 2);
       ctx.fill();
-      ctx.strokeStyle = "rgba(82,202,238,.98)";
+      ctx.strokeStyle = appearance.stroke;
       ctx.lineWidth = 10;
       ctx.stroke();
-      ctx.strokeStyle = "rgba(232,253,255,.92)";
+      ctx.strokeStyle = appearance.highlight;
       ctx.lineWidth = 3;
       ctx.beginPath();
       ctx.arc(effect.x, effect.y, Math.max(0, radius - 9), 0, Math.PI * 2);

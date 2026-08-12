@@ -3626,6 +3626,7 @@ export class Game {
       radius: pulse.radius,
       remaining: pulse.duration,
       duration: pulse.duration,
+      appearance: pulse.appearance,
     });
     this.burst(
       enemy.x,
