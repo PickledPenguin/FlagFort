@@ -86,6 +86,24 @@ describe("foundational refactor", () => {
       ]);
       expect(new Set(Object.values(skin).flatMap((states) => Object.values(states))).size).toBe(8);
     }
+    expect(RESOURCE_STATE_SKINS.desert).toEqual({
+      wood: {
+        active: "./images/world/desert-acacia-active.svg",
+        depleted: "./images/world/desert-acacia-depleted.svg",
+      },
+      stone: {
+        active: "./images/world/desert-sandstone-active.svg",
+        depleted: "./images/world/desert-sandstone-depleted.svg",
+      },
+      gold: {
+        active: "./images/world/desert-gold-active.svg",
+        depleted: "./images/world/desert-gold-depleted.svg",
+      },
+      diamond: {
+        active: "./images/world/desert-crystal-active.svg",
+        depleted: "./images/world/desert-crystal-depleted.svg",
+      },
+    });
   });
 
   it("keeps tutorial and card content centralized and stable", () => {

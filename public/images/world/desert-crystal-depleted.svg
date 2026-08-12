@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title description">
+  <title id="title">Depleted desert crystal cluster</title>
+  <desc id="description">Broken turquoise crystal stumps in a desert stone base.</desc>
+  <g id="desert-crystal-depleted">
+    <path id="base" d="m13 77 12-19 48-3 13 21-18 11H29Z" fill="#725044" stroke="#3c302a" stroke-width="6" stroke-linejoin="round"/>
+    <path id="broken-crystals" d="m27 65 5-23 9 5 8-13 10 10 12-5 8 10-8 27H36Z" fill="#347a78" stroke="#203f40" stroke-width="5" stroke-linejoin="round"/>
+    <path id="fractures" d="m41 47 4 17m14-20-4 22m16-27-5 25" fill="none" stroke="#255958" stroke-width="4" stroke-linecap="round"/>
+  </g>
+</svg>

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title description">
+  <title id="title">Depleted desert gold outcrop</title>
+  <desc id="description">An exhausted red boulder with empty mined seams.</desc>
+  <g id="desert-gold-depleted">
+    <path id="ore" d="m10 69 14-43 37-13 25 35-21 37-41-2Z" fill="#765346" stroke="#3d302a" stroke-width="7" stroke-linejoin="round"/>
+    <path id="empty-vein" d="m24 40 18 8 8-21 11 22 19-4M42 48l-9 25m17-24 13 26" fill="none" stroke="#4d3d36" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>
