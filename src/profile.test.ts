@@ -53,11 +53,12 @@ describe("versioned profile persistence", () => {
   it("retains only registered campaign clears during migration", () => {
     const profile = migrateProfile({
       campaign: {
-        defeatedTierIds: ["snowy", "future-placeholder", "volcanic", "desert", "forest", "snowy", 7],
+        defeatedTierIds: ["snowy", "future-placeholder", "wasteland", "volcanic", "desert", "forest", "snowy", 7],
       },
     });
 
-    expect(profile.campaign.defeatedTierIds).toEqual(["snowy", "volcanic", "desert", "forest"]);
+    expect(profile.campaign.defeatedTierIds)
+      .toEqual(["snowy", "wasteland", "volcanic", "desert", "forest"]);
   });
 
   it("infers total nights from the separate legacy run history", () => {

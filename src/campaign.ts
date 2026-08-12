@@ -301,6 +301,23 @@ export const CAMPAIGN_TIERS: readonly CampaignTierDefinition[] = [
     ],
     biome: CAMPAIGN_BIOMES.volcanic,
   },
+  {
+    id: "wasteland",
+    order: 4,
+    name: "Fallout Exclusion",
+    subtitle: "Last stand in the dead zone",
+    description: "Defend the irradiated ruins where hunters breach gaps, toxic volleys suppress defenders, and sirens rally the dead.",
+    accent: "#b7dd63",
+    ...CAMPAIGN_TIER_ARTWORK.wasteland,
+    boss: "reactor-revenant",
+    specialEnemies: ["radstalker", "sludge-lobber", "ruin-siren"],
+    unlock: { level: 13, previousTierId: "volcanic" },
+    milestones: [
+      { id: "wasteland-level-14-coins", level: 14, reward: { kind: "coins", amount: 185 } },
+      { id: "wasteland-level-15-coins", level: 15, reward: { kind: "coins", amount: 220 } },
+    ],
+    biome: CAMPAIGN_BIOMES.wasteland,
+  },
 ] as const;
 
 export function campaignTier(id: CampaignTierId): CampaignTierDefinition {

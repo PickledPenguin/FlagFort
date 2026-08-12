@@ -7,7 +7,7 @@ import {
   isCampaignTierUnlocked,
 } from "./campaign";
 import type { CampaignBiomeDefinition } from "./campaign";
-import { isBossEnemyKind, selectEnemyRoster } from "./enemy-registry";
+import { isBossEnemyKind, rosterMilestones, selectEnemyRoster } from "./enemy-registry";
 import { ProfileManager, createDefaultProfile, lifetimeXpAtLevel } from "./profile";
 import { generateWorld } from "./world";
 import type { KeyValueStore } from "./platform";
@@ -175,7 +175,7 @@ describe("data-driven campaign tiers", () => {
     expect(campaignTier("volcanic").biome).toBe(CAMPAIGN_BIOMES.volcanic);
   });
 
-  it("defines a complete nuclear wasteland environment without exposing an unfinished tier", () => {
+  it("defines and exposes the nuclear wasteland environment through its completed tier", () => {
     expect(CAMPAIGN_BIOMES.wasteland).toMatchObject({
       ground: "wasteland",
       minimapLabel: "FALLOUT MAP",
@@ -197,7 +197,7 @@ describe("data-driven campaign tiers", () => {
         particleCount: 64,
       },
     });
-    expect(CAMPAIGN_TIERS.some((tier) => tier.biome === CAMPAIGN_BIOMES.wasteland)).toBe(false);
+    expect(campaignTier("wasteland").biome).toBe(CAMPAIGN_BIOMES.wasteland);
   });
 
   it("provides complete centralized selection artwork for current and upcoming biomes", () => {
@@ -221,6 +221,7 @@ describe("data-driven campaign tiers", () => {
     expect(campaignTier("snowy")).toMatchObject(CAMPAIGN_TIER_ARTWORK.snowy);
     expect(campaignTier("desert")).toMatchObject(CAMPAIGN_TIER_ARTWORK.desert);
     expect(campaignTier("volcanic")).toMatchObject(CAMPAIGN_TIER_ARTWORK.volcanic);
+    expect(campaignTier("wasteland")).toMatchObject(CAMPAIGN_TIER_ARTWORK.wasteland);
   });
 
   it("keeps tier order, requirements, rewards, enemies, bosses, and effects on definitions", () => {
@@ -268,6 +269,13 @@ describe("data-driven campaign tiers", () => {
       boss: "caldera-sovereign",
       specialEnemies: ["cinderburst", "magma-spitter", "obsidian-charger"],
       biome: CAMPAIGN_BIOMES.volcanic,
+    });
+    expect(campaignTier("wasteland")).toMatchObject({
+      order: 4,
+      unlock: { level: 13, previousTierId: "volcanic" },
+      boss: "reactor-revenant",
+      specialEnemies: ["radstalker", "sludge-lobber", "ruin-siren"],
+      biome: CAMPAIGN_BIOMES.wasteland,
     });
   });
 
@@ -373,6 +381,23 @@ describe("data-driven campaign tiers", () => {
       level: 10,
       defeatedTierIds: ["forest", "snowy", "desert"],
     })).toBe("volcanic");
+    const wasteland = campaignTier("wasteland");
+    expect(isCampaignTierUnlocked(wasteland, {
+      level: 13,
+      defeatedTierIds: ["forest", "snowy", "desert"],
+    })).toBe(false);
+    expect(isCampaignTierUnlocked(wasteland, {
+      level: 12,
+      defeatedTierIds: ["forest", "snowy", "desert", "volcanic"],
+    })).toBe(false);
+    expect(isCampaignTierUnlocked(wasteland, {
+      level: 13,
+      defeatedTierIds: ["forest", "snowy", "desert", "volcanic"],
+    })).toBe(true);
+    expect(highestUnlockedCampaignTierId({
+      level: 13,
+      defeatedTierIds: ["forest", "snowy", "desert", "volcanic"],
+    })).toBe("wasteland");
   });
 
   it("guarantees the three Snowbound threats in stable roster slots", () => {
@@ -410,6 +435,21 @@ describe("data-driven campaign tiers", () => {
     });
     expect(selectEnemyRoster("same-seed", "volcanic"))
       .toEqual(selectEnemyRoster("same-seed", "volcanic"));
+  });
+
+  it("guarantees the three wasteland threats in stable roster slots", () => {
+    const roster = selectEnemyRoster("same-seed", "wasteland");
+    expect(roster).toEqual({
+      1: "basic",
+      2: "runner",
+      3: "radstalker",
+      5: "sludge-lobber",
+      7: "ruin-siren",
+    });
+    expect(selectEnemyRoster("same-seed", "wasteland"))
+      .toEqual(roster);
+    expect(rosterMilestones(roster, campaignTier("wasteland").boss).at(-1))
+      .toEqual({ night: 10, enemy: "reactor-revenant", label: "Reactor Revenant" });
   });
 
   it("assigns biome resource overlays deterministically without changing Forest", () => {
@@ -507,5 +547,33 @@ describe("data-driven campaign tiers", () => {
     expect(result?.newlyUnlockedTierIds).toEqual(["volcanic"]);
     expect(result?.grantedCampaignRewards).toEqual([]);
     expect(manager.profile.campaign.defeatedTierIds).toEqual(["forest", "snowy", "desert"]);
+  });
+
+  it("persists a Caldera clear and announces Fallout Exclusion when its level gate is met", () => {
+    const store = new MemoryStore();
+    const profile = createDefaultProfile();
+    profile.lifetimeXp = lifetimeXpAtLevel(13);
+    profile.spendableXp = profile.lifetimeXp;
+    profile.playerLevel = 13;
+    profile.campaign.defeatedTierIds = ["forest", "snowy", "desert"];
+    profile.campaign.claimedRewardIds = CAMPAIGN_TIERS
+      .flatMap((tier) => tier.milestones)
+      .filter((milestone) => milestone.level <= 13)
+      .map((milestone) => milestone.id);
+    store.setItem("flagfort-profile-v2", JSON.stringify(profile));
+    const manager = new ProfileManager(store);
+
+    expect(manager.beginRunSettlement("caldera-clear", 0)).toBe(true);
+    const result = manager.settleRun("caldera-clear", zeroXp, zeroCoins, {
+      nightsSurvived: 10,
+      victory: true,
+      structureScore: 160,
+      campaignTierId: "volcanic",
+    });
+
+    expect(result?.newlyUnlockedTierIds).toEqual(["wasteland"]);
+    expect(result?.grantedCampaignRewards).toEqual([]);
+    expect(manager.profile.campaign.defeatedTierIds)
+      .toEqual(["forest", "snowy", "desert", "volcanic"]);
   });
 });
