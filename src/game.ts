@@ -2281,6 +2281,10 @@ export class Game {
       return;
     }
     const detection = definition.targeting.detectionRadius;
+    if (definition.targeting.mode === "player") {
+      enemy.targetId = distance(enemy, this.player) <= detection ? "player" : "flag";
+      return;
+    }
     if (definition.targeting.mode === "harvester") {
       const locked = typeof enemy.targetId === "number"
         ? this.structures.find((item) => item.id === enemy.targetId && item.kind === "harvester")
@@ -2737,14 +2741,16 @@ export class Game {
     target: Player | Structure,
     duration: number,
     popupTextColor: string = BALANCE.snowyEnemies.slow.popupTextColor,
+    particleColor: string = BALANCE.snowyEnemies.slow.tint,
+    popupText = "Slowed",
   ): void {
     applySlow(target, duration);
     this.burst(
       target.x,
       target.y,
-      BALANCE.snowyEnemies.slow.tint,
+      particleColor,
       8,
-      "Slowed",
+      popupText,
       popupTextColor,
     );
   }
@@ -2756,13 +2762,25 @@ export class Game {
     if (!effect) return;
     if (target === this.player && effect.targets.includes("player")) {
       if (effect.kind === "slow") {
-        this.applySlowStatus(this.player, effect.duration, effect.popupTextColor);
+        this.applySlowStatus(
+          this.player,
+          effect.duration,
+          effect.popupTextColor,
+          effect.particleColor,
+          effect.popupText,
+        );
       }
       return;
     }
     if ("tier" in target && target.kind === "turret" && effect.targets.includes("turret")) {
       if (effect.kind === "slow") {
-        this.applySlowStatus(target, effect.duration, effect.popupTextColor);
+        this.applySlowStatus(
+          target,
+          effect.duration,
+          effect.popupTextColor,
+          effect.particleColor,
+          effect.popupText,
+        );
       }
     }
   }
@@ -3356,6 +3374,8 @@ export class Game {
               this.player,
               playerStatusEffect.duration,
               playerStatusEffect.popupTextColor,
+              playerStatusEffect.particleColor,
+              playerStatusEffect.popupText,
             );
           }
           emitAudioCue({ cue: "player-hurt", position: { x: this.player.x, y: this.player.y } });
@@ -3400,6 +3420,8 @@ export class Game {
               structure,
               projectile.statusEffect.duration,
               projectile.statusEffect.popupTextColor,
+              projectile.statusEffect.particleColor,
+              projectile.statusEffect.popupText,
             );
           }
           this.burst(structure.x, structure.y, projectile.color, 8);
@@ -3624,12 +3646,28 @@ export class Game {
   ): void {
     if (effect.targets.includes("player")
       && distance(origin, this.player) <= radius + this.player.radius) {
-      if (effect.kind === "slow") this.applySlowStatus(this.player, effect.duration);
+      if (effect.kind === "slow") {
+        this.applySlowStatus(
+          this.player,
+          effect.duration,
+          effect.popupTextColor,
+          effect.particleColor,
+          effect.popupText,
+        );
+      }
     }
     for (const structure of this.structures) {
       if (structure.kind !== "turret" || !effect.targets.includes("turret")) continue;
       if (distance(origin, structure) > radius + structure.radius) continue;
-      if (effect.kind === "slow") this.applySlowStatus(structure, effect.duration);
+      if (effect.kind === "slow") {
+        this.applySlowStatus(
+          structure,
+          effect.duration,
+          effect.popupTextColor,
+          effect.particleColor,
+          effect.popupText,
+        );
+      }
     }
   }
 

@@ -33,7 +33,8 @@ export type RosterEnemyKind =
   | "tombguard"
   | "cinderburst"
   | "magma-spitter"
-  | "obsidian-charger";
+  | "obsidian-charger"
+  | "radstalker";
 export type BossEnemyKind = "boss" | "frost-warden" | "dune-colossus" | "caldera-sovereign";
 export type EnemyKind = RosterEnemyKind | "splitter-child" | BossEnemyKind;
 export type PlayerId = string;
@@ -78,6 +79,8 @@ export interface EnemyStatusEffect {
   duration: number;
   targets: readonly ("player" | "turret")[];
   popupTextColor: string;
+  particleColor?: string;
+  popupText?: string;
 }
 
 export interface Player extends Circle {

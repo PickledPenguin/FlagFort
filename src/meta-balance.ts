@@ -79,6 +79,7 @@ export const META_BALANCE = {
       cinderburst: 8,
       "magma-spitter": 10,
       "obsidian-charger": 16,
+      radstalker: 9,
       popper: 6,
       archer: 6,
       summoner: 8,
