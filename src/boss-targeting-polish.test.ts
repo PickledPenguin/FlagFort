@@ -2,14 +2,14 @@
 
 import { describe, expect, it } from "vitest";
 import { BALANCE } from "./config";
-import { campaignTier } from "./campaign";
+import { CAMPAIGN_TIERS, campaignTier } from "./campaign";
 import { ENEMY_REGISTRY } from "./enemy-registry";
 import { Game } from "./game";
 import { Input } from "./input";
 import { biomePopupColor } from "./popup-colors";
-import type { Difficulty, Enemy, PlayerId, Structure } from "./types";
+import type { CampaignTierId, Difficulty, Enemy, PlayerId, Structure } from "./types";
 
-function gameFixture(difficulty: Difficulty = "normal", campaignTierId: "forest" | "snowy" = "forest"): Game {
+function gameFixture(difficulty: Difficulty = "normal", campaignTierId: CampaignTierId = "forest"): Game {
   document.body.innerHTML = "<canvas></canvas>";
   const game = new Game(new Input(document.querySelector("canvas")!));
   game.startRun(difficulty, `polish-${difficulty}-${campaignTierId}`, [], true, {
@@ -120,27 +120,46 @@ describe("base boss polish", () => {
 });
 
 describe("boss difficulty scaling", () => {
-  it.each(["easy", "normal", "hard", "extreme"] as const)("applies the %s boss curve to both bosses", (difficulty) => {
-    const forest = gameFixture(difficulty);
-    const boss = spawn(forest, "boss", forest.flag.x + 700, forest.flag.y);
-    const snowy = gameFixture(difficulty, "snowy");
-    const warden = spawn(snowy, "frost-warden", snowy.flag.x + 700, snowy.flag.y);
+  it.each(["easy", "normal", "hard", "extreme"] as const)("applies the %s boss curve to every campaign boss", (difficulty) => {
     const scaling = BALANCE.bossDifficulty[difficulty];
-    const forestAdaptiveHealth = 1
-      + (forest.adaptiveState.multiplier - 1) * BALANCE.adaptive.healthInfluence;
-    const forestAdaptiveDamage = 1
-      + (forest.adaptiveState.multiplier - 1) * BALANCE.adaptive.damageInfluence;
+    for (const tier of CAMPAIGN_TIERS) {
+      const game = gameFixture(difficulty, tier.id);
+      const boss = spawn(game, tier.boss, game.flag.x + 700, game.flag.y);
+      const base = ENEMY_REGISTRY[tier.boss].base;
+      const adaptiveHealth = 1
+        + (game.adaptiveState.multiplier - 1) * BALANCE.adaptive.healthInfluence;
+      const adaptiveDamage = 1
+        + (game.adaptiveState.multiplier - 1) * BALANCE.adaptive.damageInfluence;
 
-    expect(boss.maxHealth).toBeCloseTo(
-      ENEMY_REGISTRY.boss.base.health * scaling.health * forestAdaptiveHealth,
-    );
-    expect(boss.damage).toBeCloseTo(
-      ENEMY_REGISTRY.boss.base.damage * scaling.damage * forestAdaptiveDamage,
-    );
-    expect(boss.speed).toBeCloseTo(ENEMY_REGISTRY.boss.base.speed * scaling.speed);
-    expect(boss.attackRate).toBeCloseTo(ENEMY_REGISTRY.boss.base.attackRate / scaling.attackSpeed);
-    expect(warden.maxHealth).toBeLessThan(boss.maxHealth);
-    expect(warden.maxHealth + warden.maxArmor!).toBeGreaterThan(boss.maxHealth);
+      expect(boss.maxHealth, tier.id).toBeCloseTo(base.health * scaling.health * adaptiveHealth);
+      expect(boss.damage, tier.id).toBeCloseTo(base.damage * scaling.damage * adaptiveDamage);
+      expect(boss.structureDamage, tier.id)
+        .toBeCloseTo(base.structureDamage * scaling.damage * adaptiveDamage);
+      expect(boss.speed, tier.id).toBeCloseTo(base.speed * scaling.speed);
+      expect(boss.attackRate, tier.id).toBeCloseTo(base.attackRate / scaling.attackSpeed);
+    }
+  });
+
+  it.each(["easy", "normal", "hard", "extreme"] as const)("applies the %s enemy curve to every campaign special", (difficulty) => {
+    const scaling = BALANCE.difficulty[difficulty];
+    for (const tier of CAMPAIGN_TIERS) {
+      const game = gameFixture(difficulty, tier.id);
+      const adaptiveHealth = 1
+        + (game.adaptiveState.multiplier - 1) * BALANCE.adaptive.healthInfluence;
+      const adaptiveDamage = 1
+        + (game.adaptiveState.multiplier - 1) * BALANCE.adaptive.damageInfluence;
+      for (const kind of tier.specialEnemies) {
+        const enemy = spawn(game, kind, game.flag.x + 700, game.flag.y);
+        const base = ENEMY_REGISTRY[kind].base;
+
+        expect(enemy.maxHealth, kind).toBeCloseTo(base.health * scaling.enemyHealth * adaptiveHealth);
+        expect(enemy.damage, kind).toBeCloseTo(base.damage * scaling.enemyDamage * adaptiveDamage);
+        expect(enemy.structureDamage, kind)
+          .toBeCloseTo(base.structureDamage * scaling.enemyDamage * adaptiveDamage);
+        expect(enemy.speed, kind).toBeCloseTo(base.speed * scaling.enemySpeed);
+        expect(enemy.attackRate, kind).toBeCloseTo(base.attackRate / scaling.attackSpeed);
+      }
+    }
   });
 });
 
