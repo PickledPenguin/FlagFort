@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-58 -52 116 104" role="img" aria-labelledby="title description">
+  <title id="title">Aether Gunner zombie</title>
+  <desc id="description">A stocky clockwork marksman braced behind a long brass aether cannon with a bright cyan pressure chamber.</desc>
+  <defs id="aether-gunner-definitions">
+    <linearGradient id="aether-gunner-metal-gradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#77828a"/>
+      <stop offset="1" stop-color="#343c43"/>
+    </linearGradient>
+    <radialGradient id="aether-gunner-core-gradient">
+      <stop offset="0" stop-color="#e5fffb"/>
+      <stop offset="0.45" stop-color="#79e7df"/>
+      <stop offset="1" stop-color="#278d91"/>
+    </radialGradient>
+  </defs>
+  <g id="aether-gunner-zombie">
+    <g id="legs" fill="none" stroke="#3d464b" stroke-width="11" stroke-linecap="round">
+      <path id="rear-leg" d="M-13 24-28 44"/>
+      <path id="front-leg" d="M12 24 24 45"/>
+    </g>
+    <path id="body" d="M-27-11C-24-31-7-41 12-36 28-31 35-10 27 26H-24C-29 10-31 0-27-11Z" fill="url(#aether-gunner-metal-gradient)" stroke="#20272d" stroke-width="3"/>
+    <path id="head" d="M-17-28C-4-40 17-35 24-20 25-5 16 5 2 4-13 3-23-13-17-28Z" fill="#71837a" stroke="#293a39" stroke-width="3"/>
+    <path id="goggle-band" d="M-17-19C-5-26 10-27 23-20" fill="none" stroke="#252c31" stroke-width="7"/>
+    <g id="aether-goggles" fill="url(#aether-gunner-core-gradient)" stroke="#173e43" stroke-width="2">
+      <circle id="rear-goggle" cx="-7" cy="-21" r="6"/>
+      <circle id="front-goggle" cx="10" cy="-22" r="6"/>
+    </g>
+    <path id="helmet-brim" d="M-23-33C-7-45 18-40 29-26L20-23C8-32-7-31-17-25Z" fill="#a77735" stroke="#513b24" stroke-width="3"/>
+    <g id="cannon" stroke-linejoin="round">
+      <path id="cannon-stock" d="m-30 4 21 2 7 16-27 4Z" fill="#79542e" stroke="#402f23" stroke-width="3"/>
+      <path id="cannon-barrel" d="M-8 1 43-7 49 5-55 18Z" fill="#c39645" stroke="#5d4426" stroke-width="3"/>
+      <path id="muzzle" d="m42-10 12-1 4 18-11 2Z" fill="#596269" stroke="#292f34" stroke-width="3"/>
+      <circle id="pressure-chamber" cx="10" cy="7" r="12" fill="#263e43" stroke="#b7893e" stroke-width="3"/>
+      <circle id="aether-core" cx="10" cy="7" r="7" fill="url(#aether-gunner-core-gradient)"/>
+      <path id="pressure-gauge" d="M-5-2C-1-15 15-16 21-5" fill="none" stroke="#e1c06b" stroke-width="3" stroke-linecap="round"/>
+    </g>
+    <g id="grip-arms" fill="none" stroke="#63776d" stroke-width="8" stroke-linecap="round">
+      <path id="rear-arm" d="M-20-4-10 10"/>
+      <path id="front-arm" d="M22-4 27 6"/>
+    </g>
+    <path id="aether-vent" d="m-18 24-7 10m18-9-3 13m15-13v13" fill="none" stroke="#79e7df" stroke-width="3" stroke-linecap="round" opacity="0.8"/>
+  </g>
+</svg>

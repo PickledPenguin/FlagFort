@@ -7,7 +7,12 @@ import {
   isCampaignTierUnlocked,
 } from "./campaign";
 import type { CampaignBiomeDefinition } from "./campaign";
-import { isBossEnemyKind, rosterMilestones, selectEnemyRoster } from "./enemy-registry";
+import {
+  ENEMY_REGISTRY,
+  isBossEnemyKind,
+  rosterMilestones,
+  selectEnemyRoster,
+} from "./enemy-registry";
 import { ProfileManager, createDefaultProfile, lifetimeXpAtLevel } from "./profile";
 import { generateWorld } from "./world";
 import type { KeyValueStore } from "./platform";
@@ -20,6 +25,7 @@ import { VOLCANIC_ENEMY_ARTWORK } from "./volcanic-enemy-artwork";
 import { WASTELAND_ENEMY_ARTWORK } from "./wasteland-enemy-artwork";
 import { ASTRAL_ENEMY_ARTWORK } from "./astral-enemy-artwork";
 import { MIRE_ENEMY_ARTWORK } from "./mire-enemy-artwork";
+import { CLOCKWORK_ENEMY_ARTWORK } from "./clockwork-enemy-artwork";
 
 class MemoryStore implements KeyValueStore {
   private values = new Map<string, string>();
@@ -51,6 +57,18 @@ const zeroCoins: CoinSettlement = {
 };
 
 describe("data-driven campaign tiers", () => {
+  it("registers exactly three themed special-enemy sprites for the hidden Clockwork tier", () => {
+    expect(CLOCKWORK_ENEMY_ARTWORK).toEqual({
+      springjack: "enemies/springjack-zombie",
+      aetherGunner: "enemies/aether-gunner-zombie",
+      gearwright: "enemies/gearwright-zombie",
+    });
+    expect(Object.keys(CLOCKWORK_ENEMY_ARTWORK)).toHaveLength(3);
+    const stagedArtwork = new Set<string>(Object.values(CLOCKWORK_ENEMY_ARTWORK));
+    expect(Object.values(ENEMY_REGISTRY).every((enemy) =>
+      !stagedArtwork.has(enemy.assets.portrait))).toBe(true);
+  });
+
   it("registers Clockwork Citadel selection artwork without exposing the unfinished tier", () => {
     expect(CAMPAIGN_TIER_ARTWORK.clockwork).toEqual({
       icon: "./images/campaign/clockwork-tier.svg",
