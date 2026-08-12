@@ -728,6 +728,11 @@ button:focus-visible > .tooltip,
   line-height: 1.5;
 }
 
+.pause-card > h2 {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
 .modal-close {
   position: absolute;
   right: 14px;
@@ -4567,6 +4572,11 @@ img.icon {
 
 .coin-settlement > span {
   place-content: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   text-align: center;
 }
 

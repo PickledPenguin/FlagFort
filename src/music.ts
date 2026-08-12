@@ -51,6 +51,7 @@ interface ActiveTrack {
 
 export class MusicManager {
   private active: ActiveTrack | null = null;
+  private readonly tracks = new Set<ActiveTrack>();
   private context: MusicContext | null = null;
   private musicVolume = 1;
   private countdownVolume = 0.35;
@@ -85,11 +86,8 @@ export class MusicManager {
     this.musicVolume = Math.max(0, Math.min(1, musicVolume));
     this.countdownVolume = Math.max(0, Math.min(1, countdownVolume));
     this.muted = muted;
-    if (this.active) {
-      this.active.audio.volume = this.effectiveVolume(
-        this.active.targetVolume,
-        this.active.context,
-      );
+    for (const track of this.tracks) {
+      track.audio.volume = this.effectiveVolume(track.targetVolume, track.context);
     }
   }
 
@@ -111,16 +109,31 @@ export class MusicManager {
       targetVolume: definition.volume,
     };
     const outgoing = this.active;
+    this.tracks.add(incoming);
+    for (const track of this.tracks) {
+      if (track !== outgoing && track !== incoming) this.retire(track);
+    }
     this.active = incoming;
     const token = ++this.transitionToken;
     const fallback = (missingFile: boolean): void => {
-      if (this.active !== incoming) return;
-      incoming.audio.pause();
-      this.active = outgoing ?? (missingFile ? null : incoming);
-      if (outgoing) {
+      if (token !== this.transitionToken || this.active !== incoming) {
+        this.retire(incoming);
+        return;
+      }
+      if (outgoing && this.tracks.has(outgoing)) {
+        this.retire(incoming);
+        this.active = outgoing;
         outgoing.audio.volume = this.effectiveVolume(
           outgoing.targetVolume,
           outgoing.context,
+        );
+      } else if (missingFile) {
+        this.retire(incoming);
+        this.active = null;
+      } else {
+        incoming.audio.volume = this.effectiveVolume(
+          incoming.targetVolume,
+          incoming.context,
         );
       }
     };
@@ -139,7 +152,7 @@ export class MusicManager {
   stop(): void {
     this.transitionToken += 1;
     this.context = null;
-    this.active?.audio.pause();
+    for (const track of [...this.tracks]) this.retire(track);
     this.active = null;
   }
 
@@ -163,8 +176,7 @@ export class MusicManager {
         requestAnimationFrame(step);
         return;
       }
-      outgoing?.audio.pause();
-      if (outgoing) outgoing.audio.currentTime = 0;
+      if (outgoing) this.retire(outgoing);
     };
     requestAnimationFrame(step);
   }
@@ -176,6 +188,12 @@ export class MusicManager {
     return this.muted
       ? 0
       : Math.max(0, Math.min(1, trackVolume * channelVolume));
+  }
+
+  private retire(track: ActiveTrack): void {
+    track.audio.pause();
+    track.audio.currentTime = 0;
+    this.tracks.delete(track);
   }
 }
 

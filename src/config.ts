@@ -147,6 +147,10 @@ export const BALANCE = {
       itemGap: 8,
       rowGap: 5,
     },
+    snowPopupContrast: {
+      perceivedBrightnessThreshold: 150,
+      darkenMultiplier: 0.42,
+    },
   },
   resource: {
     radius: { wood: 42, stone: 35, gold: 30, diamond: 27 } satisfies Record<ResourceKind, number>,
@@ -234,7 +238,7 @@ export const BALANCE = {
     acidLifetime: 2.2,
     slam: {
       chargeDuration: 1.25,
-      cooldown: 5.5,
+      reinforcementCount: 10,
       radius: 260,
       playerDamage: 34,
       flagDamage: 52,
@@ -437,6 +441,12 @@ export const BALANCE = {
     hard: { label: "Hard", enemyHealth: 1.25, enemyDamage: 1.25, enemySpeed: 1.08, attackSpeed: 1.12, spawnCount: 1.22, flagHealth: 0.88, xpMultiplier: 1.2 },
     extreme: { label: "Extreme", enemyHealth: 1.65, enemyDamage: 1.6, enemySpeed: 1.18, attackSpeed: 1.3, spawnCount: 1.55, flagHealth: 0.72, xpMultiplier: 1.55 },
   } satisfies Record<Difficulty, { label: string; enemyHealth: number; enemyDamage: number; enemySpeed: number; attackSpeed: number; spawnCount: number; flagHealth: number; xpMultiplier: number }>,
+  bossDifficulty: {
+    easy: { health: 0.84, damage: 0.8, speed: 0.96, attackSpeed: 0.94 },
+    normal: { health: 1, damage: 1, speed: 1, attackSpeed: 1 },
+    hard: { health: 1.18, damage: 1.16, speed: 1.05, attackSpeed: 1.08 },
+    extreme: { health: 1.38, damage: 1.32, speed: 1.1, attackSpeed: 1.16 },
+  } satisfies Record<Difficulty, { health: number; damage: number; speed: number; attackSpeed: number }>,
   upgrades: {
     moveSpeed: { name: "Fleet Feet", amount: 0.08 },
     maxHealth: { name: "Heartwood", amount: 20 },

@@ -56,6 +56,7 @@ import type { GamePlatform } from "./platform";
 import type { ProfileManager, RunSettlementResult } from "./profile";
 import { campaignTier } from "./campaign";
 import { calculateXpRewards, settleCoinInvestment } from "./rewards";
+import { biomePopupColor } from "./popup-colors";
 import {
   emptyPlaytestActivity,
   finishRunDifficultyLog,
@@ -1838,6 +1839,13 @@ export class Game {
   ): void {
     const base = BALANCE.enemy[kind];
     const difficulty = BALANCE.difficulty[this.difficulty];
+    const bossDifficulty = this.isBossEnemyKind(kind)
+      ? BALANCE.bossDifficulty[this.difficulty]
+      : null;
+    const healthDifficulty = bossDifficulty?.health ?? difficulty.enemyHealth;
+    const damageDifficulty = bossDifficulty?.damage ?? difficulty.enemyDamage;
+    const speedDifficulty = bossDifficulty?.speed ?? difficulty.enemySpeed;
+    const attackSpeedDifficulty = bossDifficulty?.attackSpeed ?? difficulty.attackSpeed;
     const challenges = this.getChallengeModifiers();
     // Scaling order: base, selected difficulty, accumulated mutation, then clamped adaptive influence.
     const adaptiveHealth = 1 + (this.adaptiveState.multiplier - 1) * BALANCE.adaptive.healthInfluence;
@@ -1848,7 +1856,7 @@ export class Game {
     const mutation = mutationApplies ? this.mutations : createMutations();
     const attackSpeedMultiplier = resolveEffectiveStat({
       base: 1,
-      permanent: difficulty.attackSpeed - 1,
+      permanent: attackSpeedDifficulty - 1,
       mutation: mutation.attackSpeed,
       challenge: challenges.enemyAttackSpeedMultiplier - 1,
     });
@@ -1863,7 +1871,7 @@ export class Game {
       ? Math.pow(BALANCE.endless.bossDamageGrowthPerCycle, bossCycle)
       : Math.pow(BALANCE.endless.damageGrowthPerNight, endlessIndex);
     const health = base.health
-      * difficulty.enemyHealth
+      * healthDifficulty
       * (1 + mutation.health)
       * adaptiveHealth
       * challenges.enemyHealthMultiplier
@@ -1879,16 +1887,16 @@ export class Game {
       health,
       maxHealth: health,
       speed: base.speed
-        * difficulty.enemySpeed
+        * speedDifficulty
         * (1 + mutation.speed)
         * challenges.enemySpeedMultiplier,
       damage: base.damage
-        * difficulty.enemyDamage
+        * damageDifficulty
         * (1 + mutation.damage)
         * adaptiveDamage
         * challenges.enemyDamageMultiplier
         * endlessDamageMultiplier,
-      structureDamage: base.structureDamage * difficulty.enemyDamage
+      structureDamage: base.structureDamage * damageDifficulty
         * (1 + mutation.structureDamage)
         * adaptiveDamage
         * challenges.enemyDamageMultiplier
@@ -2125,6 +2133,12 @@ export class Game {
       const targetDistance = distance(enemy, target);
       enemy.angle = Math.atan2(target.y - enemy.y, target.x - enemy.x);
       if (definition.movement.avoidStructures) this.refreshEnemyPath(enemy, target);
+      const bossPlayerReach = enemy.radius + this.player.radius + 5;
+      if (enemy.kind === "boss" && distance(enemy, this.player) <= bossPlayerReach) {
+        this.enemyAttack(enemy, this.player, dt);
+        this.moveEnemyToward(enemy, target, dt, true);
+        continue;
+      }
       if ((definition.attack.mode === "arrow" || definition.attack.mode === "acid")
         && targetDistance <= this.enemyAttackRange(enemy)) {
         this.enemyRangedAttack(enemy, target, dt);
@@ -2290,17 +2304,7 @@ export class Game {
     if (definition.targeting.mode === "acidslinger") {
       if (turrets[0]) enemy.targetId = turrets[0].id;
       else if (playerInRange) enemy.targetId = "player";
-      else {
-        const innerKinds: StructureKind[] = ["wall", "door", "spikes", "harvester"];
-        const innerRadius = definition.targeting.innerRadius ?? detection;
-        const inner = candidates
-          .filter((item) => innerKinds.includes(item.kind) && distance(enemy, item) <= innerRadius)
-          .sort((a, b) => distance(enemy, a) - distance(enemy, b) || a.id - b.id);
-        const locked = typeof enemy.targetId === "number" ? this.structures.find((item) => item.id === enemy.targetId) : null;
-        if (locked && inner.includes(locked) && enemy.routeCommitment > 0) return;
-        enemy.targetId = inner[0]?.id ?? "flag";
-        enemy.routeCommitment = definition.targeting.lockSeconds;
-      }
+      else enemy.targetId = "flag";
       return;
     }
     if (distance(enemy, this.flag) <= detection) enemy.targetId = "flag";
@@ -2562,6 +2566,7 @@ export class Game {
       && distance(enemy, directBlocker) <= enemy.radius + directBlocker.radius + maximumGap) {
       return directBlocker;
     }
+    if (enemy.kind === "acidslinger") return undefined;
     return this.structures
       .filter((structure) => structure.health > 0)
       .filter((structure) =>
@@ -3023,20 +3028,16 @@ export class Game {
     }
     if (!enemy.bossHalfSummoned && enemy.health <= enemy.maxHealth * 0.5) {
       enemy.bossHalfSummoned = true;
-      for (let i = 0; i < 5; i += 1) this.spawnEnemy(enemy, "basic", enemy.id);
-      this.burst(enemy.x, enemy.y, "#ff5c52", 28, "THE HORDE RISES");
-      this.shake = 14;
+      enemy.bossSmashWindup = Number.EPSILON;
     }
-    enemy.summonCooldown -= dt * attackSpeed;
-    if (enemy.summonCooldown <= 0
-      && distance(enemy, this.flag) < BALANCE.boss.slam.radius) {
+    if (enemy.bossSmashWindup > 0) {
       enemy.bossSmashWindup += dt * attackSpeed;
-    } else if (enemy.bossSmashWindup > 0) {
-      enemy.bossSmashWindup = Math.max(0, enemy.bossSmashWindup - dt * 0.5);
     }
     if (enemy.bossSmashWindup >= BALANCE.boss.slam.chargeDuration) {
       enemy.bossSmashWindup = 0;
-      enemy.summonCooldown = BALANCE.boss.slam.cooldown;
+      for (let index = 0; index < BALANCE.boss.slam.reinforcementCount; index += 1) {
+        this.spawnEnemy(enemy, "basic", enemy.id);
+      }
       enemy.bossSlamWave = BALANCE.boss.slam.waveDuration;
       const playerEdgeDistance = Math.max(0, distance(enemy, this.player) - this.player.radius);
       if (playerEdgeDistance <= BALANCE.boss.slam.radius) {
@@ -3087,7 +3088,7 @@ export class Game {
         remaining: BALANCE.boss.slam.waveDuration,
         duration: BALANCE.boss.slam.waveDuration,
       });
-      this.burst(enemy.x, enemy.y, "#ff6b55", 24, "SMASH");
+      this.burst(enemy.x, enemy.y, "#ff6b55", 28, "GROUND SLAM");
       this.shake = 14;
       emitAudioCue({ cue: "breaker-smash", position: { x: enemy.x, y: enemy.y } });
     }
@@ -3223,7 +3224,7 @@ export class Game {
       vy: Math.sin(angle) * BALANCE.boss.acidSpeed,
       radius: BALANCE.boss.acidRadius,
       damage: BALANCE.boss.acidDamage
-        * this.getChallengeModifiers().enemyDamageMultiplier,
+        * (enemy.damage / Math.max(1, ENEMY_REGISTRY.boss.base.damage)),
       rangeLeft: BALANCE.boss.acidRange,
       lifetime: BALANCE.boss.acidLifetime,
       hitIds: new Set(),
@@ -3419,6 +3420,13 @@ export class Game {
     enemy.lastHitByPlayerId = ownerPlayerId;
     const healthBefore = Math.max(0, enemy.health);
     const appliedDamage = this.routeEnemyDamage(enemy, amount, source);
+    if (enemy.kind === "boss"
+      && !enemy.bossHalfSummoned
+      && healthBefore > enemy.maxHealth * 0.5
+      && enemy.health <= enemy.maxHealth * 0.5) {
+      enemy.bossHalfSummoned = true;
+      enemy.bossSmashWindup = Number.EPSILON;
+    }
     this.recordOutgoingDamage(source, appliedDamage);
     enemy.flash = 0.18;
     // No hurt sound, too distracting, not necessary
@@ -3909,9 +3917,15 @@ export class Game {
       });
     }
     if (text) {
+      const resolvedTextColor = biomePopupColor(
+        textColor,
+        this.getCampaignTier().biome.ground === "snow" && !this.tutorialMode,
+        BALANCE.snowyEnemies.slow.popupTextColor,
+        BALANCE.ui.snowPopupContrast,
+      );
       this.particles.push({
         x, y: y + textOffsetY, vx: 0, vy: -38, life: 0.9, maxLife: 0.9, radius: 0,
-        color: textColor, text,
+        color: resolvedTextColor, text,
       });
     }
   }
@@ -3959,6 +3973,12 @@ export class Game {
   }
 
   private floatResource(x: number, y: number, resource: keyof ResourceWallet, text: string): void {
+    const color = biomePopupColor(
+      BALANCE.tierColors[resource],
+      this.getCampaignTier().biome.ground === "snow" && !this.tutorialMode,
+      BALANCE.snowyEnemies.slow.popupTextColor,
+      BALANCE.ui.snowPopupContrast,
+    );
     this.particles.push({
       x,
       y,
@@ -3967,7 +3987,7 @@ export class Game {
       life: 1.1,
       maxLife: 1.1,
       radius: 0,
-      color: BALANCE.tierColors[resource],
+      color,
       text,
       resource,
     });

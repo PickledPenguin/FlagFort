@@ -602,7 +602,7 @@ describe("event-driven HUD interaction", () => {
 
     window.dispatchEvent(new KeyboardEvent("keydown", { code: "Escape" }));
     expect(game.phase).toBe("paused");
-    expect(overlay.textContent).toContain("Paused");
+    expect(overlay.textContent).toContain("Pause");
   });
 
   it("confirms ending an active run before showing settlement results", () => {
@@ -623,7 +623,7 @@ describe("event-driven HUD interaction", () => {
     click(overlay.querySelector('[data-action="cancel-run-exit"]')!);
     expect(game.phase).toBe("paused");
     expect(game.modalLock).toBe(false);
-    expect(overlay.textContent).toContain("Paused");
+    expect(overlay.textContent).toContain("Pause");
 
     click(overlay.querySelector('[data-action="request-run-exit"]')!);
     click(overlay.querySelector('[data-action="confirm-run-exit"]')!);
@@ -657,7 +657,7 @@ describe("event-driven HUD interaction", () => {
 
     expect(game.phase).toBe("paused");
     expect(game.modalLock).toBe(false);
-    expect(overlay.textContent).toContain("Paused");
+    expect(overlay.textContent).toContain("Pause");
     expect(overlay.textContent).not.toContain("End this run?");
     expect(document.activeElement).toBe(
       overlay.querySelector('[data-action="request-run-exit"]'),

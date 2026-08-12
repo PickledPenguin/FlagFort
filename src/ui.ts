@@ -862,7 +862,7 @@ export class Ui {
       </div></section>`;
     }
     return `<section class="screen modal-screen"><div class="modal pause-card" role="dialog" aria-modal="true" aria-labelledby="pause-title">
-      <p class="eyebrow">COUNT FROZEN</p><h2 id="pause-title">Paused</h2>
+      <h2 id="pause-title">Pause</h2>
       <button class="primary wide" data-action="resume">${icon("play")} Resume</button>
       <button class="secondary wide" data-action="settings">${icon("sliders-horizontal")} Settings</button>
       <button class="ghost wide" data-action="request-run-exit">End run</button>

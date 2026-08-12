@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FlagFort Targeted Polish Report</title>
+  <style>
+    :root { color-scheme: dark; font-family: "Trebuchet MS", Arial, sans-serif; --ink:#fff8dc; --muted:#b8c7b3; --panel:rgba(12,31,22,.97); --line:rgba(238,246,218,.25); --green:#78f29f; --gold:#f7ca4b; --red:#ff695f; --blue:#63c6e8; --shadow:0 8px 0 rgba(3,13,8,.5),0 18px 40px rgba(0,0,0,.35); }
+    * { box-sizing:border-box; }
+    body { margin:0; color:var(--ink); background:radial-gradient(circle at 14% 0%,rgba(120,242,159,.14),transparent 34rem),radial-gradient(circle at 88% 12%,rgba(99,198,232,.11),transparent 28rem),#06130d; }
+    main { width:min(1120px,calc(100% - 32px)); margin:auto; padding:38px 0 64px; }
+    h1,h2,h3,p { margin-top:0; }
+    h1 { max-width:850px; margin-bottom:10px; padding-block:5px; font:900 clamp(34px,5vw,60px)/1.08 Impact,Haettenschweiler,sans-serif; letter-spacing:.02em; text-transform:uppercase; }
+    h2 { margin-bottom:14px; font-size:25px; }
+    h3 { margin-bottom:7px; font-size:17px; }
+    p { color:var(--muted); line-height:1.55; }
+    section { margin-top:34px; }
+    .eyebrow { margin-bottom:13px; color:var(--green); font-weight:900; letter-spacing:.12em; text-transform:uppercase; }
+    .lead { max-width:860px; font-size:18px; }
+    .grid { display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); gap:15px; }
+    .card { min-width:0; padding:19px; border:1px solid var(--line); border-radius:14px; background:var(--panel); box-shadow:var(--shadow); }
+    .metric { grid-column:span 3; }
+    .metric strong { display:block; color:var(--green); font-size:30px; line-height:1.1; }
+    .metric span { display:block; margin-top:7px; color:var(--muted); font-size:13px; }
+    .change { grid-column:span 6; }
+    .change b { color:var(--green); }
+    .change .before { color:#8fa296; text-decoration:line-through; text-decoration-color:rgba(255,105,95,.7); }
+    .change .after { margin-top:8px; color:var(--ink); }
+    .table-wrap { min-width:0; overflow-x:auto; border:1px solid var(--line); border-radius:12px; }
+    table { width:100%; min-width:760px; border-collapse:collapse; background:rgba(8,26,17,.86); }
+    th,td { padding:12px; border-bottom:1px solid rgba(238,246,218,.12); text-align:left; vertical-align:top; }
+    th { color:var(--green); background:#102c1d; font-size:11px; letter-spacing:.07em; text-transform:uppercase; }
+    tr:last-child td { border-bottom:0; }
+    .status { color:var(--green); font-weight:900; white-space:nowrap; }
+    .curve { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
+    .curve article { min-width:0; padding:15px; border:1px solid var(--line); border-radius:11px; background:rgba(22,55,37,.72); }
+    .curve strong { display:block; margin-bottom:8px; color:var(--gold); text-transform:uppercase; }
+    .curve code { display:block; color:var(--muted); line-height:1.55; overflow-wrap:anywhere; }
+    .verify { grid-column:span 4; }
+    .verify strong { display:block; margin-bottom:7px; color:var(--green); }
+    code { color:#d8c8ff; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; overflow-wrap:anywhere; }
+    .note { padding:16px 18px; border-left:4px solid var(--blue); background:rgba(99,198,232,.08); color:var(--muted); line-height:1.55; }
+    footer { margin-top:34px; color:#839c89; font-size:12px; line-height:1.55; }
+    @media (max-width:800px) { .metric,.verify { grid-column:span 6; } .change { grid-column:span 12; } .curve { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+    @media (max-width:480px) { main { width:min(100% - 20px,1120px); padding-top:24px; } .metric,.verify { grid-column:span 12; } .curve { grid-template-columns:1fr; } .card { padding:16px; } }
+  </style>
+</head>
+<body>
+<main>
+  <div class="eyebrow">FlagFort implementation handoff</div>
+  <h1>Phase-safe audio and sharper siege behavior</h1>
+  <p class="lead">The requested polish and balance pass is implemented and verified. The work stays within existing registry, balance, targeting, UI, and audio lifecycles, with focused regression coverage for the risky transitions.</p>
+
+  <section class="grid" aria-label="Implementation summary">
+    <article class="card metric"><strong>10</strong><span>Half-health basic reinforcements, up from 5</span></article>
+    <article class="card metric"><strong>4</strong><span>Central boss difficulty curves</span></article>
+    <article class="card metric"><strong>2</strong><span>CrazyGames iframe sizes checked</span></article>
+    <article class="card metric"><strong>0</strong><span>Browser warnings, errors, or overflow</span></article>
+  </section>
+
+  <section>
+    <h2>What changed</h2>
+    <div class="grid">
+      <article class="card change"><h3>Pause and run settlement</h3><div class="before">COUNT FROZEN + PAUSED; nested coin boxes</div><div class="after"><b>Now:</b> one centered Pause heading and a spacious, flat coin summary with only the outcome emphasized.</div></article>
+      <article class="card change"><h3>Music lifecycle</h3><div class="before">A superseded crossfade could orphan an older track.</div><div class="after"><b>Now:</b> the manager owns every live track, retires superseded audio, and prevents stale phase music from surviving rapid transitions.</div></article>
+      <article class="card change"><h3>Base boss</h3><div class="before">Could stop for the player; Ground Slam repeated near the flag; five reinforcements.</div><div class="after"><b>Now:</b> marches toward the flag while meleeing nearby players, charges one half-health Ground Slam, and raises ten basics when it lands.</div></article>
+      <article class="card change"><h3>Acidslinger</h3><div class="before">Nearby disposable structures could become targets even when off-route.</div><div class="after"><b>Now:</b> selects turret, player, or flag normally and attacks structures only when shared path geometry identifies a real obstruction.</div></article>
+      <article class="card change"><h3>Boss balance</h3><div class="before">Ordinary zombie difficulty multipliers were applied directly to bosses.</div><div class="after"><b>Now:</b> both bosses use softer boss-specific curves for health, damage, speed, and attack speed. Frost Warden armor scales with the same health curve.</div></article>
+      <article class="card change"><h3>Snow popup contrast and copy</h3><div class="before">Light feedback could disappear on snow; several enemy descriptions were stale.</div><div class="after"><b>Now:</b> a shared luminance-aware resolver darkens light popup colors in snow while preserving outlined frost blue. Boss, Summoner, and Acidslinger copy matches behavior.</div></article>
+    </div>
+  </section>
+
+  <section>
+    <h2>Boss difficulty curves</h2>
+    <p>Each card lists health, damage, speed, and attack-speed multipliers. Adaptive difficulty, challenges, mutations, and endless-cycle scaling still compose afterward through the existing stat pipeline.</p>
+    <div class="curve">
+      <article><strong>Easy</strong><code>0.84 / 0.80 / 0.96 / 0.94</code></article>
+      <article><strong>Normal</strong><code>1.00 / 1.00 / 1.00 / 1.00</code></article>
+      <article><strong>Hard</strong><code>1.18 / 1.16 / 1.05 / 1.08</code></article>
+      <article><strong>Extreme</strong><code>1.38 / 1.32 / 1.10 / 1.16</code></article>
+    </div>
+  </section>
+
+  <section>
+    <h2>Behavior matrix</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>System</th><th>Invariant preserved</th><th>New guarantee</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Music</td><td>Mute, channel volume, looping, crossfade, autoplay fallback</td><td>Only tracks valid for the current phase remain live</td><td class="status">Verified</td></tr>
+          <tr><td>Base boss</td><td>Flag ownership, telegraph, acid attack, deterministic summons</td><td>One half-health event and continued flagward movement</td><td class="status">Verified</td></tr>
+          <tr><td>Frost Warden</td><td>Armor, projectile resistance, Frost Slam, icicles, snow status effects</td><td>Higher normal structure damage and boss difficulty scaling</td><td class="status">Verified</td></tr>
+          <tr><td>Acidslinger</td><td>Priority target order, ranged windup, route finding</td><td>No distraction by unrelated structures</td><td class="status">Verified</td></tr>
+          <tr><td>Snow feedback</td><td>Forest palette and semantic frost blue</td><td>Readable light resource and ordinary feedback on snow</td><td class="status">Verified</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Verification</h2>
+    <div class="grid">
+      <article class="card verify"><strong>Full automated suite</strong><code>npm test</code><p>Passed, including new boss, scaling, targeting, popup, and rapid music-transition coverage.</p></article>
+      <article class="card verify"><strong>Production build</strong><code>npm run build</code><p>TypeScript no-emit check and Vite production bundle both passed.</p></article>
+      <article class="card verify"><strong>Visual assets</strong><code>npm run visual:validate</code><p>250 SVGs, 41 card illustrations, 75 gameplay assets, and 20 structure reference groups validated.</p></article>
+      <article class="card verify"><strong>Browser QA</strong><code>1280x720 and 960x540</code><p>Pause and reward layouts fit without overflow. Console remained clean.</p></article>
+      <article class="card verify"><strong>Determinism</strong><code>SeededRng preserved</code><p>No new gameplay randomness or unstable seed source was introduced.</p></article>
+      <article class="card verify"><strong>Audio assets</strong><code>No canonical files changed</code><p>The fix is lifecycle-only, so no audio rebuild was needed.</p></article>
+    </div>
+  </section>
+
+  <section><div class="note">Copy audit outcome: good existing text was retained. Changes were limited to inaccurate or unclear descriptions tied to the revised Summoner, Acidslinger, and boss behavior, plus the requested pause wording.</div></section>
+  <footer>Design source: FlagFort's existing CSS palette and report styling, using the game's cream ink, dark forest panels, mint success color, gold reward accent, and frosty blue semantic accent.</footer>
+</main>
+</body>
+</html>

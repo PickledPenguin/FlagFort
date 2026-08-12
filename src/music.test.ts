@@ -107,6 +107,40 @@ describe("music manager", () => {
     vi.unstubAllGlobals();
   });
 
+  it("retires stale tracks across rapid phase changes", async () => {
+    const frames: FrameRequestCallback[] = [];
+    vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
+      frames.push(callback);
+      return frames.length;
+    });
+    const created: FakeAudio[] = [];
+    const manager = new MusicManager((file) => {
+      const audio = new FakeAudio(file);
+      created.push(audio);
+      return audio as unknown as HTMLAudioElement;
+    }, 0);
+
+    manager.setContext("night");
+    await Promise.resolve();
+    await Promise.resolve();
+    manager.setContext("upgrade");
+    await Promise.resolve();
+    await Promise.resolve();
+    manager.setContext("day");
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(created).toHaveLength(3);
+    expect(created[0]?.paused).toBe(true);
+    expect(created[1]?.paused).toBe(false);
+    expect(created[2]?.paused).toBe(false);
+    for (const frame of [...frames]) frame(performance.now() + 1000);
+    expect(created[1]?.paused).toBe(true);
+    expect(created[2]?.paused).toBe(false);
+    expect(manager.getCurrentContext()).toBe("day");
+    vi.unstubAllGlobals();
+  });
+
   it("mixes the final countdown on its independent quieter channel", async () => {
     vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
       callback(performance.now());
