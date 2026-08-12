@@ -2136,7 +2136,7 @@ export class Game {
       enemy.angle = Math.atan2(target.y - enemy.y, target.x - enemy.x);
       if (definition.movement.avoidStructures) this.refreshEnemyPath(enemy, target);
       const bossPlayerReach = enemy.radius + this.player.radius + 5;
-      if (enemy.kind === "boss" && distance(enemy, this.player) <= bossPlayerReach) {
+      if (this.isBossEnemyKind(enemy.kind) && distance(enemy, this.player) <= bossPlayerReach) {
         this.enemyAttack(enemy, this.player, dt);
         this.moveEnemyToward(enemy, target, dt, true);
         continue;

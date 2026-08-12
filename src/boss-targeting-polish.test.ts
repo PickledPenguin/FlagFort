@@ -95,21 +95,23 @@ describe("base boss polish", () => {
     }
   });
 
-  it("hits a nearby player without abandoning its march toward the flag", () => {
-    const game = gameFixture();
-    const boss = spawn(game, "boss", game.flag.x - 250, game.flag.y);
-    game.player.x = boss.x - 75;
-    game.player.y = boss.y;
-    boss.attackWindup = 0.99;
-    boss.cooldown = 0;
-    const xBefore = boss.x;
-    const healthBefore = game.player.health;
+  it("makes every campaign boss hit an intercepting player without abandoning its flag march", () => {
+    for (const tier of CAMPAIGN_TIERS) {
+      const game = gameFixture("normal", tier.id);
+      const boss = spawn(game, tier.boss, game.flag.x - 250, game.flag.y);
+      game.player.x = boss.x - 75;
+      game.player.y = boss.y;
+      boss.attackWindup = 0.99;
+      boss.cooldown = 0;
+      const xBefore = boss.x;
+      const healthBefore = game.player.health;
 
-    (game as unknown as { updateEnemies(dt: number): void }).updateEnemies(0.1);
+      (game as unknown as { updateEnemies(dt: number): void }).updateEnemies(0.1);
 
-    expect(game.player.health).toBeLessThan(healthBefore);
-    expect(boss.x).toBeGreaterThan(xBefore);
-    expect(boss.targetId).toBe("flag");
+      expect(game.player.health, tier.id).toBeLessThan(healthBefore);
+      expect(boss.x, tier.id).toBeGreaterThan(xBefore);
+      expect(boss.targetId, tier.id).toBe("flag");
+    }
   });
 
   it("makes both bosses meaningfully dangerous to structures", () => {
