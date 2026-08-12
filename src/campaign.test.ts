@@ -50,6 +50,27 @@ const zeroCoins: CoinSettlement = {
 };
 
 describe("data-driven campaign tiers", () => {
+  it("registers a complete Drowned Mire resource-art skin for the upcoming seventh tier", () => {
+    expect(RESOURCE_STATE_SKINS.mire).toEqual({
+      wood: {
+        active: "./images/world/mire-cypress-active.svg",
+        depleted: "./images/world/mire-cypress-depleted.svg",
+      },
+      stone: {
+        active: "./images/world/mire-peatstone-active.svg",
+        depleted: "./images/world/mire-peatstone-depleted.svg",
+      },
+      gold: {
+        active: "./images/world/mire-bog-gold-active.svg",
+        depleted: "./images/world/mire-bog-gold-depleted.svg",
+      },
+      diamond: {
+        active: "./images/world/mire-ghost-crystal-active.svg",
+        depleted: "./images/world/mire-ghost-crystal-depleted.svg",
+      },
+    });
+  });
+
   it("registers a complete astral rift resource-art skin for the upcoming sixth tier", () => {
     expect(RESOURCE_STATE_SKINS.rift).toEqual({
       wood: {
