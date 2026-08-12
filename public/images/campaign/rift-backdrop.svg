@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 180" preserveAspectRatio="xMidYMid slice" role="img" aria-labelledby="rift-backdrop-title rift-backdrop-description">
+  <title id="rift-backdrop-title">Astral Rift campaign backdrop</title>
+  <desc id="rift-backdrop-description">A vast celestial rift illuminates floating moonstone islands, twilight trees, star-metal ore, and void crystals.</desc>
+  <g id="rift-backdrop">
+    <defs>
+      <linearGradient id="rift-sky-gradient" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#141329"/>
+        <stop offset=".6" stop-color="#343263"/>
+        <stop offset="1" stop-color="#6c5484"/>
+      </linearGradient>
+      <linearGradient id="rift-portal-gradient" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#7be6ff"/>
+        <stop offset=".48" stop-color="#a77bff"/>
+        <stop offset="1" stop-color="#ff91e8"/>
+      </linearGradient>
+      <radialGradient id="rift-glow-gradient">
+        <stop offset="0" stop-color="#ecfbff" stop-opacity=".9"/>
+        <stop offset=".45" stop-color="#9e8cff" stop-opacity=".38"/>
+        <stop offset="1" stop-color="#6f51aa" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <rect id="rift-sky" width="800" height="180" fill="url(#rift-sky-gradient)"/>
+    <ellipse id="rift-glow" cx="414" cy="76" rx="160" ry="106" fill="url(#rift-glow-gradient)"/>
+    <g id="starfield" fill="#dff8ff">
+      <circle cx="45" cy="29" r="2"/><circle cx="91" cy="57" r="1.5"/><circle cx="142" cy="24" r="2.5"/><circle cx="207" cy="66" r="1.8"/>
+      <circle cx="265" cy="30" r="1.6"/><circle cx="548" cy="31" r="2"/><circle cx="618" cy="61" r="1.7"/><circle cx="680" cy="24" r="2.5"/><circle cx="750" cy="53" r="1.8"/>
+    </g>
+    <g id="constellations" fill="none" stroke="#7fbbe7" stroke-width="1.5" opacity=".55">
+      <path d="m45 29 46 28 51-33 65 42"/><path d="m548 31 70 30 62-37 70 29"/>
+    </g>
+    <path id="rift-outer" d="M414-25c50 31 70 67 48 103-20 33-15 66 25 101-57-17-91-45-91-84 0-42 23-70 18-120Z" fill="none" stroke="url(#rift-portal-gradient)" stroke-width="18" stroke-linecap="round" opacity=".95"/>
+    <path id="rift-inner" d="M415-15c19 35 18 65-2 93-23 32-8 63 54 92-37-38-39-69-10-101 22-25 8-53-42-84Z" fill="#e7fbff" opacity=".82"/>
+    <path id="distant-moonstone-ridges" d="M0 130 77 89l52 27 66-57 69 54 43-27 57 38 74-49 63 43 51-30 66 34 60-48 56 43 66-19v72H0Z" fill="#38395f"/>
+    <g id="floating-islands" fill="#50517b" stroke="#292a4b" stroke-width="3" stroke-linejoin="round">
+      <path d="m94 71 46-13 41 13-19 12-43 6Z"/><path d="m625 77 38-13 45 10-20 15-43 3Z"/>
+    </g>
+    <g id="island-roots" fill="#303153">
+      <path d="m110 84 15 25 9-23 10 31 14-36Z"/><path d="m643 87 14 27 10-25 12 20 8-22Z"/>
+    </g>
+    <path id="astral-ground" d="M0 139c86-18 167-15 243 6 98 27 197 25 298-4 88-25 174-23 259-2v41H0Z" fill="#47486f"/>
+    <path id="moonstone-highlights" d="M0 150c82-16 160-12 235 9 96 27 195 24 299-6 89-25 178-21 266-4" fill="none" stroke="#7777a0" stroke-width="5" opacity=".65"/>
+    <g id="twilight-trees" stroke="#252642" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M72 164 79 112m0 22-24-17m25 5 24-20" fill="none" stroke-width="9"/>
+      <path d="m48 117 25-26 13 22 21-16 14 35Z" fill="#5d4d87" stroke-width="4"/>
+      <path d="M727 164 721 119m1 15 23-20m-24 8-19-17" fill="none" stroke-width="8"/>
+      <path d="m695 119 22-27 13 20 19-11 16 31Z" fill="#56477e" stroke-width="4"/>
+    </g>
+    <g id="star-metal-ore" fill="#f4c95d" stroke="#6f543d" stroke-width="3" stroke-linejoin="round">
+      <path d="m183 172 9-27 13-7 13 14-3 21Z"/><path d="m204 172 10-18 13-4 8 17-5 6Z"/>
+    </g>
+    <g id="void-crystals" fill="#85e8ff" stroke="#453378" stroke-width="3" stroke-linejoin="round">
+      <path d="m571 174 9-35 12 23-5 14Z"/><path d="m588 175 12-28 10 22-5 7Z"/><path d="m613 175 7-22 9 17-3 6Z"/>
+    </g>
+    <g id="astral-motes" fill="#c5f5ff" opacity=".9">
+      <circle cx="166" cy="111" r="2"/><circle cx="245" cy="91" r="2.5"/><circle cx="341" cy="124" r="1.8"/><circle cx="522" cy="99" r="2.2"/><circle cx="675" cy="118" r="1.7"/>
+    </g>
+    <path id="foreground-silhouette" d="M0 174c84-10 158-8 223 4 84-13 162-13 235 0 83-14 159-13 229 0 42-7 80-8 113-4v6H0Z" fill="#252640"/>
+  </g>
+</svg>

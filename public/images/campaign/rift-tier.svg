@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="rift-tier-title rift-tier-description">
+  <title id="rift-tier-title">Astral Rift campaign tier</title>
+  <desc id="rift-tier-description">A luminous violet rift opens above moonstone cliffs and radiant void crystals.</desc>
+  <g id="rift-tier-icon">
+    <defs>
+      <radialGradient id="rift-icon-sky-gradient" cx="50%" cy="38%" r="68%">
+        <stop offset="0" stop-color="#3e397e"/>
+        <stop offset="1" stop-color="#17162f"/>
+      </radialGradient>
+      <linearGradient id="rift-icon-portal-gradient" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#7de7ff"/>
+        <stop offset=".5" stop-color="#b888ff"/>
+        <stop offset="1" stop-color="#fa9cff"/>
+      </linearGradient>
+    </defs>
+    <circle id="astral-sky" cx="60" cy="60" r="53" fill="url(#rift-icon-sky-gradient)" stroke="#111126" stroke-width="5"/>
+    <g id="constellations" fill="#d9f5ff">
+      <circle cx="29" cy="33" r="2.5"/><circle cx="42" cy="21" r="1.8"/><circle cx="88" cy="29" r="2.2"/><circle cx="98" cy="46" r="1.6"/>
+      <path d="m29 33 13-12m46 8 10 17" fill="none" stroke="#91c8ff" stroke-width="1.5" opacity=".7"/>
+    </g>
+    <path id="rift-outer" d="M62 17c17 11 24 27 17 43-5 13-5 23 3 34-18-5-29-16-30-31-1-18 7-28 10-46Z" fill="none" stroke="url(#rift-icon-portal-gradient)" stroke-width="11" stroke-linecap="round"/>
+    <path id="rift-core" d="M62 20c7 15 6 28-1 40-7 13-3 23 15 32-12-16-12-27-3-40 7-11 3-22-11-32Z" fill="#eefbff" opacity=".9"/>
+    <path id="moonstone-ground" d="M9 89 27 77l16 7 16-15 16 13 14-8 22 15v20H9Z" fill="#4a4c76" stroke="#242541" stroke-width="4" stroke-linejoin="round"/>
+    <g id="void-crystals" fill="#8fe9ff" stroke="#372d69" stroke-width="3" stroke-linejoin="round">
+      <path d="m25 101 5-20 7 12-3 11Z"/><path d="m33 103 7-13 6 12Z"/>
+      <path d="m88 103 5-22 8 14-4 9Z"/>
+    </g>
+  </g>
+</svg>
