@@ -43,7 +43,7 @@ export type RosterEnemyKind =
   | "mire-lurker"
   | "sporecaster"
   | "drowned-bulwark";
-export type BossEnemyKind = "boss" | "frost-warden" | "dune-colossus" | "caldera-sovereign" | "reactor-revenant" | "eclipse-regent";
+export type BossEnemyKind = "boss" | "frost-warden" | "dune-colossus" | "caldera-sovereign" | "reactor-revenant" | "eclipse-regent" | "mireheart-titan";
 export type EnemyKind = RosterEnemyKind | "splitter-child" | BossEnemyKind;
 export type PlayerId = string;
 export type DamageSource =
@@ -62,6 +62,7 @@ export type DamageSource =
   | "sporecaster"
   | "reactor-revenant"
   | "eclipse-regent"
+  | "mireheart-titan"
   | "caldera-sovereign"
   | "dune-colossus"
   | "cinderburst-burst"

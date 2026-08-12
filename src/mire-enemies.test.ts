@@ -3,7 +3,7 @@
 import { describe, expect, it } from "vitest";
 import { BALANCE } from "./config";
 import { CAMPAIGN_TIER_IDS } from "./types";
-import { ENEMY_REGISTRY, selectEnemyRoster } from "./enemy-registry";
+import { ENEMY_REGISTRY, isBossEnemyKind, selectEnemyRoster } from "./enemy-registry";
 import { Game } from "./game";
 import { Input } from "./input";
 import type { Enemy, Structure, StructureKind } from "./types";
@@ -218,5 +218,105 @@ describe("mire enemies", () => {
     expect(wall.health).toBe(0);
     expect(bulwark.chargeHitIds).toContain(wall.id);
     expect(game.particles.some((particle) => particle.text === "DROWNED BREACH")).toBe(true);
+  });
+
+  it("registers the Mireheart Titan as a complete staged boss", () => {
+    const definition = ENEMY_REGISTRY["mireheart-titan"];
+
+    expect(isBossEnemyKind("mireheart-titan")).toBe(true);
+    expect(definition.rosterEligible).toBe(false);
+    expect(definition.assets.portrait).toBe("enemies/mireheart-titan");
+    expect(definition.armor).toMatchObject({
+      scalesWithHealth: true,
+      brokenSprite: "enemies/mireheart-titan-broken",
+      breakStatusPulse: {
+        statusEffect: {
+          kind: "slow",
+          duration: 4.8,
+          targets: ["player", "turret"],
+        },
+      },
+    });
+    expect(definition.attack.lifeSteal).toMatchObject({
+      healingRatio: 0.6,
+      popupText: "HEART DRAINS",
+    });
+    expect(definition.areaStrike).toMatchObject({
+      rngSeedKey: "mireheart-titan:root-ruptures",
+      damageSource: "mireheart-titan",
+      randomStrikeCount: 7,
+      statusEffect: {
+        kind: "slow",
+        duration: 3.4,
+        targets: ["player", "turret"],
+      },
+    });
+    expect(definition.summon).toMatchObject({
+      kinds: ["mire-lurker"],
+      maximumLiving: 2,
+      popupText: "LURKERS RISE",
+    });
+  });
+
+  it("creates deterministic root ruptures around the defender", () => {
+    const first = gameFixture();
+    const second = gameFixture();
+    const firstBoss = spawn(first, "mireheart-titan", first.player.x + 500, first.player.y);
+    const secondBoss = spawn(second, "mireheart-titan", second.player.x + 500, second.player.y);
+    const config = ENEMY_REGISTRY["mireheart-titan"].areaStrike!;
+
+    (first as unknown as { createAreaStrikeAttack(enemy: Enemy): void })
+      .createAreaStrikeAttack(firstBoss);
+    (second as unknown as { createAreaStrikeAttack(enemy: Enemy): void })
+      .createAreaStrikeAttack(secondBoss);
+
+    expect(first.areaStrikes).toEqual(second.areaStrikes);
+    expect(first.areaStrikes).toHaveLength(
+      config.randomStrikeCount + Number(config.includesTargetedStrike),
+    );
+    expect(first.areaStrikes.every((strike) =>
+      strike.sourceEnemyKind === "mireheart-titan")).toBe(true);
+    expect(first.areaStrikes.some((strike) =>
+      strike.x === first.player.x && strike.y === first.player.y)).toBe(true);
+  });
+
+  it("breaks its shell, bog-binds defenders, summons capped Lurkers, and drains life", () => {
+    const game = gameFixture();
+    const boss = spawn(game, "mireheart-titan", game.flag.x + 780, game.flag.y);
+    const definition = ENEMY_REGISTRY["mireheart-titan"];
+    const nearbyTurret = turret(1900, boss.x + 55, boss.y);
+    game.structures = [nearbyTurret];
+    game.player.x = boss.x - 55;
+    game.player.y = boss.y;
+
+    (game as unknown as {
+      damageEnemy(enemy: Enemy, amount: number, color: string, damageSource: "player-melee", ownerPlayerId: string): void;
+    }).damageEnemy(boss, boss.armor!, "#ffffff", "player-melee", game.player.id);
+
+    expect(boss.health).toBe(boss.maxHealth);
+    expect(boss.armor).toBe(0);
+    expect(game.player.statuses?.slow?.remaining).toBe(4.8);
+    expect(nearbyTurret.statuses?.slow?.remaining).toBe(4.8);
+    expect(game.particles.some((particle) => particle.text === "MIREHEART AWAKENS"))
+      .toBe(true);
+
+    boss.summonCooldown = 0;
+    (game as unknown as { updateEnemySummon(enemy: Enemy, dt: number): void })
+      .updateEnemySummon(boss, BALANCE.fixedStep);
+    expect(game.enemies.find((enemy) => enemy.summonedBy === boss.id))
+      .toMatchObject({ kind: "mire-lurker", countsTowardWave: false });
+    expect(boss.summonCooldown).toBe(definition.summon!.cooldown);
+
+    boss.health = boss.maxHealth - 100;
+    boss.cooldown = 0;
+    boss.attackWindup = 0;
+    const playerHealthBefore = game.player.health;
+    (game as unknown as {
+      enemyAttack(enemy: Enemy, target: typeof game.player, dt: number): void;
+    }).enemyAttack(boss, game.player, 1);
+
+    const damageDealt = playerHealthBefore - game.player.health;
+    expect(boss.health).toBeCloseTo(boss.maxHealth - 100 + damageDealt * 0.6);
+    expect(game.particles.some((particle) => particle.text === "HEART DRAINS")).toBe(true);
   });
 });
