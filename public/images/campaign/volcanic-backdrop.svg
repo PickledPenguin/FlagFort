@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 180" preserveAspectRatio="xMidYMid slice" role="img" aria-labelledby="volcanic-backdrop-title volcanic-backdrop-description">
+  <title id="volcanic-backdrop-title">Volcanic campaign backdrop</title>
+  <desc id="volcanic-backdrop-description">A vast erupting volcano overlooks basalt ridges, glowing lava rivers, ember crystals, and charred trees.</desc>
+  <g id="volcanic-backdrop">
+    <defs>
+      <linearGradient id="volcanic-sky-gradient" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#302933"/>
+        <stop offset="1" stop-color="#70413d"/>
+      </linearGradient>
+      <linearGradient id="volcanic-lava-gradient" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#d8432f"/>
+        <stop offset=".5" stop-color="#ff9a3c"/>
+        <stop offset="1" stop-color="#d8432f"/>
+      </linearGradient>
+    </defs>
+    <rect id="volcanic-sky" width="800" height="180" fill="url(#volcanic-sky-gradient)"/>
+    <g id="ash-clouds" fill="#51434a" opacity=".9">
+      <path d="M426 68c-28-5-27-27-5-32-8-22 22-37 39-19 17-23 55-8 51 19 26-1 34 28 12 38Z"/>
+      <path d="M0 35c31-17 68-16 94 4 19 14 41 18 70 11v36H0Z" opacity=".55"/>
+      <path d="M650 24c50-20 100-14 150 16v43c-42-17-93-18-150-2Z" opacity=".5"/>
+    </g>
+    <path id="eruption" d="M453 61c-12-20 3-31 15-23-1-18 18-23 28-9 12-11 31 0 25 17 17 1 19 20 5 28Z" fill="#f06a34" opacity=".85"/>
+    <g id="embers" fill="#ffc25a">
+      <circle cx="433" cy="25" r="3"/><circle cx="468" cy="12" r="2.5"/><circle cx="510" cy="21" r="3"/><circle cx="536" cy="43" r="2"/>
+      <circle cx="367" cy="55" r="2"/><circle cx="579" cy="62" r="2.5"/><circle cx="711" cy="43" r="2"/><circle cx="190" cy="38" r="2"/>
+    </g>
+    <path id="distant-ridge" d="M0 135 94 89l55 23 67-48 61 54 65-24 43 25 87-66 96 69 77-40 75 47 120-22v73H0Z" fill="#3b3035"/>
+    <path id="central-volcano" d="m309 137 112-30 48-66 34 1 43 65 97 30Z" fill="#29252a" stroke="#18161a" stroke-width="4" stroke-linejoin="round"/>
+    <path id="crater" d="m468 43 19 9 18-9" fill="none" stroke="#171419" stroke-width="7" stroke-linecap="round"/>
+    <path id="mountain-lava" d="m482 49 8 23-9 20 12 45h35l-19-47 10-23-20-24Z" fill="url(#volcanic-lava-gradient)" stroke="#822c2c" stroke-width="3" stroke-linejoin="round"/>
+    <path id="foreground-basalt" d="M0 143c90-20 179-18 264 1 92 21 185 20 278-2 92-21 178-18 258 5v33H0Z" fill="#242226"/>
+    <path id="lava-river" d="M271 144c54-6 98 0 141 12 49 13 101 12 158-4l66 28H189Z" fill="url(#volcanic-lava-gradient)"/>
+    <path id="lava-core" d="M246 164c61-8 112-4 162 8 45 11 92 9 144-5" fill="none" stroke="#ffd260" stroke-width="5" stroke-linecap="round"/>
+    <g id="charwood-silhouettes" fill="none" stroke="#171519" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M92 162 97 111l-27-19m25 39 29-31m-28 20-12-26" stroke-width="9"/>
+      <path d="M710 166 706 128l-23-17m24 27 25-24" stroke-width="8"/>
+    </g>
+    <g id="ember-crystals" fill="#e85135" stroke="#6e282b" stroke-width="3" stroke-linejoin="round">
+      <path d="m135 164 8-31 9-8 8 15-5 28Z"/><path d="m151 166 11-23 9-5 4 14-8 17Z"/>
+      <path d="m671 166 7-25 8-7 7 12-4 22Z"/>
+    </g>
+    <path id="basalt-edge" d="M0 173c69-12 127-11 190 2 75 15 145 8 219-4 87-14 171-9 245 4 53 9 101 7 146-4v9H0Z" fill="#17161a"/>
+  </g>
+</svg>

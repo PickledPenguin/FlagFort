@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="volcanic-tier-title volcanic-tier-description">
+  <title id="volcanic-tier-title">Volcanic campaign tier</title>
+  <desc id="volcanic-tier-description">A black volcano erupts above glowing lava and a fire-scarred tree.</desc>
+  <g id="volcanic-tier-icon">
+    <circle id="ash-sky" cx="60" cy="60" r="53" fill="#45333b" stroke="#211b22" stroke-width="5"/>
+    <path id="eruption-glow" d="M47 49c-10-12-4-22 7-19-3-12 7-20 15-11 7-8 18-1 14 10 12-1 16 13 6 20Z" fill="#f57a32" stroke="#772d2c" stroke-width="4" stroke-linejoin="round"/>
+    <path id="ash-plume" d="M38 35c-7-8 0-17 10-14 1-12 17-15 23-5 9-6 21 2 18 13 10 2 12 14 3 20H42c-10-2-12-10-4-14Z" fill="#76626b" stroke="#30262d" stroke-width="5" stroke-linejoin="round"/>
+    <path id="volcano" d="m19 94 31-49h22l30 49Z" fill="#332d32" stroke="#171418" stroke-width="5" stroke-linejoin="round"/>
+    <path id="lava-flow" d="m57 46 6 18-5 8 7 22h16L69 72l7-12-7-15Z" fill="#ff7838" stroke="#922f2c" stroke-width="3" stroke-linejoin="round"/>
+    <path id="crater-rim" d="m49 46 12 6 12-7" fill="none" stroke="#171418" stroke-width="5" stroke-linecap="round"/>
+    <path id="charwood" d="M34 94 37 72 25 64m12 12 12-12" fill="none" stroke="#19171a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    <path id="lava-ground" d="M10 95c18-8 32-6 48 1 18 8 34 8 52-1v15H10Z" fill="#d94b30" stroke="#612629" stroke-width="4" stroke-linejoin="round"/>
+    <path id="lava-highlight" d="M17 102c17-5 28-3 41 2 16 6 29 5 45-2" fill="none" stroke="#ffc05a" stroke-width="4" stroke-linecap="round"/>
+  </g>
+</svg>
