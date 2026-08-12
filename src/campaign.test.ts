@@ -301,6 +301,10 @@ describe("data-driven campaign tiers", () => {
       icon: "./images/campaign/rift-tier.svg",
       backdrop: "./images/campaign/rift-backdrop.svg",
     });
+    expect(CAMPAIGN_TIER_ARTWORK.mire).toEqual({
+      icon: "./images/campaign/mire-tier.svg",
+      backdrop: "./images/campaign/mire-backdrop.svg",
+    });
     expect(campaignTier("forest")).toMatchObject(CAMPAIGN_TIER_ARTWORK.forest);
     expect(campaignTier("snowy")).toMatchObject(CAMPAIGN_TIER_ARTWORK.snowy);
     expect(campaignTier("desert")).toMatchObject(CAMPAIGN_TIER_ARTWORK.desert);
