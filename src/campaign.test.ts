@@ -47,6 +47,27 @@ const zeroCoins: CoinSettlement = {
 };
 
 describe("data-driven campaign tiers", () => {
+  it("registers a complete volcanic resource-art skin for the upcoming fourth tier", () => {
+    expect(RESOURCE_STATE_SKINS.volcanic).toEqual({
+      wood: {
+        active: "./images/world/volcanic-charwood-active.svg",
+        depleted: "./images/world/volcanic-charwood-depleted.svg",
+      },
+      stone: {
+        active: "./images/world/volcanic-basalt-active.svg",
+        depleted: "./images/world/volcanic-basalt-depleted.svg",
+      },
+      gold: {
+        active: "./images/world/volcanic-sulfur-active.svg",
+        depleted: "./images/world/volcanic-sulfur-depleted.svg",
+      },
+      diamond: {
+        active: "./images/world/volcanic-ember-crystal-active.svg",
+        depleted: "./images/world/volcanic-ember-crystal-depleted.svg",
+      },
+    });
+  });
+
   it("registers a complete themed artwork set for the upcoming Desert enemies", () => {
     expect(DESERT_ENEMY_ARTWORK).toEqual({
       duneHopper: "enemies/dune-hopper-zombie",
