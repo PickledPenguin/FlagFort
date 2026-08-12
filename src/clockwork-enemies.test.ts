@@ -33,7 +33,7 @@ function turret(id: number, x: number, y: number): Structure {
 }
 
 describe("clockwork enemies", () => {
-  it("registers Springjack as a complete but staged spring-powered skirmisher", () => {
+  it("registers Springjack as Clockwork Citadel's spring-powered skirmisher", () => {
     const definition = ENEMY_REGISTRY.springjack;
 
     expect(definition.assets.portrait).toBe("enemies/springjack-zombie");
@@ -49,7 +49,7 @@ describe("clockwork enemies", () => {
       launchPopupText: "SPRING LOADED",
       landingPopupText: "CLANG",
     });
-    expect(definition.rosterEligible).toBe(false);
+    expect(definition).toMatchObject({ rosterEligible: true, campaignTierIds: ["clockwork"] });
     for (const tier of ["forest", "snowy", "desert", "volcanic", "wasteland", "rift", "mire"] as const) {
       expect(Object.values(selectEnemyRoster("staged-springjack", tier)))
         .not.toContain("springjack");
@@ -96,7 +96,7 @@ describe("clockwork enemies", () => {
     expect(wall.health).toBe(wall.maxHealth);
   });
 
-  it("registers Aether Gunner as a complete but staged turret suppressor", () => {
+  it("registers Aether Gunner as Clockwork Citadel's turret suppressor", () => {
     const definition = ENEMY_REGISTRY["aether-gunner"];
 
     expect(definition.assets.portrait).toBe("enemies/aether-gunner-zombie");
@@ -117,7 +117,7 @@ describe("clockwork enemies", () => {
         popupText: "Aether Locked",
       },
     });
-    expect(definition.rosterEligible).toBe(false);
+    expect(definition).toMatchObject({ rosterEligible: true, campaignTierIds: ["clockwork"] });
     for (const tier of ["forest", "snowy", "desert", "volcanic", "wasteland", "rift", "mire"] as const) {
       expect(Object.values(selectEnemyRoster("staged-aether-gunner", tier)))
         .not.toContain("aether-gunner");
@@ -158,7 +158,7 @@ describe("clockwork enemies", () => {
       .toBe(true);
   });
 
-  it("registers Gearwright as a complete but staged reinforcement engineer", () => {
+  it("registers Gearwright as Clockwork Citadel's reinforcement engineer", () => {
     const definition = ENEMY_REGISTRY.gearwright;
 
     expect(definition.assets.portrait).toBe("enemies/gearwright-zombie");
@@ -173,7 +173,7 @@ describe("clockwork enemies", () => {
       particleColor: "#e2b85d",
       popupText: "ASSEMBLY LINE",
     });
-    expect(definition.rosterEligible).toBe(false);
+    expect(definition).toMatchObject({ rosterEligible: true, campaignTierIds: ["clockwork"] });
     for (const tier of ["forest", "snowy", "desert", "volcanic", "wasteland", "rift", "mire"] as const) {
       expect(Object.values(selectEnemyRoster("staged-gearwright", tier)))
         .not.toContain("gearwright");
@@ -212,7 +212,7 @@ describe("clockwork enemies", () => {
     expect(gearwright.summonCooldown).toBe(definition.summon!.cappedRetryCooldown);
   });
 
-  it("registers the Chronoforge Colossus as a complete staged boss", () => {
+  it("registers the Chronoforge Colossus as the Clockwork Citadel boss", () => {
     const definition = ENEMY_REGISTRY["chronoforge-colossus"];
 
     expect(isBossEnemyKind("chronoforge-colossus")).toBe(true);

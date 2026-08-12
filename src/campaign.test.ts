@@ -57,7 +57,7 @@ const zeroCoins: CoinSettlement = {
 };
 
 describe("data-driven campaign tiers", () => {
-  it("registers a complete themed artwork set for the hidden Clockwork tier", () => {
+  it("registers the complete themed artwork set for Clockwork Citadel", () => {
     expect(CLOCKWORK_ENEMY_ARTWORK).toEqual({
       springjack: "enemies/springjack-zombie",
       aetherGunner: "enemies/aether-gunner-zombie",
@@ -70,22 +70,21 @@ describe("data-driven campaign tiers", () => {
     expect(Object.keys(CLOCKWORK_ENEMY_ARTWORK)).toHaveLength(4);
     expect(ENEMY_REGISTRY.springjack.assets.portrait)
       .toBe(CLOCKWORK_ENEMY_ARTWORK.springjack);
-    expect(ENEMY_REGISTRY.springjack.rosterEligible).toBe(false);
+    expect(ENEMY_REGISTRY.springjack).toMatchObject({ rosterEligible: true, campaignTierIds: ["clockwork"] });
     expect(ENEMY_REGISTRY["aether-gunner"].assets.portrait)
       .toBe(CLOCKWORK_ENEMY_ARTWORK.aetherGunner);
-    expect(ENEMY_REGISTRY["aether-gunner"].rosterEligible).toBe(false);
+    expect(ENEMY_REGISTRY["aether-gunner"]).toMatchObject({ rosterEligible: true, campaignTierIds: ["clockwork"] });
     expect(ENEMY_REGISTRY.gearwright.assets.portrait)
       .toBe(CLOCKWORK_ENEMY_ARTWORK.gearwright);
-    expect(ENEMY_REGISTRY.gearwright.rosterEligible).toBe(false);
+    expect(ENEMY_REGISTRY.gearwright).toMatchObject({ rosterEligible: true, campaignTierIds: ["clockwork"] });
   });
 
-  it("registers Clockwork Citadel selection artwork without exposing the unfinished tier", () => {
+  it("registers Clockwork Citadel selection artwork", () => {
     expect(CAMPAIGN_TIER_ARTWORK.clockwork).toEqual({
       icon: "./images/campaign/clockwork-tier.svg",
       backdrop: "./images/campaign/clockwork-backdrop.svg",
     });
-    expect(CAMPAIGN_TIERS.every((tier) => tier.icon !== CAMPAIGN_TIER_ARTWORK.clockwork.icon))
-      .toBe(true);
+    expect(campaignTier("clockwork")).toMatchObject(CAMPAIGN_TIER_ARTWORK.clockwork);
   });
 
   it("registers a complete Clockwork Citadel resource-art skin for the upcoming eighth tier", () => {
@@ -107,11 +106,10 @@ describe("data-driven campaign tiers", () => {
         depleted: "./images/world/clockwork-aether-core-depleted.svg",
       },
     });
-    expect(CAMPAIGN_TIERS.every((tier) => tier.biome.resourceStateSkin !== "clockwork"))
-      .toBe(true);
+    expect(campaignTier("clockwork").biome.resourceStateSkin).toBe("clockwork");
   });
 
-  it("defines a complete hidden Clockwork Citadel campaign environment", () => {
+  it("defines the complete Clockwork Citadel campaign environment", () => {
     expect(CAMPAIGN_BIOMES.clockwork).toMatchObject({
       ground: "clockwork",
       minimapLabel: "CLOCKWORK CITADEL MAP",
@@ -133,8 +131,7 @@ describe("data-driven campaign tiers", () => {
         particleCount: 66,
       },
     });
-    expect(CAMPAIGN_TIERS.every((tier) => tier.biome !== CAMPAIGN_BIOMES.clockwork))
-      .toBe(true);
+    expect(campaignTier("clockwork").biome).toBe(CAMPAIGN_BIOMES.clockwork);
   });
 
   it("registers a complete themed artwork set for the upcoming Drowned Mire enemies", () => {
@@ -440,6 +437,7 @@ describe("data-driven campaign tiers", () => {
     expect(campaignTier("wasteland")).toMatchObject(CAMPAIGN_TIER_ARTWORK.wasteland);
     expect(campaignTier("rift")).toMatchObject(CAMPAIGN_TIER_ARTWORK.rift);
     expect(campaignTier("mire")).toMatchObject(CAMPAIGN_TIER_ARTWORK.mire);
+    expect(campaignTier("clockwork")).toMatchObject(CAMPAIGN_TIER_ARTWORK.clockwork);
   });
 
   it("keeps tier order, requirements, rewards, enemies, bosses, and effects on definitions", () => {
@@ -508,6 +506,13 @@ describe("data-driven campaign tiers", () => {
       boss: "mireheart-titan",
       specialEnemies: ["mire-lurker", "sporecaster", "drowned-bulwark"],
       biome: CAMPAIGN_BIOMES.mire,
+    });
+    expect(campaignTier("clockwork")).toMatchObject({
+      order: 7,
+      unlock: { level: 22, previousTierId: "mire" },
+      boss: "chronoforge-colossus",
+      specialEnemies: ["springjack", "aether-gunner", "gearwright"],
+      biome: CAMPAIGN_BIOMES.clockwork,
     });
   });
 
@@ -664,6 +669,26 @@ describe("data-driven campaign tiers", () => {
       level: 19,
       defeatedTierIds: ["forest", "snowy", "desert", "volcanic", "wasteland", "rift"],
     })).toBe("mire");
+    const clockwork = campaignTier("clockwork");
+    const previousClears = [
+      "forest", "snowy", "desert", "volcanic", "wasteland", "rift",
+    ] as const;
+    expect(isCampaignTierUnlocked(clockwork, {
+      level: 22,
+      defeatedTierIds: previousClears,
+    })).toBe(false);
+    expect(isCampaignTierUnlocked(clockwork, {
+      level: 21,
+      defeatedTierIds: [...previousClears, "mire"],
+    })).toBe(false);
+    expect(isCampaignTierUnlocked(clockwork, {
+      level: 22,
+      defeatedTierIds: [...previousClears, "mire"],
+    })).toBe(true);
+    expect(highestUnlockedCampaignTierId({
+      level: 22,
+      defeatedTierIds: [...previousClears, "mire"],
+    })).toBe("clockwork");
   });
 
   it("guarantees the three Snowbound threats in stable roster slots", () => {
@@ -744,6 +769,20 @@ describe("data-driven campaign tiers", () => {
     expect(selectEnemyRoster("same-seed", "mire")).toEqual(roster);
     expect(rosterMilestones(roster, campaignTier("mire").boss).at(-1))
       .toEqual({ night: 10, enemy: "mireheart-titan", label: "Mireheart Titan" });
+  });
+
+  it("guarantees the three Clockwork Citadel threats in stable roster slots", () => {
+    const roster = selectEnemyRoster("same-seed", "clockwork");
+    expect(roster).toEqual({
+      1: "basic",
+      2: "runner",
+      3: "springjack",
+      5: "aether-gunner",
+      7: "gearwright",
+    });
+    expect(selectEnemyRoster("same-seed", "clockwork")).toEqual(roster);
+    expect(rosterMilestones(roster, campaignTier("clockwork").boss).at(-1))
+      .toEqual({ night: 10, enemy: "chronoforge-colossus", label: "Chronoforge Colossus" });
   });
 
   it("assigns biome resource overlays deterministically without changing Forest", () => {
@@ -927,5 +966,35 @@ describe("data-driven campaign tiers", () => {
     expect(result?.grantedCampaignRewards).toEqual([]);
     expect(manager.profile.campaign.defeatedTierIds)
       .toEqual(["forest", "snowy", "desert", "volcanic", "wasteland", "rift"]);
+  });
+
+  it("persists a Drowned Mire clear and announces Clockwork Citadel when its level gate is met", () => {
+    const store = new MemoryStore();
+    const profile = createDefaultProfile();
+    profile.lifetimeXp = lifetimeXpAtLevel(22);
+    profile.spendableXp = profile.lifetimeXp;
+    profile.playerLevel = 22;
+    profile.campaign.defeatedTierIds = [
+      "forest", "snowy", "desert", "volcanic", "wasteland", "rift",
+    ];
+    profile.campaign.claimedRewardIds = CAMPAIGN_TIERS
+      .flatMap((tier) => tier.milestones)
+      .filter((milestone) => milestone.level <= 22)
+      .map((milestone) => milestone.id);
+    store.setItem("flagfort-profile-v2", JSON.stringify(profile));
+    const manager = new ProfileManager(store);
+
+    expect(manager.beginRunSettlement("mire-clear", 0)).toBe(true);
+    const result = manager.settleRun("mire-clear", zeroXp, zeroCoins, {
+      nightsSurvived: 10,
+      victory: true,
+      structureScore: 220,
+      campaignTierId: "mire",
+    });
+
+    expect(result?.newlyUnlockedTierIds).toEqual(["clockwork"]);
+    expect(result?.grantedCampaignRewards).toEqual([]);
+    expect(manager.profile.campaign.defeatedTierIds)
+      .toEqual(["forest", "snowy", "desert", "volcanic", "wasteland", "rift", "mire"]);
   });
 });

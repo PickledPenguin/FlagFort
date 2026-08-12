@@ -445,6 +445,23 @@ export const CAMPAIGN_TIERS: readonly CampaignTierDefinition[] = [
     ],
     biome: CAMPAIGN_BIOMES.mire,
   },
+  {
+    id: "clockwork",
+    order: 7,
+    name: "Clockwork Citadel",
+    subtitle: "Outlast the iron hour",
+    description: "Storm the foundry where spring-driven dead vault defenses, aether fire stalls turrets, and gearwrights assemble reinforcements.",
+    accent: "#e2b85d",
+    ...CAMPAIGN_TIER_ARTWORK.clockwork,
+    boss: "chronoforge-colossus",
+    specialEnemies: ["springjack", "aether-gunner", "gearwright"],
+    unlock: { level: 22, previousTierId: "mire" },
+    milestones: [
+      { id: "clockwork-level-23-coins", level: 23, reward: { kind: "coins", amount: 470 } },
+      { id: "clockwork-level-24-coins", level: 24, reward: { kind: "coins", amount: 535 } },
+    ],
+    biome: CAMPAIGN_BIOMES.clockwork,
+  },
 ] as const;
 
 export function campaignTier(id: CampaignTierId): CampaignTierDefinition {
