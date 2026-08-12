@@ -280,6 +280,31 @@ describe("data-driven campaign tiers", () => {
     expect(campaignTier("rift").biome).toBe(CAMPAIGN_BIOMES.rift);
   });
 
+  it("defines a complete Drowned Mire environment while its tier remains staged", () => {
+    expect(CAMPAIGN_BIOMES.mire).toMatchObject({
+      ground: "mire",
+      minimapLabel: "DROWNED MIRE MAP",
+      resourceStateSkin: "mire",
+      friendlyProjectileColor: "#d8efaa",
+      popupContrast: {
+        protectedColors: ["#79e6c1", "#e8c86a"],
+      },
+      palette: {
+        viewport: "#071713",
+        ground: "#16332b",
+        clearingCenter: "#2b4b3b",
+        clearingEdge: "#102b25",
+      },
+      weather: {
+        activeDuring: "always",
+        color: "#79e6c1",
+        seedKey: "drowned-mire-wisp-weather",
+        particleCount: 58,
+      },
+    });
+    expect(CAMPAIGN_TIERS.some((tier) => tier.biome === CAMPAIGN_BIOMES.mire)).toBe(false);
+  });
+
   it("provides complete centralized selection artwork for current and upcoming biomes", () => {
     for (const artwork of Object.values(CAMPAIGN_TIER_ARTWORK)) {
       expect(artwork.icon).toMatch(/^\.\/images\/campaign\/.+-tier\.svg$/);

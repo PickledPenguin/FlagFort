@@ -21,7 +21,7 @@ export interface CampaignUnlockRequirement {
 }
 
 export interface CampaignBiomeDefinition {
-  ground: "forest" | "snow" | "desert" | "volcanic" | "wasteland" | "rift";
+  ground: "forest" | "snow" | "desert" | "volcanic" | "wasteland" | "rift" | "mire";
   minimapLabel: string;
   resourceStateSkin: ResourceStateSkinId;
   resourceOverlay?: {
@@ -239,6 +239,37 @@ export const CAMPAIGN_BIOMES = {
       driftAmplitude: [20, 68],
       driftSpeed: [0.1, 0.42],
       spawnGapRatio: [0, 0.18],
+    },
+  },
+  mire: {
+    ground: "mire",
+    minimapLabel: "DROWNED MIRE MAP",
+    resourceStateSkin: "mire",
+    friendlyProjectileColor: "#d8efaa",
+    popupContrast: {
+      protectedColors: ["#79e6c1", "#e8c86a"],
+      perceivedBrightnessThreshold: 128,
+      darkenMultiplier: 0.43,
+    },
+    palette: {
+      viewport: "#071713",
+      ground: "#16332b",
+      clearingCenter: "#2b4b3b",
+      clearingEdge: "#102b25",
+      foliage: ["#091d19", "#102820", "#183329", "#224033"],
+    },
+    weather: {
+      kind: "falling-particles",
+      activeDuring: "always",
+      color: "#79e6c1",
+      seedKey: "drowned-mire-wisp-weather",
+      particleCount: 58,
+      fadeSeconds: 2.8,
+      fallSpeed: [1, 7],
+      radius: [0.8, 2.5],
+      driftAmplitude: [24, 76],
+      driftSpeed: [0.08, 0.36],
+      spawnGapRatio: [0, 0.2],
     },
   },
 } as const satisfies Record<string, CampaignBiomeDefinition>;

@@ -45,6 +45,15 @@ describe("world-space biome weather", () => {
       .not.toEqual(rift);
     expect(rift).toHaveLength(76);
   });
+
+  it("keeps staged Mire wisps deterministic and purpose-seeded", () => {
+    const mire = createWeatherField("campaign-seed", 58, CAMPAIGN_BIOMES.mire.weather!);
+    expect(createWeatherField("campaign-seed", 58, CAMPAIGN_BIOMES.mire.weather!))
+      .toEqual(mire);
+    expect(createWeatherField("campaign-seed", 58, CAMPAIGN_BIOMES.rift.weather!))
+      .not.toEqual(mire);
+    expect(mire).toHaveLength(58);
+  });
 });
 
 describe("player appearance rendering", () => {
