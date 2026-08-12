@@ -670,8 +670,8 @@ describe("phase and run rules", () => {
     });
     game.enemies = [summoner];
 
-    (game as unknown as { updateSummoner(enemy: Enemy, dt: number): void })
-      .updateSummoner(summoner, BALANCE.fixedStep);
+    (game as unknown as { updateEnemySummon(enemy: Enemy, dt: number): void })
+      .updateEnemySummon(summoner, BALANCE.fixedStep);
 
     const summoned = game.enemies.find((enemy) => enemy.summonedBy === summoner.id);
     expect(summoned?.kind).toBe("summoner");
@@ -688,6 +688,43 @@ describe("phase and run rules", () => {
     for (const portal of game.portals) portal.spawned = portal.assignedSpawns;
     (game as unknown as { nightWaveScheduled: boolean }).nightWaveScheduled = true;
     expect((game as unknown as { isNightWaveCleared(): boolean }).isNightWaveCleared()).toBe(true);
+  });
+
+  it("uses registry timing and living caps for enemy summoning", () => {
+    const game = new Game(fakeInput());
+    game.startRun("normal", "summoner-registry");
+    game.phase = "night";
+    const config = ENEMY_REGISTRY.summoner.summon!;
+    const summoner = testEnemy({
+      id: 714,
+      kind: "summoner",
+      summonCooldown: 0,
+      countsTowardWave: true,
+    });
+    game.enemies = [
+      summoner,
+      ...Array.from({ length: config.maximumLiving }, (_, index) => testEnemy({
+        id: 800 + index,
+        kind: "basic",
+        summonedBy: summoner.id,
+        health: 1,
+      })),
+    ];
+
+    (game as unknown as { updateEnemySummon(enemy: Enemy, dt: number): void })
+      .updateEnemySummon(summoner, BALANCE.fixedStep);
+
+    expect(game.enemies).toHaveLength(config.maximumLiving + 1);
+    expect(summoner.summonCooldown).toBe(config.cappedRetryCooldown);
+
+    game.enemies.at(-1)!.health = 0;
+    summoner.summonCooldown = 0;
+    (game as unknown as { updateEnemySummon(enemy: Enemy, dt: number): void })
+      .updateEnemySummon(summoner, BALANCE.fixedStep);
+
+    expect(game.enemies.filter((enemy) => enemy.summonedBy === summoner.id && enemy.health > 0))
+      .toHaveLength(config.maximumLiving);
+    expect(summoner.summonCooldown).toBe(config.cooldown);
   });
 
   it("pauses and resumes from dawn choice screens", () => {

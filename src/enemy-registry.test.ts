@@ -52,6 +52,19 @@ describe("deterministic enemy roster", () => {
         expect(definition.armor.breakShardCount).toBeGreaterThan(0);
         expect(definition.armor.breakShake).toBeGreaterThanOrEqual(0);
       }
+      if (definition.summon) {
+        expect(definition.summon.initialCooldown.minimum).toBeGreaterThanOrEqual(0);
+        expect(definition.summon.initialCooldown.maximum)
+          .toBeGreaterThanOrEqual(definition.summon.initialCooldown.minimum);
+        expect(definition.summon.cooldown).toBeGreaterThan(0);
+        expect(definition.summon.cappedRetryCooldown).toBeGreaterThan(0);
+        expect(definition.summon.maximumLiving).toBeGreaterThan(0);
+        expect(definition.summon.kinds?.length ?? 1).toBeGreaterThan(0);
+        expect(definition.summon.particleColor).toMatch(/^#[0-9a-f]{6}$/i);
+        expect(definition.summon.particleCount).toBeGreaterThan(0);
+        expect(definition.summon.popupText).toBeTruthy();
+        expect(definition.audio.charge).toBeTruthy();
+      }
     }
   });
 });

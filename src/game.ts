@@ -1915,7 +1915,12 @@ export class Game {
       path: [],
       pathIndex: 0,
       flash: 0,
-      summonCooldown: this.rng.range(5, 8),
+      summonCooldown: definition.summon
+        ? this.rng.range(
+          definition.summon.initialCooldown.minimum,
+          definition.summon.initialCooldown.maximum,
+        )
+        : 0,
       summonedBy,
       countsTowardWave,
       jumpCooldown: kind === "jumper" ? BALANCE.jumper.jumpCooldown : 0,
@@ -2113,7 +2118,7 @@ export class Game {
         this.updateJumperAirborne(enemy, dt);
         continue;
       }
-      if (enemy.kind === "summoner") this.updateSummoner(enemy, dt);
+      if (definition.summon) this.updateEnemySummon(enemy, dt);
       if (this.isBossEnemyKind(enemy.kind)) this.updateBoss(enemy, dt);
       if (enemy.scanCooldown <= 0) {
         enemy.scanCooldown = 0.35 + this.rng.range(0, 0.15);
@@ -3002,20 +3007,34 @@ export class Game {
     this.shake = Math.max(this.shake, 7);
   }
 
-  private updateSummoner(enemy: Enemy, dt: number): void {
+  private updateEnemySummon(enemy: Enemy, dt: number): void {
+    const definition = ENEMY_REGISTRY[enemy.kind];
+    const summon = definition.summon;
+    if (!summon) return;
     if (enemy.countsTowardWave === false) return;
     enemy.summonCooldown -= dt * (enemy.attackSpeedMultiplier ?? 1);
     if (enemy.summonCooldown > 0) return;
     const living = this.enemies.filter((item) => item.summonedBy === enemy.id && item.health > 0).length;
-    if (living >= 5) {
-      enemy.summonCooldown = 2;
+    if (living >= summon.maximumLiving) {
+      enemy.summonCooldown = summon.cappedRetryCooldown;
       return;
     }
-    enemy.summonCooldown = 4;
-    const kind = this.rollEnemyKind(this.summonRng);
+    enemy.summonCooldown = summon.cooldown;
+    const kind = summon.kinds
+      ? this.summonRng.pick(summon.kinds)
+      : this.rollEnemyKind(this.summonRng);
     this.spawnEnemy(enemy, kind, enemy.id, false, false);
-    emitAudioCue({ cue: "summoner-cast", position: { x: enemy.x, y: enemy.y } });
-    this.burst(enemy.x, enemy.y, "#9d6bff", 14, "SUMMON");
+    emitAudioCue({
+      cue: (definition.audio.charge ?? "zombie-attack") as import("./audio").SoundId,
+      position: { x: enemy.x, y: enemy.y },
+    });
+    this.burst(
+      enemy.x,
+      enemy.y,
+      summon.particleColor,
+      summon.particleCount,
+      summon.popupText,
+    );
   }
 
   private updateBoss(enemy: Enemy, dt: number): void {
