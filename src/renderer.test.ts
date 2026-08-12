@@ -36,6 +36,15 @@ describe("world-space biome weather", () => {
       .not.toEqual(wasteland);
     expect(wasteland).toHaveLength(64);
   });
+
+  it("keeps staged astral stardust deterministic and distinct from other weather", () => {
+    const rift = createWeatherField("campaign-seed", 76, CAMPAIGN_BIOMES.rift.weather!);
+    expect(createWeatherField("campaign-seed", 76, CAMPAIGN_BIOMES.rift.weather!))
+      .toEqual(rift);
+    expect(createWeatherField("campaign-seed", 76, CAMPAIGN_BIOMES.wasteland.weather!))
+      .not.toEqual(rift);
+    expect(rift).toHaveLength(76);
+  });
 });
 
 describe("player appearance rendering", () => {

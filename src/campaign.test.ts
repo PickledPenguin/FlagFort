@@ -221,6 +221,31 @@ describe("data-driven campaign tiers", () => {
     expect(campaignTier("wasteland").biome).toBe(CAMPAIGN_BIOMES.wasteland);
   });
 
+  it("defines a complete astral rift environment while keeping its tier hidden", () => {
+    expect(CAMPAIGN_BIOMES.rift).toMatchObject({
+      ground: "rift",
+      minimapLabel: "ASTRAL RIFT MAP",
+      resourceStateSkin: "rift",
+      friendlyProjectileColor: "#ffd98a",
+      popupContrast: {
+        protectedColors: ["#7cecff", "#d99cff"],
+      },
+      palette: {
+        viewport: "#090d24",
+        ground: "#20234d",
+        clearingCenter: "#393765",
+        clearingEdge: "#181b40",
+      },
+      weather: {
+        activeDuring: "always",
+        color: "#8eeaff",
+        seedKey: "astral-rift-stardust-weather",
+        particleCount: 76,
+      },
+    });
+    expect(CAMPAIGN_TIERS.some((tier) => tier.biome === CAMPAIGN_BIOMES.rift)).toBe(false);
+  });
+
   it("provides complete centralized selection artwork for current and upcoming biomes", () => {
     for (const artwork of Object.values(CAMPAIGN_TIER_ARTWORK)) {
       expect(artwork.icon).toMatch(/^\.\/images\/campaign\/.+-tier\.svg$/);

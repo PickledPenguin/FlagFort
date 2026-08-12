@@ -21,7 +21,7 @@ export interface CampaignUnlockRequirement {
 }
 
 export interface CampaignBiomeDefinition {
-  ground: "forest" | "snow" | "desert" | "volcanic" | "wasteland";
+  ground: "forest" | "snow" | "desert" | "volcanic" | "wasteland" | "rift";
   minimapLabel: string;
   resourceStateSkin: ResourceStateSkinId;
   resourceOverlay?: {
@@ -208,6 +208,37 @@ export const CAMPAIGN_BIOMES = {
       driftAmplitude: [18, 58],
       driftSpeed: [0.12, 0.48],
       spawnGapRatio: [0, 0.16],
+    },
+  },
+  rift: {
+    ground: "rift",
+    minimapLabel: "ASTRAL RIFT MAP",
+    resourceStateSkin: "rift",
+    friendlyProjectileColor: "#ffd98a",
+    popupContrast: {
+      protectedColors: ["#7cecff", "#d99cff"],
+      perceivedBrightnessThreshold: 132,
+      darkenMultiplier: 0.44,
+    },
+    palette: {
+      viewport: "#090d24",
+      ground: "#20234d",
+      clearingCenter: "#393765",
+      clearingEdge: "#181b40",
+      foliage: ["#111630", "#181d3c", "#22264a", "#2d3058"],
+    },
+    weather: {
+      kind: "falling-particles",
+      activeDuring: "always",
+      color: "#8eeaff",
+      seedKey: "astral-rift-stardust-weather",
+      particleCount: 76,
+      fadeSeconds: 2.4,
+      fallSpeed: [3, 14],
+      radius: [0.7, 2.3],
+      driftAmplitude: [20, 68],
+      driftSpeed: [0.1, 0.42],
+      spawnGapRatio: [0, 0.18],
     },
   },
 } as const satisfies Record<string, CampaignBiomeDefinition>;
