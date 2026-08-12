@@ -192,9 +192,15 @@ export function generateWorld(
   }
   selectedNavigation.attempts = attempts;
   const sceneryRng = new SeededRng(`${seed}:world:scenery`);
-  const snowRng = new SeededRng(`${seed}:world:resource-snow:${campaignTierId}`);
-  const snowChance = campaignTier(campaignTierId).biome.resourceSnowChance;
-  for (const node of selectedResources) node.snowCovered = snowRng.next() < snowChance;
+  const resourceOverlay = campaignTier(campaignTierId).biome.resourceOverlay;
+  if (resourceOverlay) {
+    const overlayRng = new SeededRng(
+      `${seed}:world:${resourceOverlay.seedKey}:${campaignTierId}`,
+    );
+    for (const node of selectedResources) {
+      node.biomeOverlay = overlayRng.next() < resourceOverlay.chance;
+    }
+  }
   const clearings = createClearings(sceneryRng);
   const foliage = Array.from({ length: 260 }, () => {
     const x = sceneryRng.range(30, BALANCE.mapSize - 30);

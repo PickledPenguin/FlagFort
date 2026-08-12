@@ -270,7 +270,9 @@ export class Renderer {
 
     for (const node of game.world.resources) {
       if (node.destroyed) continue;
-      if (this.visible(game, node.x, node.y, node.radius)) this.drawResource(node);
+      if (this.visible(game, node.x, node.y, node.radius)) {
+        this.drawResource(node, game.getCampaignTier().biome.resourceOverlay);
+      }
     }
     if (game.debugNavigation) this.drawNavigationDebug(game);
     for (const portal of game.portals) {
@@ -418,7 +420,10 @@ export class Renderer {
     ctx.strokeRect(0, 0, BALANCE.mapSize, BALANCE.mapSize);
   }
 
-  private drawResource(node: ResourceNode): void {
+  private drawResource(
+    node: ResourceNode,
+    overlay: CampaignBiomeDefinition["resourceOverlay"],
+  ): void {
     const depleted = node.health <= 0;
     const sprite = this.images.get(ASSETS.resourceStates[node.kind][depleted ? "depleted" : "active"]);
     if (sprite?.complete && sprite.naturalWidth > 0) {
@@ -428,13 +433,21 @@ export class Renderer {
       if (node.hitFlash > 0) ctx.globalAlpha = 0.6;
       const size = node.radius * 2.55;
       ctx.drawImage(sprite, -size / 2, -size / 2, size, size);
-      if (node.snowCovered && !depleted) {
-        ctx.globalAlpha = node.hitFlash > 0 ? 0.45 : 0.94;
-        ctx.fillStyle = "#f7ffff";
-        ctx.strokeStyle = "#b7d7df";
-        ctx.lineWidth = 2;
+      if (node.biomeOverlay && overlay?.kind === "cap" && !depleted) {
+        ctx.globalAlpha = node.hitFlash > 0 ? overlay.hitOpacity : overlay.opacity;
+        ctx.fillStyle = overlay.fillColor;
+        ctx.strokeStyle = overlay.strokeColor;
+        ctx.lineWidth = overlay.lineWidth;
         ctx.beginPath();
-        ctx.ellipse(0, -node.radius * 0.7, node.radius * 0.72, node.radius * 0.25, -0.08, 0, Math.PI * 2);
+        ctx.ellipse(
+          0,
+          node.radius * overlay.verticalOffsetRatio,
+          node.radius * overlay.widthRatio,
+          node.radius * overlay.heightRatio,
+          overlay.rotation,
+          0,
+          Math.PI * 2,
+        );
         ctx.fill();
         ctx.stroke();
       }

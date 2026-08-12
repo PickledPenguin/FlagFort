@@ -50,7 +50,13 @@ describe("data-driven campaign tiers", () => {
       specialEnemies: ["frostbite", "snowballer", "icebound"],
       biome: {
         ground: "snow",
-        resourceSnowChance: 0.58,
+        resourceOverlay: {
+          kind: "cap",
+          chance: 0.58,
+          seedKey: "resource-snow",
+          fillColor: "#f7ffff",
+          strokeColor: "#b7d7df",
+        },
         friendlyProjectileColor: "#704321",
         popupContrast: {
           protectedColors: ["#63c6e8"],
@@ -92,6 +98,21 @@ describe("data-driven campaign tiers", () => {
         expect(tier.biome.popupContrast.perceivedBrightnessThreshold).toBeGreaterThan(0);
         expect(tier.biome.popupContrast.darkenMultiplier).toBeGreaterThan(0);
         expect(tier.biome.popupContrast.darkenMultiplier).toBeLessThan(1);
+      }
+      const resourceOverlay = tier.biome.resourceOverlay;
+      if (resourceOverlay) {
+        expect(resourceOverlay.chance).toBeGreaterThan(0);
+        expect(resourceOverlay.chance).toBeLessThanOrEqual(1);
+        expect(resourceOverlay.seedKey).not.toHaveLength(0);
+        expect(resourceOverlay.fillColor).toMatch(/^#[0-9a-f]{6}$/i);
+        expect(resourceOverlay.strokeColor).toMatch(/^#[0-9a-f]{6}$/i);
+        expect(resourceOverlay.opacity).toBeGreaterThan(0);
+        expect(resourceOverlay.opacity).toBeLessThanOrEqual(1);
+        expect(resourceOverlay.hitOpacity).toBeGreaterThan(0);
+        expect(resourceOverlay.hitOpacity).toBeLessThanOrEqual(1);
+        expect(resourceOverlay.widthRatio).toBeGreaterThan(0);
+        expect(resourceOverlay.heightRatio).toBeGreaterThan(0);
+        expect(resourceOverlay.lineWidth).toBeGreaterThan(0);
       }
       const weather = tier.biome.weather;
       if (weather) {
@@ -144,13 +165,15 @@ describe("data-driven campaign tiers", () => {
       .not.toEqual(expect.arrayContaining(["frostbite", "snowballer", "icebound"]));
   });
 
-  it("assigns resource snow deterministically without changing Forest", () => {
+  it("assigns biome resource overlays deterministically without changing Forest", () => {
     const first = generateWorld("snow-seed", 1, "snowy");
     const second = generateWorld("snow-seed", 1, "snowy");
-    expect(first.resources.map((node) => node.snowCovered))
-      .toEqual(second.resources.map((node) => node.snowCovered));
-    expect(first.resources.some((node) => node.snowCovered)).toBe(true);
-    expect(generateWorld("snow-seed", 1, "forest").resources.every((node) => !node.snowCovered)).toBe(true);
+    expect(first.resources.map((node) => node.biomeOverlay))
+      .toEqual(second.resources.map((node) => node.biomeOverlay));
+    expect(first.resources.some((node) => node.biomeOverlay)).toBe(true);
+    expect(generateWorld("snow-seed", 1, "forest").resources.every((node) => (
+      node.biomeOverlay === undefined
+    ))).toBe(true);
   });
 
   it("persists a Forest clear, grants earned ladder rewards once, and announces Snowbound", () => {

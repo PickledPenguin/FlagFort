@@ -88,7 +88,7 @@ export interface ResourceNode extends Circle {
   maxHealth: number;
   hitFlash: number;
   destroyed?: boolean;
-  snowCovered?: boolean;
+  biomeOverlay?: boolean;
 }
 
 export interface Portal extends Circle {

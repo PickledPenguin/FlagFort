@@ -21,7 +21,20 @@ export interface CampaignUnlockRequirement {
 export interface CampaignBiomeDefinition {
   ground: "forest" | "snow";
   minimapLabel: string;
-  resourceSnowChance: number;
+  resourceOverlay?: {
+    kind: "cap";
+    chance: number;
+    seedKey: string;
+    fillColor: string;
+    strokeColor: string;
+    opacity: number;
+    hitOpacity: number;
+    widthRatio: number;
+    heightRatio: number;
+    verticalOffsetRatio: number;
+    rotation: number;
+    lineWidth: number;
+  };
   friendlyProjectileColor?: string;
   popupContrast?: PopupContrast & {
     protectedColors: readonly string[];
@@ -88,7 +101,6 @@ export const CAMPAIGN_TIERS: readonly CampaignTierDefinition[] = [
     biome: {
       ground: "forest",
       minimapLabel: "FOREST MAP",
-      resourceSnowChance: 0,
       palette: {
         viewport: "#173f2a",
         ground: "#1a4b30",
@@ -117,7 +129,20 @@ export const CAMPAIGN_TIERS: readonly CampaignTierDefinition[] = [
     biome: {
       ground: "snow",
       minimapLabel: "SNOWBOUND MAP",
-      resourceSnowChance: 0.58,
+      resourceOverlay: {
+        kind: "cap",
+        chance: 0.58,
+        seedKey: "resource-snow",
+        fillColor: "#f7ffff",
+        strokeColor: "#b7d7df",
+        opacity: 0.94,
+        hitOpacity: 0.45,
+        widthRatio: 0.72,
+        heightRatio: 0.25,
+        verticalOffsetRatio: -0.7,
+        rotation: -0.08,
+        lineWidth: 2,
+      },
       friendlyProjectileColor: "#704321",
       popupContrast: {
         protectedColors: ["#63c6e8"],
