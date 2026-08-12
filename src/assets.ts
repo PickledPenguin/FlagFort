@@ -10,6 +10,20 @@ export const tutorialAsset = (name: string): string => svgAsset(`tutorial/${name
 
 const image = svgAsset;
 
+export const RESOURCE_STATE_SKINS = {
+  temperate: {
+    wood: { active: image("world/tree-active"), depleted: image("world/tree-depleted") },
+    stone: { active: image("world/stone-active"), depleted: image("world/stone-depleted") },
+    gold: { active: image("world/gold-active"), depleted: image("world/gold-depleted") },
+    diamond: { active: image("world/diamond-active"), depleted: image("world/diamond-depleted") },
+  },
+} as const satisfies Record<
+  string,
+  Record<ResourceKind, Record<"active" | "depleted", string>>
+>;
+
+export type ResourceStateSkinId = keyof typeof RESOURCE_STATE_SKINS;
+
 export const EQUIPMENT_ASSETS = {
   helmet: {
     wood: image("equipment/helmet-wood"),
@@ -44,12 +58,7 @@ export const ASSETS = {
     gold: image("resources/gold"),
     diamond: image("resources/diamond"),
   } satisfies Record<ResourceKind, string>,
-  resourceStates: {
-    wood: { active: image("world/tree-active"), depleted: image("world/tree-depleted") },
-    stone: { active: image("world/stone-active"), depleted: image("world/stone-depleted") },
-    gold: { active: image("world/gold-active"), depleted: image("world/gold-depleted") },
-    diamond: { active: image("world/diamond-active"), depleted: image("world/diamond-depleted") },
-  } satisfies Record<ResourceKind, Record<"active" | "depleted", string>>,
+  resourceStateSkins: RESOURCE_STATE_SKINS,
   enemies: Object.fromEntries(Object.values(ENEMY_REGISTRY).map((entry) => [entry.id, image(entry.assets.portrait)])) as Record<EnemyKind, string>,
   iceboundBroken: image("enemies/icebound-zombie-broken"),
   frostWardenBroken: image("enemies/frost-warden-broken"),

@@ -2,7 +2,7 @@
 // @vitest-environment-options {"url":"http://localhost/"}
 
 import { describe, expect, it, vi } from "vitest";
-import { allAssetPaths, ASSETS } from "./assets";
+import { allAssetPaths, ASSETS, RESOURCE_STATE_SKINS } from "./assets";
 import { CHALLENGES, nightTimeline } from "./challenges";
 import { CARD_DEFINITIONS, TUTORIAL_STAGES } from "./content";
 import { BALANCE } from "./config";
@@ -74,6 +74,17 @@ describe("foundational refactor", () => {
     for (const path of allAssetPaths()) {
       expect(path.endsWith(".svg")).toBe(true);
       expect(path.startsWith("./images/")).toBe(true);
+    }
+  });
+
+  it("provides complete active and depleted resource artwork for every biome skin", () => {
+    for (const skin of Object.values(RESOURCE_STATE_SKINS)) {
+      expect(Object.keys(skin)).toEqual(["wood", "stone", "gold", "diamond"]);
+      expect(Object.values(skin).flatMap((states) => Object.keys(states))).toEqual([
+        "active", "depleted", "active", "depleted",
+        "active", "depleted", "active", "depleted",
+      ]);
+      expect(new Set(Object.values(skin).flatMap((states) => Object.values(states))).size).toBe(8);
     }
   });
 

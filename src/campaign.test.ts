@@ -11,6 +11,7 @@ import { generateWorld } from "./world";
 import type { KeyValueStore } from "./platform";
 import type { CoinSettlement, XpRewardBreakdown } from "./rewards";
 import { CAMPAIGN_TIER_IDS } from "./types";
+import { RESOURCE_STATE_SKINS } from "./assets";
 
 class MemoryStore implements KeyValueStore {
   private values = new Map<string, string>();
@@ -50,6 +51,7 @@ describe("data-driven campaign tiers", () => {
       specialEnemies: ["frostbite", "snowballer", "icebound"],
       biome: {
         ground: "snow",
+        resourceStateSkin: "temperate",
         resourceOverlay: {
           kind: "cap",
           chance: 0.58,
@@ -85,6 +87,7 @@ describe("data-driven campaign tiers", () => {
 
   it("defines complete render palettes for every biome", () => {
     for (const tier of CAMPAIGN_TIERS) {
+      expect(RESOURCE_STATE_SKINS[tier.biome.resourceStateSkin]).toBeDefined();
       expect(tier.biome.palette.foliage).toHaveLength(4);
       expect(Object.values(tier.biome.palette).flat().every((color) => (
         typeof color === "string" && /^#[0-9a-f]{6}$/i.test(color)

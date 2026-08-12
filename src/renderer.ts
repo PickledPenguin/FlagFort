@@ -271,7 +271,7 @@ export class Renderer {
     for (const node of game.world.resources) {
       if (node.destroyed) continue;
       if (this.visible(game, node.x, node.y, node.radius)) {
-        this.drawResource(node, game.getCampaignTier().biome.resourceOverlay);
+        this.drawResource(node, game.getCampaignTier().biome);
       }
     }
     if (game.debugNavigation) this.drawNavigationDebug(game);
@@ -422,10 +422,11 @@ export class Renderer {
 
   private drawResource(
     node: ResourceNode,
-    overlay: CampaignBiomeDefinition["resourceOverlay"],
+    biome: CampaignBiomeDefinition,
   ): void {
     const depleted = node.health <= 0;
-    const sprite = this.images.get(ASSETS.resourceStates[node.kind][depleted ? "depleted" : "active"]);
+    const resourceState = ASSETS.resourceStateSkins[biome.resourceStateSkin][node.kind];
+    const sprite = this.images.get(resourceState[depleted ? "depleted" : "active"]);
     if (sprite?.complete && sprite.naturalWidth > 0) {
       const ctx = this.ctx;
       ctx.save();
@@ -433,6 +434,7 @@ export class Renderer {
       if (node.hitFlash > 0) ctx.globalAlpha = 0.6;
       const size = node.radius * 2.55;
       ctx.drawImage(sprite, -size / 2, -size / 2, size, size);
+      const overlay = biome.resourceOverlay;
       if (node.biomeOverlay && overlay?.kind === "cap" && !depleted) {
         ctx.globalAlpha = node.hitFlash > 0 ? overlay.hitOpacity : overlay.opacity;
         ctx.fillStyle = overlay.fillColor;

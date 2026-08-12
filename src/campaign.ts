@@ -1,5 +1,6 @@
 import type { BossEnemyKind, CampaignTierId, RosterEnemyKind } from "./types";
 import type { PopupContrast } from "./popup-colors";
+import type { ResourceStateSkinId } from "./assets";
 
 export type CampaignReward =
   | { kind: "coins"; amount: number }
@@ -21,6 +22,7 @@ export interface CampaignUnlockRequirement {
 export interface CampaignBiomeDefinition {
   ground: "forest" | "snow";
   minimapLabel: string;
+  resourceStateSkin: ResourceStateSkinId;
   resourceOverlay?: {
     kind: "cap";
     chance: number;
@@ -101,6 +103,7 @@ export const CAMPAIGN_TIERS: readonly CampaignTierDefinition[] = [
     biome: {
       ground: "forest",
       minimapLabel: "FOREST MAP",
+      resourceStateSkin: "temperate",
       palette: {
         viewport: "#173f2a",
         ground: "#1a4b30",
@@ -129,6 +132,7 @@ export const CAMPAIGN_TIERS: readonly CampaignTierDefinition[] = [
     biome: {
       ground: "snow",
       minimapLabel: "SNOWBOUND MAP",
+      resourceStateSkin: "temperate",
       resourceOverlay: {
         kind: "cap",
         chance: 0.58,
