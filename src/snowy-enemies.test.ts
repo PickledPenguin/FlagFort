@@ -196,6 +196,29 @@ describe("shared snowy slow status", () => {
     expect(game.particles.filter((particle) => particle.color === BALANCE.snowyEnemies.slow.tint).length)
       .toBeGreaterThan(8);
   });
+
+  it("uses each ranged enemy's configured targets when a structure blocks its advance", () => {
+    const game = gameFixture();
+    const internals = game as unknown as { updateEnemies(dt: number): void };
+    const archer = spawn(game, "archer", game.player.x - 600, game.player.y);
+    const wall = structure(
+      721,
+      "wall",
+      archer.x + archer.radius + BALANCE.structure.radius.wall + 8,
+      archer.y,
+    );
+    game.structures = [wall];
+    archer.targetId = "player";
+    archer.scanCooldown = 10;
+    archer.pathCooldown = 10;
+    const startX = archer.x;
+
+    internals.updateEnemies(ENEMY_REGISTRY.archer.attack.chargeSeconds);
+
+    expect(ENEMY_REGISTRY.archer.projectile!.targets).not.toContain("wall");
+    expect(game.projectiles).toHaveLength(0);
+    expect(archer.x).toBeGreaterThan(startX);
+  });
 });
 
 describe("Icebound armor", () => {

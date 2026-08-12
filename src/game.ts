@@ -2175,10 +2175,10 @@ export class Game {
       }
       if (blocker && distance(enemy, blocker) <= enemy.radius + blocker.radius + blockerReach) {
         if (definition.attack.mode === "arrow" || definition.attack.mode === "acid") {
-          if (enemy.kind === "snowballer" && blocker.kind !== "turret") {
-            this.moveEnemyToward(enemy, target, dt);
-          } else {
+          if (definition.projectile?.targets.includes(blocker.kind)) {
             this.enemyRangedAttack(enemy, blocker, dt, true);
+          } else {
+            this.moveEnemyToward(enemy, target, dt);
           }
         } else {
           this.enemyAttack(enemy, blocker, dt);
