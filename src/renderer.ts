@@ -315,6 +315,35 @@ export class Renderer {
     for (const strike of game.areaStrikes) this.drawAreaStrike(strike);
     if (game.buildPreview) this.drawBuildPreview(game);
     for (const projectile of game.projectiles) {
+      if (projectile.appearance === "spore") {
+        ctx.save();
+        ctx.translate(projectile.x, projectile.y);
+        ctx.rotate(Math.atan2(projectile.vy, projectile.vx));
+        const trail = Math.max(28, projectile.radius * 4.2);
+        const gradient = ctx.createLinearGradient(-trail, 0, projectile.radius, 0);
+        gradient.addColorStop(0, "rgba(104,205,166,0)");
+        gradient.addColorStop(0.45, "rgba(104,205,166,.3)");
+        gradient.addColorStop(1, "rgba(190,255,226,.72)");
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.ellipse(-trail * 0.34, 0, trail * 0.76, projectile.radius * 1.05, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#68cda6";
+        ctx.strokeStyle = "#254f46";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(0, 0, projectile.radius * 0.82, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = "#d8fff0";
+        for (const [x, y, radius] of [[-0.25, -0.28, 0.24], [0.24, 0.12, 0.18], [-0.18, 0.32, 0.14]] as const) {
+          ctx.beginPath();
+          ctx.arc(projectile.radius * x, projectile.radius * y, projectile.radius * radius, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+        continue;
+      }
       if (projectile.appearance === "comet") {
         ctx.save();
         ctx.translate(projectile.x, projectile.y);
