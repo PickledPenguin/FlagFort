@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" viewBox="0 0 180 180" role="img" aria-labelledby="title description" version="1.1" id="dune-colossus-svg" sodipodi:docname="dune-colossus.svg" inkscape:version="1.4.4">
+  <title id="title">Dune Colossus boss</title>
+  <desc id="description">A gigantic desert zombie in monumental sandstone armor, crowned by a turquoise scarab and gathering a whirling orb of sand.</desc>
+  <defs id="definitions">
+    <linearGradient id="sandstone-gradient" x1="0" y1="0" x2="1" y2="1"><stop id="sunlit-sandstone" offset="0" stop-color="#edc875"/><stop id="shadowed-sandstone" offset="1" stop-color="#b87539"/></linearGradient>
+    <radialGradient id="sand-orb-gradient"><stop id="sand-orb-core" offset="0" stop-color="#fff0a3"/><stop id="sand-orb-edge" offset="1" stop-color="#d98538"/></radialGradient>
+  </defs>
+  <g id="dune-colossus" transform="translate(90 93)" stroke-linejoin="round">
+    <g id="sandstorm-aura" fill="none" stroke="#e4a34e" stroke-width="4" stroke-linecap="round" opacity=".78">
+      <path id="upper-gust" d="M-75-55C-52-73-21-69-8-60"/>
+      <path id="lower-gust" d="M-74 59C-46 74-17 65-4 57"/>
+      <path id="orb-gust" d="M45-54C67-66 82-54 79-38"/>
+    </g>
+    <g id="four-arms" fill="#5f865d" stroke="#294b38" stroke-width="6">
+      <path id="upper-left-arm" d="M-44-40-76-57-88-38-61-15-40-19Z"/>
+      <path id="lower-left-arm" d="M-48 20-80 37-72 62-39 51-31 32Z"/>
+      <path id="upper-right-arm" d="M40-39 61-61 78-49 69-23 45-16Z"/>
+      <path id="lower-right-arm" d="M47 20 78 34 72 57 43 51 33 31Z"/>
+    </g>
+    <circle id="body" cx="0" cy="1" r="55" fill="#527858" stroke="#294735" stroke-width="7"/>
+    <g id="monumental-armor" fill="url(#sandstone-gradient)" stroke="#754a2d" stroke-width="6">
+      <path id="crown-plate" d="M-43-36-31-72-12-55 0-81 14-54 35-72 44-33 23-20-22-20Z"/>
+      <path id="upper-plate" d="M-48-26-13-39 8-27 36-39 51-12 31 3 3-6-24 4-49-8Z"/>
+      <path id="lower-plate" d="M-48 13-24 1 2 11 30 2 51 19 37 48 5 40-20 51-45 37Z"/>
+    </g>
+    <g id="armor-runes" fill="none" stroke="#f4db8b" stroke-width="3.5" stroke-linecap="round">
+      <path id="upper-rune" d="M-31-21-14-29 1-19 17-29 35-19"/>
+      <path id="lower-rune" d="M-31 27-15 18 2 28 19 17 34 28"/>
+    </g>
+    <g id="scarab-crown" fill="#32b6b0" stroke="#205f65" stroke-width="3">
+      <ellipse id="scarab-body" cx="0" cy="-48" rx="9" ry="14"/>
+      <path id="scarab-wings" d="M-8-52-25-63-21-43-8-39M8-52 25-63 21-43 8-39Z"/>
+    </g>
+    <g id="eyes" fill="#fff1a8" stroke="#633a2a" stroke-width="2"><ellipse id="left-eye" cx="15" cy="-8" rx="9" ry="6"/><ellipse id="right-eye" cx="15" cy="10" rx="9" ry="6"/></g>
+    <g id="pupils" fill="#782f2b"><circle id="left-pupil" cx="19" cy="-8" r="3.5"/><circle id="right-pupil" cx="19" cy="10" r="3.5"/></g>
+    <path id="mouth" d="M10 25 18 20 25 27 33 21" fill="none" stroke="#294735" stroke-width="5" stroke-linecap="round"/>
+    <g id="sand-orb">
+      <circle id="orb" cx="72" cy="-45" r="17" fill="url(#sand-orb-gradient)" stroke="#8f532e" stroke-width="4"/>
+      <path id="orb-swirl" d="M60-48C69-57 82-51 81-42 78-33 65-33 62-40 62-45 68-48 73-45" fill="none" stroke="#fff0a3" stroke-width="3" stroke-linecap="round"/>
+    </g>
+  </g>
+</svg>

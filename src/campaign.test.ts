@@ -47,11 +47,15 @@ const zeroCoins: CoinSettlement = {
 };
 
 describe("data-driven campaign tiers", () => {
-  it("registers a complete themed artwork set for the upcoming Desert specials", () => {
+  it("registers a complete themed artwork set for the upcoming Desert enemies", () => {
     expect(DESERT_ENEMY_ARTWORK).toEqual({
       duneHopper: "enemies/dune-hopper-zombie",
       sandcaster: "enemies/sandcaster-zombie",
       tombguard: "enemies/tombguard-zombie",
+      duneColossus: {
+        armored: "enemies/dune-colossus",
+        broken: "enemies/dune-colossus-broken",
+      },
     });
   });
 
