@@ -83,6 +83,32 @@ describe("data-driven campaign tiers", () => {
       .toBe(true);
   });
 
+  it("defines a complete hidden Clockwork Citadel campaign environment", () => {
+    expect(CAMPAIGN_BIOMES.clockwork).toMatchObject({
+      ground: "clockwork",
+      minimapLabel: "CLOCKWORK CITADEL MAP",
+      resourceStateSkin: "clockwork",
+      friendlyProjectileColor: "#f1cf77",
+      popupContrast: {
+        protectedColors: ["#79e7df", "#e2b85d"],
+      },
+      palette: {
+        viewport: "#151b23",
+        ground: "#292e33",
+        clearingCenter: "#4b4a45",
+        clearingEdge: "#23292f",
+      },
+      weather: {
+        activeDuring: "always",
+        color: "#d9a64f",
+        seedKey: "clockwork-citadel-spark-weather",
+        particleCount: 66,
+      },
+    });
+    expect(CAMPAIGN_TIERS.every((tier) => tier.biome !== CAMPAIGN_BIOMES.clockwork))
+      .toBe(true);
+  });
+
   it("registers a complete themed artwork set for the upcoming Drowned Mire enemies", () => {
     expect(MIRE_ENEMY_ARTWORK).toEqual({
       mireLurker: "enemies/mire-lurker-zombie",

@@ -21,7 +21,7 @@ export interface CampaignUnlockRequirement {
 }
 
 export interface CampaignBiomeDefinition {
-  ground: "forest" | "snow" | "desert" | "volcanic" | "wasteland" | "rift" | "mire";
+  ground: "forest" | "snow" | "desert" | "volcanic" | "wasteland" | "rift" | "mire" | "clockwork";
   minimapLabel: string;
   resourceStateSkin: ResourceStateSkinId;
   resourceOverlay?: {
@@ -270,6 +270,37 @@ export const CAMPAIGN_BIOMES = {
       driftAmplitude: [24, 76],
       driftSpeed: [0.08, 0.36],
       spawnGapRatio: [0, 0.2],
+    },
+  },
+  clockwork: {
+    ground: "clockwork",
+    minimapLabel: "CLOCKWORK CITADEL MAP",
+    resourceStateSkin: "clockwork",
+    friendlyProjectileColor: "#f1cf77",
+    popupContrast: {
+      protectedColors: ["#79e7df", "#e2b85d"],
+      perceivedBrightnessThreshold: 130,
+      darkenMultiplier: 0.44,
+    },
+    palette: {
+      viewport: "#151b23",
+      ground: "#292e33",
+      clearingCenter: "#4b4a45",
+      clearingEdge: "#23292f",
+      foliage: ["#1d252b", "#293138", "#3a4143", "#4d514b"],
+    },
+    weather: {
+      kind: "falling-particles",
+      activeDuring: "always",
+      color: "#d9a64f",
+      seedKey: "clockwork-citadel-spark-weather",
+      particleCount: 66,
+      fadeSeconds: 1.7,
+      fallSpeed: [4, 18],
+      radius: [0.6, 1.8],
+      driftAmplitude: [12, 46],
+      driftSpeed: [0.16, 0.56],
+      spawnGapRatio: [0, 0.15],
     },
   },
 } as const satisfies Record<string, CampaignBiomeDefinition>;

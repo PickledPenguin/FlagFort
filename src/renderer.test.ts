@@ -54,6 +54,19 @@ describe("world-space biome weather", () => {
       .not.toEqual(mire);
     expect(mire).toHaveLength(58);
   });
+
+  it("keeps staged Clockwork sparks deterministic and purpose-seeded", () => {
+    const clockwork = createWeatherField(
+      "campaign-seed",
+      66,
+      CAMPAIGN_BIOMES.clockwork.weather!,
+    );
+    expect(createWeatherField("campaign-seed", 66, CAMPAIGN_BIOMES.clockwork.weather!))
+      .toEqual(clockwork);
+    expect(createWeatherField("campaign-seed", 66, CAMPAIGN_BIOMES.mire.weather!))
+      .not.toEqual(clockwork);
+    expect(clockwork).toHaveLength(66);
+  });
 });
 
 describe("player appearance rendering", () => {
