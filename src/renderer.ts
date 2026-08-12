@@ -942,24 +942,27 @@ export class Renderer {
   }
 
   private drawAreaStrike(strike: AreaStrike): void {
+    const appearance = ENEMY_REGISTRY[strike.sourceEnemyKind].areaStrike?.appearance;
+    if (!appearance) return;
     const ctx = this.ctx;
     ctx.save();
     ctx.translate(strike.x, strike.y);
     if (strike.warningRemaining > 0) {
       const progress = 1 - strike.warningRemaining / strike.warningDuration;
-      ctx.fillStyle = "rgba(124,190,205,.16)";
-      ctx.strokeStyle = "rgba(67,117,129,.9)";
+      ctx.fillStyle = appearance.warningFill;
+      ctx.strokeStyle = appearance.warningOutline;
       ctx.lineWidth = 4;
       ctx.beginPath();
       ctx.arc(0, 0, strike.radius, 0, Math.PI * 2);
       ctx.fill();
       ctx.stroke();
-      ctx.strokeStyle = "rgba(241,254,255,.96)";
+      ctx.strokeStyle = appearance.warningProgress;
       ctx.lineWidth = 8;
       ctx.beginPath();
       ctx.arc(0, 0, strike.radius - 7, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * progress);
       ctx.stroke();
-      ctx.fillStyle = `rgba(229,251,255,${0.12 + progress * 0.24})`;
+      ctx.globalAlpha = 1 / 3 + progress * 2 / 3;
+      ctx.fillStyle = appearance.warningPulse;
       ctx.beginPath();
       ctx.arc(0, 0, strike.radius * progress, 0, Math.PI * 2);
       ctx.fill();
@@ -971,18 +974,18 @@ export class Renderer {
     const fade = progress > 0.72 ? 1 - (progress - 0.72) / 0.28 : 1;
     ctx.globalAlpha = Math.max(0, fade);
     ctx.rotate(strike.angle);
-    ctx.fillStyle = "rgba(121,190,205,.2)";
+    ctx.fillStyle = appearance.eruptionShadow;
     ctx.beginPath();
     ctx.ellipse(0, 8, strike.radius * 0.8, strike.radius * 0.28, 0, 0, Math.PI * 2);
     ctx.fill();
     const height = strike.radius * 2.3 * rise;
     const width = strike.radius * 0.65;
     const gradient = ctx.createLinearGradient(-width / 2, 0, width / 2, 0);
-    gradient.addColorStop(0, "#6eb4c5");
-    gradient.addColorStop(0.48, "#f7ffff");
-    gradient.addColorStop(1, "#9cecff");
+    gradient.addColorStop(0, appearance.eruptionEdge);
+    gradient.addColorStop(0.48, appearance.eruptionHighlight);
+    gradient.addColorStop(1, appearance.eruptionFarEdge);
     ctx.fillStyle = gradient;
-    ctx.strokeStyle = "#4d91a3";
+    ctx.strokeStyle = appearance.eruptionOutline;
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.moveTo(0, -height);

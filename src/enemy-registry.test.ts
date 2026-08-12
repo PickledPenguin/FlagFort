@@ -141,6 +141,12 @@ describe("deterministic enemy roster", () => {
         expect(definition.ram.breachBurst.popupText).toBeTruthy();
       }
       if (definition.areaStrike) {
+        expect(definition.areaStrike.appearance.shape).toBe("spike");
+        for (const color of Object.entries(definition.areaStrike.appearance)
+          .filter(([key]) => key !== "shape")
+          .map(([, value]) => value)) {
+          expect(color).toMatch(/^(?:#[0-9a-f]{6}|rgba?\()/i);
+        }
         expect(definition.areaStrike.rngSeedKey).toBeTruthy();
         expect(definition.areaStrike.initialCooldown).toBeGreaterThanOrEqual(0);
         expect(definition.areaStrike.cooldown).toBeGreaterThan(0);
