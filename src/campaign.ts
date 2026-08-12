@@ -397,6 +397,23 @@ export const CAMPAIGN_TIERS: readonly CampaignTierDefinition[] = [
     ],
     biome: CAMPAIGN_BIOMES.rift,
   },
+  {
+    id: "mire",
+    order: 6,
+    name: "Drowned Mire",
+    subtitle: "Stand where the dead waters rise",
+    description: "Guard the sinking ruins where lurkers drain defenders, spores suppress the line, and drowned shields crush fortifications.",
+    accent: "#79e6c1",
+    ...CAMPAIGN_TIER_ARTWORK.mire,
+    boss: "mireheart-titan",
+    specialEnemies: ["mire-lurker", "sporecaster", "drowned-bulwark"],
+    unlock: { level: 19, previousTierId: "rift" },
+    milestones: [
+      { id: "mire-level-20-coins", level: 20, reward: { kind: "coins", amount: 355 } },
+      { id: "mire-level-21-coins", level: 21, reward: { kind: "coins", amount: 410 } },
+    ],
+    biome: CAMPAIGN_BIOMES.mire,
+  },
 ] as const;
 
 export function campaignTier(id: CampaignTierId): CampaignTierDefinition {

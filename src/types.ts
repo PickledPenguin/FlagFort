@@ -1,6 +1,6 @@
 export type Difficulty = "easy" | "normal" | "hard" | "extreme";
 export type RunMode = "campaign" | "endless";
-export const CAMPAIGN_TIER_IDS = ["forest", "snowy", "desert", "volcanic", "wasteland", "rift"] as const;
+export const CAMPAIGN_TIER_IDS = ["forest", "snowy", "desert", "volcanic", "wasteland", "rift", "mire"] as const;
 export type CampaignTierId = typeof CAMPAIGN_TIER_IDS[number];
 
 export function isCampaignTierId(value: unknown): value is CampaignTierId {

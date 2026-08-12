@@ -297,7 +297,7 @@ describe("data-driven campaign tiers", () => {
     expect(campaignTier("rift").biome).toBe(CAMPAIGN_BIOMES.rift);
   });
 
-  it("defines a complete Drowned Mire environment while its tier remains staged", () => {
+  it("defines the complete Drowned Mire campaign environment", () => {
     expect(CAMPAIGN_BIOMES.mire).toMatchObject({
       ground: "mire",
       minimapLabel: "DROWNED MIRE MAP",
@@ -319,7 +319,7 @@ describe("data-driven campaign tiers", () => {
         particleCount: 58,
       },
     });
-    expect(CAMPAIGN_TIERS.some((tier) => tier.biome === CAMPAIGN_BIOMES.mire)).toBe(false);
+    expect(campaignTier("mire").biome).toBe(CAMPAIGN_BIOMES.mire);
   });
 
   it("provides complete centralized selection artwork for current and upcoming biomes", () => {
@@ -353,6 +353,7 @@ describe("data-driven campaign tiers", () => {
     expect(campaignTier("volcanic")).toMatchObject(CAMPAIGN_TIER_ARTWORK.volcanic);
     expect(campaignTier("wasteland")).toMatchObject(CAMPAIGN_TIER_ARTWORK.wasteland);
     expect(campaignTier("rift")).toMatchObject(CAMPAIGN_TIER_ARTWORK.rift);
+    expect(campaignTier("mire")).toMatchObject(CAMPAIGN_TIER_ARTWORK.mire);
   });
 
   it("keeps tier order, requirements, rewards, enemies, bosses, and effects on definitions", () => {
@@ -414,6 +415,13 @@ describe("data-driven campaign tiers", () => {
       boss: "eclipse-regent",
       specialEnemies: ["rift-strider", "comet-slinger", "void-herald"],
       biome: CAMPAIGN_BIOMES.rift,
+    });
+    expect(campaignTier("mire")).toMatchObject({
+      order: 6,
+      unlock: { level: 19, previousTierId: "rift" },
+      boss: "mireheart-titan",
+      specialEnemies: ["mire-lurker", "sporecaster", "drowned-bulwark"],
+      biome: CAMPAIGN_BIOMES.mire,
     });
   });
 
@@ -553,6 +561,23 @@ describe("data-driven campaign tiers", () => {
       level: 16,
       defeatedTierIds: ["forest", "snowy", "desert", "volcanic", "wasteland"],
     })).toBe("rift");
+    const mire = campaignTier("mire");
+    expect(isCampaignTierUnlocked(mire, {
+      level: 19,
+      defeatedTierIds: ["forest", "snowy", "desert", "volcanic", "wasteland"],
+    })).toBe(false);
+    expect(isCampaignTierUnlocked(mire, {
+      level: 18,
+      defeatedTierIds: ["forest", "snowy", "desert", "volcanic", "wasteland", "rift"],
+    })).toBe(false);
+    expect(isCampaignTierUnlocked(mire, {
+      level: 19,
+      defeatedTierIds: ["forest", "snowy", "desert", "volcanic", "wasteland", "rift"],
+    })).toBe(true);
+    expect(highestUnlockedCampaignTierId({
+      level: 19,
+      defeatedTierIds: ["forest", "snowy", "desert", "volcanic", "wasteland", "rift"],
+    })).toBe("mire");
   });
 
   it("guarantees the three Snowbound threats in stable roster slots", () => {
@@ -619,6 +644,20 @@ describe("data-driven campaign tiers", () => {
     expect(selectEnemyRoster("same-seed", "rift")).toEqual(roster);
     expect(rosterMilestones(roster, campaignTier("rift").boss).at(-1))
       .toEqual({ night: 10, enemy: "eclipse-regent", label: "Eclipse Regent" });
+  });
+
+  it("guarantees the three Drowned Mire threats in stable roster slots", () => {
+    const roster = selectEnemyRoster("same-seed", "mire");
+    expect(roster).toEqual({
+      1: "basic",
+      2: "runner",
+      3: "mire-lurker",
+      5: "sporecaster",
+      7: "drowned-bulwark",
+    });
+    expect(selectEnemyRoster("same-seed", "mire")).toEqual(roster);
+    expect(rosterMilestones(roster, campaignTier("mire").boss).at(-1))
+      .toEqual({ night: 10, enemy: "mireheart-titan", label: "Mireheart Titan" });
   });
 
   it("assigns biome resource overlays deterministically without changing Forest", () => {
@@ -772,5 +811,35 @@ describe("data-driven campaign tiers", () => {
     expect(result?.grantedCampaignRewards).toEqual([]);
     expect(manager.profile.campaign.defeatedTierIds)
       .toEqual(["forest", "snowy", "desert", "volcanic", "wasteland"]);
+  });
+
+  it("persists an Astral Rift clear and announces Drowned Mire when its level gate is met", () => {
+    const store = new MemoryStore();
+    const profile = createDefaultProfile();
+    profile.lifetimeXp = lifetimeXpAtLevel(19);
+    profile.spendableXp = profile.lifetimeXp;
+    profile.playerLevel = 19;
+    profile.campaign.defeatedTierIds = [
+      "forest", "snowy", "desert", "volcanic", "wasteland",
+    ];
+    profile.campaign.claimedRewardIds = CAMPAIGN_TIERS
+      .flatMap((tier) => tier.milestones)
+      .filter((milestone) => milestone.level <= 19)
+      .map((milestone) => milestone.id);
+    store.setItem("flagfort-profile-v2", JSON.stringify(profile));
+    const manager = new ProfileManager(store);
+
+    expect(manager.beginRunSettlement("astral-clear", 0)).toBe(true);
+    const result = manager.settleRun("astral-clear", zeroXp, zeroCoins, {
+      nightsSurvived: 10,
+      victory: true,
+      structureScore: 200,
+      campaignTierId: "rift",
+    });
+
+    expect(result?.newlyUnlockedTierIds).toEqual(["mire"]);
+    expect(result?.grantedCampaignRewards).toEqual([]);
+    expect(manager.profile.campaign.defeatedTierIds)
+      .toEqual(["forest", "snowy", "desert", "volcanic", "wasteland", "rift"]);
   });
 });

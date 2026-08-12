@@ -42,7 +42,7 @@ function structure(id: number, kind: StructureKind, x: number, y: number): Struc
 }
 
 describe("mire enemies", () => {
-  it("registers Mire Lurker as a staged defender-hunting leech", () => {
+  it("registers Mire Lurker as a Drowned Mire defender-hunting leech", () => {
     const definition = ENEMY_REGISTRY["mire-lurker"];
 
     expect(definition.assets.portrait).toBe("enemies/mire-lurker-zombie");
@@ -55,9 +55,9 @@ describe("mire enemies", () => {
       particleCount: 12,
       popupText: "LEECH",
     });
-    expect(definition.rosterEligible).toBe(false);
-    for (const tier of CAMPAIGN_TIER_IDS) {
-      expect(Object.values(selectEnemyRoster("staged-mire-lurker", tier)))
+    expect(definition).toMatchObject({ rosterEligible: true, campaignTierIds: ["mire"] });
+    for (const tier of CAMPAIGN_TIER_IDS.filter((id) => id !== "mire")) {
+      expect(Object.values(selectEnemyRoster("isolated-mire-lurker", tier)))
         .not.toContain("mire-lurker");
     }
   });
@@ -98,7 +98,7 @@ describe("mire enemies", () => {
     expect(lurker.targetId).toBe("flag");
   });
 
-  it("registers Sporecaster as a staged piercing suppression enemy", () => {
+  it("registers Sporecaster as a Drowned Mire piercing suppression enemy", () => {
     const definition = ENEMY_REGISTRY.sporecaster;
 
     expect(definition.assets.portrait).toBe("enemies/sporecaster-zombie");
@@ -118,9 +118,9 @@ describe("mire enemies", () => {
         popupText: "Spored",
       },
     });
-    expect(definition.rosterEligible).toBe(false);
-    for (const tier of CAMPAIGN_TIER_IDS) {
-      expect(Object.values(selectEnemyRoster("staged-sporecaster", tier)))
+    expect(definition).toMatchObject({ rosterEligible: true, campaignTierIds: ["mire"] });
+    for (const tier of CAMPAIGN_TIER_IDS.filter((id) => id !== "mire")) {
+      expect(Object.values(selectEnemyRoster("isolated-sporecaster", tier)))
         .not.toContain("sporecaster");
     }
   });
@@ -161,7 +161,7 @@ describe("mire enemies", () => {
       .toBe(true);
   });
 
-  it("registers Drowned Bulwark as a staged armored breacher", () => {
+  it("registers Drowned Bulwark as a Drowned Mire armored breacher", () => {
     const definition = ENEMY_REGISTRY["drowned-bulwark"];
 
     expect(definition.assets.portrait).toBe("enemies/drowned-bulwark-zombie");
@@ -176,9 +176,9 @@ describe("mire enemies", () => {
       distance: 460,
       targetKinds: ["wall", "door", "spikes"],
     });
-    expect(definition.rosterEligible).toBe(false);
-    for (const tier of CAMPAIGN_TIER_IDS) {
-      expect(Object.values(selectEnemyRoster("staged-drowned-bulwark", tier)))
+    expect(definition).toMatchObject({ rosterEligible: true, campaignTierIds: ["mire"] });
+    for (const tier of CAMPAIGN_TIER_IDS.filter((id) => id !== "mire")) {
+      expect(Object.values(selectEnemyRoster("isolated-drowned-bulwark", tier)))
         .not.toContain("drowned-bulwark");
     }
   });
