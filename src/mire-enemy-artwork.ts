@@ -7,4 +7,8 @@ export const MIRE_ENEMY_ARTWORK = {
     armored: mireEnemyImage("drowned-bulwark-zombie"),
     broken: mireEnemyImage("drowned-bulwark-zombie-broken"),
   },
+  mireheartTitan: {
+    armored: mireEnemyImage("mireheart-titan"),
+    broken: mireEnemyImage("mireheart-titan-broken"),
+  },
 } as const;

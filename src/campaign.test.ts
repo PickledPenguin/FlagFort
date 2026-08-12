@@ -51,7 +51,7 @@ const zeroCoins: CoinSettlement = {
 };
 
 describe("data-driven campaign tiers", () => {
-  it("registers exactly three themed artwork entries for the upcoming Drowned Mire specials", () => {
+  it("registers a complete themed artwork set for the upcoming Drowned Mire enemies", () => {
     expect(MIRE_ENEMY_ARTWORK).toEqual({
       mireLurker: "enemies/mire-lurker-zombie",
       sporecaster: "enemies/sporecaster-zombie",
@@ -59,8 +59,12 @@ describe("data-driven campaign tiers", () => {
         armored: "enemies/drowned-bulwark-zombie",
         broken: "enemies/drowned-bulwark-zombie-broken",
       },
+      mireheartTitan: {
+        armored: "enemies/mireheart-titan",
+        broken: "enemies/mireheart-titan-broken",
+      },
     });
-    expect(Object.keys(MIRE_ENEMY_ARTWORK)).toHaveLength(3);
+    expect(Object.keys(MIRE_ENEMY_ARTWORK)).toHaveLength(4);
   });
 
   it("registers a complete Drowned Mire resource-art skin for the upcoming seventh tier", () => {
