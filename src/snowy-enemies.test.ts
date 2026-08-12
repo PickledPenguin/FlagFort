@@ -261,6 +261,49 @@ describe("Icebound armor", () => {
     expect(icebound.armor).toBe(0);
     expect(game.particles.filter((particle) => particle.text === "Break")).toHaveLength(1);
   });
+
+  it("dispatches configured break particles and status pulses without an enemy-kind branch", () => {
+    const originalArmor = ENEMY_REGISTRY.icebound.armor!;
+    ENEMY_REGISTRY.icebound.armor = {
+      ...originalArmor,
+      breakShardColors: [{ value: "#123456", weight: 1 }],
+      breakStatusPulse: {
+        radius: 160,
+        duration: 0.4,
+        statusEffect: {
+          kind: "slow",
+          duration: 2.25,
+          targets: ["player", "turret"],
+          popupTextColor: "#abcdef",
+        },
+        areaEffect: "frost-slam",
+        particleColor: "#234567",
+        particleCount: 5,
+        popupText: "TEST PULSE",
+        popupTextColor: "#abcdef",
+        popupTextOffsetY: -70,
+      },
+    };
+    try {
+      const game = gameFixture();
+      const icebound = spawn(game, "icebound", game.player.x + 100, game.player.y);
+      const turret = structure(732, "turret", icebound.x + 80, icebound.y);
+      game.structures = [turret];
+
+      damageEnemy(game, icebound, icebound.armor!, "player-melee");
+
+      expect(game.player.statuses?.slow?.remaining).toBe(2.25);
+      expect(turret.statuses?.slow?.remaining).toBe(2.25);
+      expect(game.areaEffects.some((effect) => effect.kind === "frost-slam")).toBe(true);
+      expect(game.particles.filter((particle) => particle.shape === "shard"))
+        .toHaveLength(originalArmor.breakShardCount);
+      expect(game.particles.filter((particle) => particle.shape === "shard")
+        .every((particle) => particle.color === "#123456")).toBe(true);
+      expect(game.particles.some((particle) => particle.text === "TEST PULSE")).toBe(true);
+    } finally {
+      ENEMY_REGISTRY.icebound.armor = originalArmor;
+    }
+  });
 });
 
 describe("Frost Warden", () => {
@@ -279,8 +322,9 @@ describe("Frost Warden", () => {
 
     expect(warden.armor).toBe(0);
     expect(warden.health).toBe(healthBefore);
-    expect(game.player.statuses?.slow?.remaining).toBe(BALANCE.snowyEnemies.frostWarden.slam.slowDuration);
-    expect(turret.statuses?.slow?.remaining).toBe(BALANCE.snowyEnemies.frostWarden.slam.slowDuration);
+    const pulse = ENEMY_REGISTRY["frost-warden"].armor!.breakStatusPulse!;
+    expect(game.player.statuses?.slow?.remaining).toBe(pulse.statusEffect.duration);
+    expect(turret.statuses?.slow?.remaining).toBe(pulse.statusEffect.duration);
     expect(wall.statuses).toBeUndefined();
     expect(game.areaEffects.filter((effect) => effect.kind === "frost-slam")).toHaveLength(1);
     expect(game.shake).toBe(ENEMY_REGISTRY["frost-warden"].armor!.breakShake);

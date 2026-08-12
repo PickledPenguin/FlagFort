@@ -3237,7 +3237,7 @@ export class Game {
       this.burst(
         this.player.x,
         this.player.y,
-        BALANCE.snowyEnemies.frostWarden.breakColor,
+        config.impactColor,
         8,
         `-${Math.round(damage)}`,
         BALANCE.snowyEnemies.slow.popupTextColor,
@@ -3255,7 +3255,7 @@ export class Game {
       if (structure.kind === "turret") this.applySlowStatus(structure, config.slowDuration);
       emitAudioCue({ cue: "structure-damaged", position: { x: structure.x, y: structure.y } });
     }
-    this.iceShardBurst(strike.x, strike.y, 22);
+    this.shardBurst(strike.x, strike.y, 22);
     this.shake = Math.max(this.shake, 9);
     emitAudioCue({ cue: "ice-shatter", position: { x: strike.x, y: strike.y } });
   }
@@ -3550,7 +3550,7 @@ export class Game {
       remaining -= armorDamage;
       applied += armorDamage;
       if (enemy.armor <= 0) {
-        this.shatterIceArmor(enemy);
+        this.breakEnemyArmor(enemy);
       }
     }
     if (remaining > 0) {
@@ -3561,49 +3561,57 @@ export class Game {
     return applied;
   }
 
-  private shatterIceArmor(enemy: Enemy): void {
+  private breakEnemyArmor(enemy: Enemy): void {
     const armorConfig = ENEMY_REGISTRY[enemy.kind].armor;
     if (!armorConfig) return;
-    this.iceShardBurst(
+    this.shardBurst(
       enemy.x,
       enemy.y,
       armorConfig.breakShardCount,
+      armorConfig.breakShardColors,
       armorConfig.breakText,
     );
-    emitAudioCue({ cue: "ice-shatter", position: { x: enemy.x, y: enemy.y } });
+    emitAudioCue({
+      cue: armorConfig.breakAudio as import("./audio").SoundId,
+      position: { x: enemy.x, y: enemy.y },
+    });
     this.shake = Math.max(this.shake, armorConfig.breakShake);
-    if (enemy.kind === "frost-warden") {
-      this.triggerFrostSlam(enemy);
-    }
-  }
-
-  private triggerFrostSlam(enemy: Enemy): void {
-    const config = BALANCE.snowyEnemies.frostWarden.slam;
-    if (distance(enemy, this.player) <= config.radius + this.player.radius) {
-      this.applySlowStatus(this.player, config.slowDuration);
-    }
-    for (const structure of this.structures) {
-      if (structure.kind !== "turret") continue;
-      if (distance(enemy, structure) > config.radius + structure.radius) continue;
-      this.applySlowStatus(structure, config.slowDuration);
-    }
+    const pulse = armorConfig.breakStatusPulse;
+    if (!pulse) return;
+    this.applyRadialStatusEffect(enemy, pulse.radius, pulse.statusEffect);
     this.areaEffects.push({
-      kind: "frost-slam",
+      kind: pulse.areaEffect,
       x: enemy.x,
       y: enemy.y,
-      radius: config.radius,
-      remaining: config.waveDuration,
-      duration: config.waveDuration,
+      radius: pulse.radius,
+      remaining: pulse.duration,
+      duration: pulse.duration,
     });
     this.burst(
       enemy.x,
       enemy.y,
-      BALANCE.snowyEnemies.frostWarden.breakColor,
-      30,
-      "FROST SLAM",
-      BALANCE.snowyEnemies.slow.popupTextColor,
-      -enemy.radius - 58,
+      pulse.particleColor,
+      pulse.particleCount,
+      pulse.popupText,
+      pulse.popupTextColor,
+      pulse.popupTextOffsetY,
     );
+  }
+
+  private applyRadialStatusEffect(
+    origin: { x: number; y: number },
+    radius: number,
+    effect: EnemyStatusEffect,
+  ): void {
+    if (effect.targets.includes("player")
+      && distance(origin, this.player) <= radius + this.player.radius) {
+      if (effect.kind === "slow") this.applySlowStatus(this.player, effect.duration);
+    }
+    for (const structure of this.structures) {
+      if (structure.kind !== "turret" || !effect.targets.includes("turret")) continue;
+      if (distance(origin, structure) > radius + structure.radius) continue;
+      if (effect.kind === "slow") this.applySlowStatus(structure, effect.duration);
+    }
   }
 
   private updateParticles(dt: number): void {
@@ -4011,7 +4019,14 @@ export class Game {
     }
   }
 
-  private iceShardBurst(x: number, y: number, count: number, text?: string): void {
+  private shardBurst(
+    x: number,
+    y: number,
+    count: number,
+    colors: readonly [{ value: string; weight: number }, ...Array<{ value: string; weight: number }>]
+      = [{ value: "#ffffff", weight: 0.45 }, { value: "#b9f5ff", weight: 0.55 }],
+    text?: string,
+  ): void {
     for (let index = 0; index < count; index += 1) {
       const angle = this.rng.range(0, Math.PI * 2);
       const speed = this.rng.range(90, 260);
@@ -4024,7 +4039,7 @@ export class Game {
         life,
         maxLife: life,
         radius: this.rng.range(3, 8),
-        color: this.rng.next() < 0.45 ? "#ffffff" : "#b9f5ff",
+        color: this.rng.weighted(colors),
         shape: "shard",
       });
     }

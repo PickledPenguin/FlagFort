@@ -70,7 +70,24 @@ describe("deterministic enemy roster", () => {
         expect(definition.armor.label).toBeTruthy();
         expect(definition.armor.brokenSprite).toMatch(/^enemies\//);
         expect(definition.armor.breakShardCount).toBeGreaterThan(0);
+        expect(definition.armor.breakShardColors.length).toBeGreaterThan(0);
+        for (const color of definition.armor.breakShardColors) {
+          expect(color.value).toMatch(/^#[0-9a-f]{6}$/i);
+          expect(color.weight).toBeGreaterThan(0);
+        }
+        expect(definition.armor.breakAudio).toBeTruthy();
         expect(definition.armor.breakShake).toBeGreaterThanOrEqual(0);
+        if (definition.armor.breakStatusPulse) {
+          const pulse = definition.armor.breakStatusPulse;
+          expect(pulse.radius).toBeGreaterThan(0);
+          expect(pulse.duration).toBeGreaterThan(0);
+          expect(pulse.statusEffect.duration).toBeGreaterThan(0);
+          expect(pulse.statusEffect.targets.length).toBeGreaterThan(0);
+          expect(pulse.particleColor).toMatch(/^#[0-9a-f]{6}$/i);
+          expect(pulse.particleCount).toBeGreaterThan(0);
+          expect(pulse.popupText).toBeTruthy();
+          expect(pulse.popupTextColor).toMatch(/^#[0-9a-f]{6}$/i);
+        }
       }
       if (definition.summon) {
         expect(definition.summon.initialCooldown.minimum).toBeGreaterThanOrEqual(0);

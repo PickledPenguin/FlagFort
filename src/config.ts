@@ -66,13 +66,8 @@ export const BALANCE = {
       popupTextColor: "#63c6e8",
     },
     frostWarden: {
-      breakColor: "#d9fbff",
-      slam: {
-        radius: 300,
-        slowDuration: 4.5,
-        waveDuration: 0.72,
-      },
       icicle: {
+        impactColor: "#d9fbff",
         count: 3,
         activationRadius: 780,
         cooldown: 4.8,
