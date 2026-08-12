@@ -42,6 +42,11 @@ describe("deterministic enemy roster", () => {
       expect(definition.targeting.mode).toBeTruthy();
       expect(definition.attack.mode).toBeTruthy();
       expect(definition.death.mode).toBeTruthy();
+      if (definition.render) {
+        expect(definition.render.aspectRatio).toBeGreaterThan(0);
+        expect(definition.render.height).toBeGreaterThan(0);
+        expect(definition.render.width ?? definition.render.height).toBeGreaterThan(0);
+      }
       if (definition.death.mode === "split") {
         expect(definition.death.childKind).toBeTruthy();
         expect(definition.death.splitCount).toBeGreaterThan(0);

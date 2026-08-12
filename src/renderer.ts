@@ -850,11 +850,12 @@ export class Renderer {
       ctx.restore();
     }
     ctx.rotate(angle);
-    const fullSpriteKinds: Enemy["kind"][] = ["gremlin", "splitter", "splitter-child", "popper", "archer", "acidslinger", "rammer", "frostbite", "snowballer", "icebound"];
-    if (fullSpriteKinds.includes(enemy.kind)) {
-      const armorConfig = ENEMY_REGISTRY[enemy.kind].armor;
-      const height = ENEMY_REGISTRY[enemy.kind].render?.height ?? 80;
-      const width = ENEMY_REGISTRY[enemy.kind].render?.width ?? height;
+    const definition = ENEMY_REGISTRY[enemy.kind];
+    const render = definition.render;
+    if (render) {
+      const armorConfig = definition.armor;
+      const height = render.height;
+      const width = render.width ?? height;
       const sprite = armorConfig && (enemy.armor ?? 0) <= 0
         ? ASSETS.enemyBrokenArmor[enemy.kind] ?? ASSETS.enemies[enemy.kind]
         : ASSETS.enemies[enemy.kind];
