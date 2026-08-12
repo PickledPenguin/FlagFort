@@ -6,6 +6,7 @@ import { allAssetPaths, ASSETS, RESOURCE_STATE_SKINS } from "./assets";
 import { CHALLENGES, nightTimeline } from "./challenges";
 import { CARD_DEFINITIONS, TUTORIAL_STAGES } from "./content";
 import { BALANCE } from "./config";
+import { ENEMY_REGISTRY } from "./enemy-registry";
 import { Game } from "./game";
 import { Input } from "./input";
 import { adaptiveDifficulty, expectedStructurePoints, rerollCost, structurePointValue } from "./rules";
@@ -178,7 +179,7 @@ describe("foundational refactor", () => {
     boss.y = game.player.y;
     boss.scanCooldown = 0;
     boss.acidCooldown = 0;
-    boss.acidWindup = BALANCE.boss.acidTelegraph - 0.01;
+    boss.acidWindup = ENEMY_REGISTRY.boss.aimedProjectile!.telegraphDuration - 0.01;
     game.enemies = [boss];
     game.update(0.02);
     expect(boss.targetId).toBe("flag");

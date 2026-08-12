@@ -933,15 +933,16 @@ export class Renderer {
         -Math.PI / 2 + Math.PI * 2 * slamProgress);
       ctx.stroke();
     }
-    if (enemy.kind === "boss" && enemy.acidWindup > 0) {
-      ctx.strokeStyle = "#cfff4c";
+    const aimedProjectile = ENEMY_REGISTRY[enemy.kind].aimedProjectile;
+    if (aimedProjectile && enemy.acidWindup > 0) {
+      ctx.strokeStyle = aimedProjectile.telegraphColor;
       ctx.lineWidth = 6;
       ctx.beginPath();
       ctx.arc(0, 0, enemy.radius + 18, -Math.PI / 2,
-        -Math.PI / 2 + Math.PI * 2 * Math.min(1, enemy.acidWindup / BALANCE.boss.acidTelegraph));
+        -Math.PI / 2 + Math.PI * 2 * Math.min(1, enemy.acidWindup / aimedProjectile.telegraphDuration));
       ctx.stroke();
       ctx.rotate(enemy.acidAimAngle);
-      ctx.fillStyle = "#b8ff3d";
+      ctx.fillStyle = aimedProjectile.color;
       ctx.beginPath();
       ctx.arc(enemy.radius + 12, 0, 8, 0, Math.PI * 2);
       ctx.fill();

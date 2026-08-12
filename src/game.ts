@@ -1928,7 +1928,7 @@ export class Game {
       bossSmashWindup: 0,
       bossSlamWave: 0,
       bossHalfSummoned: false,
-      acidCooldown: kind === "boss" ? BALANCE.boss.acidAttackInterval : 0,
+      acidCooldown: definition.aimedProjectile?.cooldown ?? 0,
       acidWindup: 0,
       acidAimAngle: 0,
       burning: false,
@@ -3111,7 +3111,8 @@ export class Game {
       this.updateAreaStrikeEnemy(enemy, dt);
     }
     if (ENEMY_REGISTRY[enemy.kind].phaseSlam) this.updateEnemyPhaseSlam(enemy, dt);
-    if (enemy.kind !== "boss") return;
+    const aimedProjectile = ENEMY_REGISTRY[enemy.kind].aimedProjectile;
+    if (!aimedProjectile) return;
     if (!this.flagPresent) return;
     enemy.targetId = "flag";
     const attackSpeed = enemy.attackSpeedMultiplier ?? 1;
@@ -3120,15 +3121,15 @@ export class Game {
     if (enemy.acidWindup > 0) {
       enemy.acidWindup += dt * attackSpeed;
       enemy.acidAimAngle = Math.atan2(this.player.y - enemy.y, this.player.x - enemy.x);
-      if (enemy.acidWindup >= BALANCE.boss.acidTelegraph) {
+      if (enemy.acidWindup >= aimedProjectile.telegraphDuration) {
         enemy.acidWindup = 0;
-        enemy.acidCooldown = BALANCE.boss.acidAttackInterval;
-        this.fireBossAcid(enemy);
+        enemy.acidCooldown = aimedProjectile.cooldown;
+        this.fireAimedEnemyProjectile(enemy);
       }
-    } else if (enemy.acidCooldown <= 0 && playerDistance <= BALANCE.boss.acidMaximumRange) {
+    } else if (enemy.acidCooldown <= 0 && playerDistance <= aimedProjectile.activationRange) {
       enemy.acidWindup = dt * attackSpeed;
       enemy.acidAimAngle = Math.atan2(this.player.y - enemy.y, this.player.x - enemy.x);
-      this.burst(enemy.x, enemy.y, "#b8ff3d", 6, "ACID");
+      this.burst(enemy.x, enemy.y, aimedProjectile.color, 6, aimedProjectile.popupText);
     }
   }
 
@@ -3325,7 +3326,9 @@ export class Game {
     });
   }
 
-  private fireBossAcid(enemy: Enemy): void {
+  private fireAimedEnemyProjectile(enemy: Enemy): void {
+    const config = ENEMY_REGISTRY[enemy.kind].aimedProjectile;
+    if (!config) return;
     let moveX = 0;
     let moveY = 0;
     if (this.input.keys.has("KeyA")) moveX -= 1;
@@ -3333,7 +3336,7 @@ export class Game {
     if (this.input.keys.has("KeyW")) moveY -= 1;
     if (this.input.keys.has("KeyS")) moveY += 1;
     const movementLength = Math.hypot(moveX, moveY) || 1;
-    const predictionDistance = BALANCE.player.speed * BALANCE.boss.acidPrediction;
+    const predictionDistance = BALANCE.player.speed * config.predictionSeconds;
     const predicted = {
       x: this.player.x + moveX / movementLength * predictionDistance,
       y: this.player.y + moveY / movementLength * predictionDistance,
@@ -3342,25 +3345,25 @@ export class Game {
     enemy.acidAimAngle = angle;
     this.projectiles.push({
       id: this.nextId++,
-      owner: "boss-acid",
+      owner: config.owner,
       ownerPlayerId: null,
-      damageSource: "boss-acid",
+      damageSource: config.damageSource,
       x: enemy.x + Math.cos(angle) * (enemy.radius + 10),
       y: enemy.y + Math.sin(angle) * (enemy.radius + 10),
       previousX: enemy.x,
       previousY: enemy.y,
-      vx: Math.cos(angle) * BALANCE.boss.acidSpeed,
-      vy: Math.sin(angle) * BALANCE.boss.acidSpeed,
-      radius: BALANCE.boss.acidRadius,
-      damage: BALANCE.boss.acidDamage
-        * (enemy.damage / Math.max(1, ENEMY_REGISTRY.boss.base.damage)),
-      rangeLeft: BALANCE.boss.acidRange,
-      lifetime: BALANCE.boss.acidLifetime,
+      vx: Math.cos(angle) * config.speed,
+      vy: Math.sin(angle) * config.speed,
+      radius: config.radius,
+      damage: config.damage
+        * (enemy.damage / Math.max(1, ENEMY_REGISTRY[enemy.kind].base.damage)),
+      rangeLeft: config.range,
+      lifetime: config.lifetime,
       hitIds: new Set(),
-      color: "#b8ff3d",
+      color: config.color,
     });
-    this.burst(enemy.x + Math.cos(angle) * enemy.radius, enemy.y + Math.sin(angle) * enemy.radius, "#d9ff64", 10);
-    emitAudioCue({ cue: "boss-acid-spit", position: { x: enemy.x, y: enemy.y } });
+    this.burst(enemy.x + Math.cos(angle) * enemy.radius, enemy.y + Math.sin(angle) * enemy.radius, config.muzzleColor, 10);
+    emitAudioCue({ cue: config.audio as import("./audio").SoundId, position: { x: enemy.x, y: enemy.y } });
   }
 
   private updateProjectiles(dt: number): void {

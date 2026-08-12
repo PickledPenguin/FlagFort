@@ -467,6 +467,30 @@ describe("Frost Warden", () => {
     expect(warden.acidWindup).toBe(0);
     expect(warden.bossSmashWindup).toBe(0);
   });
+
+  it("dispatches an aimed boss projectile through registry capability instead of enemy identity", () => {
+    const game = gameFixture();
+    const warden = spawn(game, "frost-warden", game.player.x + 200, game.player.y);
+    const inheritedVolley = ENEMY_REGISTRY.boss.aimedProjectile!;
+    ENEMY_REGISTRY[warden.kind].aimedProjectile = inheritedVolley;
+    try {
+      warden.acidWindup = inheritedVolley.telegraphDuration - 0.01;
+      (game as unknown as { updateBoss(enemy: Enemy, dt: number): void }).updateBoss(warden, 0.02);
+
+      expect(game.projectiles.at(-1)).toMatchObject({
+        owner: inheritedVolley.owner,
+        damageSource: inheritedVolley.damageSource,
+        color: inheritedVolley.color,
+        radius: inheritedVolley.radius,
+        rangeLeft: inheritedVolley.range,
+        lifetime: inheritedVolley.lifetime,
+      });
+      expect(Math.hypot(game.projectiles.at(-1)!.vx, game.projectiles.at(-1)!.vy))
+        .toBeCloseTo(inheritedVolley.speed);
+    } finally {
+      delete ENEMY_REGISTRY[warden.kind].aimedProjectile;
+    }
+  });
 });
 
 describe("snow projectile visuals", () => {

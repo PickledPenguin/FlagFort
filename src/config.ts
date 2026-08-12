@@ -186,15 +186,6 @@ export const BALANCE = {
   boss: {
     obstacleAttackRange: 18,
     obstaclePathWidth: 0.55,
-    acidAttackInterval: 5.5,
-    acidTelegraph: 0.8,
-    acidPrediction: 0.42,
-    acidMaximumRange: 760,
-    acidSpeed: 520,
-    acidDamage: 18,
-    acidRadius: 13,
-    acidRange: 900,
-    acidLifetime: 2.2,
   },
   punchHands: ["right", "left"] as const,
   harvester: {

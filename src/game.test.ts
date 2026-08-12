@@ -442,6 +442,7 @@ describe("phase and run rules", () => {
   });
 
   it("lets an acid projectile pierce and damage each player-built target once", () => {
+    const acid = ENEMY_REGISTRY.boss.aimedProjectile!;
     const game = new Game(fakeInput());
     game.startRun("normal", "acid-pierce");
     game.phase = "night";
@@ -465,16 +466,16 @@ describe("phase and run rules", () => {
       previousY: game.player.y,
       vx: 1000,
       vy: 0,
-      radius: BALANCE.boss.acidRadius,
-      damage: BALANCE.boss.acidDamage,
+      radius: acid.radius,
+      damage: acid.damage,
       rangeLeft: 900,
       lifetime: 2,
       hitIds: new Set(),
       color: "#b8ff3d",
     });
     game.update(0.2);
-    expect(game.player.health).toBe(game.player.maxHealth - BALANCE.boss.acidDamage);
-    expect(wall.health).toBe(150 - BALANCE.boss.acidDamage);
+    expect(game.player.health).toBe(game.player.maxHealth - acid.damage);
+    expect(wall.health).toBe(150 - acid.damage);
     const playerHealth = game.player.health;
     const wallHealth = wall.health;
     game.update(0.02);
