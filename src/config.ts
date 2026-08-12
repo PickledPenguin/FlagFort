@@ -195,15 +195,6 @@ export const BALANCE = {
     acidRadius: 13,
     acidRange: 900,
     acidLifetime: 2.2,
-    slam: {
-      chargeDuration: 1.25,
-      reinforcementCount: 10,
-      radius: 260,
-      playerDamage: 34,
-      flagDamage: 52,
-      structureDamage: 184,
-      waveDuration: 0.48,
-    },
   },
   punchHands: ["right", "left"] as const,
   harvester: {

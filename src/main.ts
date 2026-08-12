@@ -159,9 +159,9 @@ async function bootstrap(): Promise<void> {
         boss.y = bossPosition.y;
         boss.summonCooldown = 0;
         if (preview.get("bossSlamPreview") === "windup") {
-          boss.bossSmashWindup = BALANCE.boss.slam.chargeDuration * 0.6;
+        boss.bossSmashWindup = ENEMY_REGISTRY.boss.phaseSlam!.chargeDuration * 0.6;
         } else {
-          boss.bossSmashWindup = BALANCE.boss.slam.chargeDuration;
+        boss.bossSmashWindup = ENEMY_REGISTRY.boss.phaseSlam!.chargeDuration;
           (game as unknown as {
             updateBoss(enemy: typeof boss, dt: number): void;
           }).updateBoss(boss, 0);

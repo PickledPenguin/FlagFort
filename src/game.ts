@@ -3068,8 +3068,9 @@ export class Game {
   private updateBoss(enemy: Enemy, dt: number): void {
     if (ENEMY_REGISTRY[enemy.kind].areaStrike) {
       this.updateAreaStrikeEnemy(enemy, dt);
-      return;
     }
+    if (ENEMY_REGISTRY[enemy.kind].phaseSlam) this.updateEnemyPhaseSlam(enemy, dt);
+    if (enemy.kind !== "boss") return;
     if (!this.flagPresent) return;
     enemy.targetId = "flag";
     const attackSpeed = enemy.attackSpeedMultiplier ?? 1;
@@ -3088,39 +3089,43 @@ export class Game {
       enemy.acidAimAngle = Math.atan2(this.player.y - enemy.y, this.player.x - enemy.x);
       this.burst(enemy.x, enemy.y, "#b8ff3d", 6, "ACID");
     }
-    if (!enemy.bossHalfSummoned && enemy.health <= enemy.maxHealth * 0.5) {
+  }
+
+  private updateEnemyPhaseSlam(enemy: Enemy, dt: number): void {
+    const config = ENEMY_REGISTRY[enemy.kind].phaseSlam;
+    if (!config || !this.flagPresent) return;
+    enemy.targetId = "flag";
+    if (!enemy.bossHalfSummoned && enemy.health <= enemy.maxHealth * config.triggerHealthRatio) {
       enemy.bossHalfSummoned = true;
       enemy.bossSmashWindup = Number.EPSILON;
     }
-    if (enemy.bossSmashWindup > 0) {
-      enemy.bossSmashWindup += dt * attackSpeed;
-    }
-    if (enemy.bossSmashWindup >= BALANCE.boss.slam.chargeDuration) {
+    if (enemy.bossSmashWindup > 0) enemy.bossSmashWindup += dt * (enemy.attackSpeedMultiplier ?? 1);
+    if (enemy.bossSmashWindup >= config.chargeDuration) {
       enemy.bossSmashWindup = 0;
-      for (let index = 0; index < BALANCE.boss.slam.reinforcementCount; index += 1) {
-        this.spawnEnemy(enemy, "basic", enemy.id);
+      for (let index = 0; index < config.reinforcementCount; index += 1) {
+        this.spawnEnemy(enemy, config.reinforcementKind, enemy.id);
       }
-      enemy.bossSlamWave = BALANCE.boss.slam.waveDuration;
+      enemy.bossSlamWave = config.waveDuration;
       const playerEdgeDistance = Math.max(0, distance(enemy, this.player) - this.player.radius);
-      if (playerEdgeDistance <= BALANCE.boss.slam.radius) {
+      if (playerEdgeDistance <= config.radius) {
         const damage = this.applyIncomingDamage(
           this.player,
-          BALANCE.boss.slam.playerDamage
+          config.playerDamage
             * (enemy.damage / Math.max(1, ENEMY_REGISTRY[enemy.kind].base.damage)),
-          "boss",
+          enemy.kind,
           "enemy",
         );
         this.player.hurtFlash = 0.3;
-        this.burst(this.player.x, this.player.y, "#ff6b55", 10, `-${Math.round(damage)}`);
+        this.burst(this.player.x, this.player.y, config.particleColor, 10, `-${Math.round(damage)}`);
       }
       if (this.flagPresent) {
         const flagEdgeDistance = Math.max(0, distance(enemy, this.flag) - this.flag.radius);
-        if (flagEdgeDistance <= BALANCE.boss.slam.radius) {
+        if (flagEdgeDistance <= config.radius) {
           this.applyIncomingDamage(
             this.flag,
-            BALANCE.boss.slam.flagDamage
+            config.flagDamage
               * (enemy.damage / Math.max(1, ENEMY_REGISTRY[enemy.kind].base.damage)),
-            "boss",
+            enemy.kind,
             "enemy",
           );
           this.flag.hurtFlash = 0.3;
@@ -3130,12 +3135,12 @@ export class Game {
       for (const structure of this.structures) {
         if (!this.isOwnedByPlayer(structure, this.player.id)) continue;
         const edgeDistance = Math.max(0, distance(enemy, structure) - structure.radius);
-        if (edgeDistance <= BALANCE.boss.slam.radius) {
+        if (edgeDistance <= config.radius) {
           this.applyIncomingDamage(
             structure,
-            BALANCE.boss.slam.structureDamage
+            config.structureDamage
               * (enemy.structureDamage / Math.max(1, ENEMY_REGISTRY[enemy.kind].base.structureDamage)),
-            "boss",
+            enemy.kind,
             "enemy",
           );
           structure.flash = 0.3;
@@ -3143,16 +3148,19 @@ export class Game {
         }
       }
       this.areaEffects.push({
-        kind: "boss-slam",
+        kind: config.areaEffect,
         x: enemy.x,
         y: enemy.y,
-        radius: BALANCE.boss.slam.radius,
-        remaining: BALANCE.boss.slam.waveDuration,
-        duration: BALANCE.boss.slam.waveDuration,
+        radius: config.radius,
+        remaining: config.waveDuration,
+        duration: config.waveDuration,
       });
-      this.burst(enemy.x, enemy.y, "#ff6b55", 28, "GROUND SLAM");
-      this.shake = 14;
-      emitAudioCue({ cue: "breaker-smash", position: { x: enemy.x, y: enemy.y } });
+      this.burst(enemy.x, enemy.y, config.particleColor, config.particleCount, config.popupText);
+      this.shake = config.screenShake;
+      emitAudioCue({
+        cue: config.impactAudio as import("./audio").SoundId,
+        position: { x: enemy.x, y: enemy.y },
+      });
     }
   }
 
@@ -3512,10 +3520,11 @@ export class Game {
     enemy.lastHitByPlayerId = ownerPlayerId;
     const healthBefore = Math.max(0, enemy.health);
     const appliedDamage = this.routeEnemyDamage(enemy, amount, source);
-    if (enemy.kind === "boss"
+    const phaseSlam = ENEMY_REGISTRY[enemy.kind].phaseSlam;
+    if (phaseSlam
       && !enemy.bossHalfSummoned
-      && healthBefore > enemy.maxHealth * 0.5
-      && enemy.health <= enemy.maxHealth * 0.5) {
+      && healthBefore > enemy.maxHealth * phaseSlam.triggerHealthRatio
+      && enemy.health <= enemy.maxHealth * phaseSlam.triggerHealthRatio) {
       enemy.bossHalfSummoned = true;
       enemy.bossSmashWindup = Number.EPSILON;
     }

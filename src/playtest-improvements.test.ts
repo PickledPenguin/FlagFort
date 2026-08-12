@@ -228,13 +228,14 @@ describe("true player-side area attacks", () => {
       .map((kind, index) => structure(500 + index, kind, boss.x + 90 + index * 3, boss.y));
     const flagBefore = game.flag.health;
     boss.summonCooldown = 0;
-    boss.bossSmashWindup = BALANCE.boss.slam.chargeDuration - 0.01;
+    const slam = ENEMY_REGISTRY.boss.phaseSlam!;
+    boss.bossSmashWindup = slam.chargeDuration - 0.01;
     (game as unknown as { updateBoss(enemy: Enemy, dt: number): void }).updateBoss(boss, 0.02);
     expect(game.player.health).toBeLessThan(game.player.maxHealth);
-    expect(game.flag.health).toBeCloseTo(flagBefore - BALANCE.boss.slam.flagDamage
+    expect(game.flag.health).toBeCloseTo(flagBefore - slam.flagDamage
       * boss.damage / ENEMY_REGISTRY.boss.base.damage);
     expect(game.structures.every((item) => item.health < item.maxHealth)).toBe(true);
-    expect(game.areaEffects.at(-1)).toMatchObject({ kind: "boss-slam", radius: BALANCE.boss.slam.radius });
+    expect(game.areaEffects.at(-1)).toMatchObject({ kind: "boss-slam", radius: slam.radius });
   });
 
   it("Popper combat death bursts across all targets, while forced cleanup stays inert", () => {

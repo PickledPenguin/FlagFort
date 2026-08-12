@@ -365,13 +365,14 @@ describe("combat and roster playtest fixes", () => {
     game.player.y = boss.y;
     const playerBefore = game.player.health;
     boss.summonCooldown = 0;
-    boss.bossSmashWindup = BALANCE.boss.slam.chargeDuration - 0.01;
+    const slam = ENEMY_REGISTRY.boss.phaseSlam!;
+    boss.bossSmashWindup = slam.chargeDuration - 0.01;
     (game as unknown as { updateBoss(enemy: Enemy, dt: number): void }).updateBoss(boss, 0.02);
-    expect(wall.health).toBeCloseTo(500 - BALANCE.boss.slam.structureDamage
+    expect(wall.health).toBeCloseTo(500 - slam.structureDamage
       * boss.structureDamage / ENEMY_REGISTRY.boss.base.structureDamage);
-    expect(game.player.health).toBeCloseTo(playerBefore - BALANCE.boss.slam.playerDamage
+    expect(game.player.health).toBeCloseTo(playerBefore - slam.playerDamage
       * boss.damage / ENEMY_REGISTRY.boss.base.damage);
-    expect(boss.bossSlamWave).toBe(BALANCE.boss.slam.waveDuration);
+    expect(boss.bossSlamWave).toBe(slam.waveDuration);
     const after = wall.health;
     (game as unknown as { updateBoss(enemy: Enemy, dt: number): void }).updateBoss(boss, 0.1);
     expect(wall.health).toBe(after);

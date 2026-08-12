@@ -57,17 +57,42 @@ describe("base boss polish", () => {
     }).damageEnemy(boss, boss.maxHealth * 0.7, "#fff", "player-melee", game.player.id);
 
     expect(boss.bossHalfSummoned).toBe(true);
-    updateBoss(boss, BALANCE.boss.slam.chargeDuration + 0.01);
+    const slam = ENEMY_REGISTRY.boss.phaseSlam!;
+    updateBoss(boss, slam.chargeDuration + 0.01);
 
     expect(game.enemies.filter((enemy) => enemy.summonedBy === boss.id && enemy.kind === "basic"))
-      .toHaveLength(BALANCE.boss.slam.reinforcementCount);
+      .toHaveLength(slam.reinforcementCount);
     expect(game.areaEffects.filter((effect) => effect.kind === "boss-slam")).toHaveLength(1);
 
     boss.health = boss.maxHealth * 0.1;
-    updateBoss(boss, BALANCE.boss.slam.chargeDuration * 2);
+    updateBoss(boss, slam.chargeDuration * 2);
     expect(game.enemies.filter((enemy) => enemy.summonedBy === boss.id && enemy.kind === "basic"))
-      .toHaveLength(BALANCE.boss.slam.reinforcementCount);
+      .toHaveLength(slam.reinforcementCount);
     expect(game.areaEffects.filter((effect) => effect.kind === "boss-slam")).toHaveLength(1);
+  });
+
+  it("dispatches the configured health phase without relying on the Forest boss identity", () => {
+    const game = gameFixture("normal", "snowy");
+    const warden = spawn(game, "frost-warden", game.flag.x + 900, game.flag.y);
+    const inheritedSlam = ENEMY_REGISTRY.boss.phaseSlam!;
+    ENEMY_REGISTRY["frost-warden"].phaseSlam = { ...inheritedSlam, reinforcementCount: 2 };
+
+    try {
+      warden.health = warden.maxHealth * inheritedSlam.triggerHealthRatio;
+      const updateBoss = (game as unknown as {
+        updateBoss(enemy: Enemy, dt: number): void;
+      }).updateBoss.bind(game);
+      updateBoss(warden, inheritedSlam.chargeDuration + 0.01);
+
+      expect(game.enemies.filter((enemy) => enemy.summonedBy === warden.id))
+        .toHaveLength(2);
+      expect(game.areaEffects.at(-1)).toMatchObject({
+        kind: inheritedSlam.areaEffect,
+        radius: inheritedSlam.radius,
+      });
+    } finally {
+      delete ENEMY_REGISTRY["frost-warden"].phaseSlam;
+    }
   });
 
   it("hits a nearby player without abandoning its march toward the flag", () => {

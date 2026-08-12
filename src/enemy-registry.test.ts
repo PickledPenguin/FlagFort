@@ -158,6 +158,24 @@ describe("deterministic enemy roster", () => {
         expect(definition.areaStrike.screenShake).toBeGreaterThanOrEqual(0);
         expect(definition.areaStrike.impactAudio).toBeTruthy();
       }
+      if (definition.phaseSlam) {
+        expect(definition.phaseSlam.triggerHealthRatio).toBeGreaterThan(0);
+        expect(definition.phaseSlam.triggerHealthRatio).toBeLessThan(1);
+        expect(definition.phaseSlam.chargeDuration).toBeGreaterThan(0);
+        expect(ENEMY_REGISTRY[definition.phaseSlam.reinforcementKind]).toBeTruthy();
+        expect(definition.phaseSlam.reinforcementCount).toBeGreaterThan(0);
+        expect(definition.phaseSlam.radius).toBeGreaterThan(0);
+        expect(definition.phaseSlam.playerDamage).toBeGreaterThan(0);
+        expect(definition.phaseSlam.flagDamage).toBeGreaterThan(0);
+        expect(definition.phaseSlam.structureDamage).toBeGreaterThan(0);
+        expect(definition.phaseSlam.waveDuration).toBeGreaterThan(0);
+        expect(definition.phaseSlam.particleColor).toMatch(/^#[0-9a-f]{6}$/i);
+        expect(definition.phaseSlam.particleCount).toBeGreaterThan(0);
+        expect(definition.phaseSlam.popupText).toBeTruthy();
+        expect(definition.phaseSlam.telegraphColor).toBeTruthy();
+        expect(definition.phaseSlam.screenShake).toBeGreaterThanOrEqual(0);
+        expect(definition.phaseSlam.impactAudio).toBeTruthy();
+      }
     }
   });
 });

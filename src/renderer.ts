@@ -747,26 +747,27 @@ export class Renderer {
       ctx.arc(0, 0, enemy.radius + 11, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * enemy.attackWindup);
       ctx.stroke();
     }
-    if (enemy.kind === "boss" && enemy.bossSmashWindup > 0) {
+    const phaseSlam = ENEMY_REGISTRY[enemy.kind].phaseSlam;
+    if (phaseSlam && enemy.bossSmashWindup > 0) {
       const slamProgress = Math.min(
         1,
-        enemy.bossSmashWindup / BALANCE.boss.slam.chargeDuration,
+        enemy.bossSmashWindup / phaseSlam.chargeDuration,
       );
-      const slamDiameter = BALANCE.boss.slam.radius * 2;
+      const slamDiameter = phaseSlam.radius * 2;
       ctx.save();
       ctx.globalAlpha = 0.3 + slamProgress * 0.18;
       this.drawSprite(
         ASSETS.effects.bossSlamWave,
-        -BALANCE.boss.slam.radius,
-        -BALANCE.boss.slam.radius,
+        -phaseSlam.radius,
+        -phaseSlam.radius,
         slamDiameter,
         slamDiameter,
       );
       ctx.restore();
-      ctx.strokeStyle = "rgba(255,92,76,.82)";
+      ctx.strokeStyle = phaseSlam.telegraphColor;
       ctx.lineWidth = 8;
       ctx.beginPath();
-      ctx.arc(0, 0, BALANCE.boss.slam.radius, -Math.PI / 2,
+      ctx.arc(0, 0, phaseSlam.radius, -Math.PI / 2,
         -Math.PI / 2 + Math.PI * 2 * slamProgress);
       ctx.stroke();
     }
