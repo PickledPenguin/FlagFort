@@ -38,7 +38,8 @@ export type RosterEnemyKind =
   | "sludge-lobber"
   | "ruin-siren"
   | "rift-strider"
-  | "comet-slinger";
+  | "comet-slinger"
+  | "void-herald";
 export type BossEnemyKind = "boss" | "frost-warden" | "dune-colossus" | "caldera-sovereign" | "reactor-revenant";
 export type EnemyKind = RosterEnemyKind | "splitter-child" | BossEnemyKind;
 export type PlayerId = string;

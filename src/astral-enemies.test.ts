@@ -142,4 +142,56 @@ describe("astral enemies", () => {
     expect(game.projectiles).toHaveLength(1);
     expect(game.particles.some((particle) => particle.color === "#b89cff")).toBe(true);
   });
+
+  it("registers the staged Void Herald as a capped Rift Strider caller", () => {
+    const definition = ENEMY_REGISTRY["void-herald"];
+
+    expect(definition.assets.portrait).toBe("enemies/void-herald-zombie");
+    expect(definition.render).toEqual({ aspectRatio: 122 / 112, width: 93, height: 85 });
+    expect(definition.summon).toMatchObject({
+      cooldown: 5.6,
+      cappedRetryCooldown: 1.8,
+      maximumLiving: 3,
+      kinds: ["rift-strider"],
+      particleColor: "#a878ff",
+      popupText: "ASTRAL GATE",
+    });
+    expect(definition.rosterEligible).toBe(false);
+    for (const tier of ["forest", "snowy", "desert", "volcanic", "wasteland"] as const) {
+      expect(Object.values(selectEnemyRoster("staged-void-herald", tier)))
+        .not.toContain("void-herald");
+    }
+  });
+
+  it("opens capped Rift Strider gates without adding summons to wave accounting", () => {
+    const game = gameFixture();
+    const definition = ENEMY_REGISTRY["void-herald"];
+    const herald = spawn(game, "void-herald", game.flag.x + 320, game.flag.y);
+    herald.summonCooldown = 0;
+
+    (game as unknown as { updateEnemySummon(enemy: Enemy, dt: number): void })
+      .updateEnemySummon(herald, BALANCE.fixedStep);
+
+    const summoned = game.enemies.find((enemy) => enemy.summonedBy === herald.id);
+    expect(summoned).toMatchObject({ kind: "rift-strider", countsTowardWave: false });
+    expect(herald.summonCooldown).toBe(definition.summon!.cooldown);
+    expect(game.particles.some((particle) => particle.color === "#a878ff")).toBe(true);
+    expect(game.particles.some((particle) => particle.text === "ASTRAL GATE")).toBe(true);
+
+    game.enemies = [
+      herald,
+      ...Array.from({ length: definition.summon!.maximumLiving }, (_, index) => ({
+        ...summoned!,
+        id: 1500 + index,
+        summonedBy: herald.id,
+        health: 1,
+      })),
+    ];
+    herald.summonCooldown = 0;
+    (game as unknown as { updateEnemySummon(enemy: Enemy, dt: number): void })
+      .updateEnemySummon(herald, BALANCE.fixedStep);
+
+    expect(game.enemies).toHaveLength(definition.summon!.maximumLiving + 1);
+    expect(herald.summonCooldown).toBe(definition.summon!.cappedRetryCooldown);
+  });
 });
