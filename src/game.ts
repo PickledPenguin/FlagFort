@@ -1840,6 +1840,7 @@ export class Game {
     child = false,
     countsTowardWave = true,
   ): void {
+    const definition = ENEMY_REGISTRY[kind];
     const base = BALANCE.enemy[kind];
     const difficulty = BALANCE.difficulty[this.difficulty];
     const bossDifficulty = this.isBossEnemyKind(kind)
@@ -1952,16 +1953,12 @@ export class Game {
       chargeDistanceLeft: 0,
       chargeDamageLeft: 0,
       chargeHitIds: new Set(),
-      iceArmor: kind === "icebound"
-        ? BALANCE.snowyEnemies.icebound.armorHealth
-        : kind === "frost-warden"
-          ? BALANCE.snowyEnemies.frostWarden.armorHealth * health / Math.max(1, base.health)
-          : undefined,
-      maxIceArmor: kind === "icebound"
-        ? BALANCE.snowyEnemies.icebound.armorHealth
-        : kind === "frost-warden"
-          ? BALANCE.snowyEnemies.frostWarden.armorHealth * health / Math.max(1, base.health)
-          : undefined,
+      armor: definition.armor
+        ? definition.armor.health * (definition.armor.scalesWithHealth ? health / Math.max(1, base.health) : 1)
+        : undefined,
+      maxArmor: definition.armor
+        ? definition.armor.health * (definition.armor.scalesWithHealth ? health / Math.max(1, base.health) : 1)
+        : undefined,
       icicleCooldown: kind === "frost-warden"
         ? BALANCE.snowyEnemies.frostWarden.icicle.initialCooldown
         : undefined,
@@ -3469,7 +3466,7 @@ export class Game {
     enemy.flash = 0.18;
     // No hurt sound, too distracting, not necessary
     //emitAudioCue({ cue: "zombie-hurt", position: { x: enemy.x, y: enemy.y } });
-    const displayedDamage = enemy.kind === "icebound" || enemy.kind === "frost-warden"
+    const displayedDamage = ENEMY_REGISTRY[enemy.kind].armor
       ? appliedDamage
       : amount;
     this.burst(enemy.x, enemy.y, color, 6, `-${Math.round(displayedDamage)}`);
@@ -3494,19 +3491,16 @@ export class Game {
   private routeEnemyDamage(enemy: Enemy, requestedAmount: number, source: DamageSource): number {
     let remaining = Math.max(0, requestedAmount);
     let applied = 0;
-    if ((enemy.kind === "icebound" || enemy.kind === "frost-warden")
-      && (enemy.iceArmor ?? 0) > 0) {
+    const armorConfig = ENEMY_REGISTRY[enemy.kind].armor;
+    if (armorConfig && (enemy.armor ?? 0) > 0) {
       if (source === "player-bow" || source === "turret") {
-        const resistance = enemy.kind === "icebound"
-          ? BALANCE.snowyEnemies.icebound.projectileResistance
-          : BALANCE.snowyEnemies.frostWarden.armorProjectileResistance;
-        remaining *= 1 - resistance;
+        remaining *= 1 - armorConfig.projectileResistance;
       }
-      const armorDamage = Math.min(enemy.iceArmor ?? 0, remaining);
-      enemy.iceArmor = Math.max(0, (enemy.iceArmor ?? 0) - armorDamage);
+      const armorDamage = Math.min(enemy.armor ?? 0, remaining);
+      enemy.armor = Math.max(0, (enemy.armor ?? 0) - armorDamage);
       remaining -= armorDamage;
       applied += armorDamage;
-      if (enemy.iceArmor <= 0) {
+      if (enemy.armor <= 0) {
         this.shatterIceArmor(enemy);
       }
     }
@@ -3519,18 +3513,18 @@ export class Game {
   }
 
   private shatterIceArmor(enemy: Enemy): void {
+    const armorConfig = ENEMY_REGISTRY[enemy.kind].armor;
+    if (!armorConfig) return;
     this.iceShardBurst(
       enemy.x,
       enemy.y,
-      enemy.kind === "frost-warden" ? 58 : 34,
-      enemy.kind === "frost-warden" ? undefined : "Break",
+      armorConfig.breakShardCount,
+      armorConfig.breakText,
     );
     emitAudioCue({ cue: "ice-shatter", position: { x: enemy.x, y: enemy.y } });
+    this.shake = Math.max(this.shake, armorConfig.breakShake);
     if (enemy.kind === "frost-warden") {
-      this.shake = Math.max(this.shake, BALANCE.snowyEnemies.frostWarden.armorBreakShake);
       this.triggerFrostSlam(enemy);
-    } else {
-      this.shake = Math.max(this.shake, 8);
     }
   }
 

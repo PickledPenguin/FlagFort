@@ -180,8 +180,8 @@ export interface Enemy extends Circle {
   chargeDistanceLeft?: number;
   chargeDamageLeft?: number;
   chargeHitIds?: Set<number>;
-  iceArmor?: number;
-  maxIceArmor?: number;
+  armor?: number;
+  maxArmor?: number;
   icicleCooldown?: number;
   icicleAttackSerial?: number;
 }

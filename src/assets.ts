@@ -60,8 +60,9 @@ export const ASSETS = {
   } satisfies Record<ResourceKind, string>,
   resourceStateSkins: RESOURCE_STATE_SKINS,
   enemies: Object.fromEntries(Object.values(ENEMY_REGISTRY).map((entry) => [entry.id, image(entry.assets.portrait)])) as Record<EnemyKind, string>,
-  iceboundBroken: image("enemies/icebound-zombie-broken"),
-  frostWardenBroken: image("enemies/frost-warden-broken"),
+  enemyBrokenArmor: Object.fromEntries(Object.values(ENEMY_REGISTRY)
+    .filter((entry) => entry.armor)
+    .map((entry) => [entry.id, image(entry.armor!.brokenSprite)])) as Partial<Record<EnemyKind, string>>,
   enemyBodies: Object.fromEntries(Object.values(ENEMY_REGISTRY).map((entry) => [entry.id, image(entry.assets.body)])) as Record<EnemyKind, string>,
   enemyHands: Object.fromEntries(Object.values(ENEMY_REGISTRY).map((entry) => [entry.id, image(entry.assets.hand)])) as Record<EnemyKind, string>,
   player: {

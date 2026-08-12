@@ -42,6 +42,16 @@ describe("deterministic enemy roster", () => {
       expect(definition.targeting.mode).toBeTruthy();
       expect(definition.attack.mode).toBeTruthy();
       expect(definition.death.mode).toBeTruthy();
+      if (definition.armor) {
+        expect(definition.armor.health).toBeGreaterThan(0);
+        expect(definition.armor.projectileResistance).toBeGreaterThanOrEqual(0);
+        expect(definition.armor.projectileResistance).toBeLessThan(1);
+        expect(definition.armor.barColor).toMatch(/^#[0-9a-f]{6}$/i);
+        expect(definition.armor.label).toBeTruthy();
+        expect(definition.armor.brokenSprite).toMatch(/^enemies\//);
+        expect(definition.armor.breakShardCount).toBeGreaterThan(0);
+        expect(definition.armor.breakShake).toBeGreaterThanOrEqual(0);
+      }
     }
   });
 });

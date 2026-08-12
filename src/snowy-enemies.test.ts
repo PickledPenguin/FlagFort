@@ -202,23 +202,24 @@ describe("Icebound armor", () => {
   it("spawns with configured armor and routes melee damage to armor before health", () => {
     const game = gameFixture();
     const icebound = spawn(game, "icebound", game.player.x + 100, game.player.y);
-    expect(icebound.iceArmor).toBe(BALANCE.snowyEnemies.icebound.armorHealth);
-    expect(icebound.maxIceArmor).toBe(BALANCE.snowyEnemies.icebound.armorHealth);
+    const armor = ENEMY_REGISTRY.icebound.armor!;
+    expect(icebound.armor).toBe(armor.health);
+    expect(icebound.maxArmor).toBe(armor.health);
     const healthBefore = icebound.health;
     damageEnemy(game, icebound, 20, "player-melee");
-    expect(icebound.iceArmor).toBe(BALANCE.snowyEnemies.icebound.armorHealth - 20);
+    expect(icebound.armor).toBe(armor.health - 20);
     expect(icebound.health).toBe(healthBefore);
   });
 
   it("reduces projectile damage only while armor remains", () => {
     const game = gameFixture();
     const icebound = spawn(game, "icebound", game.player.x + 100, game.player.y);
+    const armor = ENEMY_REGISTRY.icebound.armor!;
     damageEnemy(game, icebound, 20, "turret");
-    expect(icebound.iceArmor).toBe(
-      BALANCE.snowyEnemies.icebound.armorHealth
-        - 20 * (1 - BALANCE.snowyEnemies.icebound.projectileResistance),
+    expect(icebound.armor).toBe(
+      armor.health - 20 * (1 - armor.projectileResistance),
     );
-    icebound.iceArmor = 0;
+    icebound.armor = 0;
     const healthBefore = icebound.health;
     damageEnemy(game, icebound, 20, "player-bow");
     expect(icebound.health).toBe(healthBefore - 20);
@@ -227,14 +228,14 @@ describe("Icebound armor", () => {
   it("breaks once, removes armor, spills excess damage into health, and never regenerates", () => {
     const game = gameFixture();
     const icebound = spawn(game, "icebound", game.player.x + 100, game.player.y);
-    const armor = icebound.iceArmor!;
+    const armor = icebound.armor!;
     const healthBefore = icebound.health;
     damageEnemy(game, icebound, armor + 25, "player-melee");
-    expect(icebound.iceArmor).toBe(0);
+    expect(icebound.armor).toBe(0);
     expect(icebound.health).toBe(healthBefore - 25);
     expect(game.particles.filter((particle) => particle.text === "Break")).toHaveLength(1);
     damageEnemy(game, icebound, 5, "player-melee");
-    expect(icebound.iceArmor).toBe(0);
+    expect(icebound.armor).toBe(0);
     expect(game.particles.filter((particle) => particle.text === "Break")).toHaveLength(1);
   });
 });
@@ -249,17 +250,17 @@ describe("Frost Warden", () => {
     game.structures = [turret, wall];
 
     expect(warden.health).toBeLessThan(firstBoss.health);
-    expect(warden.maxIceArmor! + warden.maxHealth).toBeGreaterThan(firstBoss.maxHealth);
+    expect(warden.maxArmor! + warden.maxHealth).toBeGreaterThan(firstBoss.maxHealth);
     const healthBefore = warden.health;
-    damageEnemy(game, warden, warden.iceArmor!, "player-melee");
+    damageEnemy(game, warden, warden.armor!, "player-melee");
 
-    expect(warden.iceArmor).toBe(0);
+    expect(warden.armor).toBe(0);
     expect(warden.health).toBe(healthBefore);
     expect(game.player.statuses?.slow?.remaining).toBe(BALANCE.snowyEnemies.frostWarden.slam.slowDuration);
     expect(turret.statuses?.slow?.remaining).toBe(BALANCE.snowyEnemies.frostWarden.slam.slowDuration);
     expect(wall.statuses).toBeUndefined();
     expect(game.areaEffects.filter((effect) => effect.kind === "frost-slam")).toHaveLength(1);
-    expect(game.shake).toBe(BALANCE.snowyEnemies.frostWarden.armorBreakShake);
+    expect(game.shake).toBe(ENEMY_REGISTRY["frost-warden"].armor!.breakShake);
 
     damageEnemy(game, warden, 5, "player-melee");
     expect(game.areaEffects.filter((effect) => effect.kind === "frost-slam")).toHaveLength(1);

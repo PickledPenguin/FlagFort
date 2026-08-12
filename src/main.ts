@@ -139,7 +139,7 @@ async function bootstrap(): Promise<void> {
         } else if (preview.get("frostWardenPreview") === "slam") {
           (game as unknown as {
             damageEnemy(enemy: typeof warden, amount: number, color: string, source: "player-melee", ownerId: string): void;
-          }).damageEnemy(warden, warden.iceArmor ?? 0, "#fff", "player-melee", game.player.id);
+          }).damageEnemy(warden, warden.armor ?? 0, "#fff", "player-melee", game.player.id);
           warden.flash = 0;
           const slam = game.areaEffects.find((effect) => effect.kind === "frost-slam");
           if (slam) slam.remaining = slam.duration * 0.6;

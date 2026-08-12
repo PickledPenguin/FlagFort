@@ -782,10 +782,11 @@ export class Renderer {
       ctx.rotate(-enemy.acidAimAngle);
     }
     if (game.isBossEnemyKind(enemy.kind)) {
+      const armorConfig = ENEMY_REGISTRY[enemy.kind].armor;
       const size = enemy.radius * 2.65;
-      const armored = enemy.kind === "frost-warden" && (enemy.iceArmor ?? 0) > 0;
-      const bossSprite = enemy.kind === "frost-warden" && !armored
-        ? ASSETS.frostWardenBroken
+      const armored = Boolean(armorConfig && (enemy.armor ?? 0) > 0);
+      const bossSprite = armorConfig && !armored
+        ? ASSETS.enemyBrokenArmor[enemy.kind] ?? ASSETS.enemyBodies[enemy.kind]
         : ASSETS.enemyBodies[enemy.kind];
       this.drawSprite(bossSprite, -size / 2, -size / 2, size, size, enemy.flash > 0);
       if (armored) {
@@ -811,13 +812,13 @@ export class Renderer {
           enemy.x,
           enemy.y - enemy.radius - 12,
           160,
-          (enemy.iceArmor ?? 0) / Math.max(1, enemy.maxIceArmor ?? 1),
-          BALANCE.snowyEnemies.frostWarden.armorBarColor,
+          (enemy.armor ?? 0) / Math.max(1, enemy.maxArmor ?? 1),
+          armorConfig!.barColor,
         );
         ctx.fillStyle = "#e9fdff";
         ctx.font = "900 11px system-ui";
         ctx.textAlign = "center";
-        ctx.fillText("ICE ARMOR", enemy.x, enemy.y - enemy.radius - 22);
+        ctx.fillText(armorConfig!.label, enemy.x, enemy.y - enemy.radius - 22);
         return;
       }
       this.healthBar(enemy.x, enemy.y - enemy.radius - 12, 160, enemy.health / enemy.maxHealth, "#85cd5d");
@@ -846,20 +847,21 @@ export class Renderer {
     ctx.rotate(angle);
     const fullSpriteKinds: Enemy["kind"][] = ["gremlin", "splitter", "splitter-child", "popper", "archer", "acidslinger", "rammer", "frostbite", "snowballer", "icebound"];
     if (fullSpriteKinds.includes(enemy.kind)) {
+      const armorConfig = ENEMY_REGISTRY[enemy.kind].armor;
       const height = ENEMY_REGISTRY[enemy.kind].render?.height ?? 80;
       const width = ENEMY_REGISTRY[enemy.kind].render?.width ?? height;
-      const sprite = enemy.kind === "icebound" && (enemy.iceArmor ?? 0) <= 0
-        ? ASSETS.iceboundBroken
+      const sprite = armorConfig && (enemy.armor ?? 0) <= 0
+        ? ASSETS.enemyBrokenArmor[enemy.kind] ?? ASSETS.enemies[enemy.kind]
         : ASSETS.enemies[enemy.kind];
       this.drawSprite(sprite, -width / 2, -height / 2, width, height, enemy.flash > 0);
       ctx.restore();
-      if (enemy.kind === "icebound" && (enemy.iceArmor ?? 0) > 0) {
+      if (armorConfig && (enemy.armor ?? 0) > 0) {
         this.healthBar(
           enemy.x,
           enemy.y - enemy.radius - 12,
           72,
-          (enemy.iceArmor ?? 0) / Math.max(1, enemy.maxIceArmor ?? 1),
-          BALANCE.snowyEnemies.icebound.armorBarColor,
+          (enemy.armor ?? 0) / Math.max(1, enemy.maxArmor ?? 1),
+          armorConfig.barColor,
         );
       } else {
         this.healthBar(enemy.x, enemy.y - enemy.radius - 12, enemy.kind === "rammer" ? 72 : 55, enemy.health / enemy.maxHealth, "#d2574e");

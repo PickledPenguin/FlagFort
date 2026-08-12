@@ -115,7 +115,7 @@ describe("boss difficulty scaling", () => {
     expect(boss.speed).toBeCloseTo(ENEMY_REGISTRY.boss.base.speed * scaling.speed);
     expect(boss.attackRate).toBeCloseTo(ENEMY_REGISTRY.boss.base.attackRate / scaling.attackSpeed);
     expect(warden.maxHealth).toBeLessThan(boss.maxHealth);
-    expect(warden.maxHealth + warden.maxIceArmor!).toBeGreaterThan(boss.maxHealth);
+    expect(warden.maxHealth + warden.maxArmor!).toBeGreaterThan(boss.maxHealth);
   });
 });
 

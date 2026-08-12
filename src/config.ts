@@ -65,18 +65,8 @@ export const BALANCE = {
       tint: "#e7fbff",
       popupTextColor: "#63c6e8",
     },
-    icebound: {
-      armorHealth: 90,
-      projectileResistance: 0.5,
-      armorBarColor: "#79dced",
-      breakColor: "#b9f5ff",
-    },
     frostWarden: {
-      armorHealth: 560,
-      armorBarColor: "#9cecff",
       breakColor: "#d9fbff",
-      armorProjectileResistance: 0.5,
-      armorBreakShake: 30,
       slam: {
         radius: 300,
         slowDuration: 4.5,
