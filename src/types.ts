@@ -46,7 +46,7 @@ export type RosterEnemyKind =
   | "springjack"
   | "aether-gunner"
   | "gearwright";
-export type BossEnemyKind = "boss" | "frost-warden" | "dune-colossus" | "caldera-sovereign" | "reactor-revenant" | "eclipse-regent" | "mireheart-titan";
+export type BossEnemyKind = "boss" | "frost-warden" | "dune-colossus" | "caldera-sovereign" | "reactor-revenant" | "eclipse-regent" | "mireheart-titan" | "chronoforge-colossus";
 export type EnemyKind = RosterEnemyKind | "splitter-child" | BossEnemyKind;
 export type PlayerId = string;
 export type DamageSource =
@@ -67,6 +67,7 @@ export type DamageSource =
   | "reactor-revenant"
   | "eclipse-regent"
   | "mireheart-titan"
+  | "chronoforge-colossus"
   | "caldera-sovereign"
   | "dune-colossus"
   | "cinderburst-burst"

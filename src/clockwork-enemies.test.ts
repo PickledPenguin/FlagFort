@@ -2,7 +2,7 @@
 
 import { describe, expect, it } from "vitest";
 import { BALANCE } from "./config";
-import { ENEMY_REGISTRY, selectEnemyRoster } from "./enemy-registry";
+import { ENEMY_REGISTRY, isBossEnemyKind, selectEnemyRoster } from "./enemy-registry";
 import { Game } from "./game";
 import { Input } from "./input";
 import type { Enemy, Structure } from "./types";
@@ -210,5 +210,81 @@ describe("clockwork enemies", () => {
 
     expect(game.enemies).toHaveLength(definition.summon!.maximumLiving + 1);
     expect(gearwright.summonCooldown).toBe(definition.summon!.cappedRetryCooldown);
+  });
+
+  it("registers the Chronoforge Colossus as a complete staged boss", () => {
+    const definition = ENEMY_REGISTRY["chronoforge-colossus"];
+
+    expect(isBossEnemyKind("chronoforge-colossus")).toBe(true);
+    expect(definition.rosterEligible).toBe(false);
+    expect(definition.assets.portrait).toBe("enemies/chronoforge-colossus");
+    expect(definition.armor).toMatchObject({
+      scalesWithHealth: true,
+      brokenSprite: "enemies/chronoforge-colossus-broken",
+      breakStatusPulse: {
+        statusEffect: { kind: "slow", duration: 5.2, targets: ["player", "turret"] },
+      },
+    });
+    expect(definition.areaStrike).toMatchObject({
+      rngSeedKey: "chronoforge-colossus:gearfall",
+      damageSource: "chronoforge-colossus",
+      randomStrikeCount: 7,
+      statusEffect: { kind: "slow", duration: 3.8, targets: ["player", "turret"] },
+    });
+    expect(definition.summon).toMatchObject({
+      kinds: ["gearwright"],
+      maximumLiving: 2,
+      popupText: "FOUNDRY ONLINE",
+    });
+  });
+
+  it("creates deterministic time-locking gearfalls around the defender", () => {
+    const first = gameFixture();
+    const second = gameFixture();
+    const firstBoss = spawn(first, "chronoforge-colossus", first.player.x + 520, first.player.y);
+    const secondBoss = spawn(second, "chronoforge-colossus", second.player.x + 520, second.player.y);
+    const config = ENEMY_REGISTRY["chronoforge-colossus"].areaStrike!;
+
+    (first as unknown as { createAreaStrikeAttack(enemy: Enemy): void })
+      .createAreaStrikeAttack(firstBoss);
+    (second as unknown as { createAreaStrikeAttack(enemy: Enemy): void })
+      .createAreaStrikeAttack(secondBoss);
+
+    expect(first.areaStrikes).toEqual(second.areaStrikes);
+    expect(first.areaStrikes).toHaveLength(
+      config.randomStrikeCount + Number(config.includesTargetedStrike),
+    );
+    expect(first.areaStrikes.every((strike) =>
+      strike.sourceEnemyKind === "chronoforge-colossus")).toBe(true);
+    expect(first.areaStrikes.some((strike) =>
+      strike.x === first.player.x && strike.y === first.player.y)).toBe(true);
+  });
+
+  it("breaks its shell, time-locks defenders, and opens a capped foundry", () => {
+    const game = gameFixture();
+    const boss = spawn(game, "chronoforge-colossus", game.flag.x + 780, game.flag.y);
+    const definition = ENEMY_REGISTRY["chronoforge-colossus"];
+    const nearbyTurret = turret(2400, boss.x + 55, boss.y);
+    game.structures = [nearbyTurret];
+    game.player.x = boss.x - 55;
+    game.player.y = boss.y;
+
+    (game as unknown as {
+      damageEnemy(enemy: Enemy, amount: number, color: string, damageSource: "player-melee", ownerPlayerId: string): void;
+    }).damageEnemy(boss, boss.armor!, "#ffffff", "player-melee", game.player.id);
+
+    expect(boss.health).toBe(boss.maxHealth);
+    expect(boss.armor).toBe(0);
+    expect(game.player.statuses?.slow?.remaining).toBe(5.2);
+    expect(nearbyTurret.statuses?.slow?.remaining).toBe(5.2);
+    expect(game.particles.some((particle) => particle.text === "TIMELOCK SURGE"))
+      .toBe(true);
+
+    boss.summonCooldown = 0;
+    (game as unknown as { updateEnemySummon(enemy: Enemy, dt: number): void })
+      .updateEnemySummon(boss, BALANCE.fixedStep);
+    expect(game.enemies.find((enemy) => enemy.summonedBy === boss.id))
+      .toMatchObject({ kind: "gearwright", countsTowardWave: false });
+    expect(boss.summonCooldown).toBe(definition.summon!.cooldown);
   });
 });

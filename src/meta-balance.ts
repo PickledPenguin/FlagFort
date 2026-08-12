@@ -106,6 +106,7 @@ export const META_BALANCE = {
       "reactor-revenant": 135,
       "eclipse-regent": 150,
       "mireheart-titan": 165,
+      "chronoforge-colossus": 180,
     } satisfies Record<EnemyKind, number>,
     cumulativeNightXp: [0, 7, 28, 63, 112, 175, 252, 343, 448, 567, 700],
     campaignVictoryBonus: 300,
