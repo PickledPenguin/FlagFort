@@ -133,4 +133,60 @@ describe("staged volcanic enemies", () => {
     expect(harvester.health).toBe(harvester.maxHealth - magmaSpitter.structureDamage);
     expect(game.projectiles).toHaveLength(0);
   });
+
+  it("keeps Obsidian Charger staged with armor and a complete breach role", () => {
+    const definition = ENEMY_REGISTRY["obsidian-charger"];
+    expect(definition.assets.portrait).toBe("enemies/obsidian-charger-zombie");
+    expect(definition.render).toEqual({ aspectRatio: 116 / 104, width: 106, height: 95 });
+    expect(definition.armor).toMatchObject({
+      health: 125,
+      projectileResistance: 0.6,
+      brokenSprite: "enemies/obsidian-charger-zombie-broken",
+    });
+    expect(definition.ram).toMatchObject({
+      damage: 390,
+      distance: 440,
+      targetKinds: ["wall", "door", "spikes"],
+    });
+    expect(definition.rosterEligible).toBe(false);
+    for (const tier of ["forest", "snowy", "desert"] as const) {
+      expect(Object.values(selectEnemyRoster("staged-obsidian-charger", tier)))
+        .not.toContain("obsidian-charger");
+    }
+  });
+
+  it("resists arrows, then charges through an aligned fortification", () => {
+    const game = gameFixture();
+    game.phase = "night";
+    const definition = ENEMY_REGISTRY["obsidian-charger"];
+    const wall = structure(975, "wall", game.flag.x + 120, game.flag.y);
+    wall.health = 320;
+    wall.maxHealth = 320;
+    const charger = spawn(game, "obsidian-charger", wall.x + 180, wall.y);
+    game.structures = [wall];
+    for (const resource of game.world.resources) resource.destroyed = true;
+    const damageEnemy = (damage: number, source: "player-bow" | "player-melee") => {
+      (game as unknown as {
+        damageEnemy(enemy: Enemy, amount: number, color: string, damageSource: typeof source, ownerPlayerId: string): void;
+      }).damageEnemy(charger, damage, "#ffffff", source, game.player.id);
+    };
+
+    damageEnemy(50, "player-bow");
+    expect(charger.armor).toBe(definition.armor!.health - 20);
+    damageEnemy(definition.armor!.health - 20, "player-melee");
+    expect(charger.armor).toBe(0);
+    expect(charger.health).toBe(charger.maxHealth);
+
+    const updateRam = (dt: number) => (game as unknown as {
+      updateEnemyRam(enemy: Enemy, dt: number): boolean;
+    }).updateEnemyRam(charger, dt);
+    expect(updateRam(0.1)).toBe(true);
+    expect(charger.chargeTargetId).toBe(wall.id);
+    updateRam(definition.ram!.loadSeconds);
+    expect(charger.charging).toBe(true);
+    updateRam(0.5);
+
+    expect(wall.health).toBe(0);
+    expect(charger.chargeHitIds).toContain(wall.id);
+  });
 });

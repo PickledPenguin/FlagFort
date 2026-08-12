@@ -88,7 +88,10 @@ describe("data-driven campaign tiers", () => {
     expect(VOLCANIC_ENEMY_ARTWORK).toEqual({
       cinderburst: "enemies/cinderburst-zombie",
       magmaSpitter: "enemies/magma-spitter-zombie",
-      obsidianCharger: "enemies/obsidian-charger-zombie",
+      obsidianCharger: {
+        armored: "enemies/obsidian-charger-zombie",
+        broken: "enemies/obsidian-charger-zombie-broken",
+      },
     });
   });
 

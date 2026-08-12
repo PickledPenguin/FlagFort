@@ -32,7 +32,7 @@ export type RosterEnemyKind =
   | "sandcaster"
   | "tombguard";
 export type BossEnemyKind = "boss" | "frost-warden" | "dune-colossus";
-export type EnemyKind = RosterEnemyKind | "splitter-child" | "cinderburst" | "magma-spitter" | BossEnemyKind;
+export type EnemyKind = RosterEnemyKind | "splitter-child" | "cinderburst" | "magma-spitter" | "obsidian-charger" | BossEnemyKind;
 export type PlayerId = string;
 export type DamageSource =
   | "player-melee"
