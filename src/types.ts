@@ -276,6 +276,8 @@ export interface AreaEffect extends Vec2 {
 export interface AreaStrike extends Vec2 {
   id: number;
   sourceEnemyKind: EnemyKind;
+  playerDamageScale: number;
+  structureDamageScale: number;
   radius: number;
   angle: number;
   warningRemaining: number;

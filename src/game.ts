@@ -3222,6 +3222,10 @@ export class Game {
   private createAreaStrikeAttack(enemy: Enemy): void {
     const config = ENEMY_REGISTRY[enemy.kind].areaStrike;
     if (!config) return;
+    const definition = ENEMY_REGISTRY[enemy.kind];
+    const playerDamageScale = enemy.damage / Math.max(1, definition.base.damage);
+    const structureDamageScale = enemy.structureDamage
+      / Math.max(1, definition.base.structureDamage);
     const serial = enemy.areaStrikeSerial ?? 0;
     enemy.areaStrikeSerial = serial + 1;
     const rng = new SeededRng(`${this.seed}:${config.rngSeedKey}:${enemy.id}:${serial}`);
@@ -3233,6 +3237,8 @@ export class Game {
       this.areaStrikes.push({
         id: this.nextId++,
         sourceEnemyKind: enemy.kind,
+        playerDamageScale,
+        structureDamageScale,
         x: Math.max(config.radius, Math.min(BALANCE.mapSize - config.radius,
           this.player.x + Math.cos(placementAngle) * placementRadius)),
         y: Math.max(config.radius, Math.min(BALANCE.mapSize - config.radius,
@@ -3248,6 +3254,8 @@ export class Game {
     if (config.includesTargetedStrike) this.areaStrikes.push({
       id: this.nextId++,
       sourceEnemyKind: enemy.kind,
+      playerDamageScale,
+      structureDamageScale,
       x: this.player.x,
       y: this.player.y,
       radius: config.radius,
@@ -3280,7 +3288,7 @@ export class Game {
     if (distance(strike, this.player) <= strike.radius + this.player.radius) {
       const damage = this.applyIncomingDamage(
         this.player,
-        config.playerDamage * this.getChallengeModifiers().enemyDamageMultiplier,
+        config.playerDamage * strike.playerDamageScale,
         strike.sourceEnemyKind,
         config.damageSource,
       );
@@ -3300,7 +3308,7 @@ export class Game {
       if (distance(strike, structure) > strike.radius + structure.radius) continue;
       this.applyIncomingDamage(
         structure,
-        config.structureDamage * this.getChallengeModifiers().enemyDamageMultiplier,
+        config.structureDamage * strike.structureDamageScale,
         strike.sourceEnemyKind,
         config.damageSource,
       );

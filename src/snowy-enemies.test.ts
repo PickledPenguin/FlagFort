@@ -7,12 +7,12 @@ import { Game } from "./game";
 import { Input } from "./input";
 import { applySlow, isSlowed, updateStatuses } from "./status-effects";
 import { projectileVisualColor } from "./projectile-visuals";
-import type { DamageSource, Enemy, PlayerId, Structure, StructureKind } from "./types";
+import type { DamageSource, Difficulty, Enemy, PlayerId, Structure, StructureKind } from "./types";
 
-function gameFixture(): Game {
+function gameFixture(difficulty: Difficulty = "normal"): Game {
   document.body.innerHTML = "<canvas></canvas>";
   const game = new Game(new Input(document.querySelector("canvas")!));
-  game.startRun("normal", "snowy-enemy-tests", [], true, {
+  game.startRun(difficulty, "snowy-enemy-tests", [], true, {
     settle: false,
     campaignTierId: "snowy",
   });
@@ -385,6 +385,38 @@ describe("Frost Warden", () => {
     }
   });
 
+  it("scales delayed boss area-strike damage with the selected difficulty", () => {
+    const damageFromTargetedStrike = (difficulty: Difficulty) => {
+      const game = gameFixture(difficulty);
+      const warden = spawn(game, "frost-warden", game.player.x + 200, game.player.y);
+      const wall = structure(744, "wall", game.player.x, game.player.y);
+      game.structures = [wall];
+      (game as unknown as { createAreaStrikeAttack(enemy: Enemy): void })
+        .createAreaStrikeAttack(warden);
+      const strike = game.areaStrikes.find((candidate) =>
+        candidate.x === game.player.x && candidate.y === game.player.y);
+      if (!strike) throw new Error("Targeted Frost Warden strike was not created");
+      const playerHealthBefore = game.player.health;
+      const wallHealthBefore = wall.health;
+
+      (game as unknown as { resolveAreaStrike(areaStrike: typeof strike): void })
+        .resolveAreaStrike(strike);
+
+      return {
+        player: playerHealthBefore - game.player.health,
+        structure: wallHealthBefore - wall.health,
+      };
+    };
+
+    const easyDamage = damageFromTargetedStrike("easy");
+    const extremeDamage = damageFromTargetedStrike("extreme");
+    const expectedRatio = BALANCE.bossDifficulty.extreme.damage
+      / BALANCE.bossDifficulty.easy.damage;
+
+    expect(extremeDamage.player / easyDamage.player).toBeCloseTo(expectedRatio);
+    expect(extremeDamage.structure / easyDamage.structure).toBeCloseTo(expectedRatio);
+  });
+
   it("uses the frosty blue popup color for slows and armor breaks", () => {
     const game = gameFixture();
     (game as unknown as { applySlowStatus(target: typeof game.player, duration: number): void })
@@ -402,6 +434,8 @@ describe("Frost Warden", () => {
     game.areaStrikes = [{
       id: 9002,
       sourceEnemyKind: "frost-warden",
+      playerDamageScale: 1,
+      structureDamageScale: 1,
       x: game.player.x,
       y: game.player.y,
       radius: config.radius,
