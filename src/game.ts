@@ -2113,7 +2113,7 @@ export class Game {
         this.selectEnemyTarget(enemy);
       }
       this.resolveEnemyStructureOverlap(enemy, dt);
-      if (enemy.kind === "rammer" && this.updateRammer(enemy, dt)) continue;
+      if (definition.ram && this.updateEnemyRam(enemy, dt)) continue;
       if (enemy.jumpTime > 0) {
         this.updateEnemyAirborne(enemy, dt);
         continue;
@@ -2815,8 +2815,8 @@ export class Game {
     });
   }
 
-  private updateRammer(enemy: Enemy, dt: number): boolean {
-    const definition = ENEMY_REGISTRY.rammer;
+  private updateEnemyRam(enemy: Enemy, dt: number): boolean {
+    const definition = ENEMY_REGISTRY[enemy.kind];
     const ram = definition.ram!;
     enemy.angle ??= 0;
     enemy.chargeProgress ??= 0;
@@ -2852,11 +2852,12 @@ export class Game {
         enemy.chargeHitIds.add(structure.id);
         const remainingHealth = Math.max(0, structure.health);
         if (enemy.chargeDamageLeft >= remainingHealth) {
-          this.applyIncomingDamage(structure, remainingHealth, "rammer", "rammer-charge");
+          this.applyIncomingDamage(structure, remainingHealth, enemy.kind, "rammer-charge");
           enemy.chargeDamageLeft -= remainingHealth;
-          this.burst(structure.x, structure.y, "#ff9a51", 18, "BREACH");
+          this.burst(structure.x, structure.y, ram.breachBurst.color,
+            ram.breachBurst.count, ram.breachBurst.popupText);
         } else {
-          this.applyIncomingDamage(structure, enemy.chargeDamageLeft, "rammer", "rammer-charge");
+          this.applyIncomingDamage(structure, enemy.chargeDamageLeft, enemy.kind, "rammer-charge");
           enemy.chargeDamageLeft = 0;
         }
         structure.flash = 0.3;
@@ -2887,7 +2888,7 @@ export class Game {
       enemy.chargeProgress += dt * (enemy.attackSpeedMultiplier ?? 1);
       enemy.attackWindup = Math.min(1, enemy.chargeProgress / ram.loadSeconds);
       if (enemy.chargeProgress < ram.loadSeconds) return true;
-      this.beginRammerCharge(enemy);
+      this.beginEnemyRam(enemy);
       return true;
     }
     const target = this.structures
@@ -2914,12 +2915,12 @@ export class Game {
     enemy.chargeProgress += dt * (enemy.attackSpeedMultiplier ?? 1);
     enemy.attackWindup = Math.min(1, enemy.chargeProgress / ram.loadSeconds);
     if (enemy.chargeProgress < ram.loadSeconds) return true;
-    this.beginRammerCharge(enemy);
+    this.beginEnemyRam(enemy);
     return true;
   }
 
-  private beginRammerCharge(enemy: Enemy): void {
-    const definition = ENEMY_REGISTRY.rammer;
+  private beginEnemyRam(enemy: Enemy): void {
+    const definition = ENEMY_REGISTRY[enemy.kind];
     const ram = definition.ram!;
     enemy.chargeProgress = 0;
     enemy.attackWindup = 0;
@@ -2931,7 +2932,8 @@ export class Game {
       cue: (definition.audio.move ?? "zombie-attack") as import("./audio").SoundId,
       position: { x: enemy.x, y: enemy.y },
     });
-    this.burst(enemy.x, enemy.y, "#ffb35c", 14, "CHARGE");
+    this.burst(enemy.x, enemy.y, ram.chargeBurst.color,
+      ram.chargeBurst.count, ram.chargeBurst.popupText);
   }
 
   private resolveEnemyDeath(enemy: Enemy): void {

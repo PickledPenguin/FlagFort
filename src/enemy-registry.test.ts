@@ -81,6 +81,23 @@ describe("deterministic enemy roster", () => {
         expect(definition.leap.landingPopupText).toBeTruthy();
         expect(definition.audio.move).toBeTruthy();
       }
+      if (definition.ram) {
+        expect(definition.ram.targetRadius).toBeGreaterThan(0);
+        expect(definition.ram.damage).toBeGreaterThan(0);
+        expect(definition.ram.distance).toBeGreaterThan(0);
+        expect(definition.ram.speed).toBeGreaterThan(0);
+        expect(definition.ram.loadSeconds).toBeGreaterThan(0);
+        expect(definition.ram.targetKinds.length).toBeGreaterThan(0);
+        expect(definition.ram.telegraphColor).toBeTruthy();
+        expect(definition.ram.telegraphLength).toBeGreaterThan(0);
+        expect(definition.ram.healthBarWidth).toBeGreaterThan(0);
+        expect(definition.ram.chargeBurst.color).toMatch(/^#[0-9a-f]{6}$/i);
+        expect(definition.ram.chargeBurst.count).toBeGreaterThan(0);
+        expect(definition.ram.chargeBurst.popupText).toBeTruthy();
+        expect(definition.ram.breachBurst.color).toMatch(/^#[0-9a-f]{6}$/i);
+        expect(definition.ram.breachBurst.count).toBeGreaterThan(0);
+        expect(definition.ram.breachBurst.popupText).toBeTruthy();
+      }
     }
   });
 });

@@ -838,13 +838,14 @@ export class Renderer {
       }
       return;
     }
-    if (enemy.kind === "rammer" && enemy.attackWindup > 0) {
+    const ram = ENEMY_REGISTRY[enemy.kind].ram;
+    if (ram && enemy.attackWindup > 0) {
       ctx.save();
       ctx.rotate(angle);
-      ctx.strokeStyle = "rgba(255,181,83,.9)";
+      ctx.strokeStyle = ram.telegraphColor;
       ctx.lineWidth = 5;
       ctx.setLineDash([12, 8]);
-      ctx.beginPath(); ctx.moveTo(enemy.radius + 8, 0); ctx.lineTo(enemy.radius + 130, 0); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(enemy.radius + 8, 0); ctx.lineTo(enemy.radius + ram.telegraphLength, 0); ctx.stroke();
       ctx.restore();
     }
     ctx.rotate(angle);
@@ -867,7 +868,8 @@ export class Renderer {
           armorConfig.barColor,
         );
       } else {
-        this.healthBar(enemy.x, enemy.y - enemy.radius - 12, enemy.kind === "rammer" ? 72 : 55, enemy.health / enemy.maxHealth, "#d2574e");
+        this.healthBar(enemy.x, enemy.y - enemy.radius - 12, ram?.healthBarWidth ?? 55,
+          enemy.health / enemy.maxHealth, "#d2574e");
       }
       return;
     }

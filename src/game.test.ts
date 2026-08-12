@@ -631,8 +631,8 @@ describe("phase and run rules", () => {
     game.structures = [wall];
     game.enemies = [rammer];
     const updateRammer = (dt: number) => (game as unknown as {
-      updateRammer(enemy: Enemy, dt: number): boolean;
-    }).updateRammer(rammer, dt);
+      updateEnemyRam(enemy: Enemy, dt: number): boolean;
+    }).updateEnemyRam(rammer, dt);
 
     expect(updateRammer(0.2)).toBe(true);
     const lockedAngle = rammer.angle;
@@ -647,6 +647,41 @@ describe("phase and run rules", () => {
     expect(rammer.angle).toBe(lockedAngle);
     expect(rammer.charging).toBe(true);
     expect(rammer.chargeDistanceLeft).toBe(ENEMY_REGISTRY.rammer.ram!.distance);
+  });
+
+  it("dispatches charge behavior from capability configuration rather than enemy identity", () => {
+    const game = new Game(fakeInput());
+    game.startRun("normal", "generic-ram-capability");
+    game.phase = "night";
+    const wall = testStructure({
+      id: 513,
+      x: game.flag.x + 120,
+      y: game.flag.y,
+      health: 500,
+      maxHealth: 500,
+    });
+    const charger = testEnemy({
+      id: 713,
+      kind: "breaker",
+      x: wall.x + 180,
+      y: wall.y,
+      radius: ENEMY_REGISTRY.breaker.base.radius,
+      structureDamage: ENEMY_REGISTRY.breaker.base.structureDamage,
+      targetId: "flag",
+    });
+    const previousRam = ENEMY_REGISTRY.breaker.ram;
+    ENEMY_REGISTRY.breaker.ram = ENEMY_REGISTRY.rammer.ram;
+    game.structures = [wall];
+    game.enemies = [charger];
+
+    try {
+      game.update(BALANCE.fixedStep);
+      expect(charger.chargeTargetId).toBe(wall.id);
+      expect(charger.chargeProgress).toBeGreaterThan(0);
+      expect(charger.attackWindup).toBeGreaterThan(0);
+    } finally {
+      ENEMY_REGISTRY.breaker.ram = previousRam;
+    }
   });
 
   it("summons roster-aware specials without adding them to wave accounting", () => {
