@@ -177,8 +177,8 @@ export class Renderer {
     const ctx = this.ctx;
     ctx.save();
     ctx.clearRect(0, 0, BALANCE.logicalWidth, BALANCE.logicalHeight);
-    const snowy = game.getCampaignTier().biome.ground === "snow" && !game.tutorialMode;
-    ctx.fillStyle = game.tutorialMode ? "#000000" : snowy ? "#b9d6db" : "#173f2a";
+    const biomePalette = game.getCampaignTier().biome.palette;
+    ctx.fillStyle = game.tutorialMode ? "#000000" : biomePalette.viewport;
     ctx.fillRect(0, 0, BALANCE.logicalWidth, BALANCE.logicalHeight);
 
     const shakeX = game.tutorialMode ? 0 : Math.sin(this.time * 71) * game.shake;
@@ -228,13 +228,13 @@ export class Renderer {
 
   private drawWorld(game: Game): void {
     const ctx = this.ctx;
-    const snowy = game.getCampaignTier().biome.ground === "snow" && !game.tutorialMode;
-    ctx.fillStyle = snowy ? "#d7e7e8" : "#1a4b30";
+    const palette = game.getCampaignTier().biome.palette;
+    ctx.fillStyle = palette.ground;
     ctx.fillRect(0, 0, BALANCE.mapSize, BALANCE.mapSize);
     for (const clearing of game.world.clearings) {
       const gradient = ctx.createRadialGradient(clearing.x, clearing.y, 0, clearing.x, clearing.y, clearing.radius);
-      gradient.addColorStop(0, snowy ? "#f1f6f4" : "#315c36");
-      gradient.addColorStop(1, snowy ? "#c7dcdd" : "#1c4930");
+      gradient.addColorStop(0, palette.clearingCenter);
+      gradient.addColorStop(1, palette.clearingEdge);
       ctx.fillStyle = gradient;
       ctx.beginPath();
       ctx.arc(clearing.x, clearing.y, clearing.radius, 0, Math.PI * 2);
@@ -242,9 +242,7 @@ export class Renderer {
     }
     for (const foliage of game.world.foliage) {
       if (!this.visible(game, foliage.x, foliage.y, foliage.radius)) continue;
-      ctx.fillStyle = snowy
-        ? (["#acc7c9", "#b9d0d0", "#c5d9d8", "#d0e2e0"][foliage.shade] ?? "#b9d0d0")
-        : (["#113b26", "#17452a", "#214f2c", "#285932"][foliage.shade] ?? "#18472b");
+      ctx.fillStyle = palette.foliage[foliage.shade] ?? palette.foliage[1];
       ctx.beginPath();
       ctx.arc(foliage.x, foliage.y, foliage.radius, 0, Math.PI * 2);
       ctx.fill();

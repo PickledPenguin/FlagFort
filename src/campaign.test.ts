@@ -48,9 +48,28 @@ describe("data-driven campaign tiers", () => {
       unlock: { level: 4, previousTierId: "forest" },
       boss: "frost-warden",
       specialEnemies: ["frostbite", "snowballer", "icebound"],
-      biome: { ground: "snow", resourceSnowChance: 0.58 },
+      biome: {
+        ground: "snow",
+        resourceSnowChance: 0.58,
+        palette: {
+          viewport: "#b9d6db",
+          ground: "#d7e7e8",
+          clearingCenter: "#f1f6f4",
+          clearingEdge: "#c7dcdd",
+          foliage: ["#acc7c9", "#b9d0d0", "#c5d9d8", "#d0e2e0"],
+        },
+      },
     });
     expect(campaignTier("snowy").milestones.every((item) => item.reward.kind === "coins")).toBe(true);
+  });
+
+  it("defines complete render palettes for every biome", () => {
+    for (const tier of CAMPAIGN_TIERS) {
+      expect(tier.biome.palette.foliage).toHaveLength(4);
+      expect(Object.values(tier.biome.palette).flat().every((color) => (
+        typeof color === "string" && /^#[0-9a-f]{6}$/i.test(color)
+      ))).toBe(true);
+    }
   });
 
   it("assigns every biome's three configured specials to distinct roster tiers", () => {

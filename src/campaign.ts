@@ -21,6 +21,13 @@ export interface CampaignBiomeDefinition {
   ground: "forest" | "snow";
   minimapLabel: string;
   resourceSnowChance: number;
+  palette: {
+    viewport: string;
+    ground: string;
+    clearingCenter: string;
+    clearingEdge: string;
+    foliage: readonly [string, string, string, string];
+  };
   weather?: {
     kind: "snow";
     particleCount: number;
@@ -65,7 +72,18 @@ export const CAMPAIGN_TIERS: readonly CampaignTierDefinition[] = [
       { id: "forest-level-2-coins", level: 2, reward: { kind: "coins", amount: 25 } },
       { id: "forest-level-3-coins", level: 3, reward: { kind: "coins", amount: 35 } },
     ],
-    biome: { ground: "forest", minimapLabel: "FOREST MAP", resourceSnowChance: 0 },
+    biome: {
+      ground: "forest",
+      minimapLabel: "FOREST MAP",
+      resourceSnowChance: 0,
+      palette: {
+        viewport: "#173f2a",
+        ground: "#1a4b30",
+        clearingCenter: "#315c36",
+        clearingEdge: "#1c4930",
+        foliage: ["#113b26", "#17452a", "#214f2c", "#285932"],
+      },
+    },
   },
   {
     id: "snowy",
@@ -87,6 +105,13 @@ export const CAMPAIGN_TIERS: readonly CampaignTierDefinition[] = [
       ground: "snow",
       minimapLabel: "SNOWBOUND MAP",
       resourceSnowChance: 0.58,
+      palette: {
+        viewport: "#b9d6db",
+        ground: "#d7e7e8",
+        clearingCenter: "#f1f6f4",
+        clearingEdge: "#c7dcdd",
+        foliage: ["#acc7c9", "#b9d0d0", "#c5d9d8", "#d0e2e0"],
+      },
       weather: { kind: "snow", particleCount: 120, fadeSeconds: 1.4 },
     },
   },
