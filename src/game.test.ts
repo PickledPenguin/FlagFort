@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { BALANCE } from "./config";
+import { CAMPAIGN_TIERS } from "./campaign";
 import { generateChoiceOfferings, mutationText } from "./choices";
 import { ENEMY_REGISTRY, introducedRosterEnemies } from "./enemy-registry";
 import { Game } from "./game";
@@ -853,6 +854,29 @@ describe("phase and run rules", () => {
     game.timer = 0;
     game.update(0.02);
     expect(game.phase).toBe("victory");
+  });
+
+  it("spawns each campaign tier boss through Night 10 and completes the run after its defeat", () => {
+    for (const tier of CAMPAIGN_TIERS) {
+      const game = new Game(fakeInput());
+      game.startRun("normal", `boss-night-${tier.id}`, [], true, {
+        campaignTierId: tier.id,
+      });
+      game.night = 10;
+      (game as unknown as { beginNight(): void }).beginNight();
+      game.phaseElapsed = BALANCE.endless.bossSpawnDelay;
+
+      game.update(BALANCE.fixedStep);
+
+      expect(game.enemies.filter((enemy) => enemy.kind === tier.boss), tier.id).toHaveLength(1);
+      for (const portal of game.portals) portal.spawned = portal.assignedSpawns;
+      game.enemies = [];
+      game.timer = 0;
+
+      game.update(BALANCE.fixedStep);
+
+      expect(game.phase, tier.id).toBe("victory");
+    }
   });
 
   it("completes the deterministic ten-night loop with three dawn choices per night", () => {
