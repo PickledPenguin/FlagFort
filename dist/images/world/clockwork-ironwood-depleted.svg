@@ -1,14 +1,93 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title description">
-  <title id="title">Depleted clockwork ironwood tree</title>
-  <desc id="description">A cut ironwood stump with loosened brass bands and a silent pressure pipe.</desc>
-  <g id="clockwork-ironwood-depleted">
-    <ellipse id="shadow" cx="48" cy="87" rx="37" ry="6" fill="#17191d" opacity=".72"/>
-    <path id="roots" d="M41 61 25 87h20l6-12 8 12h17L57 60Z" fill="#5f4633" stroke="#29282a" stroke-width="5" stroke-linejoin="round"/>
-    <path id="stump" d="m38 65 2-31 10-6 12 7-2 31Z" fill="#705039" stroke="#29282a" stroke-width="6" stroke-linejoin="round"/>
-    <path id="cut-face" d="m40 34 10-6 12 7-12 8Z" fill="#a57a4c" stroke="#29282a" stroke-width="4" stroke-linejoin="round"/>
-    <path id="growth-rings" d="m46 34 4-2 6 3-6 4Z" fill="none" stroke="#634930" stroke-width="2"/>
-    <path id="loose-band" d="M38 53c8 3 15 3 23 0" fill="none" stroke="#a97835" stroke-width="4" stroke-linecap="round"/>
-    <path id="silent-pipe" d="M61 62h11V48" fill="none" stroke="#8f5a3d" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle id="dark-gauge" cx="72" cy="45" r="4" fill="#374343" stroke="#29282a" stroke-width="2"/>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 96 96"
+   role="img"
+   aria-labelledby="title description"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="clockwork-ironwood-depleted.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="5.8200645"
+     inkscape:cx="46.305329"
+     inkscape:cy="52.319008"
+     inkscape:window-width="1560"
+     inkscape:window-height="726"
+     inkscape:window-x="0"
+     inkscape:window-y="33"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="clockwork-ironwood-depleted" />
+  <title
+     id="title">Depleted clockwork ironwood tree</title>
+  <desc
+     id="description">A cut ironwood stump with loosened brass bands and a silent pressure pipe.</desc>
+  <g
+     id="clockwork-ironwood-depleted">
+    <path
+       id="roots"
+       d="M 39.840924,61.960078 24.843379,86.331089 H 43.59031 L 49.214389,75.08293 56.713161,86.331089 H 72.648053 L 54.838468,61.022732 Z"
+       fill="#5f4633"
+       stroke="#29282a"
+       stroke-width="4.68673"
+       stroke-linejoin="round" />
+    <path
+       id="stump"
+       d="m 37.028884,65.709465 1.874693,-29.057744 9.373466,-5.624079 11.248158,6.561426 -1.874693,29.057743 z"
+       fill="#705039"
+       stroke="#29282a"
+       stroke-width="5.62408"
+       stroke-linejoin="round" />
+    <path
+       id="cut-face"
+       d="m 38.903577,36.651721 9.373466,-5.624079 11.248158,6.561426 -11.248158,7.498772 z"
+       fill="#a57a4c"
+       stroke="#29282a"
+       stroke-width="3.74939"
+       stroke-linejoin="round" />
+    <path
+       id="growth-rings"
+       d="m 44.527656,36.651721 3.749387,-1.874693 5.624079,2.81204 -5.624079,3.749386 z"
+       fill="none"
+       stroke="#634930"
+       stroke-width="1.87469" />
+    <path
+       id="silent-pipe"
+       d="m 61.508785,55.398652 h 7.389882 V 42.275801"
+       fill="none"
+       stroke="#8f5a3d"
+       stroke-width="3.74939"
+       stroke-linecap="round"
+       stroke-linejoin="round"
+       sodipodi:nodetypes="ccc" />
+    <path
+       id="loose-band"
+       d="m 37.086538,56.472347 c 7.498772,0.126096 14.060198,-0.005 21.558971,0"
+       fill="none"
+       stroke="#a97835"
+       stroke-width="3.74939"
+       stroke-linecap="round"
+       sodipodi:nodetypes="cc" />
+    <circle
+       id="dark-gauge"
+       cx="68.898666"
+       cy="39.46376"
+       r="3.7493863"
+       fill="#374343"
+       stroke="#29282a"
+       stroke-width="1.87469" />
   </g>
 </svg>

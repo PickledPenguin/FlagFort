@@ -17,6 +17,7 @@ import {
   campaignTier,
   campaignUnlockRequirementText,
   highestUnlockedCampaignTierId,
+  isCampaignMilestoneAvailable,
   isCampaignTierUnlocked,
   type CampaignReward,
 } from "./campaign";
@@ -123,6 +124,7 @@ const enemyInfo = Object.fromEntries(Object.values(ENEMY_REGISTRY).map((entry) =
 
 type MenuPanel = "controls" | "settings" | "challenges" | "credits" | "profile" | "upgrades" | "shop" | null;
 type TutorialOrigin = "menu";
+type BountyOrigin = "gameplay" | "pause" | "run-start";
 
 export class Ui {
   private difficulty: Difficulty = "normal";
@@ -146,9 +148,9 @@ export class Ui {
   private selectedChallenges = new Set<string>();
   private campaignOpen = false;
   private bountyOpen = false;
-  private bountyPausedGame = false;
-  private bountyFirstView = false;
+  private bountyOrigin: BountyOrigin | null = null;
   private selectedCampaignTierId: CampaignTierId = "forest";
+  private flippedCampaignTierId: CampaignTierId | null = null;
   private profileColorDraft: string;
   private profileEyeDraft: EyeStyle;
   private dailyRewardVisible: boolean;
@@ -407,6 +409,27 @@ export class Ui {
     return reward.label;
   }
 
+  private campaignTierBackMarkup(
+    tier: (typeof CAMPAIGN_TIERS)[number],
+    unlocked: boolean,
+    active: boolean,
+  ): string {
+    const requirements = campaignUnlockRequirementText(tier, this.campaignProgress());
+    const enemies = tier.specialEnemies.map((kind) => {
+      const enemy = ENEMY_REGISTRY[kind];
+      return `<span><img src="${ASSETS.enemies[kind]}" alt=""><b>${enemy.displayName}</b><small>NIGHT ${enemy.tier}</small></span>`;
+    }).join("");
+    const boss = ENEMY_REGISTRY[tier.boss];
+    return `<section class="tier-card-face tier-card-back" aria-label="${tier.name} details" aria-hidden="${!active}">
+      <header><span><small>TIER ${tier.order + 1}</small><b>${tier.name}</b></span><strong>${unlocked ? "READY" : "LOCKED"}</strong></header>
+      <p>${tier.description}</p>
+      <div class="tier-card-enemies" aria-label="Three special zombie types">${enemies}</div>
+      <div class="tier-card-mechanics"><span><small>BOSS</small><b>${boss.displayName}</b></span><p>${boss.description}</p></div>
+      <div class="tier-card-requirements">${requirements.map((requirement) => `<i class="${requirement.startsWith("Complete") ? "met" : "unmet"}">${requirement}</i>`).join("")}</div>
+      <footer><button class="ghost" data-action="flip-campaign-tier-back" data-campaign-tier="${tier.id}" tabindex="${active ? "0" : "-1"}">${icon("arrow-left")} Card Front</button><button class="primary" data-action="start-campaign-tier-card" data-campaign-tier="${tier.id}" tabindex="${active ? "0" : "-1"}" ${unlocked ? "" : "disabled"}>${icon("play")} ${unlocked ? "Play Tier" : "Tier Locked"}</button></footer>
+    </section>`;
+  }
+
   private campaignLadderMarkup(): string {
     const progress = this.campaignProgress();
     const profile = this.game.profileManager?.profile;
@@ -423,29 +446,33 @@ export class Ui {
     const events: Array<{ level: number; markup: string }> = CAMPAIGN_TIERS.map((tier) => {
       const unlocked = isCampaignTierUnlocked(tier, progress);
       const defeated = progress.defeatedTierIds.includes(tier.id);
-      const active = tier.id === selected.id;
+      const active = tier.id === this.flippedCampaignTierId;
       const current = tier.id === currentTierId;
       return {
         level: tier.unlock.level,
-        markup: `<article class="campaign-track-event campaign-tier-node ${unlocked ? "unlocked" : "locked"} ${defeated ? "defeated" : ""} ${current ? "current" : ""} ${active ? "selected" : ""}" style="--tier-accent:${tier.accent};--track-position:${levelPosition(tier.unlock.level)}%">
+        markup: `<article class="campaign-track-event campaign-tier-node ${unlocked ? "unlocked" : "locked"} ${defeated ? "defeated" : ""} ${current ? "current" : ""} ${tier.id === selected.id ? "selected" : ""} ${active ? "flipped" : ""}" style="--tier-accent:${tier.accent};--track-position:${levelPosition(tier.unlock.level)}%">
         <span class="campaign-track-marker"><small>LV</small><b>${tier.unlock.level}</b></span>
-        <button data-action="select-campaign-tier" data-campaign-tier="${tier.id}" aria-pressed="${active}" aria-label="${tier.name}${unlocked ? " unlocked" : " locked"}">
-          <img class="tier-backdrop" src="${tier.backdrop}" alt="">
-          <span class="tier-medallion"><img src="${tier.icon}" alt=""></span>
-          <span class="tier-node-copy"><small>TIER ${tier.order + 1}</small><b>${tier.name}</b><em>${tier.subtitle}</em></span>
-          <span class="tier-state">${defeated ? "CLEARED" : current ? "CURRENT" : unlocked ? "UNLOCKED" : "LOCKED"}</span>
-        </button>
+        <div class="campaign-tier-card"><div class="campaign-tier-card-inner">
+          <button class="tier-card-face tier-card-front" data-action="select-campaign-tier" data-campaign-tier="${tier.id}" aria-pressed="${active}" aria-hidden="${active}" tabindex="${active ? "-1" : "0"}" aria-label="${tier.name}${unlocked ? " unlocked" : " locked"}">
+            <img class="tier-backdrop" src="${tier.backdrop}" alt="">
+            <span class="tier-medallion"><img src="${tier.icon}" alt=""></span>
+            <span class="tier-node-copy"><small>TIER ${tier.order + 1}</small><b>${tier.name}</b><em>${tier.subtitle}</em></span>
+            <span class="tier-state">${defeated ? "CLEARED" : current ? "CURRENT" : unlocked ? "UNLOCKED" : "LOCKED"}</span>
+          </button>
+          ${this.campaignTierBackMarkup(tier, unlocked, active)}
+        </div></div>
       </article>`,
       };
     });
     events.push(...CAMPAIGN_TIERS.flatMap((tier) => tier.milestones.map((milestone) => {
       const rewardClaimed = claimed.has(milestone.id);
-      const earned = progress.level >= milestone.level;
+      const tierUnlocked = isCampaignTierUnlocked(tier, progress);
+      const earned = isCampaignMilestoneAvailable(tier, milestone, progress);
       return {
         level: milestone.level,
         markup: `<article class="campaign-track-event campaign-reward-node ${rewardClaimed ? "claimed" : earned ? "earned" : "locked"}" style="--tier-accent:${tier.accent};--track-position:${levelPosition(milestone.level)}%">
           <span class="campaign-track-marker reward"><small>LV</small><b>${milestone.level}</b></span>
-          <span class="campaign-track-reward">${this.rewardMarkup(milestone.reward)}<small>${rewardClaimed ? "CLAIMED" : earned ? "EARNED" : "LEVEL REWARD"}</small></span>
+          <span class="campaign-track-reward">${this.rewardMarkup(milestone.reward)}<small>${rewardClaimed ? "CLAIMED" : earned ? "EARNED" : tierUnlocked ? "LEVEL REWARD" : "TIER LOCKED"}</small></span>
         </article>`,
       };
     })));
@@ -454,7 +481,7 @@ export class Ui {
     return `<section class="screen modal-screen campaign-ladder-screen"><div class="campaign-ladder-modal" role="dialog" aria-modal="true" aria-labelledby="campaign-ladder-title">
       <header><div><p class="eyebrow">SINGLE-PLAYER CAMPAIGN</p><h2 id="campaign-ladder-title">Raise Your Standard</h2><p>Climb with XP, claim rewards, and clear each tier to unlock the next.</p></div><span class="campaign-level">LEVEL <b>${progress.level}</b></span><button class="icon-button" data-action="close-campaign" aria-label="Close">${icon("close")}</button></header>
       <div class="campaign-ladder-viewport"><div class="campaign-ladder-rail" style="--ladder-progress:${levelPosition(progress.level)}%">${trackEvents}</div></div>
-      <footer><div><small>SELECTED TIER</small><b>${selected.name}</b><span>${selected.description}</span><div class="campaign-footer-requirements">${requirements.map((requirement) => `<i class="${requirement.startsWith("Complete") ? "met" : "unmet"}">${requirement}</i>`).join("")}</div></div>
+      <footer><div><small>SELECTED TIER</small><b>${selected.name}</b><span>Select its card to inspect special zombies and mechanics.</span><div class="campaign-footer-requirements">${requirements.map((requirement) => `<i class="${requirement.startsWith("Complete") ? "met" : "unmet"}">${requirement}</i>`).join("")}</div></div>
         <button class="primary" data-action="start-campaign-tier" ${selectedUnlocked ? "" : "disabled"}>${icon("play")} ${selectedUnlocked ? `Play ${selected.name}` : "Tier Locked"}</button></footer>
     </div></section>`;
   }
@@ -804,15 +831,34 @@ export class Ui {
       const progress = Math.min(target, bounty.progress);
       return `<article class="bounty-row ${bounty.completed ? "complete" : ""}">
         <span class="bounty-icon">${icon(definition.icon)}</span>
-        <div><small>TIER ${definition.difficulty} · ${coinAmount(definition.coinReward)} · COMPLETES NIGHT ${definition.requirement.minimumNight}+</small><h3>${definition.name}</h3><p>${definition.description}</p>
+        <div><small>TIER ${definition.difficulty} · ${coinAmount(definition.coinReward)}</small><h3>${definition.name}</h3><p>${definition.description}</p>
           <span class="bounty-progress"><i style="width:${progress / target * 100}%"></i></span><b>${bounty.completed ? "COMPLETE" : `${progress} / ${target}`}</b></div>
       </article>`;
     }).join("");
+    const closeLabel = this.bountyOrigin === "run-start"
+      ? "Begin Defense"
+      : this.bountyOrigin === "pause" ? "Back to Pause" : "Resume Defense";
     return `<section class="screen modal-screen bounty-screen"><div class="modal bounty-modal" role="dialog" aria-modal="true" aria-labelledby="bounty-title">
       <button class="modal-close" data-action="close-bounties" aria-label="Close">${icon("close")}</button>
       <p class="eyebrow">OPTIONAL SEEDED OBJECTIVES</p><h2 id="bounty-title">Bounties</h2><p>Complete any bounty during this run to claim its coin reward. Bounties never affect victory.</p>
-      <div class="bounty-list">${rows}</div><button class="primary wide" data-action="close-bounties">${this.bountyFirstView ? "Begin Defense" : this.bountyPausedGame ? "Resume Defense" : "Done"}</button>
+      <div class="bounty-list">${rows}</div><button class="primary wide" data-action="close-bounties">${closeLabel}</button>
     </div></section>`;
+  }
+
+  private openBounties(origin: BountyOrigin): void {
+    if ((origin === "gameplay" || origin === "run-start")
+      && (this.game.phase === "day" || this.game.phase === "night")) {
+      this.game.togglePause();
+    }
+    this.bountyOrigin = origin;
+    this.bountyOpen = true;
+  }
+
+  private closeBounties(): void {
+    const resumesGameplay = this.bountyOrigin === "gameplay" || this.bountyOrigin === "run-start";
+    this.bountyOpen = false;
+    this.bountyOrigin = null;
+    if (resumesGameplay && this.game.phase === "paused") this.game.togglePause();
   }
 
   private clockPenaltyMarkup(): string {
@@ -876,7 +922,7 @@ export class Ui {
     return `<section class="screen modal-screen"><div class="modal pause-card" role="dialog" aria-modal="true" aria-labelledby="pause-title">
       <h2 id="pause-title">Pause</h2>
       <button class="primary wide" data-action="resume">${icon("play")} Resume</button>
-      <div class="pause-utility-row"><button class="secondary wide" data-action="controls">${icon("gamepad-2")} Controls</button><button class="secondary wide" data-action="settings">${icon("sliders-horizontal")} Settings</button></div>
+      <div class="pause-utility-row"><button class="secondary wide" data-action="open-bounties">${icon("trophy")} Bounties</button><button class="secondary wide" data-action="controls">${icon("gamepad-2")} Controls</button><button class="secondary wide" data-action="settings">${icon("sliders-horizontal")} Settings</button></div>
       <button class="ghost wide" data-action="request-run-exit">End run</button>
     </div></section>`;
   }
@@ -1065,6 +1111,9 @@ export class Ui {
       const unlockedTierId = settlement.newlyUnlockedTierIds?.at(-1);
       const unlockedTier = unlockedTierId ? campaignTier(unlockedTierId) : null;
       const campaignRewards = settlement.grantedCampaignRewards ?? [];
+      const campaignCoinTotal = campaignRewards.reduce((total, milestone) => (
+        total + (milestone.reward.kind === "coins" ? milestone.reward.amount : 0)
+      ), 0);
       return `<section class="screen result-screen ${victory ? "won" : "lost"}"><div class="result-card reward-result-card" role="region" aria-labelledby="result-title" tabindex="-1">
         <p class="eyebrow">${victory ? "FINAL COUNT CLEARED" : "COUNT ENDED"}</p>
         <h2 id="result-title">${victory ? `${this.game.getCampaignTier().name} defended` : "Run settled"}</h2>
@@ -1074,7 +1123,7 @@ export class Ui {
           <p>NEW CAMPAIGN TIER</p><img src="${unlockedTier.icon}" alt=""><h3>${unlockedTier.name}</h3><strong>UNLOCKED!</strong>
           <small>${unlockedTier.subtitle} is ready to play</small>
         </aside>` : ""}
-        ${campaignRewards.length ? `<div class="campaign-rewards-earned"><strong>LADDER REWARDS CLAIMED</strong>${campaignRewards.map((milestone) => `<span>${this.rewardMarkup(milestone.reward)}</span>`).join("")}</div>` : ""}
+        ${campaignRewards.length ? `<div class="campaign-reward-claimed"><span>LADDER REWARD${campaignRewards.length === 1 ? "" : "S"} CLAIMED</span><strong>${campaignCoinTotal > 0 ? coinAmount(campaignCoinTotal, "+") : campaignRewards.map((milestone) => this.rewardMarkup(milestone.reward)).join(" · ")}</strong></div>` : ""}
         <div class="reward-body"><div class="reward-list"><div class="reward-categories">${categories.map(([label, value], index) => `<div class="reward-line" style="--reveal-index:${index}">
           <span ${label === "Challenge Bonus" ? `title="${this.escapeAttribute(this.challengeRewardDetails())}"` : ""}>${label}</span><b>+${value} XP</b></div>`).join("")}</div>
         <button class="reward-skip" data-action="reveal-rewards">Show totals now</button>
@@ -1484,6 +1533,7 @@ export class Ui {
       case "open-campaign":
         this.dailyRewardVisible = false;
         this.selectedCampaignTierId = highestUnlockedCampaignTierId(this.campaignProgress());
+        this.flippedCampaignTierId = null;
         this.campaignOpen = true;
         break;
       case "close-campaign":
@@ -1493,10 +1543,19 @@ export class Ui {
         const tierId = target.dataset.campaignTier as CampaignTierId | undefined;
         if (tierId && CAMPAIGN_TIERS.some((tier) => tier.id === tierId)) {
           this.selectedCampaignTierId = tierId;
+          this.flippedCampaignTierId = tierId;
         }
         break;
       }
-      case "start-campaign-tier": {
+      case "flip-campaign-tier-back":
+        this.flippedCampaignTierId = null;
+        break;
+      case "start-campaign-tier":
+      case "start-campaign-tier-card": {
+        const requestedTierId = target.dataset.campaignTier as CampaignTierId | undefined;
+        if (requestedTierId && CAMPAIGN_TIERS.some((tier) => tier.id === requestedTierId)) {
+          this.selectedCampaignTierId = requestedTierId;
+        }
         const tier = campaignTier(this.selectedCampaignTierId);
         if (!isCampaignTierUnlocked(tier, this.campaignProgress())) break;
         const input = this.overlay.querySelector<HTMLInputElement>("#seed-input");
@@ -1506,10 +1565,7 @@ export class Ui {
           campaignTierId: this.selectedCampaignTierId,
         });
         if (started) {
-          this.game.togglePause();
-          this.bountyPausedGame = true;
-          this.bountyFirstView = true;
-          this.bountyOpen = true;
+          this.openBounties("run-start");
         }
         break;
       }
@@ -1526,17 +1582,11 @@ export class Ui {
         this.game.togglePause();
         break;
       case "open-bounties":
-        if (this.game.phase === "day" || this.game.phase === "night") {
-          this.game.togglePause();
-          this.bountyPausedGame = true;
-          this.bountyOpen = true;
-        }
+        if (this.game.phase === "paused") this.openBounties("pause");
+        else if (this.game.phase === "day" || this.game.phase === "night") this.openBounties("gameplay");
         break;
       case "close-bounties":
-        this.bountyOpen = false;
-        if (this.bountyPausedGame && this.game.phase === "paused") this.game.togglePause();
-        this.bountyPausedGame = false;
-        this.bountyFirstView = false;
+        this.closeBounties();
         break;
       case "dismiss-clock-penalty":
         this.game.dismissClockPenaltyNotice();
@@ -1678,7 +1728,7 @@ export class Ui {
         this.selectedCampaignTierId = this.game.activeCampaignTierId;
         this.game.returnToMenu();
         if (this.game.startRun(this.difficulty, this.seedDraft, [...this.selectedChallenges], false, { campaignTierId: this.selectedCampaignTierId })) {
-          this.game.togglePause(); this.bountyPausedGame = true; this.bountyFirstView = true; this.bountyOpen = true;
+          this.openBounties("run-start");
         }
         break;
       case "restart-new":
@@ -1686,7 +1736,7 @@ export class Ui {
         this.selectedCampaignTierId = this.game.activeCampaignTierId;
         this.game.returnToMenu();
         if (this.game.startRun(this.difficulty, this.seedDraft, [...this.selectedChallenges], false, { campaignTierId: this.selectedCampaignTierId })) {
-          this.game.togglePause(); this.bountyPausedGame = true; this.bountyFirstView = true; this.bountyOpen = true;
+          this.openBounties("run-start");
         }
         break;
       case "continue-endless":
@@ -1764,9 +1814,7 @@ export class Ui {
     } else if (target.dataset.action === "fort-pulse") {
       this.game.useFortPulse();
     } else if (target.dataset.action === "open-bounties") {
-      this.game.togglePause();
-      this.bountyPausedGame = true;
-      this.bountyOpen = true;
+      this.openBounties("gameplay");
       this.invalidate();
       this.render(true);
     } else if (target.dataset.tier && target.dataset.kind) {
@@ -1892,10 +1940,7 @@ export class Ui {
       return;
     }
     if (this.bountyOpen && event.code === "Escape") {
-      this.bountyOpen = false;
-      if (this.bountyPausedGame && this.game.phase === "paused") this.game.togglePause();
-      this.bountyPausedGame = false;
-      this.bountyFirstView = false;
+      this.closeBounties();
       event.preventDefault();
       this.invalidate();
       this.render(true);

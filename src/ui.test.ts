@@ -615,6 +615,31 @@ describe("event-driven HUD interaction", () => {
     expect(overlay.textContent).toContain("Pause");
   });
 
+  it("returns bounty, controls, and settings navigation to the paused game", () => {
+    const { game, overlay, ui } = createHarness();
+    game.togglePause();
+    ui.render(true);
+
+    const pauseActions = [...overlay.querySelectorAll<HTMLElement>(".pause-utility-row > button")]
+      .map((button) => button.textContent?.trim());
+    expect(pauseActions).toEqual(["Bounties", "Controls", "Settings"]);
+
+    click(overlay.querySelector('[data-action="open-bounties"]')!);
+    expect(game.phase).toBe("paused");
+    expect(overlay.textContent).toContain("Back to Pause");
+    click(overlay.querySelector('[data-action="close-bounties"]')!);
+    expect(game.phase).toBe("paused");
+    expect(overlay.textContent).toContain("Pause");
+
+    click(overlay.querySelector('[data-action="controls"]')!);
+    click(overlay.querySelector('[data-action="close-panel"]')!);
+    expect(game.phase).toBe("paused");
+    click(overlay.querySelector('[data-action="settings"]')!);
+    window.dispatchEvent(new KeyboardEvent("keydown", { code: "Escape" }));
+    expect(game.phase).toBe("paused");
+    expect(overlay.textContent).toContain("Pause");
+  });
+
   it("confirms ending an active run before showing settlement results", () => {
     const { game, overlay, ui } = createHarness();
     game.togglePause();

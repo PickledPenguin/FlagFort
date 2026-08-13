@@ -1,38 +1,212 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="-58 -52 116 104" role="img" aria-labelledby="title description">
-  <title id="title">Aether Gunner zombie</title>
-  <desc id="description">A stocky clockwork marksman braced behind a long brass aether cannon with a bright cyan pressure chamber.</desc>
-  <defs id="aether-gunner-definitions">
-    <linearGradient id="aether-gunner-metal-gradient" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#77828a"/>
-      <stop offset="1" stop-color="#343c43"/>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="-58 -52 116 104"
+   role="img"
+   aria-labelledby="title description"
+   version="1.1"
+   id="svg5"
+   sodipodi:docname="aether-gunner-zombie.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview5"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="3.5949492"
+     inkscape:cx="43.950551"
+     inkscape:cy="29.485813"
+     inkscape:window-width="1573"
+     inkscape:window-height="795"
+     inkscape:window-x="0"
+     inkscape:window-y="33"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg5" />
+  <title
+     id="title">Aether Gunner zombie</title>
+  <desc
+     id="description">A stocky clockwork marksman braced behind a long brass aether cannon with a bright cyan pressure chamber.</desc>
+  <defs
+     id="aether-gunner-definitions">
+    <linearGradient
+       id="aether-gunner-metal-gradient"
+       x1="0"
+       y1="0"
+       x2="1"
+       y2="1">
+      <stop
+         offset="0"
+         stop-color="#77828a"
+         id="stop1" />
+      <stop
+         offset="1"
+         stop-color="#343c43"
+         id="stop2" />
     </linearGradient>
-    <radialGradient id="aether-gunner-core-gradient">
-      <stop offset="0" stop-color="#e5fffb"/>
-      <stop offset="0.45" stop-color="#79e7df"/>
-      <stop offset="1" stop-color="#278d91"/>
+    <radialGradient
+       id="aether-gunner-core-gradient">
+      <stop
+         offset="0"
+         stop-color="#e5fffb"
+         id="stop3" />
+      <stop
+         offset="0.45"
+         stop-color="#79e7df"
+         id="stop4" />
+      <stop
+         offset="1"
+         stop-color="#278d91"
+         id="stop5" />
     </radialGradient>
+    <radialGradient
+       inkscape:collect="always"
+       xlink:href="#aether-gunner-core-gradient"
+       id="radialGradient5"
+       cx="10"
+       cy="7"
+       fx="10"
+       fy="7"
+       r="7"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(-46.439797,-18.601537)" />
+    <radialGradient
+       inkscape:collect="always"
+       xlink:href="#aether-gunner-core-gradient"
+       id="radialGradient6"
+       cx="-7"
+       cy="-21"
+       fx="-7"
+       fy="-21"
+       r="7"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(-2)" />
+    <radialGradient
+       inkscape:collect="always"
+       xlink:href="#aether-gunner-core-gradient"
+       id="radialGradient7"
+       cx="10"
+       cy="-22"
+       fx="10"
+       fy="-22"
+       r="7"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(2)" />
+    <radialGradient
+       inkscape:collect="always"
+       xlink:href="#aether-gunner-core-gradient"
+       id="radialGradient8"
+       gradientTransform="scale(1.4375906,0.69560834)"
+       cx="1.0434125"
+       cy="-30.908197"
+       fx="1.0434125"
+       fy="-30.908197"
+       r="10.781929"
+       gradientUnits="userSpaceOnUse" />
   </defs>
-  <g id="aether-gunner-zombie">
-    <path id="body" d="M-27-11C-24-31-7-41 12-36 28-31 35-10 27 26H-24C-29 10-31 0-27-11Z" fill="url(#aether-gunner-metal-gradient)" stroke="#20272d" stroke-width="3"/>
-    <path id="head" d="M-17-28C-4-40 17-35 24-20 25-5 16 5 2 4-13 3-23-13-17-28Z" fill="#71837a" stroke="#293a39" stroke-width="3"/>
-    <path id="goggle-band" d="M-17-19C-5-26 10-27 23-20" fill="none" stroke="#252c31" stroke-width="7"/>
-    <g id="aether-goggles" fill="url(#aether-gunner-core-gradient)" stroke="#173e43" stroke-width="2">
-      <circle id="rear-goggle" cx="-7" cy="-21" r="6"/>
-      <circle id="front-goggle" cx="10" cy="-22" r="6"/>
+  <g
+     id="aether-gunner-zombie"
+     transform="translate(3.6161846)">
+    <g
+       id="cannon"
+       stroke-linejoin="round"
+       transform="rotate(-175.57574,-1.1049212,18.967191)">
+      <path
+         id="cannon-barrel"
+         d="m -48.602532,35.483779 45.3322014,-7.561471 1.4001356,14.034951 -45.739575,1.493715 c -2.442125,-3.711625 -1.6156,-6.082171 -0.992762,-7.967195 z"
+         fill="#c39645"
+         stroke="#5d4426"
+         stroke-width="3"
+         sodipodi:nodetypes="ccccc" />
+      <path
+         id="muzzle"
+         d="m -4.2703306,24.922308 12,-1 2.8243466,20.889381 -11.36426857,0.908817 z"
+         fill="#596269"
+         stroke="#292f34"
+         stroke-width="3"
+         sodipodi:nodetypes="ccccc" />
+      <circle
+         id="pressure-chamber"
+         cx="-36.439796"
+         cy="-11.601538"
+         r="12"
+         fill="#263e43"
+         stroke="#b7893e"
+         stroke-width="3"
+         transform="rotate(-90)" />
+      <circle
+         id="aether-core"
+         cx="-36.439796"
+         cy="-11.601538"
+         r="7"
+         fill="url(#aether-gunner-core-gradient)"
+         style="fill:url(#radialGradient5)"
+         transform="rotate(-90)" />
+      <path
+         id="pressure-gauge"
+         d="m -20.601537,51.439797 c -13,-4 -14,-20 -3,-26"
+         fill="none"
+         stroke="#e1c06b"
+         stroke-width="3"
+         stroke-linecap="round" />
     </g>
-    <path id="helmet-brim" d="M-23-33C-7-45 18-40 29-26L20-23C8-32-7-31-17-25Z" fill="#a77735" stroke="#513b24" stroke-width="3"/>
-    <g id="cannon" stroke-linejoin="round">
-      <path id="cannon-stock" d="m-30 4 21 2 7 16-27 4Z" fill="#79542e" stroke="#402f23" stroke-width="3"/>
-      <path id="cannon-barrel" d="M-8 1 43-7 49 5-55 18Z" fill="#c39645" stroke="#5d4426" stroke-width="3"/>
-      <path id="muzzle" d="m42-10 12-1 4 18-11 2Z" fill="#596269" stroke="#292f34" stroke-width="3"/>
-      <circle id="pressure-chamber" cx="10" cy="7" r="12" fill="#263e43" stroke="#b7893e" stroke-width="3"/>
-      <circle id="aether-core" cx="10" cy="7" r="7" fill="url(#aether-gunner-core-gradient)"/>
-      <path id="pressure-gauge" d="M-5-2C-1-15 15-16 21-5" fill="none" stroke="#e1c06b" stroke-width="3" stroke-linecap="round"/>
+    <path
+       id="head"
+       d="M -16.934625,-18.460097 C -0.0992919,-7.1853983 -2.2596092,19.786574 -24.007888,25.199635 -40.31948,29.259526 -53.482721,15.321348 -52.402958,-0.33522828 -51.246447,-17.104642 -31.943714,-28.511755 -16.934625,-18.460097 Z"
+       fill="#71837a"
+       stroke="#293a39"
+       stroke-width="3.3544"
+       sodipodi:nodetypes="ssss" />
+    <path
+       id="goggle-band"
+       d="m -23.232448,-19.839809 c 7,11.9999989 7.578995,30.153853 0.578995,43.153853"
+       fill="none"
+       stroke="#252c31"
+       stroke-width="7"
+       sodipodi:nodetypes="cc" />
+    <g
+       id="aether-goggles"
+       fill="url(#aether-gunner-core-gradient)"
+       stroke="#173e43"
+       stroke-width="2"
+       style="fill:url(#radialGradient8)"
+       transform="rotate(90,-20.179809,-19.773631)">
+      <circle
+         id="rear-goggle"
+         cx="-9"
+         cy="-21"
+         r="6"
+         style="fill:url(#radialGradient6)" />
+      <circle
+         id="front-goggle"
+         cx="12"
+         cy="-22"
+         r="6"
+         style="fill:url(#radialGradient7)" />
     </g>
-    <g id="floating-hands" fill="#71877c" stroke="#293a39" stroke-width="2.5">
-      <circle id="rear-hand" cx="-12" cy="10" r="8"/>
-      <circle id="front-hand" cx="28" cy="6" r="8"/>
+    <g
+       id="floating-hands"
+       fill="#71877c"
+       stroke="#293a39"
+       stroke-width="2.5"
+       transform="rotate(90,10.09256,5.7556024)">
+      <circle
+         id="rear-hand"
+         cx="-12"
+         cy="10"
+         r="8" />
+      <circle
+         id="front-hand"
+         cx="25.488928"
+         cy="9.6271038"
+         r="8" />
     </g>
-    <path id="aether-vent" d="m-18 24-7 10m18-9-3 13m15-13v13" fill="none" stroke="#79e7df" stroke-width="3" stroke-linecap="round" opacity="0.8"/>
   </g>
 </svg>

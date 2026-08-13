@@ -19,7 +19,7 @@ import {
   flagRepairPayment,
   upgradeCost,
 } from "./rules";
-import type { Enemy, Structure } from "./types";
+import type { Enemy, ResourceNode, Structure } from "./types";
 import { generateWorld } from "./world";
 
 function fakeInput(): Input {
@@ -383,6 +383,27 @@ describe("phase and run rules", () => {
     expect(game.world.resources.every((node) => node.health === node.maxHealth)).toBe(true);
   });
 
+  it("clamps direct and automated harvests to the resource remaining in a node", () => {
+    const game = new Game(fakeInput());
+    game.startRun("normal", "harvest-clamp-seed");
+    const internals = game as unknown as {
+      harvestNode(node: ResourceNode, tier: "diamond", damageScale: number, origin?: "player" | "harvester"): void;
+    };
+    const node = game.world.resources.find((resource) => resource.kind === "wood")!;
+    node.health = 20;
+    game.resources.wood = 0;
+
+    internals.harvestNode(node, "diamond", 1, "player");
+    internals.harvestNode(node, "diamond", 1, "player");
+    expect(game.resources.wood).toBe(20);
+    expect(node.health).toBe(0);
+
+    node.health = 2;
+    internals.harvestNode(node, "diamond", 0.2, "harvester");
+    expect(game.resources.wood).toBe(22);
+    expect(node.health).toBe(0);
+  });
+
   it("blocks building inside a portal safety zone", () => {
     const input = fakeInput();
     const game = new Game(input);
@@ -438,6 +459,42 @@ describe("phase and run rules", () => {
 
     expect(game.portals[0]).toMatchObject(future);
     expect(game.structures.map((structure) => structure.id)).toEqual([902]);
+  });
+
+  it("relocates destroyed portals a meaningful deterministic distance every time", () => {
+    const game = new Game(fakeInput());
+    const comparison = new Game(fakeInput());
+    game.startRun("normal", "portal-relocation-seed");
+    comparison.startRun("normal", "portal-relocation-seed");
+    const internals = game as unknown as { relocatePortal(portal: (typeof game.portals)[number]): void };
+    const comparisonInternals = comparison as unknown as { relocatePortal(portal: (typeof comparison.portals)[number]): void };
+    const portal = game.portals[0]!;
+    const comparisonPortal = comparison.portals[0]!;
+    const firstOrigin = { x: portal.x, y: portal.y };
+    internals.relocatePortal(portal);
+    comparisonInternals.relocatePortal(comparisonPortal);
+    expect({ x: portal.x, y: portal.y }).toEqual({ x: comparisonPortal.x, y: comparisonPortal.y });
+    expect(Math.hypot(portal.x - firstOrigin.x, portal.y - firstOrigin.y))
+      .toBeGreaterThanOrEqual(BALANCE.portal.relocationMinimumDistance);
+    const secondOrigin = { x: portal.x, y: portal.y };
+    internals.relocatePortal(portal);
+    expect(Math.hypot(portal.x - secondOrigin.x, portal.y - secondOrigin.y))
+      .toBeGreaterThanOrEqual(BALANCE.portal.relocationMinimumDistance);
+    expect(portal).not.toMatchObject(firstOrigin);
+  });
+
+  it("allows focused bounty completion before Night 5", () => {
+    const game = new Game(fakeInput());
+    game.startRun("normal", "early-bounty-seed");
+    const bounty = game.activeBounties[0]!;
+    const internals = game as unknown as {
+      bountyCounters: Record<string, number>;
+      updateBounties(): void;
+    };
+    game.night = 1;
+    internals.bountyCounters[bounty.definition.requirement.metric] = bounty.definition.requirement.target;
+    internals.updateBounties();
+    expect(bounty.completed).toBe(true);
   });
 
   it("starts dawn upgrades at zero while keeping daytime combat until every zombie is killed", () => {

@@ -545,7 +545,10 @@ export class ProfileManager {
     }
     const grantedCampaignRewards = progress.campaignTierId
       ? earnedCampaignMilestones(
-          this.profile.playerLevel,
+          {
+            level: this.profile.playerLevel,
+            defeatedTierIds: this.profile.campaign.defeatedTierIds,
+          },
           this.profile.campaign.claimedRewardIds,
         )
       : [];

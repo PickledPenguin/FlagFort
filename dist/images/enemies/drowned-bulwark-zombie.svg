@@ -20,13 +20,13 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="2.3841991"
-     inkscape:cx="40.684522"
-     inkscape:cy="59.349071"
+     inkscape:zoom="3.2150803"
+     inkscape:cx="69.671667"
+     inkscape:cy="69.827184"
      inkscape:window-width="1443"
      inkscape:window-height="698"
-     inkscape:window-x="263"
-     inkscape:window-y="322"
+     inkscape:window-x="266"
+     inkscape:window-y="231"
      inkscape:window-maximized="0"
      inkscape:current-layer="drowned-bulwark-zombie" />
   <title
@@ -77,8 +77,16 @@
        fill="#60776d"
        stroke="#1d3736"
        stroke-width="2.5">
-      <circle id="upper-hand" cx="27" cy="-24" r="9" />
-      <circle id="lower-hand" cx="27" cy="25" r="9" />
+      <circle
+         id="upper-hand"
+         cx="27"
+         cy="-24"
+         r="9" />
+      <circle
+         id="lower-hand"
+         cx="27"
+         cy="25"
+         r="9" />
     </g>
     <ellipse
        id="body"
@@ -95,20 +103,18 @@
        d="m 10.996743,-21.824314 c -15.0000005,-9 -30.677817,6.11066 -29.509611,21.29734222 C -17.406735,13.852753 -3.792828,28.173847 11.207172,19.173847 14.990517,6.9694611 20.774399,-4.4761 10.996743,-21.824314 Z"
        fill="#203b3b"
        sodipodi:nodetypes="cscc" />
-    <g
-       id="eyes"
-       fill="#b5f5d5"
-       stroke="#183332"
-       stroke-width="1.5"
-       transform="translate(-15.326144,-2.6508915)">
-      <path
-         id="upper-eye"
-         d="m 4.870694,-14.660878 9.622017,11.935575 -2.190533,-13.920159 z"
-         style="stroke-width:1.35041" />
-      <path
-         id="lower-eye"
-         d="M 11.439694,18.75676 14.506785,2.276683 5.0076376,15.496599 Z" />
-    </g>
+    <path
+       id="face-shadow-2"
+       d="m 3.4301314,5.99082 c -2.065672,-3.845938 -6.6485409,2.510902 -7.3478676,6.247253 -0.6621671,3.537818 1.1085783,6.056619 4.7504516,3.649339 2.6601432,-1.758356 4.9489801,-5.518371 2.597416,-9.896592 z"
+       fill="#203b3b"
+       sodipodi:nodetypes="ssss"
+       style="fill:#b5f5d5;fill-opacity:1;stroke-width:0.249563" />
+    <path
+       id="face-shadow-2-9"
+       d="m 3.7442052,-6.3587872 c -2.0656722,3.8459374 -6.6485411,-2.5109021 -7.3478679,-6.2472538 -0.6621668,-3.537817 1.1085785,-6.056618 4.7504518,-3.649338 2.660143,1.758355 4.94898,5.518371 2.5974161,9.8965918 z"
+       fill="#203b3b"
+       sodipodi:nodetypes="ssss"
+       style="fill:#b5f5d5;fill-opacity:1;stroke-width:0.249563" />
     <g
        id="ruin-shield"
        transform="translate(-8.5687161,-2.0173826)">
@@ -139,17 +145,6 @@
            d="M 28.322345,0.94608153 C 33.705903,10.327836 33.159502,18.124289 23.576761,26.501108 L 24.38789,-0.50522683 c 1.411943,0.18239688 2.986103,-0.12185958 3.934455,1.45130836 z"
            sodipodi:nodetypes="cccc" />
       </g>
-    </g>
-    <g
-       id="water-drops"
-       fill="#86cbb9"
-       transform="translate(-8.5687161,-2.0173826)">
-      <path
-         id="drop-one"
-         d="m -27.45958,-8.2768659 c 7,-5.0000001 10,-5.0000001 13,0 -3,5 -6,5 -13,0 z" />
-      <path
-         id="drop-two"
-         d="m -14.45958,-21.276866 c 5.9999996,-4 7.9999996,-4 10.9999997,0 -3.0000001,4 -5.0000001,4 -10.9999997,0 z" />
     </g>
   </g>
 </svg>

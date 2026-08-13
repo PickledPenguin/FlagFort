@@ -22,15 +22,15 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="3.7646402"
-     inkscape:cx="48.477408"
-     inkscape:cy="35.461556"
+     inkscape:zoom="5.1485667"
+     inkscape:cx="53.898496"
+     inkscape:cy="37.777504"
      inkscape:window-width="1582"
      inkscape:window-height="820"
      inkscape:window-x="66"
-     inkscape:window-y="151"
+     inkscape:window-y="123"
      inkscape:window-maximized="0"
-     inkscape:current-layer="dune-burrower-zombie" />
+     inkscape:current-layer="burrowing-marks" />
   <title
      id="title">Dune Burrower zombie</title>
   <desc
@@ -52,13 +52,13 @@
          cy="0" />
       <circle
          id="upper-hand"
-         cx="32"
+         cx="34"
          cy="-14"
          r="8"
          style="fill:#e8bb66;fill-opacity:1;stroke:#754a2d;stroke-opacity:1" />
       <circle
          id="lower-hand"
-         cx="32"
+         cx="34"
          cy="13"
          r="8"
          style="fill:#e8bb66;fill-opacity:1;stroke:#754a2d;stroke-opacity:1" />
@@ -71,15 +71,8 @@
        stroke-linejoin="round">
       <path
          id="sand-drill-crest"
-         d="m -29,-18 11,-9 8,8 -9,8 7,7 -10,9 -12,-12 9,-8 z" />
-      <path
-         id="upper-tunnel-chevron"
-         d="m -13,-13 8,5 -8,5 -5,-5 z"
-         fill="#f3d58d" />
-      <path
-         id="lower-tunnel-chevron"
-         d="m -13,3 8,5 -8,5 -5,-5 z"
-         fill="#f3d58d" />
+         d="m -27.297942,-6.876252 10.006669,-10.092897 8.7869819,7.1266376 -8.1212389,8.89075263 7.688609,6.23580767 -9.012069,9.9891261 -10.258546,-9.8930678 5.199313,-9.6876417 z"
+         sodipodi:nodetypes="ccccccccc" />
     </g>
     <g
        id="eyes"

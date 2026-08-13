@@ -4,6 +4,7 @@ import {
   CAMPAIGN_TIERS,
   campaignTier,
   highestUnlockedCampaignTierId,
+  earnedCampaignMilestones,
   isCampaignTierUnlocked,
 } from "./campaign";
 import type { CampaignBiomeDefinition } from "./campaign";
@@ -57,6 +58,26 @@ const zeroCoins: CoinSettlement = {
 };
 
 describe("data-driven campaign tiers", () => {
+  it("gates ladder rewards behind both their level and owning tier", () => {
+    const lockedSnowRewards = earnedCampaignMilestones({
+      level: 13,
+      defeatedTierIds: [],
+    }, []);
+    expect(lockedSnowRewards.map((reward) => reward.id)).toEqual([
+      "forest-level-2-coins",
+      "forest-level-3-coins",
+    ]);
+
+    const unlockedSnowRewards = earnedCampaignMilestones({
+      level: 13,
+      defeatedTierIds: ["forest"],
+    }, ["forest-level-2-coins", "forest-level-3-coins"]);
+    expect(unlockedSnowRewards.map((reward) => reward.id)).toEqual([
+      "snowy-level-5-coins",
+      "snowy-level-6-coins",
+    ]);
+  });
+
   it("registers the complete themed artwork set for Clockwork Citadel", () => {
     expect(CLOCKWORK_ENEMY_ARTWORK).toEqual({
       springjack: "enemies/springjack-zombie",

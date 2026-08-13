@@ -1,13 +1,70 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title description">
-  <title id="title">Drowned mire ghost crystal</title>
-  <desc id="description">A cluster of pale teal crystals glowing like will-o-wisps above black water.</desc>
-  <g id="mire-ghost-crystal-active">
-    <ellipse id="water-shadow" cx="48" cy="88" rx="38" ry="6" fill="#102827" opacity=".78"/>
-    <path id="left-crystal" d="m13 73 11-35 13-12 9 15-5 39Z" fill="#79d8c7" stroke="#245a57" stroke-width="5" stroke-linejoin="round"/>
-    <path id="center-crystal" d="m34 77 14-53 12-14 10 19-8 53Z" fill="#a2f0dd" stroke="#245a57" stroke-width="5" stroke-linejoin="round"/>
-    <path id="right-crystal" d="m59 79 8-37 12-10 9 17-8 31Z" fill="#63c9bd" stroke="#245a57" stroke-width="5" stroke-linejoin="round"/>
-    <path id="facets" d="m27 38 5 34m24-47-4 45m25-28-6 30" fill="none" stroke="#d8fff3" stroke-width="3" stroke-linecap="round" opacity=".82"/>
-    <circle id="wisp-left" cx="16" cy="27" r="4" fill="#baffdf" opacity=".9"/>
-    <circle id="wisp-right" cx="83" cy="23" r="3" fill="#baffdf" opacity=".82"/>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 96 96"
+   role="img"
+   aria-labelledby="title description"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="mire-ghost-crystal-active.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="4.026105"
+     inkscape:cx="49.179045"
+     inkscape:cy="62.839891"
+     inkscape:window-width="1339"
+     inkscape:window-height="643"
+     inkscape:window-x="0"
+     inkscape:window-y="33"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="mire-ghost-crystal-active" />
+  <title
+     id="title">Drowned mire ghost crystal</title>
+  <desc
+     id="description">A cluster of pale teal crystals glowing like will-o-wisps above black water.</desc>
+  <g
+     id="mire-ghost-crystal-active">
+    <path
+       id="left-crystal"
+       d="m13 73 11-35 13-12 9 15-5 39Z"
+       fill="#79d8c7"
+       stroke="#245a57"
+       stroke-width="5"
+       stroke-linejoin="round" />
+    <path
+       id="center-crystal"
+       d="m34 77 14-53 12-14 10 19-8 53Z"
+       fill="#a2f0dd"
+       stroke="#245a57"
+       stroke-width="5"
+       stroke-linejoin="round" />
+    <path
+       id="right-crystal"
+       d="m59 79 8-37 12-10 9 17-8 31Z"
+       fill="#63c9bd"
+       stroke="#245a57"
+       stroke-width="5"
+       stroke-linejoin="round" />
+    <path
+       id="facets"
+       d="m27 38 5 34m24-47-4 45m25-28-6 30"
+       fill="none"
+       stroke="#d8fff3"
+       stroke-width="3"
+       stroke-linecap="round"
+       opacity=".82" />
   </g>
 </svg>

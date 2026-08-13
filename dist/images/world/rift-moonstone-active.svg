@@ -1,13 +1,74 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title description">
-  <title id="title">Astral rift moonstone</title>
-  <desc id="description">A cluster of pale floating moonstone slabs held together by violet energy.</desc>
-  <g id="rift-moonstone-active">
-    <ellipse id="shadow" cx="49" cy="85" rx="35" ry="7" fill="#17142c" opacity=".65"/>
-    <path id="left-slab" d="m10 68 10-30 19-13 14 22-8 31-24 8Z" fill="#777895" stroke="#25243e" stroke-width="6" stroke-linejoin="round"/>
-    <path id="right-slab" d="m49 72 8-39 20-14 12 25-9 34-22 8Z" fill="#9495b1" stroke="#25243e" stroke-width="6" stroke-linejoin="round"/>
-    <path id="facets" d="m23 41 16 11-16 20m38-35 14 10-13 24" fill="none" stroke="#c7c8df" stroke-width="4" stroke-linecap="round"/>
-    <path id="rift-energy" d="M41 35c8-10 16 7 22-3M43 67c8-9 15 7 22-2" fill="none" stroke="#a96eff" stroke-width="4" stroke-linecap="round"/>
-    <circle id="orbit-one" cx="31" cy="19" r="4" fill="#d8c6ff"/>
-    <circle id="orbit-two" cx="84" cy="16" r="3" fill="#d8c6ff"/>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 96 96"
+   role="img"
+   aria-labelledby="title description"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="rift-moonstone-active.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="3.9162355"
+     inkscape:cx="72.518622"
+     inkscape:cy="59.751259"
+     inkscape:window-width="1503"
+     inkscape:window-height="635"
+     inkscape:window-x="0"
+     inkscape:window-y="33"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="rift-moonstone-active" />
+  <title
+     id="title">Astral rift moonstone</title>
+  <desc
+     id="description">A cluster of pale floating moonstone slabs held together by violet energy.</desc>
+  <g
+     id="rift-moonstone-active">
+    <path
+       id="left-slab"
+       d="m10 68 10-30 19-13 14 22-8 31-24 8Z"
+       fill="#777895"
+       stroke="#25243e"
+       stroke-width="6"
+       stroke-linejoin="round" />
+    <path
+       id="right-slab"
+       d="m49 72 8-39 20-14 12 25-9 34-22 8Z"
+       fill="#9495b1"
+       stroke="#25243e"
+       stroke-width="6"
+       stroke-linejoin="round" />
+    <path
+       id="facets"
+       d="m23 41 16 11-16 20m38-35 14 10-13 24"
+       fill="none"
+       stroke="#c7c8df"
+       stroke-width="4"
+       stroke-linecap="round" />
+    <path
+       id="rift-energy"
+       d="M 18.251312,61.592845 C 29.875034,56.217989 29.44122,75.001274 39.27545,68.733267"
+       fill="none"
+       stroke="#a96eff"
+       stroke-width="4"
+       stroke-linecap="round"
+       sodipodi:nodetypes="cc" />
+    <path
+       d="M 60.350566,47.174808 C 63.561794,35.569291 76.90018,46.842606 79.213893,35.678071"
+       style="fill:none;stroke:#a96eff;stroke-width:4;stroke-linecap:round"
+       id="path1" />
   </g>
 </svg>

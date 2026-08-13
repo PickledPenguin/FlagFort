@@ -1,61 +1,222 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" viewBox="0 0 180 180" role="img" aria-labelledby="title description" version="1.1" id="eclipse-regent-broken-svg" sodipodi:docname="eclipse-regent-broken.svg" inkscape:version="1.4.4">
-  <title id="title">Eclipse Regent with shattered armor</title>
-  <desc id="description">The Eclipse Regent after its moon armor shatters, exposing a dark singularity surrounded by violent cyan and violet rift energy.</desc>
-  <defs id="definitions">
-    <radialGradient id="open-singularity">
-      <stop id="void-center" offset="0" stop-color="#08091d"/>
-      <stop id="void-edge" offset=".48" stop-color="#21145c"/>
-      <stop id="accretion-ring" offset=".7" stop-color="#a44eff"/>
-      <stop id="accretion-glow" offset="1" stop-color="#62f0ff"/>
+<svg
+   viewBox="0 0 180 180"
+   role="img"
+   aria-labelledby="title description"
+   version="1.1"
+   id="eclipse-regent-broken-svg"
+   sodipodi:docname="eclipse-regent-broken.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="2.6139719"
+     inkscape:cx="64.843849"
+     inkscape:cy="90.092782"
+     inkscape:window-width="1652"
+     inkscape:window-height="762"
+     inkscape:window-x="0"
+     inkscape:window-y="33"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="eclipse-regent-broken" />
+  <title
+     id="title">Eclipse Regent with shattered armor</title>
+  <desc
+     id="description">The Eclipse Regent after its moon armor shatters, exposing a dark singularity surrounded by violent cyan and violet rift energy.</desc>
+  <defs
+     id="definitions">
+    <radialGradient
+       id="open-singularity">
+      <stop
+         id="void-center"
+         offset="0"
+         stop-color="#08091d" />
+      <stop
+         id="void-edge"
+         offset=".48"
+         stop-color="#21145c" />
+      <stop
+         id="accretion-ring"
+         offset=".7"
+         stop-color="#a44eff" />
+      <stop
+         id="accretion-glow"
+         offset="1"
+         stop-color="#62f0ff" />
     </radialGradient>
-    <linearGradient id="broken-moon-armor" x1="0" y1="0" x2="1" y2="1">
-      <stop id="broken-highlight" offset="0" stop-color="#dff8ff"/>
-      <stop id="broken-shadow" offset="1" stop-color="#465486"/>
+    <linearGradient
+       id="broken-moon-armor"
+       x1="0"
+       y1="0"
+       x2="1"
+       y2="1">
+      <stop
+         id="broken-highlight"
+         offset="0"
+         stop-color="#dff8ff" />
+      <stop
+         id="broken-shadow"
+         offset="1"
+         stop-color="#465486" />
     </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#broken-moon-armor"
+       id="linearGradient1"
+       x1="-38.843599"
+       y1="38.230197"
+       x2="5.1786491"
+       y2="82.252444"
+       gradientTransform="matrix(0.99018794,-0.60135038,0.44806862,0.73779306,-20.643722,2.7879446)"
+       gradientUnits="userSpaceOnUse" />
   </defs>
-  <g id="eclipse-regent-broken" transform="translate(90 92)" stroke-linejoin="round">
-    <g id="unstable-rift" fill="none" stroke-linecap="round">
-      <ellipse id="warped-orbit" cx="0" cy="3" rx="80" ry="48" transform="rotate(19)" stroke="#a94cff" stroke-width="7" stroke-dasharray="24 10" opacity=".8"/>
-      <path id="upper-rift" d="M-43-59C-17-82 21-82 48-54 19-67-14-61-38-39Z" stroke="#9850ff" stroke-width="9"/>
-      <path id="rift-lightning" d="M-31-61-13-53-3-69 12-51 31-63" stroke="#70f5ff" stroke-width="4"/>
+  <g
+     id="eclipse-regent-broken"
+     transform="translate(90 92)"
+     stroke-linejoin="round">
+    <g
+       id="unstable-rift"
+       fill="none"
+       stroke-linecap="round">
+      <path
+         id="upper-rift"
+         d="m -43.765119,-51.087202 c 26,-23 63.61744,-24.530238 90.61744,3.469762 -8.77738,-3.934688 -17.921193,-6.128822 -27.070989,-6.665583 -21.0806449,-1.236668 -63.546451,3.195821 -63.546451,3.195821 z"
+         stroke="#9850ff"
+         stroke-width="9"
+         sodipodi:nodetypes="ccsc" />
     </g>
-    <g id="massive-arms" fill="#5c4b82" stroke="#241d4b" stroke-width="7">
-      <path id="left-arm" d="M-43-27-72-18-82 12-65 34-41 15Z"/>
-      <path id="right-arm" d="M39-31 69-22 83 7 68 34 42 16Z"/>
+    <g
+       id="massive-arms"
+       fill="#5c4b82"
+       stroke="#241d4b"
+       stroke-width="7"
+       transform="translate(0,6)">
+      <path
+         id="left-arm"
+         d="m -43,-27 -29,9 -10,30 17,22 24,-19 z" />
+      <path
+         id="right-arm"
+         d="M 39,-31 69,-22 83,7 68,34 42,16 Z" />
     </g>
-    <ellipse id="body" cx="0" cy="4" rx="56" ry="62" fill="#5a477b" stroke="#241d49" stroke-width="7"/>
-    <g id="rift-cracks" fill="none" stroke="#72f3ff" stroke-width="4" stroke-linecap="round">
-      <path id="left-crack" d="M-48-11-31-4-39 9-25 17"/>
-      <path id="right-crack" d="M45-6 31 2 40 14 27 22"/>
-      <path id="lower-crack" d="M-8 49 0 37 10 52 18 61"/>
+    <ellipse
+       id="body"
+       cx="0"
+       cy="4"
+       rx="56"
+       ry="62"
+       fill="#5a477b"
+       stroke="#241d49"
+       stroke-width="7" />
+    <g
+       id="rift-cracks"
+       fill="none"
+       stroke="#72f3ff"
+       stroke-width="4"
+       stroke-linecap="round">
+      <path
+         id="left-crack"
+         d="M-48-11-31-4-39 9-25 17" />
+      <path
+         id="right-crack"
+         d="M45-6 31 2 40 14 27 22" />
+      <path
+         id="lower-crack"
+         d="M-8 49 0 37 10 52 18 61" />
     </g>
-    <circle id="exposed-singularity" cx="0" cy="17" r="32" fill="url(#open-singularity)" stroke="#79f5ff" stroke-width="5"/>
-    <ellipse id="accretion-disk" cx="0" cy="17" rx="41" ry="12" transform="rotate(-18 0 17)" fill="none" stroke="#cb72ff" stroke-width="6"/>
-    <circle id="void-heart" cx="0" cy="17" r="12" fill="#050611"/>
-    <g id="surviving-armor" fill="url(#broken-moon-armor)" stroke="#293061" stroke-width="6">
-      <path id="left-crown-fragment" d="M-38-39-29-68-12-54-17-29Z"/>
-      <path id="right-crown-fragment" d="M10-53 33-68 41-37 20-27Z"/>
-      <path id="left-shoulder-fragment" d="M-55-32-29-45-17-29-31-13-53-5Z"/>
-      <path id="right-shoulder-fragment" d="M19-28 32-44 56-30 51-4 34-14Z"/>
-      <path id="lower-fragment" d="M-42 45-24 36-10 55 3 68-29 62Z"/>
+    <circle
+       id="exposed-singularity"
+       cx="0"
+       cy="17"
+       r="32"
+       fill="url(#open-singularity)"
+       stroke="#79f5ff"
+       stroke-width="5" />
+    <ellipse
+       id="accretion-disk"
+       cx="0"
+       cy="17"
+       rx="41"
+       ry="12"
+       transform="rotate(-18 0 17)"
+       fill="none"
+       stroke="#cb72ff"
+       stroke-width="6" />
+    <circle
+       id="void-heart"
+       cx="0"
+       cy="17"
+       r="12"
+       fill="#050611" />
+    <g
+       id="surviving-armor"
+       fill="url(#broken-moon-armor)"
+       stroke="#293061"
+       stroke-width="6">
+      <path
+         id="left-crown-fragment"
+         d="M-38-39-29-68-12-54-17-29Z" />
+      <path
+         id="right-crown-fragment"
+         d="M10-53 33-68 41-37 20-27Z" />
+      <path
+         id="left-shoulder-fragment"
+         d="M-55-32-29-45-17-29-31-13-53-5Z" />
+      <path
+         id="right-shoulder-fragment"
+         d="M19-28 32-44 56-30 51-4 34-14Z" />
+      <path
+         id="lower-fragment"
+         d="m -33.183451,63.05199 10.7133,-17.035997 21.82870089,8.972614 17.85948411,4.363349 -30.465673,11.482281 z"
+         style="fill:url(#linearGradient1)" />
     </g>
-    <g id="floating-shards" fill="#91cbe4" stroke="#30376a" stroke-width="3">
-      <path id="shard-one" d="m-70-45 11-8 5 15-12 8Z"/>
-      <path id="shard-two" d="m68-42 12 7-8 13-10-8Z"/>
-      <path id="shard-three" d="m64 49 14 3-9 12-11-5Z"/>
-      <path id="shard-four" d="m-69 48 11-3-2 14-12 4Z"/>
+    <g
+       id="floating-shards"
+       fill="#91cbe4"
+       stroke="#30376a"
+       stroke-width="3">
+      <path
+         id="shard-one"
+         d="m -70.765119,-33.140653 11,-8 5,15 -12,8 z" />
+      <path
+         id="shard-two"
+         d="m 60.348808,-37.026726 12,7 -8,13 -10,-8 z" />
+      <path
+         id="shard-three"
+         d="m 55.966249,28.341783 14,3 -9,12 -11,-5 z" />
+      <path
+         id="shard-four"
+         d="m -60.966249,26.959223 11,-3 -2,14 -12,4 z" />
     </g>
-    <g id="face" stroke="#211a47" stroke-width="4" stroke-linecap="round">
-      <path id="left-eye" d="m-26-25 14-4 8 9-17 5Z" fill="#c16cff"/>
-      <path id="right-eye" d="m8-20 15-5 8 9-17 6Z" fill="#c16cff"/>
-      <path id="mouth" d="m-19-4 10-7 13 9 12-8" fill="none" stroke-width="5"/>
-    </g>
-    <g id="energy-sparks" fill="#8df8ff">
-      <circle id="spark-one" cx="-78" cy="19" r="3"/>
-      <circle id="spark-two" cx="75" cy="20" r="3"/>
-      <path id="spark-three" d="m-55 65 3 7 7 3-7 3-3 7-3-7-7-3 7-3Z"/>
-      <path id="spark-four" d="m52-68 3 7 7 3-7 3-3 7-3-7-7-3 7-3Z"/>
+    <g
+       id="face"
+       stroke="#211a47"
+       stroke-width="4"
+       stroke-linecap="round"
+       transform="translate(0,6)">
+      <path
+         id="left-eye"
+         d="m -26,-25 14,-4 8,9 -17,5 z"
+         fill="#c16cff" />
+      <path
+         id="right-eye"
+         d="m 8,-20 15,-5 8,9 -17,6 z"
+         fill="#c16cff" />
+      <path
+         id="mouth"
+         d="m -19,-4 10,-7 13,9 12,-8"
+         fill="none"
+         stroke-width="5" />
     </g>
   </g>
 </svg>

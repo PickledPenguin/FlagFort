@@ -50,6 +50,7 @@ export const BALANCE = {
     edgeMax: 1570,
     margin: 150,
     noBuildRadius: 290,
+    relocationMinimumDistance: 580,
   },
   sunlight: {
     movementMultiplier: 0.5,

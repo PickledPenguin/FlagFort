@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BOUNTIES, selectRunBounties } from "./bounties";
+import { BOUNTIES, BOUNTY_FEASIBILITY_LIMITS, selectRunBounties } from "./bounties";
 
 describe("seeded run bounties", () => {
   it("provides exactly 50 definitions at the configured 70/20/10 split", () => {
@@ -8,8 +8,20 @@ describe("seeded run bounties", () => {
     expect(BOUNTIES.filter((item) => item.difficulty === 2)).toHaveLength(10);
     expect(BOUNTIES.filter((item) => item.difficulty === 3)).toHaveLength(5);
     expect(new Set(BOUNTIES.map((item) => item.id)).size).toBe(50);
-    expect(BOUNTIES.every((item) => item.requirement.minimumNight >= 5)).toBe(true);
+    expect(BOUNTIES.every((item) => item.requirement.target > 0)).toBe(true);
     expect(BOUNTIES.every((item) => item.exclusionGroup.length > 0)).toBe(true);
+  });
+
+  it("keeps every unlock-heavy build objective inside the audited run limit", () => {
+    for (const bounty of BOUNTIES) {
+      const limit = BOUNTY_FEASIBILITY_LIMITS[bounty.requirement.metric];
+      expect(limit, bounty.id).toBeGreaterThan(0);
+      expect(bounty.requirement.target, bounty.id).toBeLessThanOrEqual(limit);
+      if (bounty.requirement.metric.endsWith("Created")) {
+        expect(bounty.description, bounty.id).toMatch(/^Build |^Obtain /);
+        expect(bounty.description, bounty.id).not.toContain("Establish");
+      }
+    }
   });
 
   it("selects three distinct deterministic bounties without tier input", () => {

@@ -98,7 +98,7 @@ describe("shared render and transition architecture", () => {
     expect(rendererSource.indexOf("this.drawPlayer(game)"))
       .toBeLessThan(rendererSource.indexOf("if (game.toolPreview) this.drawToolPreview(game)"));
     expect(stylesSource).toMatch(
-      /\.tool\[data-action-kind="tool"\][\s\S]*?\.build-bar-icon\s*\{[\s\S]*?width:\s*40px;[\s\S]*?height:\s*40px;/,
+      /\.tool\[data-action-kind="tool"\][\s\S]*?\.build-bar-icon\s*\{[\s\S]*?width:\s*48px;[\s\S]*?height:\s*48px;/,
     );
   });
 

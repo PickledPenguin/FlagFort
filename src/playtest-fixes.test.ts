@@ -457,6 +457,17 @@ describe("progression safety and presentation", () => {
     expect(document.querySelectorAll(".campaign-reward-node")).toHaveLength(16);
     expect(document.querySelector(".campaign-footer-requirements")?.textContent)
       .toContain("Reach Level 7");
+
+    snowy?.querySelector<HTMLElement>('[data-action="select-campaign-tier"]')?.click();
+    const flippedSnowy = document.querySelector<HTMLElement>('[data-campaign-tier="snowy"]')!
+      .closest<HTMLElement>(".campaign-tier-node");
+    expect(flippedSnowy?.classList.contains("flipped")).toBe(true);
+    expect(flippedSnowy?.querySelectorAll(".tier-card-enemies > span")).toHaveLength(3);
+    expect(flippedSnowy?.querySelector(".tier-card-back")?.textContent).not.toContain("Coins");
+    flippedSnowy?.querySelector<HTMLElement>('[data-action="flip-campaign-tier-back"]')?.click();
+    const returnedSnowy = document.querySelector<HTMLElement>('[data-campaign-tier="snowy"]')!
+      .closest<HTMLElement>(".campaign-tier-node");
+    expect(returnedSnowy?.classList.contains("flipped")).toBe(false);
   });
 
   it("keeps the coin floor for migration, settlement, and shop purchases", () => {

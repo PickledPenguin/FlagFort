@@ -1,10 +1,63 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title description">
-  <title id="title">Astral rift star-metal ore</title>
-  <desc id="description">A midnight meteor threaded with bright golden star-metal veins.</desc>
-  <g id="rift-star-metal-active">
-    <path id="meteor" d="m8 76 12-34 25-22 31 10 13 31-17 25H25Z" fill="#33314d" stroke="#17152b" stroke-width="6" stroke-linejoin="round"/>
-    <path id="star-metal" d="m17 55 19 4 10-20 12 14 19-8 7 18-18 3-10 15-14-14-20 8" fill="#d9a936" stroke="#70491c" stroke-width="4" stroke-linejoin="round"/>
-    <path id="hot-glints" d="m42 54 8-10m15 12 10-5M45 70l8 7" fill="none" stroke="#fff1a3" stroke-width="4" stroke-linecap="round"/>
-    <path id="star" d="m57 56 3 5 6 1-5 4 2 6-6-3-5 3 1-6-4-4 6-1Z" fill="#fff4b0"/>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 96 96"
+   role="img"
+   aria-labelledby="title description"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="rift-star-metal-active.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="3.3107126"
+     inkscape:cx="31.564202"
+     inkscape:cy="45.005417"
+     inkscape:window-width="1494"
+     inkscape:window-height="707"
+     inkscape:window-x="0"
+     inkscape:window-y="33"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="rift-star-metal-active" />
+  <title
+     id="title">Astral rift star-metal ore</title>
+  <desc
+     id="description">A midnight meteor threaded with bright golden star-metal veins.</desc>
+  <g
+     id="rift-star-metal-active">
+    <path
+       id="meteor"
+       d="m8 76 12-34 25-22 31 10 13 31-17 25H25Z"
+       fill="#33314d"
+       stroke="#17152b"
+       stroke-width="6"
+       stroke-linejoin="round" />
+    <path
+       id="star-metal"
+       d="M 17,55 36,59 46,39 58,53 77,45 84,63 66,66 56,81 42,67 22,75 Z"
+       fill="#d9a936"
+       stroke="#70491c"
+       stroke-width="4"
+       stroke-linejoin="round"
+       sodipodi:nodetypes="ccccccccccc" />
+    <path
+       id="hot-glints"
+       d="m42 54 8-10m15 12 10-5M45 70l8 7"
+       fill="none"
+       stroke="#fff1a3"
+       stroke-width="4"
+       stroke-linecap="round" />
   </g>
 </svg>

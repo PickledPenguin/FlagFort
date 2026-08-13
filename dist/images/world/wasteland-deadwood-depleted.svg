@@ -1,11 +1,65 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title description">
-  <title id="title">Depleted wasteland deadwood</title>
-  <desc id="description">A jagged deadwood stump with a faint patch of toxic fungus.</desc>
-  <g id="wasteland-deadwood-depleted">
-    <path id="stump" d="m25 83 9-32 13-8 20 7 5 33Z" fill="#51473f" stroke="#252527" stroke-width="6" stroke-linejoin="round"/>
-    <path id="cut" d="m34 52 13-9 20 7-15 11Z" fill="#766558" stroke="#2e2929" stroke-width="4" stroke-linejoin="round"/>
-    <path id="crack" d="m50 61 5 8-6 10" fill="none" stroke="#262326" stroke-width="3" stroke-linecap="round"/>
-    <path id="fungus" d="M61 72c4-4 9-2 10 2-3 3-7 3-10-2Z" fill="#6f8f32" stroke="#34451f" stroke-width="2"/>
-    <path id="dust" d="M17 87c18-6 45-6 63 0" fill="none" stroke="#69625b" stroke-width="5" stroke-linecap="round"/>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 96 96"
+   role="img"
+   aria-labelledby="title description"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="wasteland-deadwood-depleted.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="4.3824517"
+     inkscape:cx="51.455217"
+     inkscape:cy="59.555705"
+     inkscape:window-width="1608"
+     inkscape:window-height="739"
+     inkscape:window-x="0"
+     inkscape:window-y="33"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="wasteland-deadwood-depleted" />
+  <title
+     id="title">Depleted wasteland deadwood</title>
+  <desc
+     id="description">A jagged deadwood stump with a faint patch of toxic fungus.</desc>
+  <path
+     id="trunk"
+     d="m 31.910668,83.750182 6,-26.555744 21.688855,-0.653908 5.31115,27.209652 z"
+     fill="#554a40"
+     stroke="#252527"
+     stroke-width="6"
+     stroke-linejoin="round"
+     sodipodi:nodetypes="ccccc" />
+  <g
+     id="wasteland-deadwood-depleted">
+    <path
+       id="cut-0"
+       d="m 37.049099,56.589459 9.150687,-6.145807 13.990917,5.401034 -10.13948,7.622994 z"
+       fill="#766558"
+       stroke="#2e2929"
+       stroke-width="2.8636"
+       stroke-linejoin="round"
+       style="stroke:#252527;stroke-width:4.164;stroke-dasharray:none;stroke-opacity:1"
+       sodipodi:nodetypes="ccccc" />
+    <path
+       id="crack-4"
+       d="m 48.166176,63.097104 4.999997,8 -5.999997,10"
+       fill="none"
+       stroke="#262326"
+       stroke-width="3"
+       stroke-linecap="round" />
   </g>
 </svg>

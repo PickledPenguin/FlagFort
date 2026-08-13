@@ -22,7 +22,7 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:zoom="3.2597204"
      inkscape:cx="23.008108"
-     inkscape:cy="51.384776"
+     inkscape:cy="51.384775"
      inkscape:window-width="1599"
      inkscape:window-height="802"
      inkscape:window-x="0"
@@ -64,8 +64,7 @@
        id="scorched-hands"
        fill="#51674f"
        stroke="#252d2a"
-       stroke-width="2.5"
-       transform="translate(-6)">
+       stroke-width="2.5">
       <circle
          id="upper-hand"
          cx="36"
@@ -85,15 +84,16 @@
        stroke-width="3"
        cx="-6"
        cy="0" />
-    <circle
+    <ellipse
        id="swollen-cinder-core"
-       cx="-13"
+       cx="-17"
        cy="0"
-       r="21"
        fill="#ff8f35"
        stroke="#742d23"
        stroke-width="3"
-       style="fill:#ff8f35" />
+       style="fill:#ff8f35"
+       rx="17.011929"
+       ry="21" />
     <g
        id="charcoal-shell"
        fill="#343332"
@@ -133,18 +133,18 @@
        transform="translate(-6)">
       <ellipse
          id="upper-eye"
-         cx="13"
-         cy="-10"
+         cx="0.44835806"
+         cy="-17.31485"
          rx="6.5"
          ry="4.5"
-         transform="rotate(22,13,-10)" />
+         transform="rotate(52)" />
       <ellipse
          id="lower-eye"
-         cx="13"
-         cy="10"
+         cx="0.63722742"
+         cy="17.556591"
          rx="6.5"
          ry="4.5"
-         transform="rotate(-22,13,10)" />
+         transform="rotate(-52)" />
     </g>
     <g
        id="pupils"

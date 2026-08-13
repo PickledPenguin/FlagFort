@@ -1,17 +1,61 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" width="600" height="600" viewBox="0 0 600 600" role="img" aria-labelledby="title description">
-  <title id="title">Cinderburst blast wave</title>
-  <desc id="description">A circular orange fire wave edged with bright embers and broken charcoal fragments.</desc>
-  <sodipodi:namedview id="namedview1" pagecolor="#25201d" bordercolor="#705348" inkscape:showpageshadow="2"/>
-  <g inkscape:groupmode="layer" inkscape:label="Blast Wave" id="blast-wave">
-    <circle id="outer-glow" cx="300" cy="300" r="284" fill="none" stroke="#d94725" stroke-width="34" stroke-opacity="0.68"/>
-    <circle id="ember-ring" cx="300" cy="300" r="268" fill="none" stroke="#ff9b3d" stroke-width="16" stroke-opacity="0.82" stroke-dasharray="34 15 9 13"/>
-    <circle id="hot-edge" cx="300" cy="300" r="255" fill="none" stroke="#fff0a3" stroke-width="5" stroke-opacity="0.72"/>
+<svg
+   width="600"
+   height="600"
+   viewBox="0 0 600 600"
+   role="img"
+   aria-labelledby="title description"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="cinderburst-wave.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <title
+     id="title">Cinderburst blast wave</title>
+  <desc
+     id="description">A circular orange fire wave edged with bright embers and broken charcoal fragments.</desc>
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#25201d"
+     bordercolor="#705348"
+     inkscape:showpageshadow="2"
+     borderopacity="0.25"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="0.72898342"
+     inkscape:cx="198.22124"
+     inkscape:cy="309.33488"
+     inkscape:window-width="1676"
+     inkscape:window-height="818"
+     inkscape:window-x="0"
+     inkscape:window-y="33"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="charcoal-fragments" />
+  <g
+     inkscape:groupmode="layer"
+     inkscape:label="Blast Wave"
+     id="blast-wave">
+    <circle
+       id="outer-glow"
+       cx="300"
+       cy="300"
+       r="284"
+       fill="none"
+       stroke="#d94725"
+       stroke-width="34"
+       stroke-opacity="0.68" />
   </g>
-  <g inkscape:groupmode="layer" inkscape:label="Charcoal Fragments" id="charcoal-fragments" fill="#343332" stroke="#1e2020" stroke-width="3">
-    <path id="fragment-north" d="m286 34 17-22 14 25-13 17Z"/>
-    <path id="fragment-east" d="m557 276 27 14-24 17-18-12Z"/>
-    <path id="fragment-southwest" d="m99 485 14 27-29-5-7-19Z"/>
-    <path id="fragment-west" d="m42 251-25 17 29 12 15-14Z"/>
-  </g>
+  <g
+     inkscape:groupmode="layer"
+     inkscape:label="Charcoal Fragments"
+     id="charcoal-fragments"
+     fill="#343332"
+     stroke="#1e2020"
+     stroke-width="3" />
 </svg>

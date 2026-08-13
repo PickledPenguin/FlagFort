@@ -1,45 +1,148 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="-58 -52 116 104" role="img" aria-labelledby="title description">
-  <title id="title">Rift Strider zombie</title>
-  <desc id="description">A compact astral zombie phasing through a luminous rift, with floating clawed hands and a stardust trail.</desc>
-  <defs id="rift-strider-definitions">
-    <linearGradient id="rift-strider-body-gradient" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#7865b8"/>
-      <stop offset="1" stop-color="#34356f"/>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="-58 -52 116 104"
+   role="img"
+   aria-labelledby="title description"
+   version="1.1"
+   id="svg5"
+   sodipodi:docname="rift-strider-zombie.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview5"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="3.9442896"
+     inkscape:cx="24.719281"
+     inkscape:cy="46.649719"
+     inkscape:window-width="1530"
+     inkscape:window-height="689"
+     inkscape:window-x="0"
+     inkscape:window-y="33"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="pupils" />
+  <title
+     id="title">Rift Strider zombie</title>
+  <desc
+     id="description">A compact astral zombie phasing through a luminous rift, with floating clawed hands and a stardust trail.</desc>
+  <defs
+     id="rift-strider-definitions">
+    <linearGradient
+       id="rift-strider-body-gradient"
+       x1="-27.904206"
+       y1="-26.958301"
+       x2="26.012396"
+       y2="26.958301"
+       gradientTransform="matrix(1.0571883,0,0,0.9459053,-4.7670622,0.79451036)"
+       gradientUnits="userSpaceOnUse">
+      <stop
+         offset="0"
+         stop-color="#7865b8"
+         id="stop1" />
+      <stop
+         offset="1"
+         stop-color="#34356f"
+         id="stop2" />
     </linearGradient>
-    <linearGradient id="rift-strider-rift-gradient" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#7cecff"/>
-      <stop offset=".55" stop-color="#a58cff"/>
-      <stop offset="1" stop-color="#e49cff"/>
+    <linearGradient
+       id="rift-strider-rift-gradient"
+       x1="0"
+       y1="0"
+       x2="1"
+       y2="1">
+      <stop
+         offset="0"
+         stop-color="#7cecff"
+         id="stop3" />
+      <stop
+         offset=".55"
+         stop-color="#a58cff"
+         id="stop4" />
+      <stop
+         offset="1"
+         stop-color="#e49cff"
+         id="stop5" />
     </linearGradient>
   </defs>
-  <g id="rift-strider-zombie">
-    <g id="phase-rift" fill="none" stroke="url(#rift-strider-rift-gradient)" stroke-linecap="round">
-      <path id="outer-rift" d="M-35-42C-54-25-54 26-34 43" stroke-width="6"/>
-      <path id="inner-rift" d="M-27-31C-39-17-39 18-26 32" stroke-width="3" opacity=".72"/>
+  <g
+     id="rift-strider-zombie">
+    <path
+       id="phase-tail"
+       d="m -43.004451,-22.648368 c 16,-7 23,3 35.0000002,6 l -1,32 c -14.0000002,2 -22.0000002,13 -34.0000002,5 8,-6 9,-13.9999998 2,-19.99999987 8,-6.99999993 8,-15.00000013 -2,-23.00000013 z"
+       fill="#4f478c"
+       opacity="0.82" />
+    <g
+       id="floating-hands"
+       fill="#6562a8"
+       stroke="#252952"
+       stroke-width="2.5"
+       transform="translate(-9.0044508,1.8538575)">
+      <circle
+         id="upper-hand"
+         cx="44"
+         cy="-20"
+         r="9" />
+      <circle
+         id="lower-hand"
+         cx="44"
+         cy="17"
+         r="9" />
     </g>
-    <g id="stardust-trail" fill="#9feeff">
-      <path id="trail-shard-one" d="m-45-32 3 6 6 3-6 3-3 6-3-6-6-3 6-3Z"/>
-      <circle id="trail-star-two" cx="-49" cy="8" r="2.5"/>
-      <circle id="trail-star-three" cx="-40" cy="32" r="3.5" fill="#d6a5ff"/>
+    <ellipse
+       id="body"
+       cx="-5.7670622"
+       rx="27"
+       ry="24"
+       fill="url(#rift-strider-body-gradient)"
+       stroke="#252952"
+       stroke-width="3"
+       style="fill:url(#rift-strider-body-gradient)"
+       cy="0.79451036" />
+    <g
+       id="eyes"
+       fill="#dffcff"
+       stroke="#252952"
+       stroke-width="1.5"
+       transform="translate(-7.7077151,-15.735164)">
+      <path
+         id="lower-eye"
+         d="M 4.5794208,1.0643222 11.780482,13.809389 13.95257,1.9226498 Z"
+         sodipodi:nodetypes="cccc" />
     </g>
-    <path id="phase-tail" d="M-34-20C-18-27-11-17 1-14L0 18c-14 2-22 13-34 5 8-6 9-14 2-20 8-7 8-15-2-23Z" fill="#4f478c" opacity=".82"/>
-    <g id="floating-hands" fill="#6562a8" stroke="#252952" stroke-width="2.5">
-      <circle id="upper-hand" cx="44" cy="-20" r="9"/>
-      <circle id="lower-hand" cx="44" cy="17" r="9"/>
-    </g>
-    <ellipse id="body" cx="-1" rx="27" ry="24" fill="url(#rift-strider-body-gradient)" stroke="#252952" stroke-width="3"/>
-    <path id="phase-cowl" d="M-21-19C-14-36 11-38 26-20L15-12C6-24-8-24-17-12Z" fill="#282b62" stroke="#181b42" stroke-width="3" stroke-linejoin="round"/>
-    <g id="eyes" fill="#dffcff" stroke="#252952" stroke-width="1.5">
-      <path id="upper-eye" d="m2-12 17 3L5-3Z"/>
-      <path id="lower-eye" d="m2 12 17-3L5 3Z"/>
-    </g>
-    <g id="pupils" fill="#b785ff">
-      <circle id="upper-pupil" cx="11" cy="-8" r="2.5"/>
-      <circle id="lower-pupil" cx="11" cy="8" r="2.5"/>
-    </g>
-    <g id="phase-claws" fill="none" stroke="#9feeff" stroke-width="3" stroke-linecap="round">
-      <path id="upper-claws" d="m43-21 11-7m-10 8 12 1m-13 0 8 9"/>
-      <path id="lower-claws" d="m43 17 11-7m-10 8 12 1m-13-1 8 9"/>
+    <g
+       id="pupils"
+       fill="#b785ff"
+       transform="translate(-4.7670622,0.79451036)">
+      <circle
+         id="lower-pupil"
+         cx="8.0593472"
+         cy="-10.529674"
+         r="2.5" />
+      <g
+         id="eyes-7"
+         fill="#dffcff"
+         stroke="#252952"
+         stroke-width="1.5"
+         transform="matrix(1,0,0,-1,-2.800444,16.81049)">
+        <path
+           id="lower-eye-1"
+           d="M 4.7727018,2.2240082 11.780482,13.906029 13.469367,2.6957738 Z"
+           sodipodi:nodetypes="cccc" />
+      </g>
+      <circle
+         id="lower-pupil-8"
+         cx="8.1995564"
+         cy="-10.81049"
+         r="2.5"
+         transform="scale(1,-1)" />
     </g>
   </g>
 </svg>

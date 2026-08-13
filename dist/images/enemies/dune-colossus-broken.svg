@@ -25,10 +25,10 @@
      inkscape:cy="93.670052"
      inkscape:window-width="1433"
      inkscape:window-height="763"
-     inkscape:window-x="185"
-     inkscape:window-y="162"
+     inkscape:window-x="470"
+     inkscape:window-y="60"
      inkscape:window-maximized="0"
-     inkscape:current-layer="broken-scarab-crown" />
+     inkscape:current-layer="dune-colossus-broken" />
   <title
      id="title">Dune Colossus with shattered armor</title>
   <desc
@@ -140,29 +140,39 @@
          id="scarab-half"
          d="m -5.4124295,-57.105085 c 1,-12 14,-12 16.9999995,-1 l -4.9999995,14 -11,-1 z" />
     </g>
+    <path
+       id="mouth"
+       d="m -9.6566119,21.10596 7.9999997,-5.000001 7,7.000001 8.0000002,-6.000001"
+       fill="none"
+       stroke="#294735"
+       stroke-width="5"
+       stroke-linecap="round"
+       style="stroke:#754a2d;stroke-opacity:1" />
     <g
        id="eyes"
        fill="#fff1a8"
        stroke="#633a2a"
        stroke-width="2"
-       transform="matrix(0,1,1,0,0.21174372,-24.364606)">
+       transform="matrix(0,1.317394,1.317394,0,-3.7720572,-28.442601)">
       <ellipse
          id="left-eye"
-         cx="15"
-         cy="-8"
+         cx="8.9903812"
+         cy="-14.428204"
          rx="9"
-         ry="6" />
+         ry="6"
+         transform="rotate(30)" />
       <ellipse
          id="right-eye"
-         cx="15"
-         cy="10"
+         cx="-4.9540844"
+         cy="-21.419271"
          rx="9"
-         ry="6" />
+         ry="6"
+         transform="rotate(150)" />
     </g>
     <g
        id="pupils"
        fill="#782f2b"
-       transform="matrix(0,1,1,0,0.21174372,-28.364606)">
+       transform="matrix(0,1.317394,1.317394,0,-3.7720572,-33.712178)">
       <circle
          id="left-pupil"
          cx="19"
@@ -171,16 +181,8 @@
       <circle
          id="right-pupil"
          cx="19"
-         cy="10"
+         cy="16.072594"
          r="3.5" />
     </g>
-    <path
-       id="mouth"
-       d="m -9.6566119,13.483361 7.9999997,-5.0000004 7,7.0000004 8.0000002,-6.0000004"
-       fill="none"
-       stroke="#294735"
-       stroke-width="5"
-       stroke-linecap="round"
-       style="stroke:#754a2d;stroke-opacity:1" />
   </g>
 </svg>

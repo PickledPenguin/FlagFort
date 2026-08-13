@@ -733,7 +733,7 @@ button:focus-visible > .tooltip,
   margin-bottom: 20px;
   text-align: center;
 }
-.pause-utility-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.pause-utility-row { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
 .bounty-hud-button { min-width: 132px; display: grid; grid-template-columns: 22px 1fr auto; align-items: center; gap: 7px; padding: 7px 10px; border: 2px solid #c99c35; border-radius: 11px; color: #fff0ad; background: rgba(45,34,12,.92); box-shadow: 0 4px 0 rgba(19,13,3,.7); font-size: 10px; font-weight: 900; text-transform: uppercase; }
 .bounty-hud-button .icon { width: 20px; height: 20px; }
 .bounty-hud-button b { color: #f7ca4b; }
@@ -1875,8 +1875,10 @@ img.icon {
 
 .tool[data-action-kind="tool"] .game-symbol.generic .build-bar-icon,
 .tool[data-action-kind="recycle"] .game-symbol.generic .build-bar-icon {
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
+  transform: scale(1.18);
+  transform-origin: center;
 }
 
 .build-bar-icon-nighttime-bow {
@@ -3615,7 +3617,9 @@ img.icon {
   max-height: calc(100vh - 18px);
   overflow-y: auto;
 }
-.daily-rewards-modal > p { max-width: 620px; margin-inline: auto; }
+.daily-rewards-modal > .eyebrow,
+.daily-rewards-modal > h2,
+.daily-rewards-modal > p { max-width: 620px; margin-inline: auto; text-align: center; }
 .daily-reset-note { display: flex; align-items: center; justify-content: center; gap: 7px; color: #ffb56f; font-weight: 850; }
 .daily-reset-note .icon { width: 17px; }
 .daily-tier-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 7px; margin: 18px 0 10px; padding: 0; list-style: none; }
@@ -4993,7 +4997,7 @@ img.icon {
 .campaign-level { flex: 0 0 auto; display: grid; place-items: center; width: 78px; height: 58px; border: 2px solid #f7ca4b; border-radius: 14px; color: #f6d96f; font-size: 8px; font-weight: 950; }
 .campaign-level b { font: 950 25px/1 Impact, sans-serif; }
 .campaign-ladder-viewport { min-width: 0; overflow-y: auto; overscroll-behavior: contain; padding: 70px max(20px, 5cqw); scrollbar-color: #6ab47a #07170e; }
-.campaign-ladder-rail { position: relative; width: min(900px, 100%); height: 1800px; min-width: 0; margin: 0 auto; }
+.campaign-ladder-rail { position: relative; width: min(900px, 100%); height: 3800px; min-width: 0; margin: 0 auto; }
 .campaign-ladder-rail::before { content: ""; position: absolute; z-index: 0; inset: 0 auto 0 27px; width: 12px; border: 2px solid rgba(255,255,255,.18); border-radius: 99px; background: #06170e; box-shadow: 0 0 20px rgba(0,0,0,.5); }
 .campaign-ladder-rail::after { content: ""; position: absolute; z-index: 0; bottom: 0; left: 30px; width: 6px; height: var(--ladder-progress); border-radius: 99px; background: linear-gradient(#f7ca4b, #74f3a5); box-shadow: 0 0 18px rgba(116,243,165,.8); }
 .campaign-track-event { position: absolute; z-index: 1; right: 0; bottom: var(--track-position); left: 0; min-width: 0; display: grid; grid-template-columns: 66px minmax(0, 1fr); align-items: center; transform: translateY(50%); }
@@ -5002,11 +5006,38 @@ img.icon {
 .campaign-track-marker b { font: 950 18px/1 Impact, sans-serif; }
 .campaign-track-marker.reward { width: 42px; height: 42px; margin-left: 6px; border-color: #d4ad3e; color: #f7d762; }
 .campaign-tier-node { min-width: 0; }
-.campaign-tier-node > button { position: relative; width: 100%; min-width: 0; min-height: 124px; display: grid; grid-template-columns: 112px minmax(0, 1fr) auto; align-items: center; gap: 16px; padding: 12px 18px; overflow: hidden; border: 3px solid color-mix(in srgb, var(--tier-accent) 65%, #31483a); border-radius: 22px; color: var(--ink); background: rgba(12, 36, 23, .96); box-shadow: inset 0 2px rgba(255,255,255,.08), 0 7px 0 #06130c; text-align: left; }
-.campaign-tier-node > button:hover { filter: brightness(1.12); transform: translateY(-2px); }
-.campaign-tier-node.selected > button { border-color: var(--tier-accent); box-shadow: inset 0 2px rgba(255,255,255,.12), 0 7px 0 #06130c, 0 0 28px color-mix(in srgb, var(--tier-accent) 50%, transparent); }
-.campaign-tier-node.locked > button { filter: saturate(.42) brightness(.72); }
-.campaign-tier-node.current > button { border-color: #f7ca4b; box-shadow: inset 0 2px rgba(255,255,255,.12), 0 7px 0 #06130c, 0 0 32px rgba(247,202,75,.42); }
+.campaign-tier-card { width: 100%; min-width: 0; height: 164px; perspective: 1200px; }
+.campaign-tier-card-inner { position: relative; width: 100%; height: 100%; min-width: 0; transform-style: preserve-3d; transition: transform 520ms cubic-bezier(.2,.72,.2,1); }
+.campaign-tier-node.flipped { z-index: 4; }
+.campaign-tier-node.flipped .campaign-tier-card-inner { transform: rotateY(180deg); }
+.tier-card-face { position: absolute; inset: 0; width: 100%; min-width: 0; overflow: hidden; border: 3px solid color-mix(in srgb, var(--tier-accent) 65%, #31483a); border-radius: 22px; color: var(--ink); background: rgba(12, 36, 23, .98); box-shadow: inset 0 2px rgba(255,255,255,.08), 0 7px 0 #06130c; backface-visibility: hidden; }
+.tier-card-front { display: grid; grid-template-columns: 112px minmax(0, 1fr) auto; align-items: center; gap: 16px; padding: 12px 18px; text-align: left; }
+.tier-card-front:hover { filter: brightness(1.12); }
+.campaign-tier-node.selected .tier-card-face { border-color: var(--tier-accent); box-shadow: inset 0 2px rgba(255,255,255,.12), 0 7px 0 #06130c, 0 0 28px color-mix(in srgb, var(--tier-accent) 50%, transparent); }
+.campaign-tier-node.locked .tier-card-front { filter: saturate(.42) brightness(.72); }
+.campaign-tier-node.current .tier-card-face { border-color: #f7ca4b; box-shadow: inset 0 2px rgba(255,255,255,.12), 0 7px 0 #06130c, 0 0 32px rgba(247,202,75,.42); }
+.tier-card-back { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(220px, .75fr); grid-template-rows: auto auto 1fr auto; gap: 5px 12px; padding: 9px 12px; transform: rotateY(180deg); }
+.tier-card-back > header { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.tier-card-back > header span { min-width: 0; display: grid; }
+.tier-card-back > header small { color: var(--tier-accent); font-size: 7px; font-weight: 950; letter-spacing: .13em; }
+.tier-card-back > header b { overflow-wrap: anywhere; font: 950 20px/1 Impact, sans-serif; text-transform: uppercase; }
+.tier-card-back > header strong { padding: 4px 7px; border: 1px solid var(--tier-accent); border-radius: 999px; color: var(--tier-accent); font-size: 7px; }
+.tier-card-back > p { grid-column: 1; margin: 0; color: #cbd7cc; font-size: 9px; line-height: 1.3; }
+.tier-card-enemies { grid-column: 1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; min-width: 0; }
+.tier-card-enemies span { min-width: 0; display: grid; grid-template-columns: 38px minmax(0, 1fr); grid-template-rows: 1fr 1fr; align-items: center; gap: 0 5px; padding: 3px; border: 1px solid rgba(255,255,255,.12); border-radius: 8px; background: rgba(255,255,255,.04); }
+.tier-card-enemies img { grid-row: 1 / 3; width: 38px; height: 38px; object-fit: contain; }
+.tier-card-enemies b { overflow-wrap: anywhere; font-size: 8px; line-height: 1; }
+.tier-card-enemies small { color: var(--tier-accent); font-size: 6px; }
+.tier-card-mechanics { grid-column: 2; grid-row: 2 / 4; min-width: 0; display: grid; align-content: start; padding: 7px; border: 1px solid rgba(255,101,91,.34); border-radius: 9px; background: rgba(54,17,17,.3); }
+.tier-card-mechanics span { display: grid; }
+.tier-card-mechanics small { color: #ff9f97; font-size: 6px; font-weight: 950; }
+.tier-card-mechanics b { overflow-wrap: anywhere; font-size: 10px; }
+.tier-card-mechanics p { margin: 3px 0 0; color: #d8c5c3; font-size: 7px; line-height: 1.25; }
+.tier-card-requirements { grid-column: 1; display: flex; flex-wrap: wrap; gap: 4px; align-content: end; }
+.tier-card-requirements i { padding: 3px 5px; border: 1px solid #7e413e; border-radius: 5px; color: #ffaaa2; font-size: 6px; font-style: normal; font-weight: 900; }
+.tier-card-requirements i.met { border-color: #477b52; color: #9de0a8; }
+.tier-card-back > footer { grid-column: 2; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; }
+.tier-card-back > footer button { min-height: 28px; padding: 4px 6px; font-size: 8px; }
 .tier-backdrop { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .25; }
 .tier-medallion { position: relative; width: 98px; height: 98px; display: grid; place-items: center; border: 4px solid var(--tier-accent); border-radius: 50%; background: #10261a; box-shadow: inset 0 0 0 5px rgba(255,255,255,.06), 0 0 20px color-mix(in srgb, var(--tier-accent) 36%, transparent); }
 .tier-medallion img { width: 82%; height: 82%; object-fit: contain; }
@@ -5064,9 +5095,9 @@ img.icon {
 .tier-unlock-celebration strong { display: block; color: var(--tier-accent); font: 950 34px/1 Impact, sans-serif; letter-spacing: .08em; text-shadow: 0 0 18px var(--tier-accent); }
 .unlock-rays { position: absolute; z-index: 0; inset: -230%; background: repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--tier-accent) 32%, transparent) 0 8deg, transparent 8deg 18deg); animation: unlock-rays-spin 8s linear infinite; }
 .unlock-burst { position: absolute; z-index: 1; inset: 0; background: radial-gradient(circle, rgba(255,255,255,.65), transparent 12%); animation: unlock-flash 1.2s ease-out both; }
-.campaign-rewards-earned { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 7px; margin: 7px 0; }
-.campaign-rewards-earned strong { color: #e9cc6a; font-size: 8px; letter-spacing: .1em; }
-.campaign-rewards-earned span { padding: 5px 8px; border: 1px solid #d1af44; border-radius: 8px; color: #ffdf75; background: rgba(247,202,75,.08); font-size: 9px; font-weight: 900; }
+.campaign-reward-claimed { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 7px 0; padding: 7px 11px; border: 1px solid #d1af44; border-radius: 10px; color: #ffdf75; background: rgba(247,202,75,.08); }
+.campaign-reward-claimed > span { font-size: 8px; font-weight: 950; letter-spacing: .1em; }
+.campaign-reward-claimed > strong { font-size: 15px; }
 @keyframes unlock-arrive { 0% { opacity: 0; transform: scale(.6); } 55% { transform: scale(1.08); } 100% { opacity: 1; transform: scale(1); } }
 @keyframes unlock-medal { 0% { opacity: 0; transform: translateY(45px) rotate(-18deg) scale(.2); } 65% { transform: translateY(-8px) rotate(5deg) scale(1.18); } 100% { opacity: 1; transform: none; } }
 @keyframes unlock-rays-spin { to { transform: rotate(360deg); } }
@@ -5085,7 +5116,9 @@ img.icon {
   .campaign-ladder-viewport { padding: 12px; }
   .tier-details { grid-template-columns: minmax(0, 1fr); }
   .tier-requirements, .tier-enemies, .tier-milestones { grid-column: 1; }
-  .campaign-tier-node > button { grid-template-columns: 78px minmax(0, 1fr) auto; min-height: 92px; }
+  .campaign-tier-card { height: 150px; }
+  .tier-card-front { grid-template-columns: 78px minmax(0, 1fr) auto; }
+  .tier-card-back { grid-template-columns: minmax(0, 1.15fr) minmax(190px, .85fr); }
   .tier-medallion { width: 68px; height: 68px; }
 }
 
@@ -5104,7 +5137,7 @@ img.icon {
 
 @media (max-width: 560px) {
   .play-mode-grid { grid-template-columns: minmax(0, 1fr); }
-  .campaign-tier-node > button { grid-template-columns: 66px minmax(0, 1fr); }
+  .tier-card-front { grid-template-columns: 66px minmax(0, 1fr); }
   .tier-state { grid-column: 2; justify-self: start; }
   .campaign-ladder-modal > footer { grid-template-columns: minmax(0, 1fr); }
 }

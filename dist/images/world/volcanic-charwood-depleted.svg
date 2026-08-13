@@ -1,10 +1,66 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title description">
-  <title id="title">Depleted volcanic charwood</title>
-  <desc id="description">A low blackened stump left after gathering charwood.</desc>
-  <g id="volcanic-charwood-depleted">
-    <path id="stump" d="m27 82 7-31 13-7 19 6 5 32Z" fill="#3a302e" stroke="#171416" stroke-width="6" stroke-linejoin="round"/>
-    <path id="cut" d="m34 52 14-8 18 6-14 10Z" fill="#665047" stroke="#211b1c" stroke-width="4" stroke-linejoin="round"/>
-    <path id="ember-crack" d="m48 60 4 8-5 10" fill="none" stroke="#c9522b" stroke-width="3" stroke-linecap="round"/>
-    <path id="ash" d="M18 85c17-6 43-6 61 0" fill="none" stroke="#51474a" stroke-width="5" stroke-linecap="round"/>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 96 96"
+   role="img"
+   aria-labelledby="title description"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="volcanic-charwood-depleted.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="8.0584167"
+     inkscape:cx="39.896175"
+     inkscape:cy="50.630293"
+     inkscape:window-width="1612"
+     inkscape:window-height="779"
+     inkscape:window-x="36"
+     inkscape:window-y="33"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="volcanic-charwood-depleted" />
+  <title
+     id="title">Depleted volcanic charwood</title>
+  <desc
+     id="description">A low blackened stump left after gathering charwood.</desc>
+  <g
+     id="volcanic-charwood-depleted">
+    <path
+       id="stump"
+       d="m 37.962634,82.168656 4.470162,-36.565645 c 4.522231,0.449782 8.883676,1.620666 13.279193,2.71043 l 6.349248,35.035806 z"
+       fill="#3a302e"
+       stroke="#171416"
+       stroke-width="6"
+       stroke-linejoin="round"
+       sodipodi:nodetypes="ccccc" />
+    <path
+       id="cut"
+       d="m 41.758172,45.422419 c -0.05114,-1.956362 4.430431,-2.530373 8.152037,-2.196007 3.189199,0.286532 5.077544,1.713546 6.755638,4.814895 0.03057,-0.03057 -5.499981,3.861668 -9.399236,3.064023 -2.990428,-0.611733 -5.508439,-5.682911 -5.508439,-5.682911 z"
+       fill="#665047"
+       stroke="#211b1c"
+       stroke-width="4"
+       stroke-linejoin="round"
+       sodipodi:nodetypes="cscsc"
+       style="stroke:#171416;stroke-opacity:1" />
+    <path
+       id="ember-crack"
+       d="M 48.496375,54.291683 51.875906,67.007249 47,78"
+       fill="none"
+       stroke="#c9522b"
+       stroke-width="3"
+       stroke-linecap="round"
+       sodipodi:nodetypes="ccc" />
   </g>
 </svg>

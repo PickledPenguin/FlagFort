@@ -23,7 +23,7 @@ export interface BountyDefinition {
   difficulty: BountyDifficulty;
   coinReward: 10 | 15 | 20;
   exclusionGroup: string;
-  requirement: { metric: BountyMetric; target: number; minimumNight: number };
+  requirement: { metric: BountyMetric; target: number };
   icon: "trophy" | "timer" | "heart" | "upgrade-node" | "pressure-high" | "sun";
 }
 
@@ -36,11 +36,10 @@ const bounty = (
   metric: BountyMetric,
   target: number,
   icon: BountyDefinition["icon"],
-  minimumNight = 5,
 ): BountyDefinition => ({
   id, name, description, difficulty, exclusionGroup,
   coinReward: difficulty === 1 ? 10 : difficulty === 2 ? 15 : 20,
-  requirement: { metric, target, minimumNight }, icon,
+  requirement: { metric, target }, icon,
 });
 
 // Targets are calibrated against the five latest playtest runs lasting more than two
@@ -82,31 +81,51 @@ export const BOUNTIES: readonly BountyDefinition[] = [
   bounty("nothing-wasted", "Nothing Wasted", "Recycle 20 structures.", 1, "structure-recycling", "structuresRecycled", 20, "sun"),
   bounty("circular-economy", "Circular Economy", "Recycle 25 structures.", 1, "structure-recycling", "structuresRecycled", 25, "sun"),
 
-  bounty("gold-rush", "Gold Rush", "Establish 3 gold harvesters.", 1, "gold-harvesters", "goldHarvestersCreated", 3, "sun"),
-  bounty("gold-industry", "Gold Industry", "Establish 4 gold harvesters.", 1, "gold-harvesters", "goldHarvestersCreated", 4, "sun"),
-  bounty("gold-network", "Gold Network", "Establish 5 gold harvesters.", 1, "gold-harvesters", "goldHarvestersCreated", 5, "sun"),
-  bounty("gold-works", "Gold Works", "Establish 6 gold harvesters.", 1, "gold-harvesters", "goldHarvestersCreated", 6, "sun"),
+  bounty("gold-rush", "Gold Rush", "Build 3 gold harvesters.", 1, "gold-harvesters", "goldHarvestersCreated", 3, "sun"),
+  bounty("gold-industry", "Gold Industry", "Build 4 gold harvesters.", 1, "gold-harvesters", "goldHarvestersCreated", 4, "sun"),
+  bounty("gold-network", "Gold Network", "Build 5 gold harvesters.", 1, "gold-harvesters", "goldHarvestersCreated", 5, "sun"),
+  bounty("gold-works", "Gold Works", "Build 6 gold harvesters.", 1, "gold-harvesters", "goldHarvestersCreated", 6, "sun"),
   bounty("diamond-gloves", "Diamond Hands", "Obtain diamond gloves during the run.", 1, "diamond-gloves", "diamondGlovesObtained", 1, "heart"),
 
-  bounty("diamond-caltrops", "Diamond Caltrops", "Establish 10 diamond spikes.", 2, "diamond-spikes", "diamondSpikesCreated", 10, "upgrade-node"),
-  bounty("diamond-thicket", "Diamond Thicket", "Establish 14 diamond spikes.", 2, "diamond-spikes", "diamondSpikesCreated", 14, "upgrade-node"),
-  bounty("diamond-maze", "Diamond Maze", "Establish 18 diamond spikes.", 2, "diamond-spikes", "diamondSpikesCreated", 18, "pressure-high"),
-  bounty("diamond-gauntlet", "Diamond Gauntlet", "Establish 22 diamond spikes.", 2, "diamond-spikes", "diamondSpikesCreated", 22, "trophy"),
+  bounty("diamond-caltrops", "Diamond Caltrops", "Build 8 diamond spikes.", 2, "diamond-spikes", "diamondSpikesCreated", 8, "upgrade-node"),
+  bounty("diamond-thicket", "Diamond Thicket", "Build 10 diamond spikes.", 2, "diamond-spikes", "diamondSpikesCreated", 10, "upgrade-node"),
+  bounty("diamond-maze", "Diamond Maze", "Build 12 diamond spikes.", 2, "diamond-spikes", "diamondSpikesCreated", 12, "pressure-high"),
+  bounty("diamond-gauntlet", "Diamond Gauntlet", "Build 14 diamond spikes.", 2, "diamond-spikes", "diamondSpikesCreated", 14, "trophy"),
 
-  bounty("diamond-battery", "Diamond Battery", "Establish 4 diamond turrets.", 2, "diamond-turrets", "diamondTurretsCreated", 4, "pressure-high"),
-  bounty("diamond-crossfire", "Diamond Crossfire", "Establish 5 diamond turrets.", 2, "diamond-turrets", "diamondTurretsCreated", 5, "pressure-high"),
-  bounty("diamond-arsenal", "Diamond Arsenal", "Establish 6 diamond turrets.", 2, "diamond-turrets", "diamondTurretsCreated", 6, "upgrade-node"),
-  bounty("diamond-overwatch", "Diamond Overwatch", "Establish 8 diamond turrets.", 2, "diamond-turrets", "diamondTurretsCreated", 8, "trophy"),
+  bounty("diamond-battery", "Diamond Battery", "Build 2 diamond turrets.", 2, "diamond-turrets", "diamondTurretsCreated", 2, "pressure-high"),
+  bounty("diamond-crossfire", "Diamond Crossfire", "Build 3 diamond turrets.", 2, "diamond-turrets", "diamondTurretsCreated", 3, "pressure-high"),
+  bounty("diamond-arsenal", "Diamond Arsenal", "Build 4 diamond turrets.", 2, "diamond-turrets", "diamondTurretsCreated", 4, "upgrade-node"),
+  bounty("diamond-overwatch", "Diamond Overwatch", "Build 5 diamond turrets.", 2, "diamond-turrets", "diamondTurretsCreated", 5, "trophy"),
 
-  bounty("diamond-rampart", "Diamond Rampart", "Establish 10 diamond walls.", 2, "diamond-walls", "diamondWallsCreated", 10, "upgrade-node"),
-  bounty("diamond-ring", "Diamond Ring", "Establish 14 diamond walls.", 2, "diamond-walls", "diamondWallsCreated", 14, "upgrade-node"),
-  bounty("diamond-bastion", "Diamond Bastion", "Establish 18 diamond walls.", 3, "diamond-walls", "diamondWallsCreated", 18, "trophy"),
-  bounty("diamond-citadel", "Diamond Citadel", "Establish 24 diamond walls.", 3, "diamond-walls", "diamondWallsCreated", 24, "trophy"),
+  bounty("diamond-rampart", "Diamond Rampart", "Build 8 diamond walls.", 2, "diamond-walls", "diamondWallsCreated", 8, "upgrade-node"),
+  bounty("diamond-ring", "Diamond Ring", "Build 10 diamond walls.", 2, "diamond-walls", "diamondWallsCreated", 10, "upgrade-node"),
+  bounty("diamond-bastion", "Diamond Bastion", "Build 14 diamond walls.", 3, "diamond-walls", "diamondWallsCreated", 14, "trophy"),
+  bounty("diamond-citadel", "Diamond Citadel", "Build 18 diamond walls.", 3, "diamond-walls", "diamondWallsCreated", 18, "trophy"),
 
-  bounty("gilded-fort", "Gilded Fort", "Establish 30 gold structures.", 3, "gold-structures", "goldStructuresCreated", 30, "upgrade-node"),
-  bounty("gold-standard", "Gold Standard", "Establish 40 gold structures.", 3, "gold-structures", "goldStructuresCreated", 40, "trophy"),
-  bounty("all-diamond", "All Diamond", "Establish 20 diamond structures.", 3, "diamond-structures", "diamondStructuresCreated", 20, "trophy"),
+  bounty("gilded-fort", "Gilded Fort", "Build 24 gold structures.", 3, "gold-structures", "goldStructuresCreated", 24, "upgrade-node"),
+  bounty("gold-standard", "Gold Standard", "Build 32 gold structures.", 3, "gold-structures", "goldStructuresCreated", 32, "trophy"),
+  bounty("all-diamond", "All Diamond", "Build 14 diamond structures.", 3, "diamond-structures", "diamondStructuresCreated", 14, "trophy"),
 ] as const;
+
+// Standard-run ceilings used by the definition audit. Kill ceilings follow the
+// recent Night 5 telemetry baseline and leave the remaining five nights for a
+// focused strategy. Build ceilings include unlock time, configured capacities,
+// tier costs, and renewable node income through the ten-night campaign.
+export const BOUNTY_FEASIBILITY_LIMITS: Readonly<Record<BountyMetric, number>> = {
+  meleeKills: 200,
+  bowKills: 100,
+  turretKills: 250,
+  spikeKills: 100,
+  portalsRelocated: 18,
+  structuresRecycled: 25,
+  goldHarvestersCreated: 6,
+  diamondSpikesCreated: 14,
+  diamondTurretsCreated: 5,
+  diamondWallsCreated: 18,
+  diamondGlovesObtained: 1,
+  goldStructuresCreated: 32,
+  diamondStructuresCreated: 14,
+};
 
 export interface RunBounty {
   definition: BountyDefinition;

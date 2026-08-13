@@ -1,39 +1,168 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="-59 -52 118 104" role="img" aria-labelledby="title description">
-  <title id="title">Sludge Lobber zombie</title>
-  <desc id="description">A wasteland zombie wearing a battered respirator and carrying a leaking toxic tank, with a glowing sludge bomb raised to throw.</desc>
-  <defs id="sludge-lobber-definitions">
-    <radialGradient id="sludge-gradient" cx="38%" cy="34%" r="65%">
-      <stop offset="0" stop-color="#efff9c"/>
-      <stop offset=".5" stop-color="#8ddd3e"/>
-      <stop offset="1" stop-color="#3f8f35"/>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="-59 -52 118 104"
+   role="img"
+   aria-labelledby="title description"
+   version="1.1"
+   id="svg3"
+   sodipodi:docname="sludge-lobber-zombie.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview3"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="3.1131132"
+     inkscape:cx="52.198552"
+     inkscape:cy="52.519773"
+     inkscape:window-width="1422"
+     inkscape:window-height="608"
+     inkscape:window-x="0"
+     inkscape:window-y="33"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="sludge-bomb" />
+  <title
+     id="title">Sludge Lobber zombie</title>
+  <desc
+     id="description">A wasteland zombie wearing a battered respirator and carrying a leaking toxic tank, with a glowing sludge bomb raised to throw.</desc>
+  <defs
+     id="sludge-lobber-definitions">
+    <radialGradient
+       id="sludge-gradient"
+       cx="38%"
+       cy="34%"
+       r="65%">
+      <stop
+         offset="0"
+         stop-color="#efff9c"
+         id="stop1" />
+      <stop
+         offset=".5"
+         stop-color="#8ddd3e"
+         id="stop2" />
+      <stop
+         offset="1"
+         stop-color="#3f8f35"
+         id="stop3" />
     </radialGradient>
   </defs>
-  <g id="sludge-lobber-zombie">
-    <g id="toxic-tank">
-      <rect id="tank-body" x="-45" y="-27" width="27" height="54" rx="10" fill="#52615b" stroke="#27332f" stroke-width="3"/>
-      <path id="tank-warning-band" d="M-44-5h25v15h-25Z" fill="#c8b83f" stroke="#615a2d" stroke-width="2"/>
-      <circle id="tank-leak" cx="-35" cy="34" r="5" fill="#8ddd3e"/>
+  <g
+     id="sludge-lobber-zombie">
+    <g
+       id="toxic-tank">
+      <rect
+         id="tank-body"
+         x="-49.818329"
+         y="-25.715113"
+         width="27"
+         height="54"
+         rx="10"
+         fill="#52615b"
+         stroke="#27332f"
+         stroke-width="3" />
+      <path
+         id="tank-warning-band"
+         d="m -48.818328,-3.7151126 h 25 V 11.284887 h -25 z"
+         fill="#c8b83f"
+         stroke="#615a2d"
+         stroke-width="2" />
     </g>
-    <g id="hands" fill="#617a65" stroke="#2c4134" stroke-width="2.5">
-      <circle id="rear-hand" cx="26" cy="24" r="9"/>
-      <circle id="throwing-hand" cx="36" cy="-25" r="9"/>
+    <g
+       id="hands"
+       fill="#617a65"
+       stroke="#2c4134"
+       stroke-width="2.5"
+       transform="translate(-4.8183278,1.2848874)">
+      <circle
+         id="rear-hand"
+         cx="38"
+         cy="16"
+         r="9" />
+      <circle
+         id="throwing-hand"
+         cx="38"
+         cy="-19"
+         r="9" />
     </g>
-    <circle id="body" r="27" fill="#607b67" stroke="#2c4134" stroke-width="3"/>
-    <path id="patched-coat" d="M-21 12-13 31 16 28 25 9 9 14-4 8Z" fill="#766b51" stroke="#403c32" stroke-width="2.5" stroke-linejoin="round"/>
-    <g id="respirator" stroke="#26332f" stroke-width="2.5">
-      <path id="mask" d="M6-13 26-8 29 8 7 13-1 0Z" fill="#4a5552"/>
-      <circle id="filter" cx="25" r="8" fill="#343d3a"/>
-      <path id="filter-slots" d="m22-4 6 8m0-8-6 8" stroke="#98a397" stroke-width="1.5"/>
+    <circle
+       id="body"
+       r="27"
+       fill="#607b67"
+       stroke="#2c4134"
+       stroke-width="3"
+       cx="-4.8183279"
+       cy="1.2848874" />
+    <g
+       id="respirator"
+       stroke="#26332f"
+       stroke-width="2.5"
+       transform="translate(-4.8183278,1.2848874)">
+      <path
+         id="mask"
+         d="M 6,-13 26,-8 29,8 7,13 -1,0 Z"
+         fill="#4a5552" />
+      <circle
+         id="filter"
+         cx="25"
+         r="8"
+         fill="#343d3a"
+         cy="0" />
+      <path
+         id="filter-slots"
+         d="m 22,-4 6,8 m 0,-8 -6,8"
+         stroke="#98a397"
+         stroke-width="1.5" />
     </g>
-    <g id="eyes" fill="#f0ffd0">
-      <ellipse id="upper-eye" cx="7" cy="-10" rx="6" ry="4" transform="rotate(18 7 -10)"/>
-      <ellipse id="lower-eye" cx="7" cy="10" rx="6" ry="4" transform="rotate(-18 7 10)"/>
+    <g
+       id="eyes"
+       fill="#f0ffd0"
+       transform="translate(-4.8183278,1.2848874)">
+      <ellipse
+         id="upper-eye"
+         cx="7"
+         cy="-10"
+         rx="6"
+         ry="4"
+         transform="rotate(18,7,-10)" />
+      <ellipse
+         id="lower-eye"
+         cx="7"
+         cy="10"
+         rx="6"
+         ry="4"
+         transform="rotate(-18,7,10)" />
     </g>
-    <g id="sludge-bomb">
-      <circle id="bomb" cx="45" cy="-34" r="11" fill="#8ddd3e" stroke="#356b2f" stroke-width="3"/>
-      <circle id="bomb-bubble-one" cx="42" cy="-37" r="3" fill="#efff9c"/>
-      <circle id="bomb-bubble-two" cx="50" cy="-31" r="2" fill="#c4f46e"/>
-      <path id="sludge-drip" d="M41-24c0 8 7 8 7 1" fill="#75c83b"/>
+    <g
+       id="sludge-bomb"
+       transform="translate(-2.8909967,32.764629)">
+      <circle
+         id="bomb"
+         cx="45"
+         cy="-34"
+         r="11"
+         fill="#8ddd3e"
+         stroke="#356b2f"
+         stroke-width="3" />
+      <circle
+         id="bomb-bubble-one"
+         cx="42"
+         cy="-37"
+         r="3"
+         fill="#efff9c" />
+      <circle
+         id="bomb-bubble-two"
+         cx="50"
+         cy="-31"
+         r="2"
+         fill="#c4f46e" />
     </g>
   </g>
 </svg>

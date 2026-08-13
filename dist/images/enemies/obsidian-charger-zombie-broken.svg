@@ -1,31 +1,121 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="-58 -52 116 104" role="img" aria-labelledby="title description">
-  <title id="title">Obsidian Charger zombie with broken armor</title>
-  <desc id="description">A broad volcanic zombie charging forward after its obsidian headplate and shoulder armor have shattered, exposing glowing cracks and scattered shards.</desc>
-  <g id="obsidian-charger-zombie-broken">
-    <g id="floating-hands" fill="#536b53" stroke="#26342a" stroke-width="3">
-      <circle id="upper-fist" cx="45" cy="-20" r="10"/>
-      <circle id="lower-fist" cx="45" cy="20" r="10"/>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="-58 -52 116 104"
+   role="img"
+   aria-labelledby="title description"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="obsidian-charger-zombie-broken.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="3.3948983"
+     inkscape:cx="71.577991"
+     inkscape:cy="61.415684"
+     inkscape:window-width="1615"
+     inkscape:window-height="670"
+     inkscape:window-x="0"
+     inkscape:window-y="33"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="eyes" />
+  <title
+     id="title">Obsidian Charger zombie with broken armor</title>
+  <desc
+     id="description">A broad volcanic zombie charging forward after its obsidian headplate and shoulder armor have shattered, exposing glowing cracks and scattered shards.</desc>
+  <g
+     id="obsidian-charger-zombie-broken">
+    <g
+       id="floating-hands"
+       fill="#536b53"
+       stroke="#26342a"
+       stroke-width="3">
+      <circle
+         id="upper-fist"
+         cx="45"
+         cy="-20"
+         r="10" />
+      <circle
+         id="lower-fist"
+         cx="45"
+         cy="20"
+         r="10" />
     </g>
-    <circle id="body" cx="-4" r="30" fill="#587258" stroke="#26342a" stroke-width="3"/>
-    <path id="exposed-head" d="m-37 0 17-23 22-4 22 15 4 12-4 12L2 27l-22-4Z" fill="#4f684f" stroke="#26342a" stroke-width="3" stroke-linejoin="round"/>
-    <g id="exposed-lava-cracks" fill="none" stroke="#ff7a2d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-      <path id="central-crack" d="m-29-5 11 5-9 8 12 6"/>
-      <path id="upper-crack" d="m-10-23 7 9 10-6"/>
-      <path id="lower-crack" d="m-9 23 8-8 9 6"/>
+    <path
+       id="exposed-head"
+       d="m -37,0 6.062755,-17.871038 11.231805,-8.958237 20.8217611,-3.705441 11.3267289,3.96044 L 24,-12 28,0 24,12 14.422669,25.411983 2,29.651037 -13.642358,29.60759 -27.65855,22.116321 -33.378059,12.062034 Z"
+       fill="#4f684f"
+       stroke="#26342a"
+       stroke-width="3"
+       stroke-linejoin="round"
+       sodipodi:nodetypes="cccccccccccccc" />
+    <g
+       id="remaining-obsidian-shards"
+       fill="#292630"
+       stroke="#141419"
+       stroke-width="2"
+       stroke-linejoin="round">
+      <path
+         id="upper-shard"
+         d="m -16.091973,-26.348963 12.0000005,-7 10,12 -12,7 z" />
+      <path
+         id="lower-shard"
+         d="m -7.1388624,24.465284 12,7 9.0000004,-13 -12.0000004,-6 z" />
+      <path
+         id="rear-shard"
+         d="m -33.225128,-1.6828991 9,-8 5,10.00000004 z" />
     </g>
-    <g id="remaining-obsidian-shards" fill="#292630" stroke="#141419" stroke-width="2" stroke-linejoin="round">
-      <path id="upper-shard" d="m6-29 12-7 10 12-12 7Z"/>
-      <path id="lower-shard" d="m7 28 12 7 9-13-12-6Z"/>
-      <path id="rear-shard" d="m-40-17 9-8 5 10Z"/>
+    <g
+       id="eyes"
+       fill="#ffd47a"
+       stroke="#1c1b20"
+       stroke-width="1.5">
+      <path
+         id="upper-eye"
+         d="M 13.266607,-15.86647 14.699403,-2.7917966 6.0568389,-11.864066 Z" />
+      <path
+         id="lower-eye"
+         d="M 13.266607,15.86647 14.699403,2.7917966 6.0568389,11.864066 Z" />
     </g>
-    <g id="eyes" fill="#ffd47a" stroke="#1c1b20" stroke-width="1.5">
-      <path id="upper-eye" d="m6-12 13 2-11 6Z"/>
-      <path id="lower-eye" d="m6 12 13-2-11-6Z"/>
+    <g
+       id="charge-debris"
+       fill="#4b424f"
+       opacity=".9">
+      <path
+         id="flying-shard"
+         d="m -20.605954,-14.923055 8,-5 3.9999999,9 -8.9999999,3 z" />
+      <path
+         id="fallen-shard"
+         d="m -17.358284,10.14067 11.9999996,-5.0000003 4,8.0000003 z" />
     </g>
-    <g id="charge-debris" fill="#4b424f" opacity=".9">
-      <path id="flying-shard" d="m-48-27 8-5 4 9-9 3Z"/>
-      <path id="fallen-shard" d="m-53 34 12-5 4 8Z"/>
-      <circle id="dust-grain" cx="-48" cy="22" r="3" fill="#6c4a42"/>
+    <g
+       id="exposed-lava-cracks"
+       fill="none"
+       stroke="#ff7a2d"
+       stroke-width="3"
+       stroke-linecap="round"
+       stroke-linejoin="round">
+      <path
+         id="central-crack"
+         d="m-29-5 11 5-9 8 12 6" />
+      <path
+         id="upper-crack"
+         d="m -10,-21.232642 7,9 10,-6" />
+      <path
+         id="lower-crack"
+         d="m -11.356477,20.054404 7.9999999,-8 9,6" />
     </g>
   </g>
 </svg>

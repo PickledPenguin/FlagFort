@@ -315,7 +315,7 @@ export interface CampaignTierDefinition {
   icon: string;
   backdrop: string;
   boss: BossEnemyKind;
-  specialEnemies: readonly [] | readonly [
+  specialEnemies: readonly [
     RosterEnemyKind,
     RosterEnemyKind,
     RosterEnemyKind,
@@ -346,7 +346,7 @@ export const CAMPAIGN_TIERS: readonly CampaignTierDefinition[] = [
     accent: "#8eef9f",
     ...CAMPAIGN_TIER_ARTWORK.forest,
     boss: "boss",
-    specialEnemies: [],
+    specialEnemies: ["breaker", "jumper", "summoner"],
     unlock: { level: 1 },
     milestones: [
       { id: "forest-level-2-coins", level: 3, reward: { kind: "coins", amount: 25 } },
@@ -532,10 +532,23 @@ export function campaignUnlockRequirementText(
 }
 
 export function earnedCampaignMilestones(
-  level: number,
+  progress: CampaignProgressView,
   claimedRewardIds: readonly string[],
 ): CampaignMilestone[] {
   const claimed = new Set(claimedRewardIds);
-  return CAMPAIGN_TIERS.flatMap((tier) => tier.milestones)
-    .filter((milestone) => milestone.level <= level && !claimed.has(milestone.id));
+  return CAMPAIGN_TIERS.flatMap((tier) => (
+    isCampaignTierUnlocked(tier, progress)
+      ? tier.milestones.filter((milestone) => (
+          milestone.level <= progress.level && !claimed.has(milestone.id)
+        ))
+      : []
+  ));
+}
+
+export function isCampaignMilestoneAvailable(
+  tier: CampaignTierDefinition,
+  milestone: CampaignMilestone,
+  progress: CampaignProgressView,
+): boolean {
+  return milestone.level <= progress.level && isCampaignTierUnlocked(tier, progress);
 }

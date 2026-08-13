@@ -28,7 +28,7 @@
      inkscape:window-x="0"
      inkscape:window-y="33"
      inkscape:window-maximized="0"
-     inkscape:current-layer="orbit-sparks" />
+     inkscape:current-layer="comet-slinger-zombie" />
   <title
      id="title">Comet Slinger zombie</title>
   <desc
@@ -118,33 +118,6 @@
        stroke-width="3"
        stroke-linejoin="round" />
     <g
-       id="mantle-constellation"
-       fill="#9feeff"
-       stroke="#9feeff"
-       stroke-width="1.5"
-       transform="translate(3.3187204,-4.5039777)">
-      <circle
-         id="mantle-star-one"
-         cx="-13"
-         cy="-17"
-         r="2" />
-      <circle
-         id="mantle-star-two"
-         cx="1"
-         cy="-20"
-         r="2" />
-      <circle
-         id="mantle-star-three"
-         cx="14"
-         cy="-14"
-         r="2" />
-      <path
-         id="mantle-star-lines"
-         d="m -11,-17 10,-3 m 4,0 9,5"
-         fill="none"
-         opacity="0.7" />
-    </g>
-    <g
        id="eyes"
        fill="#effdff"
        stroke="#292c5d"
@@ -202,17 +175,13 @@
     </g>
     <path
        id="comet-tail"
-       d="M 4.4,21 C -8,20 -16,13 -21,3 -11,8 -4,7 2,3 -1,11 2,16 4.4,21 Z"
+       d="m 4.4,21.948206 c -12.4,-1 -20.4,-8 -25.4,-18.0000002 10,5 17,4 23,0 -3,8.0000002 0,13.0000002 2.4,18.0000002 z"
        fill="#8cecff"
        style="fill:#8cecff;fill-opacity:0.78"
        sodipodi:nodetypes="cccc" />
     <g
        id="orbit-sparks"
        fill="#c9f8ff"
-       transform="rotate(180,8.9858258,-14.263428)">
-      <path
-         id="spark-one"
-         d="m 27.195833,-42.116437 2,4 4,2 -4,2 -2,4 -2,-4 -4,-2 4,-2 z" />
-    </g>
+       transform="rotate(180,8.9858258,-14.263428)" />
   </g>
 </svg>

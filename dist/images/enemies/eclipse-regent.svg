@@ -1,60 +1,248 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" viewBox="0 0 180 180" role="img" aria-labelledby="title description" version="1.1" id="eclipse-regent-svg" sodipodi:docname="eclipse-regent.svg" inkscape:version="1.4.4">
-  <title id="title">Eclipse Regent boss</title>
-  <desc id="description">A colossal astral zombie encased in crescent moon armor, crowned by a violet rift and guarding a sealed singularity core.</desc>
-  <defs id="definitions">
-    <linearGradient id="moon-armor" x1="0" y1="0" x2="1" y2="1">
-      <stop id="moon-highlight" offset="0" stop-color="#dff8ff"/>
-      <stop id="moon-mid" offset=".5" stop-color="#7fb7d8"/>
-      <stop id="moon-shadow" offset="1" stop-color="#465486"/>
+<svg
+   viewBox="0 0 180 180"
+   role="img"
+   aria-labelledby="title description"
+   version="1.1"
+   id="eclipse-regent-svg"
+   sodipodi:docname="eclipse-regent.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="2.2037901"
+     inkscape:cx="81.45059"
+     inkscape:cy="77.82048"
+     inkscape:window-width="1574"
+     inkscape:window-height="732"
+     inkscape:window-x="0"
+     inkscape:window-y="33"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="eclipse-regent" />
+  <title
+     id="title">Eclipse Regent boss</title>
+  <desc
+     id="description">A colossal astral zombie encased in crescent moon armor, crowned by a violet rift and guarding a sealed singularity core.</desc>
+  <defs
+     id="definitions">
+    <linearGradient
+       id="moon-armor"
+       x1="0"
+       y1="0"
+       x2="1"
+       y2="1">
+      <stop
+         id="moon-highlight"
+         offset="0"
+         stop-color="#dff8ff" />
+      <stop
+         id="moon-mid"
+         offset=".5"
+         stop-color="#7fb7d8" />
+      <stop
+         id="moon-shadow"
+         offset="1"
+         stop-color="#465486" />
     </linearGradient>
-    <radialGradient id="sealed-singularity">
-      <stop id="singularity-center" offset="0" stop-color="#f6ffff"/>
-      <stop id="singularity-ring" offset=".42" stop-color="#55e7ff"/>
-      <stop id="singularity-edge" offset="1" stop-color="#6a3bd1"/>
+    <radialGradient
+       id="sealed-singularity">
+      <stop
+         id="singularity-center"
+         offset="0"
+         stop-color="#f6ffff" />
+      <stop
+         id="singularity-ring"
+         offset=".42"
+         stop-color="#55e7ff" />
+      <stop
+         id="singularity-edge"
+         offset="1"
+         stop-color="#6a3bd1" />
     </radialGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#moon-armor"
+       id="linearGradient1"
+       x1="-100.68133"
+       y1="-43.092368"
+       x2="-53.782145"
+       y2="3.8068147"
+       gradientTransform="matrix(0.8460088,0,0,1.1820208,4.991401,16.89033)"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#moon-armor"
+       id="linearGradient2"
+       x1="55.664083"
+       y1="-29.835303"
+       x2="103.89072"
+       y2="18.391339"
+       gradientTransform="scale(0.81740556,1.2233829)"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#moon-armor"
+       id="linearGradient7"
+       x1="-49.335435"
+       y1="-59.324194"
+       x2="52.248686"
+       y2="42.259927"
+       gradientTransform="scale(1.6253204,0.61526331)"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#moon-armor"
+       id="linearGradient3"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.8460088,0,0,1.1820208,4.991401,16.89033)"
+       x1="-100.68133"
+       y1="-43.092368"
+       x2="-53.782145"
+       y2="3.8068147" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#moon-armor"
+       id="linearGradient4"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.81740556,0,0,1.2233829,-19.965604,3.1763461)"
+       x1="55.664083"
+       y1="-29.835303"
+       x2="103.89072"
+       y2="18.391339" />
   </defs>
-  <g id="eclipse-regent" transform="translate(90 92)" stroke-linejoin="round">
-    <g id="astral-halo" fill="none" stroke-linecap="round">
-      <ellipse id="outer-orbit" cx="0" cy="0" rx="79" ry="47" transform="rotate(-18)" stroke="#8e6df0" stroke-width="4" opacity=".55"/>
-      <path id="upper-rift" d="M-35-66C-10-84 18-83 42-61 17-68-9-60-30-45Z" stroke="#a45cff" stroke-width="7" opacity=".8"/>
-      <path id="rift-glow" d="M-24-63C-4-72 14-71 30-61" stroke="#64efff" stroke-width="3"/>
+  <g
+     id="eclipse-regent"
+     transform="translate(90 92)"
+     stroke-linejoin="round">
+    <g
+       id="astral-halo"
+       fill="none"
+       stroke-linecap="round">
+      <path
+         id="rift-glow"
+         d="M-24-63C-4-72 14-71 30-61"
+         stroke="#64efff"
+         stroke-width="3" />
     </g>
-    <g id="orbiting-moons" fill="url(#moon-armor)" stroke="#27305f" stroke-width="5">
-      <path id="left-moon" d="M-72-48C-89-32-85-7-65 2-72-12-65-30-48-37-55-45-63-50-72-48Z"/>
-      <path id="right-moon" d="M69-34C87-18 87 8 69 20 74 4 66-12 48-19 54-28 61-34 69-34Z"/>
-      <path id="lower-moon" d="M21 60C6 78-20 81-35 65-18 69-2 59 2 40 12 44 19 51 21 60Z"/>
+    <g
+       id="orbiting-moons"
+       fill="url(#moon-armor)"
+       stroke="#27305f"
+       stroke-width="5">
+      <path
+         id="left-moon"
+         d="m -67.008599,-31.10967 c -17,16 -13,41 7,50 -7,-14.000001 0,-32 17,-39 -7,-8 -15,-13 -24,-11 z"
+         style="fill:url(#linearGradient1)" />
+      <path
+         id="right-moon"
+         d="m 69,-34 c 18,16 18,42 0,54 5,-16 -3,-32 -21,-39 6,-9 13,-15 21,-15 z"
+         style="fill:url(#linearGradient2)" />
     </g>
-    <g id="massive-arms" fill="#555080" stroke="#24214b" stroke-width="7">
-      <path id="left-arm" d="M-43-27-72-18-82 12-65 34-41 15Z"/>
-      <path id="right-arm" d="M39-31 69-22 83 7 68 34 42 16Z"/>
+    <g
+       id="orbiting-moons-3"
+       fill="url(#moon-armor)"
+       stroke="#27305f"
+       stroke-width="5"
+       style="fill:url(#linearGradient7)"
+       transform="matrix(1,0,0,-1,9.8353118,28.590006)">
+      <path
+         id="left-moon-5"
+         d="m -67.008599,-31.10967 c -17,16 -13,41 7,50 -7,-14.000001 0,-32 17,-39 -7,-8 -15,-13 -24,-11 z"
+         style="fill:url(#linearGradient3)" />
+      <path
+         id="right-moon-4"
+         d="m 49.034396,-30.823654 c 18,16 18,42 0,54 5,-15.9999999 -3,-31.9999999 -21,-39 6,-9 13,-15 21,-15 z"
+         style="fill:url(#linearGradient4)" />
     </g>
-    <ellipse id="body" cx="0" cy="4" rx="56" ry="62" fill="#514c78" stroke="#252149" stroke-width="7"/>
-    <circle id="sealed-core" cx="0" cy="17" r="27" fill="url(#sealed-singularity)" stroke="#312b6d" stroke-width="8"/>
-    <g id="celestial-armor" fill="url(#moon-armor)" stroke="#293061" stroke-width="6">
-      <path id="crown" d="M-39-40-30-70-11-56 0-78 13-56 34-70 42-38 20-25-16-27Z"/>
-      <path id="left-shoulder" d="M-55-34-26-47-8-28-20-8-53-4Z"/>
-      <path id="right-shoulder" d="M11-28 30-46 56-31 53-2 20-8Z"/>
-      <path id="core-seal" d="M-27 0-8-15 13-11 29 7 27 31 8 47-15 39-29 21Z"/>
-      <path id="waist-plate" d="M-47 34-24 29-8 52 14 52 30 31 47 40 34 65-1 72-35 62Z"/>
+    <g
+       id="massive-arms"
+       fill="#555080"
+       stroke="#24214b"
+       stroke-width="7"
+       transform="translate(0,14)">
+      <path
+         id="left-arm"
+         d="m -43,-27 -29,9 -10,30 17,22 24,-19 z" />
+      <path
+         id="right-arm"
+         d="m 39.453764,-30.092473 30,9 14,29.0000005 L 65.277418,28.554835 42.453764,16.907527 Z"
+         sodipodi:nodetypes="cccccc" />
     </g>
-    <g id="constellation-rivets" fill="#f2ffff" stroke="#426b9b" stroke-width="2">
-      <circle id="star-one" cx="-31" cy="-26" r="3"/>
-      <circle id="star-two" cx="31" cy="-26" r="3"/>
-      <circle id="star-three" cx="-17" cy="15" r="3"/>
-      <circle id="star-four" cx="18" cy="17" r="3"/>
-      <circle id="star-five" cx="0" cy="58" r="3"/>
+    <ellipse
+       id="body"
+       cx="0"
+       cy="4"
+       rx="56"
+       ry="62"
+       fill="#514c78"
+       stroke="#252149"
+       stroke-width="7" />
+    <circle
+       id="sealed-core"
+       cx="0"
+       cy="17"
+       r="27"
+       fill="url(#sealed-singularity)"
+       stroke="#312b6d"
+       stroke-width="8" />
+    <g
+       id="celestial-armor"
+       fill="url(#moon-armor)"
+       stroke="#293061"
+       stroke-width="6">
+      <path
+         id="crown"
+         d="M-39-40-30-70-11-56 0-78 13-56 34-70 42-38 20-25-16-27Z" />
+      <path
+         id="left-shoulder"
+         d="M-55-34-26-47-8-28-20-8-53-4Z" />
+      <path
+         id="right-shoulder"
+         d="M11-28 30-46 56-31 53-2 20-8Z" />
+      <path
+         id="core-seal"
+         d="M-27 0-8-15 13-11 29 7 27 31 8 47-15 39-29 21Z" />
+      <path
+         id="waist-plate"
+         d="M-47 34-24 29-8 52 14 52 30 31 47 40 34 65-1 72-35 62Z" />
     </g>
-    <g id="face" stroke="#211d48" stroke-width="4" stroke-linecap="round">
-      <path id="left-eye" d="m-25-25 13-3 7 8-15 4Z" fill="#8ff7ff"/>
-      <path id="right-eye" d="m8-20 14-4 7 8-16 5Z" fill="#8ff7ff"/>
-      <path id="mouth" d="m-18-4 11-6 12 8 11-7" fill="none" stroke-width="5"/>
+    <g
+       id="face"
+       stroke="#211d48"
+       stroke-width="4"
+       stroke-linecap="round"
+       transform="translate(0,10)">
+      <path
+         id="left-eye"
+         d="m -25,-25 13,-3 7,8 -15,4 z"
+         fill="#8ff7ff" />
+      <path
+         id="right-eye"
+         d="m 8,-20 14,-4 7,8 -16,5 z"
+         fill="#8ff7ff" />
+      <path
+         id="mouth"
+         d="M -18,-2 -7,-8 5,0 16,-7"
+         fill="none"
+         stroke-width="5" />
     </g>
-    <g id="stardust" fill="#a7f6ff">
-      <circle id="dust-one" cx="-77" cy="48" r="3"/>
-      <circle id="dust-two" cx="72" cy="48" r="2.5"/>
-      <circle id="dust-three" cx="59" cy="-60" r="3"/>
-      <path id="four-point-star" d="m-60-60 3 7 7 3-7 3-3 7-3-7-7-3 7-3Z"/>
+    <g
+       id="stardust"
+       fill="#a7f6ff">
+      <path
+         id="four-point-star"
+         d="m 0.35057617,-55.462363 3.00000003,7 6.9999998,3 -6.9999998,3 -3.00000003,7 -2.99999997,-7 -7,-3 7,-3 z" />
     </g>
   </g>
 </svg>

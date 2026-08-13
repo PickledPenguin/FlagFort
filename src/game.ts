@@ -1887,14 +1887,16 @@ export class Game {
       if (damageScale >= 1) this.notify(`Need better gloves for ${node.kind}`);
       return;
     }
-    node.health = Math.max(0, node.health - Math.max(1, amount * damageScale));
-    node.harvestDamage = Math.min(node.maxHealth, (node.harvestDamage ?? 0) + Math.max(1, amount * damageScale));
+    const harvestAmount = Math.max(1, Math.floor(amount * damageScale));
+    const actualHarvest = Math.min(harvestAmount, node.health);
+    node.health = Math.max(0, node.health - actualHarvest);
+    node.harvestDamage = Math.min(node.maxHealth, (node.harvestDamage ?? 0) + actualHarvest);
     node.hitFlash = 0.16;
-    this.resources[node.kind] += amount;
-    this.stats.resourcesGathered += amount;
-    this.recordResources("gathered", { ...emptyWallet(), [node.kind]: amount });
+    this.resources[node.kind] += actualHarvest;
+    this.stats.resourcesGathered += actualHarvest;
+    this.recordResources("gathered", { ...emptyWallet(), [node.kind]: actualHarvest });
     this.burst(node.x, node.y, BALANCE.tierColors[node.kind], 4);
-    this.floatResource(node.x, node.y - 24, node.kind, `+${amount}`);
+    this.floatResource(node.x, node.y - 24, node.kind, `+${actualHarvest}`);
     const hitCue = `${node.kind}-hit` as "wood-hit" | "stone-hit" | "gold-hit" | "diamond-hit";
     emitAudioCue({
       cue: hitCue,
@@ -4609,7 +4611,12 @@ export class Game {
     return zones;
   }
 
-  private findPortalPosition(index: number, night = this.night, selected: readonly Vec2[] = []): Vec2 {
+  private findPortalPosition(
+    index: number,
+    night = this.night,
+    selected: readonly Vec2[] = [],
+    relocationOrigin?: Vec2,
+  ): Vec2 {
     const portalRng = new SeededRng(`${this.seed}:portals:${night}:${index}`);
     const isValid = (candidate: Vec2): boolean => {
       const circle = { ...candidate, radius: BALANCE.portal.noBuildRadius };
@@ -4617,6 +4624,8 @@ export class Game {
       if (this.world.resources.some((node) => overlaps(circle, node, 12))) return false;
       if (selected.some((item) =>
         distance(circle, item) < BALANCE.portal.noBuildRadius * 2)) return false;
+      if (relocationOrigin
+        && distance(candidate, relocationOrigin) < BALANCE.portal.relocationMinimumDistance) return false;
       return true;
     };
     for (let attempt = 0; attempt < 200; attempt += 1) {
@@ -4628,15 +4637,18 @@ export class Game {
       };
       if (isValid(candidate)) return candidate;
     }
-    for (let radius = BALANCE.portal.edgeMax; radius >= BALANCE.portal.edgeMin; radius -= 48) {
-      for (let step = 0; step < 96; step += 1) {
-        const angle = ((index * 17 + step) / 96) * Math.PI * 2;
+    for (let radius = BALANCE.portal.edgeMax; radius >= BALANCE.portal.edgeMin; radius -= 24) {
+      for (let step = 0; step < 192; step += 1) {
+        const angle = ((index * 17 + step) / 192) * Math.PI * 2;
         const candidate = {
           x: center + Math.cos(angle) * radius,
           y: center + Math.sin(angle) * radius,
         };
         if (isValid(candidate)) return candidate;
       }
+    }
+    if (relocationOrigin) {
+      throw new Error(`No valid relocation site for portal ${index}`);
     }
     // Static world generation normally leaves many valid sites. This deterministic
     // final position guarantees a scheduled portal is never canceled by live state.
@@ -4648,8 +4660,14 @@ export class Game {
   }
 
   private relocatePortal(portal: Portal): void {
+    const origin = { x: portal.x, y: portal.y };
+    const position = this.findPortalPosition(
+      portal.id,
+      this.night,
+      this.portals.filter((item) => item !== portal),
+      origin,
+    );
     this.bountyCounters.portalsRelocated += 1;
-    const position = this.findPortalPosition(portal.id, this.night, this.portals.filter((item) => item !== portal));
     emitAudioCue({ cue: "portal-destroyed", position: { x: portal.x, y: portal.y } });
     this.burst(portal.x, portal.y, "#a77cff", 24, "RELOCATING");
     portal.x = position.x;
@@ -4844,8 +4862,7 @@ export class Game {
         bounty.definition.requirement.target,
         this.bountyCounters[bounty.definition.requirement.metric],
       );
-      if (bounty.progress < bounty.definition.requirement.target
-        || this.night < bounty.definition.requirement.minimumNight) continue;
+      if (bounty.progress < bounty.definition.requirement.target) continue;
       bounty.completed = true;
       this.profileManager?.grantCoins(bounty.definition.coinReward);
       emitAudioCue({ cue: "ui-confirm" });

@@ -21,9 +21,9 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="2.4206542"
-     inkscape:cx="77.045287"
-     inkscape:cy="93.569745"
+     inkscape:zoom="3.6916438"
+     inkscape:cx="75.169766"
+     inkscape:cy="111.73884"
      inkscape:window-width="1636"
      inkscape:window-height="868"
      inkscape:window-x="0"
@@ -115,7 +115,7 @@
        y1="21.138579"
        x2="34.817965"
        y2="93.802065"
-       gradientTransform="scale(1.321156,0.75691288)"
+       gradientTransform="matrix(1.321156,0,0,0.75691288,-5.4176408,-10.293518)"
        gradientUnits="userSpaceOnUse" />
     <linearGradient
        inkscape:collect="always"
@@ -197,7 +197,7 @@
          style="fill:url(#linearGradient7)" />
       <path
          id="lower-carapace"
-         d="M -47,29 -24,19 -3,43 22,48 39,33 43,57 13,68 -23,62 Z"
+         d="m -52.417641,18.706482 23,-9.9999996 21.0000002,23.9999996 24.9999998,5 17,-15 4,24 -29.9999998,11 -36.0000002,-6 z"
          style="fill:url(#linearGradient8)" />
     </g>
     <g
@@ -218,13 +218,13 @@
          d="M -12,9 1,20 14,7 27,18" />
       <path
          id="lower-seam"
-         d="m -28,45 19,5 18,7 18,-9" />
+         d="m -33.417641,34.706482 19,5 18.0000002,7 17.9999998,-9" />
     </g>
     <g
        id="face"
        stroke="#1b2420"
        stroke-width="2.5"
-       transform="translate(-34.832477,-17.763793)">
+       transform="translate(-38.832477,-17.763793)">
       <path
          id="upper-eye"
          d="M 23.476833,-4.2909647 25.236791,13.872256 34.245496,-0.5445138 Z"

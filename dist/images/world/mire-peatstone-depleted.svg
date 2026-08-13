@@ -1,11 +1,62 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title description">
-  <title id="title">Depleted drowned mire peatstone</title>
-  <desc id="description">Small broken slate fragments half sunk into muddy peat.</desc>
-  <g id="mire-peatstone-depleted">
-    <ellipse id="shadow" cx="49" cy="87" rx="37" ry="6" fill="#132827" opacity=".7"/>
-    <path id="left-fragment" d="m10 77 13-20 19-3 10 18-12 13-23 2Z" fill="#4f615d" stroke="#213b38" stroke-width="6" stroke-linejoin="round"/>
-    <path id="right-fragment" d="m48 78 10-22 20-1 10 17-13 14-20 1Z" fill="#5d706a" stroke="#213b38" stroke-width="6" stroke-linejoin="round"/>
-    <path id="cracks" d="m29 61 6 8-7 9m44-15-8 7 7 9" fill="none" stroke="#344b47" stroke-width="3" stroke-linecap="round"/>
-    <path id="faded-moss" d="M18 58c6-3 9 2 14 0m32-1c5-2 7 2 12 0" fill="none" stroke="#687d51" stroke-width="3" stroke-linecap="round"/>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 96 96"
+   role="img"
+   aria-labelledby="title description"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="mire-peatstone-depleted.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="3.8441557"
+     inkscape:cx="8.7145273"
+     inkscape:cy="49.29561"
+     inkscape:window-width="1500"
+     inkscape:window-height="652"
+     inkscape:window-x="0"
+     inkscape:window-y="33"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="mire-peatstone-depleted" />
+  <title
+     id="title">Depleted drowned mire peatstone</title>
+  <desc
+     id="description">Small broken slate fragments half sunk into muddy peat.</desc>
+  <g
+     id="mire-peatstone-depleted">
+    <path
+       id="left-fragment"
+       d="m10 77 13-20 19-3 10 18-12 13-23 2Z"
+       fill="#4f615d"
+       stroke="#213b38"
+       stroke-width="6"
+       stroke-linejoin="round" />
+    <path
+       id="right-fragment"
+       d="m48 78 10-22 20-1 10 17-13 14-20 1Z"
+       fill="#5d706a"
+       stroke="#213b38"
+       stroke-width="6"
+       stroke-linejoin="round" />
+    <path
+       id="cracks"
+       d="m29 61 6 8-7 9m44-15-8 7 7 9"
+       fill="none"
+       stroke="#344b47"
+       stroke-width="3"
+       stroke-linecap="round" />
   </g>
 </svg>
