@@ -1,47 +1,176 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="-58 -52 116 104" role="img" aria-labelledby="title description">
-  <title id="title">Gearwright zombie</title>
-  <desc id="description">A hunched clockwork engineer carrying a rotating gear halo, mechanical tools, and a glowing aether command beacon.</desc>
-  <defs id="gearwright-definitions">
-    <linearGradient id="gearwright-apron-gradient" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#765c3d"/>
-      <stop offset="1" stop-color="#3c332b"/>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="-58 -52 116 104"
+   role="img"
+   aria-labelledby="title description"
+   version="1.1"
+   id="svg5"
+   sodipodi:docname="gearwright-zombie.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview5"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="3.9008345"
+     inkscape:cx="56.270011"
+     inkscape:cy="43.708596"
+     inkscape:window-width="1710"
+     inkscape:window-height="728"
+     inkscape:window-x="0"
+     inkscape:window-y="33"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="gearwright-zombie" />
+  <title
+     id="title">Gearwright zombie</title>
+  <desc
+     id="description">A hunched clockwork engineer carrying a rotating gear halo, mechanical tools, and a glowing aether command beacon.</desc>
+  <defs
+     id="gearwright-definitions">
+    <linearGradient
+       id="gearwright-apron-gradient"
+       x1="0"
+       y1="0"
+       x2="1"
+       y2="1">
+      <stop
+         offset="0"
+         stop-color="#765c3d"
+         id="stop1" />
+      <stop
+         offset="1"
+         stop-color="#3c332b"
+         id="stop2" />
     </linearGradient>
-    <radialGradient id="gearwright-beacon-gradient">
-      <stop offset="0" stop-color="#effffc"/>
-      <stop offset="0.4" stop-color="#79e7df"/>
-      <stop offset="1" stop-color="#247c82"/>
+    <radialGradient
+       id="gearwright-beacon-gradient">
+      <stop
+         offset="0"
+         stop-color="#effffc"
+         id="stop3" />
+      <stop
+         offset="0.4"
+         stop-color="#79e7df"
+         id="stop4" />
+      <stop
+         offset="1"
+         stop-color="#247c82"
+         id="stop5" />
     </radialGradient>
   </defs>
-  <g id="gearwright-zombie">
-    <g id="gear-halo" fill="#c49542" stroke="#554022" stroke-width="3" stroke-linejoin="round">
-      <path id="outer-gear" d="m0-50 6 8 10-3 2 10 11 1-2 10 9 6-7 8 5 10-10 4-1 11-11-1-6 9-8-6-10 5-4-10-11-1 1-11-9-6 7-8-5-10 10-4 2-11 10 2Z"/>
-      <circle id="halo-cutout" cx="0" cy="-13" r="22" fill="#222b31"/>
-      <circle id="halo-rim" cx="0" cy="-13" r="15" fill="none" stroke="#e0b85b" stroke-width="4"/>
+  <g
+     id="gearwright-zombie">
+    <g
+       id="gear-halo"
+       fill="#c49542"
+       stroke="#554022"
+       stroke-width="3"
+       stroke-linejoin="round"
+       transform="rotate(90,-7.7479367,-10.528955)">
+      <path
+         id="outer-gear"
+         d="m -2.1574405,23.016243 6.6414357,-7.47605 9.7174468,3.817229 2.820658,-9.8001991 11.045024,-0.0863 -1.165622,-10.13120486 9.465643,-5.23465504 c -26.4568022,-5.803942 -49.39117,-5.447838 -69.259854,0.269545 l 9.634695,4.81379904 1.08287,11.12777596 10.131205,-1.1656221 z"
+         sodipodi:nodetypes="cccccccccccc" />
+      <circle
+         id="halo-cutout"
+         cx="0"
+         cy="-13"
+         r="22"
+         fill="#222b31" />
+      <circle
+         id="halo-rim"
+         cx="0"
+         cy="-13"
+         r="15"
+         fill="none"
+         stroke="#e0b85b"
+         stroke-width="4" />
     </g>
-    <path id="body" d="M-27-8C-25-29-7-38 13-32 31-25 34 0 25 28H-23C-29 13-31 2-27-8Z" fill="url(#gearwright-apron-gradient)" stroke="#292822" stroke-width="3"/>
-    <path id="head" d="M-17-28C-4-39 15-34 22-20 23-4 13 6-2 4-16 2-23-14-17-28Z" fill="#6d8177" stroke="#283a39" stroke-width="3"/>
-    <path id="visor" d="M-17-20C-4-27 10-27 22-20L17-11C6-16-5-14-13-9Z" fill="#2b3538" stroke="#a97834" stroke-width="2"/>
-    <g id="visor-lights" fill="#79e7df">
-      <rect id="left-light" x="-9" y="-21" width="7" height="4" rx="2"/>
-      <rect id="right-light" x="6" y="-22" width="7" height="4" rx="2"/>
+    <path
+       id="head"
+       d="M 8.67728,-21.707591 C 26.318469,-9.5854362 22.483758,19.13708 -0.71547904,24.082115 -18.699084,27.91541 -30.312154,10.476637 -28.893759,-4.0961662 -27.285245,-20.622282 -6.061697,-31.835488 8.67728,-21.707591 Z"
+       fill="#6d8177"
+       stroke="#283a39"
+       stroke-width="3.52228"
+       sodipodi:nodetypes="ssss" />
+    <path
+       id="visor"
+       d="m 7.09399,-22.199896 c 7.819895,14.5226628 7.819895,30.1624523 0,43.567987 L -2.960161,15.782452 C 2.625479,3.4940448 0.3912229,-8.7943612 -5.194416,-17.731384 Z"
+       fill="#2b3538"
+       stroke="#a97834"
+       stroke-width="2.23426" />
+    <g
+       id="visor-lights"
+       fill="#79e7df"
+       transform="matrix(0,1.1171278,-1.1171278,0,-15.248566,-3.2087222)">
+      <rect
+         id="left-light"
+         x="-9"
+         y="-21"
+         width="7"
+         height="4"
+         rx="2" />
+      <rect
+         id="right-light"
+         x="6"
+         y="-22"
+         width="7"
+         height="4"
+         rx="2" />
     </g>
-    <g id="floating-hands" fill="#70847a" stroke="#283a39" stroke-width="2.5">
-      <circle id="wrench-hand" cx="-40" cy="11" r="8"/>
-      <circle id="beacon-hand" cx="39" cy="7" r="8"/>
+    <g
+       id="floating-hands"
+       fill="#70847a"
+       stroke="#283a39"
+       stroke-width="2.5"
+       transform="rotate(90,22.502001,21.51547)">
+      <circle
+         id="wrench-hand"
+         cx="-17.953436"
+         cy="12.025421"
+         r="8" />
+      <circle
+         id="beacon-hand"
+         cx="17.466146"
+         cy="11.614397"
+         r="8" />
     </g>
-    <path id="wrench" d="m-39 10-10 10m1-16 8 7-1 11" fill="none" stroke="#c5ced0" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-    <g id="command-beacon">
-      <path id="beacon-handle" d="M39 7 45-9" fill="none" stroke="#b9863a" stroke-width="5" stroke-linecap="round"/>
-      <circle id="beacon-cage" cx="47" cy="-15" r="10" fill="#28383c" stroke="#d0a54c" stroke-width="3"/>
-      <circle id="beacon-core" cx="47" cy="-15" r="6" fill="url(#gearwright-beacon-gradient)"/>
-      <path id="signal-one" d="M37-30C44-36 52-35 57-28" fill="none" stroke="#79e7df" stroke-width="2" stroke-linecap="round"/>
-      <path id="signal-two" d="M41-25c4-3 8-3 12 0" fill="none" stroke="#79e7df" stroke-width="2" stroke-linecap="round"/>
-    </g>
-    <g id="apron-gears" fill="#d0a44b" stroke="#574125" stroke-width="2">
-      <circle id="large-apron-gear" cx="2" cy="16" r="9"/>
-      <circle id="small-apron-gear" cx="17" cy="9" r="6"/>
-      <circle id="large-axle" cx="2" cy="16" r="3" fill="#343a3d"/>
-      <circle id="small-axle" cx="17" cy="9" r="2" fill="#343a3d"/>
+    <g
+       id="apron-gears"
+       fill="#d0a44b"
+       stroke="#574125"
+       stroke-width="2"
+       transform="rotate(90,1.35268,-5.27367)">
+      <circle
+         id="large-apron-gear"
+         cx="2"
+         cy="16"
+         r="9" />
+      <circle
+         id="small-apron-gear"
+         cx="17"
+         cy="9"
+         r="6" />
+      <circle
+         id="large-axle"
+         cx="2"
+         cy="16"
+         r="3"
+         fill="#343a3d" />
+      <circle
+         id="small-axle"
+         cx="17"
+         cy="9"
+         r="2"
+         fill="#343a3d" />
     </g>
   </g>
 </svg>

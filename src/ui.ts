@@ -139,6 +139,9 @@ export class Ui {
   private lastRenderAt = 0;
   private choiceAnimating = false;
   private lastClockSecond = -1;
+  private clockBounds: { left: number; right: number; top: number; bottom: number } | null = null;
+  private clockBoundsPanel: HTMLElement | null = null;
+  private lastClockProximityOpacity = "";
   private seedDraft = "";
   private selectedChallenges = new Set<string>();
   private campaignOpen = false;
@@ -169,6 +172,10 @@ export class Ui {
       ?? META_BALANCE.customization.colors[0];
     this.profileEyeDraft = game.profileManager?.profile.eyeStyle ?? "round";
     this.dailyRewardVisible = initialDailyReward.available;
+    window.addEventListener("resize", () => {
+      this.clockBounds = null;
+      this.clockBoundsPanel = null;
+    });
     overlay.addEventListener("click", (event) => this.handleOverlayClick(event));
     overlay.addEventListener("input", (event) => {
       const input = (event.target as HTMLElement).closest<HTMLInputElement>("#seed-input");
@@ -1112,6 +1119,9 @@ export class Ui {
     if (force || structureKey !== this.hudStructureKey) {
       this.hudStructureKey = structureKey;
       this.hud.innerHTML = this.hudMarkup();
+      this.clockBounds = null;
+      this.clockBoundsPanel = null;
+      this.lastClockProximityOpacity = "";
     }
     this.patchHud();
   }
@@ -1198,8 +1208,9 @@ export class Ui {
     </div>`;
   }
 
-  private adaptivePressureState(): { state: "below" | "around" | "above"; label: string; iconName: "pressure-low" | "pressure-normal" | "pressure-high" } {
-    const multiplier = this.game.getAdaptiveThreat().multiplier;
+  private adaptivePressureState(
+    multiplier = this.game.getAdaptiveThreat().multiplier,
+  ): { state: "below" | "around" | "above"; label: string; iconName: "pressure-low" | "pressure-normal" | "pressure-high" } {
     if (multiplier < BALANCE.adaptive.pressureIndicator.belowMaximum) {
       return { state: "below", label: "Below expected", iconName: "pressure-low" };
     }
@@ -1278,7 +1289,7 @@ export class Ui {
     this.lastClockSecond = clock;
     for (const resource of RESOURCE_ORDER) this.setText(`[data-resource="${resource}"]`, `${this.game.resources[resource]}`);
     const liveThreat = this.game.getAdaptiveThreat();
-    const pressure = this.adaptivePressureState();
+    const pressure = this.adaptivePressureState(liveThreat.multiplier);
     const pressureElement = this.hud.querySelector<HTMLElement>("[data-adaptive-pressure]");
     if (pressureElement && pressureElement.dataset.adaptivePressure !== pressure.state) {
       pressureElement.dataset.adaptivePressure = pressure.state;
@@ -1345,26 +1356,39 @@ export class Ui {
 
   private patchClockProximity(clockPanel: HTMLElement | null): void {
     if (!clockPanel) return;
-    const hudRect = this.hud.getBoundingClientRect();
-    const clockRect = clockPanel.getBoundingClientRect();
-    if (hudRect.width <= 0 || hudRect.height <= 0 || clockRect.width <= 0 || clockRect.height <= 0) {
+    if (!this.clockBounds || this.clockBoundsPanel !== clockPanel) {
+      const hudRect = this.hud.getBoundingClientRect();
+      const clockRect = clockPanel.getBoundingClientRect();
+      if (hudRect.width <= 0 || hudRect.height <= 0 || clockRect.width <= 0 || clockRect.height <= 0) {
+        clockPanel.style.setProperty("--clock-proximity-opacity", "1");
+        return;
+      }
+      const logicalScaleX = BALANCE.logicalWidth / hudRect.width;
+      const logicalScaleY = BALANCE.logicalHeight / hudRect.height;
+      this.clockBounds = {
+        left: (clockRect.left - hudRect.left) * logicalScaleX,
+        right: (clockRect.right - hudRect.left) * logicalScaleX,
+        top: (clockRect.top - hudRect.top) * logicalScaleY,
+        bottom: (clockRect.bottom - hudRect.top) * logicalScaleY,
+      };
+      this.clockBoundsPanel = clockPanel;
+    }
+    const bounds = this.clockBounds;
+    if (!bounds) {
       clockPanel.style.setProperty("--clock-proximity-opacity", "1");
       return;
     }
-    const logicalScaleX = BALANCE.logicalWidth / hudRect.width;
-    const logicalScaleY = BALANCE.logicalHeight / hudRect.height;
     const pointerX = this.game.input.mouse.x;
     const pointerY = this.game.input.mouse.y;
-    const left = (clockRect.left - hudRect.left) * logicalScaleX;
-    const right = (clockRect.right - hudRect.left) * logicalScaleX;
-    const top = (clockRect.top - hudRect.top) * logicalScaleY;
-    const bottom = (clockRect.bottom - hudRect.top) * logicalScaleY;
-    const distanceX = Math.max(left - pointerX, 0, pointerX - right);
-    const distanceY = Math.max(top - pointerY, 0, pointerY - bottom);
+    const distanceX = Math.max(bounds.left - pointerX, 0, pointerX - bounds.right);
+    const distanceY = Math.max(bounds.top - pointerY, 0, pointerY - bounds.bottom);
     const normalizedDistance = Math.min(1, Math.hypot(distanceX, distanceY) / CLOCK_PROXIMITY_FADE_RADIUS);
     const easedDistance = normalizedDistance * normalizedDistance * (3 - 2 * normalizedDistance);
     const opacity = CLOCK_MINIMUM_OPACITY + (1 - CLOCK_MINIMUM_OPACITY) * easedDistance;
-    clockPanel.style.setProperty("--clock-proximity-opacity", opacity.toFixed(3));
+    const value = opacity.toFixed(3);
+    if (value === this.lastClockProximityOpacity) return;
+    this.lastClockProximityOpacity = value;
+    clockPanel.style.setProperty("--clock-proximity-opacity", value);
   }
 
   private setText(selector: string, value: string): void {

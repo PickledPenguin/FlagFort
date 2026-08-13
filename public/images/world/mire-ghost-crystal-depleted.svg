@@ -1,11 +1,69 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title description">
-  <title id="title">Depleted drowned mire ghost crystal</title>
-  <desc id="description">Shattered teal crystal husks with their ghostly swamp light extinguished.</desc>
-  <g id="mire-ghost-crystal-depleted">
-    <ellipse id="water-shadow" cx="48" cy="88" rx="38" ry="6" fill="#102827" opacity=".78"/>
-    <path id="left-husk" d="m12 76 11-29 13-10 10 17-7 29Z" fill="#527d77" stroke="#244846" stroke-width="6" stroke-linejoin="round"/>
-    <path id="center-husk" d="m36 80 10-35 12-11 11 19-8 31Z" fill="#638f87" stroke="#244846" stroke-width="6" stroke-linejoin="round"/>
-    <path id="right-husk" d="m61 80 7-24 11-8 9 15-9 21Z" fill="#4b746f" stroke="#244846" stroke-width="6" stroke-linejoin="round"/>
-    <path id="breaks" d="m24 49 8 9-8 12m24-24 9 10-10 12m24-10 7 7-8 9" fill="none" stroke="#315b57" stroke-width="3" stroke-linecap="round"/>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 96 96"
+   role="img"
+   aria-labelledby="title description"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="mire-ghost-crystal-depleted.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="3.4248238"
+     inkscape:cx="75.624329"
+     inkscape:cy="71.244542"
+     inkscape:window-width="1475"
+     inkscape:window-height="679"
+     inkscape:window-x="0"
+     inkscape:window-y="33"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="mire-ghost-crystal-depleted" />
+  <title
+     id="title">Depleted drowned mire ghost crystal</title>
+  <desc
+     id="description">Shattered teal crystal husks with their ghostly swamp light extinguished.</desc>
+  <g
+     id="mire-ghost-crystal-depleted">
+    <path
+       id="left-husk"
+       d="m12 76 11-29 13-10 10 17-7 29Z"
+       fill="#527d77"
+       stroke="#244846"
+       stroke-width="6"
+       stroke-linejoin="round" />
+    <path
+       id="center-husk"
+       d="m36 80 10-35 12-11 11 19-8 31Z"
+       fill="#638f87"
+       stroke="#244846"
+       stroke-width="6"
+       stroke-linejoin="round" />
+    <path
+       id="right-husk"
+       d="m61 80 7-24 11-8 9 15-9 21Z"
+       fill="#4b746f"
+       stroke="#244846"
+       stroke-width="6"
+       stroke-linejoin="round" />
+    <path
+       id="breaks"
+       d="m24 49 8 9-8 12m24-24 9 10-10 12m24-10 7 7-8 9"
+       fill="none"
+       stroke="#315b57"
+       stroke-width="3"
+       stroke-linecap="round" />
   </g>
 </svg>

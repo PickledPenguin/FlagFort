@@ -1,11 +1,70 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title description">
-  <title id="title">Volcanic basalt formation</title>
-  <desc id="description">A cluster of angular basalt columns ready to be quarried.</desc>
-  <g id="volcanic-basalt-active">
-    <path id="left-column" d="m12 78 5-39 13-9 13 10-2 40Z" fill="#494652" stroke="#1e1b24" stroke-width="6" stroke-linejoin="round"/>
-    <path id="center-column" d="m35 79 4-55 14-12 14 12 4 55Z" fill="#5c5764" stroke="#1e1b24" stroke-width="6" stroke-linejoin="round"/>
-    <path id="right-column" d="m63 80-2-38 13-10 12 9-2 38Z" fill="#3e3b46" stroke="#1e1b24" stroke-width="6" stroke-linejoin="round"/>
-    <path id="facets" d="m53 18-3 53M25 38l5 34m45-32-3 31" fill="none" stroke="#817782" stroke-width="3" stroke-linecap="round" opacity=".75"/>
-    <path id="lava-glow" d="M15 83c20-5 45-5 67 0" fill="none" stroke="#e75b2f" stroke-width="4" stroke-linecap="round"/>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 96 96"
+   role="img"
+   aria-labelledby="title description"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="volcanic-basalt-active.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="3.5524637"
+     inkscape:cx="3.940927"
+     inkscape:cy="71.358928"
+     inkscape:window-width="1485"
+     inkscape:window-height="696"
+     inkscape:window-x="0"
+     inkscape:window-y="33"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="volcanic-basalt-active" />
+  <title
+     id="title">Volcanic basalt formation</title>
+  <desc
+     id="description">A cluster of angular basalt columns ready to be quarried.</desc>
+  <g
+     id="volcanic-basalt-active">
+    <path
+       id="left-column"
+       d="m12 78 5-39 13-9 13 10-2 40Z"
+       fill="#494652"
+       stroke="#1e1b24"
+       stroke-width="6"
+       stroke-linejoin="round" />
+    <path
+       id="center-column"
+       d="m35 79 4-55 14-12 14 12 4 55Z"
+       fill="#5c5764"
+       stroke="#1e1b24"
+       stroke-width="6"
+       stroke-linejoin="round" />
+    <path
+       id="right-column"
+       d="m63 80-2-38 13-10 12 9-2 38Z"
+       fill="#3e3b46"
+       stroke="#1e1b24"
+       stroke-width="6"
+       stroke-linejoin="round" />
+    <path
+       id="facets"
+       d="m53 18-3 53M25 38l5 34m45-32-3 31"
+       fill="none"
+       stroke="#817782"
+       stroke-width="3"
+       stroke-linecap="round"
+       opacity=".75" />
   </g>
 </svg>

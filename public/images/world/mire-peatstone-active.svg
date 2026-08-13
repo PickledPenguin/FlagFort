@@ -1,12 +1,63 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title description">
-  <title id="title">Drowned mire peatstone</title>
-  <desc id="description">Layered slate stones pushed through dark peat and luminous swamp moss.</desc>
-  <g id="mire-peatstone-active">
-    <ellipse id="shadow" cx="49" cy="87" rx="38" ry="6" fill="#132827" opacity=".7"/>
-    <path id="left-stone" d="m8 76 12-28 22-8 14 25-12 20-27 2Z" fill="#566964" stroke="#213b38" stroke-width="6" stroke-linejoin="round"/>
-    <path id="right-stone" d="m43 76 14-35 23 6 9 25-16 15-23-3Z" fill="#657a72" stroke="#213b38" stroke-width="6" stroke-linejoin="round"/>
-    <path id="strata" d="m19 61 28-6m5 4 29 7M23 72l25-5m8 10 24-3" fill="none" stroke="#91a098" stroke-width="3" stroke-linecap="round" opacity=".72"/>
-    <path id="moss" d="M15 52c7-4 11 3 17-2 5-4 9 2 14-1m14-3c5-3 9 3 15 1" fill="none" stroke="#8ca85e" stroke-width="5" stroke-linecap="round"/>
-    <circle id="glow-spore" cx="75" cy="38" r="3" fill="#d9ed8a"/>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 96 96"
+   role="img"
+   aria-labelledby="title description"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="mire-peatstone-active.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="3.5171211"
+     inkscape:cx="51.320382"
+     inkscape:cy="31.133418"
+     inkscape:window-width="1568"
+     inkscape:window-height="814"
+     inkscape:window-x="0"
+     inkscape:window-y="33"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="mire-peatstone-active" />
+  <title
+     id="title">Drowned mire peatstone</title>
+  <desc
+     id="description">Layered slate stones pushed through dark peat and luminous swamp moss.</desc>
+  <g
+     id="mire-peatstone-active">
+    <path
+       id="left-stone"
+       d="m8 76 12-28 22-8 14 25-12 20-27 2Z"
+       fill="#566964"
+       stroke="#213b38"
+       stroke-width="6"
+       stroke-linejoin="round" />
+    <path
+       id="right-stone"
+       d="m43 76 14-35 23 6 9 25-16 15-23-3Z"
+       fill="#657a72"
+       stroke="#213b38"
+       stroke-width="6"
+       stroke-linejoin="round" />
+    <path
+       id="strata"
+       d="m19 61 28-6m5 4 29 7M23 72l25-5m8 10 24-3"
+       fill="none"
+       stroke="#91a098"
+       stroke-width="3"
+       stroke-linecap="round"
+       opacity=".72" />
   </g>
 </svg>

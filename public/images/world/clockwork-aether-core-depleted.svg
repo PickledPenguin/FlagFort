@@ -1,15 +1,92 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title description">
-  <title id="title">Depleted clockwork aether core</title>
-  <desc id="description">An open brass gyroscope with a dim cracked crystal shard resting in its base.</desc>
-  <g id="clockwork-aether-core-depleted">
-    <ellipse id="shadow" cx="48" cy="87" rx="37" ry="6" fill="#13171b" opacity=".78"/>
-    <path id="base" d="m20 77 10-17h36l10 17-12 10H31Z" fill="#505761" stroke="#252a30" stroke-width="5" stroke-linejoin="round"/>
-    <path id="broken-outer-ring" d="M23 59C14 31 28 14 47 13m12 3c13 8 20 25 14 44" fill="none" stroke="#8d672f" stroke-width="6" stroke-linecap="round"/>
-    <path id="fallen-ring" d="M14 67c10-10 57-12 68 2" fill="none" stroke="#a98244" stroke-width="5" stroke-linecap="round"/>
-    <path id="crystal-shard" d="m39 72 3-22 8-9 8 12-5 20Z" fill="#568d8e" stroke="#294c52" stroke-width="4" stroke-linejoin="round"/>
-    <path id="crack" d="m49 47-2 10 5 3-4 10" fill="none" stroke="#b8ddd5" stroke-width="2" stroke-linecap="round"/>
-    <g id="dark-nodes" fill="#665b3a" stroke="#3d3425" stroke-width="2">
-      <circle cx="23" cy="59" r="4"/><circle cx="73" cy="60" r="4"/>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 96 96"
+   role="img"
+   aria-labelledby="title description"
+   version="1.1"
+   id="svg2"
+   sodipodi:docname="clockwork-aether-core-depleted.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs2" />
+  <sodipodi:namedview
+     id="namedview2"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="4.4941415"
+     inkscape:cx="38.717072"
+     inkscape:cy="53.62537"
+     inkscape:window-width="1573"
+     inkscape:window-height="779"
+     inkscape:window-x="0"
+     inkscape:window-y="33"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="clockwork-aether-core-depleted" />
+  <title
+     id="title">Depleted clockwork aether core</title>
+  <desc
+     id="description">An open brass gyroscope with a dim cracked crystal shard resting in its base.</desc>
+  <g
+     id="clockwork-aether-core-depleted">
+    <path
+       id="base"
+       d="m20 77 10-17h36l10 17-12 10H31Z"
+       fill="#505761"
+       stroke="#252a30"
+       stroke-width="5"
+       stroke-linejoin="round" />
+    <path
+       id="broken-outer-ring"
+       d="M23 59C14 31 28 14 47 13m12 3c13 8 20 25 14 44"
+       fill="none"
+       stroke="#8d672f"
+       stroke-width="6"
+       stroke-linecap="round" />
+    <path
+       id="fallen-ring"
+       d="M14 67c10-10 57-12 68 2"
+       fill="none"
+       stroke="#a98244"
+       stroke-width="5"
+       stroke-linecap="round" />
+    <path
+       id="crystal-shard"
+       d="m39 72 3-22 8-9 8 12-5 20Z"
+       fill="#568d8e"
+       stroke="#294c52"
+       stroke-width="4"
+       stroke-linejoin="round" />
+    <path
+       id="crack"
+       d="m49 47-2 10 5 3-4 10"
+       fill="none"
+       stroke="#b8ddd5"
+       stroke-width="2"
+       stroke-linecap="round" />
+    <g
+       id="dark-nodes"
+       fill="#665b3a"
+       stroke="#3d3425"
+       stroke-width="2">
+      <circle
+         cx="23"
+         cy="59"
+         r="4"
+         id="circle1" />
+      <circle
+         cx="73"
+         cy="60"
+         r="4"
+         id="circle2" />
     </g>
   </g>
 </svg>

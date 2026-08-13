@@ -1,10 +1,62 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title description">
-  <title id="title">Depleted volcanic basalt</title>
-  <desc id="description">Broken basalt rubble remaining after the columns were quarried.</desc>
-  <g id="volcanic-basalt-depleted">
-    <path id="left-rubble" d="m10 79 13-19 20 4 5 18Z" fill="#45414c" stroke="#1e1b24" stroke-width="6" stroke-linejoin="round"/>
-    <path id="right-rubble" d="m42 81 9-25 23-3 13 25-14 8Z" fill="#57515e" stroke="#1e1b24" stroke-width="6" stroke-linejoin="round"/>
-    <path id="fractures" d="m59 59 3 12 12 8M23 66l9 9" fill="none" stroke="#847985" stroke-width="3" stroke-linecap="round"/>
-    <path id="lava-glow" d="M15 86c21-5 45-5 67 0" fill="none" stroke="#b9472a" stroke-width="3" stroke-linecap="round"/>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 96 96"
+   role="img"
+   aria-labelledby="title description"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="volcanic-basalt-depleted.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="3.2900625"
+     inkscape:cx="46.959594"
+     inkscape:cy="101.6698"
+     inkscape:window-width="1466"
+     inkscape:window-height="706"
+     inkscape:window-x="0"
+     inkscape:window-y="33"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="volcanic-basalt-depleted" />
+  <title
+     id="title">Depleted volcanic basalt</title>
+  <desc
+     id="description">Broken basalt rubble remaining after the columns were quarried.</desc>
+  <g
+     id="volcanic-basalt-depleted">
+    <path
+       id="left-rubble"
+       d="m10 79 13-19 20 4 5 18Z"
+       fill="#45414c"
+       stroke="#1e1b24"
+       stroke-width="6"
+       stroke-linejoin="round" />
+    <path
+       id="right-rubble"
+       d="m42 81 9-25 23-3 13 25-14 8Z"
+       fill="#57515e"
+       stroke="#1e1b24"
+       stroke-width="6"
+       stroke-linejoin="round" />
+    <path
+       id="fractures"
+       d="m59 59 3 12 12 8M23 66l9 9"
+       fill="none"
+       stroke="#847985"
+       stroke-width="3"
+       stroke-linecap="round" />
   </g>
 </svg>

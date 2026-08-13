@@ -94,6 +94,7 @@ export class Renderer {
   private readonly ctx: CanvasRenderingContext2D;
   private readonly images = new Map<string, HTMLImageElement>();
   private readonly tintedSprites = new Map<string, HTMLCanvasElement>();
+  private readonly filteredSprites = new Map<string, HTMLCanvasElement>();
   private time = 0;
   private weatherIntensity = 0;
   private weatherFieldKey = "";
@@ -164,6 +165,37 @@ export class Renderer {
     } else {
       this.ctx.drawImage(tinted, x, y, width, height);
     }
+    return true;
+  }
+
+  private drawFilteredSprite(
+    path: string,
+    filter: string | undefined,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    flash = false,
+  ): boolean {
+    if (!filter) return this.drawSprite(path, x, y, width, height, flash);
+    const sprite = this.images.get(path);
+    if (!sprite?.complete || sprite.naturalWidth <= 0) return false;
+    const key = `${path}:${filter}`;
+    let filtered = this.filteredSprites.get(key);
+    if (!filtered) {
+      filtered = document.createElement("canvas");
+      filtered.width = sprite.naturalWidth;
+      filtered.height = sprite.naturalHeight;
+      const filterContext = filtered.getContext("2d");
+      if (!filterContext) return false;
+      filterContext.filter = filter;
+      filterContext.drawImage(sprite, 0, 0);
+      this.filteredSprites.set(key, filtered);
+    }
+    this.ctx.save();
+    if (flash) this.ctx.filter = "brightness(0) invert(1)";
+    this.ctx.drawImage(filtered, x, y, width, height);
+    this.ctx.restore();
     return true;
   }
 
@@ -258,6 +290,7 @@ export class Renderer {
     ctx.fillStyle = palette.ground;
     ctx.fillRect(0, 0, BALANCE.mapSize, BALANCE.mapSize);
     for (const clearing of game.world.clearings) {
+      if (!this.visible(game, clearing.x, clearing.y, clearing.radius)) continue;
       const gradient = ctx.createRadialGradient(clearing.x, clearing.y, 0, clearing.x, clearing.y, clearing.radius);
       gradient.addColorStop(0, palette.clearingCenter);
       gradient.addColorStop(1, palette.clearingEdge);
@@ -327,11 +360,15 @@ export class Renderer {
       if (this.visible(game, structure.x, structure.y, structure.radius + 140)) this.drawStructure(structure, game.player);
     }
     for (const effect of game.areaEffects) {
-      if (effect.kind !== "frost-slam") this.drawAreaEffect(effect);
+      if (effect.kind !== "frost-slam"
+        && this.visible(game, effect.x, effect.y, effect.radius + 20)) this.drawAreaEffect(effect);
     }
-    for (const strike of game.areaStrikes) this.drawAreaStrike(strike);
+    for (const strike of game.areaStrikes) {
+      if (this.visible(game, strike.x, strike.y, strike.radius + 30)) this.drawAreaStrike(strike);
+    }
     if (game.buildPreview) this.drawBuildPreview(game);
     for (const projectile of game.projectiles) {
+      if (!this.visible(game, projectile.x, projectile.y, projectile.radius + 70)) continue;
       if (projectile.appearance === "aether") {
         ctx.save();
         ctx.translate(projectile.x, projectile.y);
@@ -594,6 +631,7 @@ export class Renderer {
       }
     }
     for (const traveler of game.infectionTravelers) {
+      if (!this.visible(game, traveler.x, traveler.y, 24)) continue;
       ctx.save();
       ctx.translate(traveler.x, traveler.y);
       ctx.fillStyle = "rgba(8,25,20,.72)";
@@ -614,6 +652,12 @@ export class Renderer {
       const dx = tunnel.exit.x - tunnel.entry.x;
       const dy = tunnel.exit.y - tunnel.entry.y;
       const length = Math.max(1, Math.hypot(dx, dy));
+      if (!this.visible(
+        game,
+        (tunnel.entry.x + tunnel.exit.x) / 2,
+        (tunnel.entry.y + tunnel.exit.y) / 2,
+        length / 2 + 36,
+      )) continue;
       const perpendicularX = -dy / length;
       const perpendicularY = dx / length;
       const bend = (tunnel.id % 2 === 0 ? 1 : -1) * Math.min(26, length * 0.12);
@@ -990,6 +1034,7 @@ export class Renderer {
       ctx.globalAlpha = 0.86;
       ctx.scale(1.05, 0.5);
     }
+    let biomeFilter: string | undefined;
     if ((enemy.kind === "basic" || enemy.kind === "runner")
       && game.activeCampaignTierId !== "forest") {
       const biomeFilters: Record<Exclude<typeof game.activeCampaignTierId, "forest">, string> = {
@@ -1001,7 +1046,7 @@ export class Renderer {
         mire: "hue-rotate(48deg) saturate(.58) brightness(.62)",
         clockwork: "sepia(.8) saturate(.65) brightness(.82)",
       };
-      ctx.filter = biomeFilters[game.activeCampaignTierId];
+      biomeFilter = biomeFilters[game.activeCampaignTierId];
     }
     if ((enemy.ghostRemaining ?? 0) > 0) {
       ctx.globalAlpha = 0.38 + Math.sin(this.time * 18 + enemy.id) * 0.12;
@@ -1031,10 +1076,10 @@ export class Renderer {
         ctx.fillText(`${Math.ceil(enemy.timedLifeRemaining)}`, 0, -enemy.radius - 14);
       }
     }
-    if (enemy.burning) {
-      ctx.fillStyle = "rgba(255,125,42,.18)";
+    if (enemy.burning || ENEMY_REGISTRY[enemy.kind].capabilities.fireAura) {
+      ctx.fillStyle = "rgba(255,105,32,.25)";
       ctx.beginPath();
-      ctx.arc(0, 0, enemy.radius + 12 + Math.sin(this.time * 8 + enemy.id) * 3, 0, Math.PI * 2);
+      ctx.arc(0, 0, enemy.radius + 11 + Math.sin(this.time * 10 + enemy.id) * 3, 0, Math.PI * 2);
       ctx.fill();
     }
     if (enemy.jumpTime > 0) {
@@ -1183,23 +1228,33 @@ export class Renderer {
     }
     const handReach = enemy.radius + 11 + enemy.attackWindup * 10;
     const handDiameter = enemy.radius * 0.7;
-    this.drawSprite(
+    this.drawFilteredSprite(
       ASSETS.enemyHands[enemy.kind],
+      biomeFilter,
       handReach - handDiameter / 2,
       -enemy.radius * 0.55 - handDiameter / 2,
       handDiameter,
       handDiameter,
       enemy.flash > 0,
     );
-    this.drawSprite(
+    this.drawFilteredSprite(
       ASSETS.enemyHands[enemy.kind],
+      biomeFilter,
       handReach - handDiameter / 2,
       enemy.radius * 0.55 - handDiameter / 2,
       handDiameter,
       handDiameter,
       enemy.flash > 0,
     );
-    this.drawSprite(ASSETS.enemyBodies[enemy.kind], -40, -40, 80, 80, enemy.flash > 0);
+    this.drawFilteredSprite(
+      ASSETS.enemyBodies[enemy.kind],
+      biomeFilter,
+      -40,
+      -40,
+      80,
+      80,
+      enemy.flash > 0,
+    );
     ctx.restore();
     this.healthBar(
       enemy.x,

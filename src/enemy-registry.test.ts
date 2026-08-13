@@ -220,7 +220,11 @@ describe("deterministic enemy roster", () => {
         expect(definition.areaStrike.playerDamage).toBeGreaterThan(0);
         expect(definition.areaStrike.structureDamage).toBeGreaterThan(0);
         expect(definition.areaStrike.damageSource).toBeTruthy();
-        expect(definition.areaStrike.statusEffect?.duration ?? 1).toBeGreaterThan(0);
+        if (definition.areaStrike.statusEffect?.durationBalance) {
+          expect(definition.areaStrike.statusEffect.durationBalance).toBe("calderaBurn");
+        } else {
+          expect(definition.areaStrike.statusEffect?.duration ?? 1).toBeGreaterThan(0);
+        }
         expect(definition.areaStrike.impactColor).toMatch(/^#[0-9a-f]{6}$/i);
         expect(definition.areaStrike.impactParticleCount).toBeGreaterThan(0);
         expect(definition.areaStrike.screenShake).toBeGreaterThanOrEqual(0);

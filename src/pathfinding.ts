@@ -21,12 +21,21 @@ export class NavigationGrid {
   readonly cellSize = BALANCE.navigation.cellSize;
   readonly columns = Math.ceil(BALANCE.mapSize / this.cellSize);
   private readonly blocked = new Set<number>();
+  private readonly cameFrom: Int32Array;
+  private readonly gScore: Float64Array;
+  private readonly closed: Uint8Array;
+  private readonly heapKeys: number[] = [];
+  private readonly heapScores: number[] = [];
 
   constructor(
     readonly obstacles: readonly Circle[],
     readonly actorRadius: number,
     readonly margin: number = BALANCE.navigation.obstacleMargin,
   ) {
+    const cellCount = this.columns * this.columns;
+    this.cameFrom = new Int32Array(cellCount);
+    this.gScore = new Float64Array(cellCount);
+    this.closed = new Uint8Array(cellCount);
     this.buildBlockedCells();
   }
 
@@ -37,25 +46,21 @@ export class NavigationGrid {
     const goalKey = this.key(goalCell.x, goalCell.y);
     if (startKey === goalKey) return [goal];
 
-    const open = new Set<number>([startKey]);
-    const cameFrom = new Map<number, number>();
-    const gScore = new Map<number, number>([[startKey, 0]]);
-    const fScore = new Map<number, number>([[startKey, this.heuristic(startCell, goalCell)]]);
+    this.cameFrom.fill(-1);
+    this.gScore.fill(Number.POSITIVE_INFINITY);
+    this.closed.fill(0);
+    this.heapKeys.length = 0;
+    this.heapScores.length = 0;
+    this.gScore[startKey] = 0;
+    this.pushOpen(startKey, this.heuristic(startCell, goalCell));
     let iterations = 0;
 
-    while (open.size > 0 && iterations < this.columns * this.columns * 2) {
+    while (this.heapKeys.length > 0 && iterations < this.columns * this.columns * 2) {
       iterations += 1;
-      let currentKey = -1;
-      let bestScore = Number.POSITIVE_INFINITY;
-      for (const candidate of open) {
-        const score = fScore.get(candidate) ?? Number.POSITIVE_INFINITY;
-        if (score < bestScore || (score === bestScore && candidate < currentKey)) {
-          currentKey = candidate;
-          bestScore = score;
-        }
-      }
-      if (currentKey === goalKey) return this.reconstruct(cameFrom, currentKey, startKey, start, goal);
-      open.delete(currentKey);
+      const currentKey = this.popOpen();
+      if (currentKey < 0 || this.closed[currentKey]) continue;
+      if (currentKey === goalKey) return this.reconstruct(this.cameFrom, currentKey, startKey, start, goal);
+      this.closed[currentKey] = 1;
       const current = this.fromKey(currentKey);
       for (const [dx, dy, movementCost] of DIRECTIONS) {
         const next = { x: current.x + dx, y: current.y + dy };
@@ -65,12 +70,12 @@ export class NavigationGrid {
             || this.isBlocked({ x: current.x, y: current.y + dy })) continue;
         }
         const nextKey = this.key(next.x, next.y);
-        const tentative = (gScore.get(currentKey) ?? Number.POSITIVE_INFINITY) + movementCost;
-        if (tentative >= (gScore.get(nextKey) ?? Number.POSITIVE_INFINITY)) continue;
-        cameFrom.set(nextKey, currentKey);
-        gScore.set(nextKey, tentative);
-        fScore.set(nextKey, tentative + this.heuristic(next, goalCell));
-        open.add(nextKey);
+        if (this.closed[nextKey]) continue;
+        const tentative = this.gScore[currentKey]! + movementCost;
+        if (tentative >= this.gScore[nextKey]!) continue;
+        this.cameFrom[nextKey] = currentKey;
+        this.gScore[nextKey] = tentative;
+        this.pushOpen(nextKey, tentative + this.heuristic(next, goalCell));
       }
     }
     return [];
@@ -101,7 +106,7 @@ export class NavigationGrid {
   }
 
   private reconstruct(
-    cameFrom: Map<number, number>,
+    cameFrom: Int32Array,
     goalKey: number,
     startKey: number,
     start: Vec2,
@@ -110,13 +115,64 @@ export class NavigationGrid {
     const reversed: Vec2[] = [goal];
     let current = goalKey;
     while (current !== startKey) {
-      const previous = cameFrom.get(current);
-      if (previous === undefined) return [];
+      const previous = cameFrom[current] ?? -1;
+      if (previous < 0) return [];
       if (previous !== startKey) reversed.push(this.cellCenter(this.fromKey(previous)));
       current = previous;
     }
     const path = reversed.reverse();
     return smoothPath(start, path, this.obstacles, this.actorRadius + this.margin);
+  }
+
+  private pushOpen(key: number, score: number): void {
+    let index = this.heapKeys.length;
+    this.heapKeys.push(key);
+    this.heapScores.push(score);
+    while (index > 0) {
+      const parent = Math.floor((index - 1) / 2);
+      if (!this.openEntryBefore(index, parent)) break;
+      this.swapOpen(index, parent);
+      index = parent;
+    }
+  }
+
+  private popOpen(): number {
+    const first = this.heapKeys[0];
+    const lastKey = this.heapKeys.pop();
+    const lastScore = this.heapScores.pop();
+    if (first === undefined || lastKey === undefined || lastScore === undefined) return -1;
+    if (this.heapKeys.length === 0) return first;
+    this.heapKeys[0] = lastKey;
+    this.heapScores[0] = lastScore;
+    let index = 0;
+    while (true) {
+      const left = index * 2 + 1;
+      const right = left + 1;
+      let best = index;
+      if (left < this.heapKeys.length && this.openEntryBefore(left, best)) best = left;
+      if (right < this.heapKeys.length && this.openEntryBefore(right, best)) best = right;
+      if (best === index) break;
+      this.swapOpen(index, best);
+      index = best;
+    }
+    return first;
+  }
+
+  private openEntryBefore(a: number, b: number): boolean {
+    const aScore = this.heapScores[a] ?? Number.POSITIVE_INFINITY;
+    const bScore = this.heapScores[b] ?? Number.POSITIVE_INFINITY;
+    if (aScore !== bScore) return aScore < bScore;
+    return (this.heapKeys[a] ?? Number.POSITIVE_INFINITY)
+      < (this.heapKeys[b] ?? Number.POSITIVE_INFINITY);
+  }
+
+  private swapOpen(a: number, b: number): void {
+    const key = this.heapKeys[a]!;
+    this.heapKeys[a] = this.heapKeys[b]!;
+    this.heapKeys[b] = key;
+    const score = this.heapScores[a]!;
+    this.heapScores[a] = this.heapScores[b]!;
+    this.heapScores[b] = score;
   }
 
   private nearestOpen(origin: GridCell): GridCell {

@@ -1,12 +1,77 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title description">
-  <title id="title">Depleted drowned mire cypress</title>
-  <desc id="description">A mossy cypress stump with cut branches and roots standing in dark swamp water.</desc>
-  <g id="mire-cypress-depleted">
-    <ellipse id="water-shadow" cx="48" cy="87" rx="38" ry="6" fill="#152b2b" opacity=".72"/>
-    <path id="raised-roots" d="M43 58 27 87h17l7-13 8 13h16L57 57Z" fill="#604832" stroke="#283629" stroke-width="5" stroke-linejoin="round"/>
-    <path id="stump" d="M38 63 40 35l9-6 13 6-2 29Z" fill="#71543c" stroke="#283629" stroke-width="6" stroke-linejoin="round"/>
-    <path id="cut-face" d="m40 35 9-6 13 6-11 8Z" fill="#a08058" stroke="#283629" stroke-width="4" stroke-linejoin="round"/>
-    <path id="rings" d="m46 35 4-2 6 2-5 3Z" fill="none" stroke="#5b4532" stroke-width="2"/>
-    <path id="moss" d="M38 51c6-4 8 3 13-1 4-3 6 2 10 0" fill="none" stroke="#718c55" stroke-width="4" stroke-linecap="round"/>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 96 96"
+   role="img"
+   aria-labelledby="title description"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="mire-cypress-depleted.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="4.6468326"
+     inkscape:cx="17.754029"
+     inkscape:cy="49.17328"
+     inkscape:window-width="1662"
+     inkscape:window-height="792"
+     inkscape:window-x="0"
+     inkscape:window-y="33"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="mire-cypress-depleted" />
+  <title
+     id="title">Depleted drowned mire cypress</title>
+  <desc
+     id="description">A mossy cypress stump with cut branches and roots standing in dark swamp water.</desc>
+  <g
+     id="mire-cypress-depleted">
+    <path
+       id="raised-roots"
+       d="M43 58 27 87h17l7-13 8 13h16L57 57Z"
+       fill="#604832"
+       stroke="#283629"
+       stroke-width="5"
+       stroke-linejoin="round" />
+    <path
+       id="stump"
+       d="M 37.525808,67.954572 C 41.980805,56.763966 39.156565,46.190605 40,35 l 9,-6 13,6 c 0.392692,11.039185 -3.751471,23.53517 1.153413,32.459265"
+       fill="#71543c"
+       stroke="#283629"
+       stroke-width="6"
+       stroke-linejoin="round"
+       sodipodi:nodetypes="ccccc"
+       style="stroke-width:5.1;stroke-dasharray:none;fill:#604832;fill-opacity:1" />
+    <path
+       id="cut-face"
+       d="m40 35 9-6 13 6-11 8Z"
+       fill="#a08058"
+       stroke="#283629"
+       stroke-width="4"
+       stroke-linejoin="round" />
+    <path
+       id="rings"
+       d="m46 35 4-2 6 2-5 3Z"
+       fill="none"
+       stroke="#5b4532"
+       stroke-width="2" />
+    <path
+       id="moss"
+       d="M38 51c6-4 8 3 13-1 4-3 6 2 10 0"
+       fill="none"
+       stroke="#718c55"
+       stroke-width="4"
+       stroke-linecap="round" />
   </g>
 </svg>

@@ -1,12 +1,82 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title description">
-  <title id="title">Astral rift twilight tree</title>
-  <desc id="description">A dark twisting tree crowned with luminous violet leaves and starlit bark.</desc>
-  <g id="rift-twilight-wood-active">
-    <path id="trunk" d="M38 89c2-17 12-25 9-42L31 30l9-8 13 14 5-25 12 4-6 27 19-11 6 11-24 15c-3 12 5 20 9 32Z" fill="#51436b" stroke="#211b38" stroke-width="6" stroke-linejoin="round"/>
-    <path id="left-branch" d="M48 50 27 39 13 21" fill="none" stroke="#302747" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-    <path id="right-branch" d="m61 47 20-18 2-14" fill="none" stroke="#302747" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-    <path id="canopy" d="M8 24c1-12 16-16 23-8 5-12 23-12 28-1 8-9 25-3 24 9 12 2 13 18 2 23-8 4-15 0-19-5-7 9-22 8-28-1-8 8-25 2-24-9-5-1-7-4-6-8Z" fill="#7654b5" stroke="#2c214d" stroke-width="5" stroke-linejoin="round"/>
-    <path id="astral-leaves" d="m20 26 4-7 4 7-4 6Zm22-8 4-8 4 8-4 6Zm19 10 5-9 5 9-5 7Zm-31 8 3-6 4 6-4 5Zm47 0 3-6 4 6-4 5Z" fill="#d5b5ff"/>
-    <path id="bark-glow" d="m55 79-4-13 7-11-4-12 7-18" fill="none" stroke="#a98ae8" stroke-width="3" stroke-linecap="round"/>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 96 96"
+   role="img"
+   aria-labelledby="title description"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="rift-twilight-wood-active.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="3.0191974"
+     inkscape:cx="39.414449"
+     inkscape:cy="41.070518"
+     inkscape:window-width="1619"
+     inkscape:window-height="793"
+     inkscape:window-x="0"
+     inkscape:window-y="33"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="rift-twilight-wood-active" />
+  <title
+     id="title">Astral rift twilight tree</title>
+  <desc
+     id="description">A dark twisting tree crowned with luminous violet leaves and starlit bark.</desc>
+  <g
+     id="rift-twilight-wood-active">
+    <path
+       id="trunk"
+       d="m 31.375723,89 c 2,-17 12,-25 9,-42 l -16,-17 9,-8 13,14 5,-25 12,4 -6,27 19,-11 6,11 -24,15 c -3,12 5,20 9,32 z"
+       fill="#51436b"
+       stroke="#211b38"
+       stroke-width="6"
+       stroke-linejoin="round" />
+    <path
+       id="left-branch"
+       d="m 41.375723,50 -21,-11 L 6.3757229,21"
+       fill="none"
+       stroke="#302747"
+       stroke-width="8"
+       stroke-linecap="round"
+       stroke-linejoin="round" />
+    <path
+       id="right-branch"
+       d="m 54.375723,47 20,-18 2,-14"
+       fill="none"
+       stroke="#302747"
+       stroke-width="8"
+       stroke-linecap="round"
+       stroke-linejoin="round" />
+    <path
+       id="canopy"
+       d="M 3.5168069,22.601356 C 4.5683889,9.9823732 20.342117,5.7760458 27.70319,14.188701 32.961099,1.5697183 51.889573,1.5697183 57.147482,13.137119 c 8.412655,-9.4642369 26.289547,-3.1547458 25.237965,9.464237 12.618986,2.103163 13.670566,18.928473 2.103164,24.186382 -8.412655,4.206328 -15.773728,0 -19.980056,-5.257909 C 57.147482,50.994066 41.373754,49.942484 35.064263,40.478247 26.651608,48.890902 8.7747159,42.581411 9.8262979,31.01401 4.5683889,29.962429 2.4652251,26.807683 3.5168069,22.601356 Z"
+       fill="#7654b5"
+       stroke="#2c214d"
+       stroke-width="5.25791"
+       stroke-linejoin="round" />
+    <path
+       id="astral-leaves"
+       d="m 13.375723,26 4,-7 4,7 -4,6 z m 22,-8 4,-8 4,8 -4,6 z m 19,10 5,-9 5,9 -5,7 z m -31,8 3,-6 4,6 -4,5 z m 47,0 3,-6 4,6 -4,5 z"
+       fill="#d5b5ff" />
+    <path
+       id="bark-glow"
+       d="m 48.375723,79 -4,-13 7,-11 -4,-12 7,-18"
+       fill="none"
+       stroke="#a98ae8"
+       stroke-width="3"
+       stroke-linecap="round" />
   </g>
 </svg>

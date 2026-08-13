@@ -226,6 +226,20 @@ describe("foundational refactor", () => {
     expect(game.shake).toBe(0);
   });
 
+  it("resets screen shake when the frozen dawn upgrade frame appears", () => {
+    const game = new Game(input());
+    game.startRun("normal", "dawn-shake");
+    game.phase = "night";
+    game.shake = 24;
+
+    (game as unknown as { beginDawn(): void }).beginDawn();
+
+    expect(game.phase).toBe("dawn");
+    expect(game.shake).toBe(0);
+    game.update(BALANCE.fixedStep);
+    expect(game.shake).toBe(0);
+  });
+
   it("tracks turret and harvester capacity independently", () => {
     const game = new Game(input());
     game.startRun("normal", "capacity");

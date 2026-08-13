@@ -1,11 +1,62 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title description">
-  <title id="title">Drowned mire bog gold</title>
-  <desc id="description">Warm gold nuggets gleaming through a dark iron-rich bog rock.</desc>
-  <g id="mire-bog-gold-active">
-    <ellipse id="shadow" cx="48" cy="87" rx="37" ry="6" fill="#132827" opacity=".72"/>
-    <path id="ore-body" d="m9 75 14-32 27-13 29 16 10 28-19 13H27Z" fill="#4b5149" stroke="#213531" stroke-width="6" stroke-linejoin="round"/>
-    <path id="gold-vein" d="m24 60 13-8 10 4 10-13 14 7-8 10 14 7-14 10-12-8-13 9-15-6Z" fill="#e5b94c" stroke="#71572b" stroke-width="4" stroke-linejoin="round"/>
-    <path id="gold-highlight" d="m35 57 10 3 11-11m3 17 8 3" fill="none" stroke="#fff0a1" stroke-width="3" stroke-linecap="round"/>
-    <path id="moss" d="M16 50c8-4 13 4 20-1" fill="none" stroke="#7f9a58" stroke-width="4" stroke-linecap="round"/>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 96 96"
+   role="img"
+   aria-labelledby="title description"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="mire-bog-gold-active.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="4.3280905"
+     inkscape:cx="72.43379"
+     inkscape:cy="83.408607"
+     inkscape:window-width="1582"
+     inkscape:window-height="783"
+     inkscape:window-x="0"
+     inkscape:window-y="33"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="mire-bog-gold-active" />
+  <title
+     id="title">Drowned mire bog gold</title>
+  <desc
+     id="description">Warm gold nuggets gleaming through a dark iron-rich bog rock.</desc>
+  <g
+     id="mire-bog-gold-active">
+    <path
+       id="ore-body"
+       d="m9 75 14-32 27-13 29 16 10 28-19 13H27Z"
+       fill="#4b5149"
+       stroke="#213531"
+       stroke-width="6"
+       stroke-linejoin="round" />
+    <path
+       id="gold-vein"
+       d="m24 60 13-8 10 4 10-13 14 7-8 10 14 7-14 10-12-8-13 9-15-6Z"
+       fill="#e5b94c"
+       stroke="#71572b"
+       stroke-width="4"
+       stroke-linejoin="round" />
+    <path
+       id="gold-highlight"
+       d="m35 57 10 3 11-11m3 17 8 3"
+       fill="none"
+       stroke="#fff0a1"
+       stroke-width="3"
+       stroke-linecap="round" />
   </g>
 </svg>

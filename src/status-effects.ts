@@ -27,7 +27,7 @@ export function updateStatuses(target: StatusTarget, dt: number): void {
     status.remaining = Math.max(0, status.remaining - Math.max(0, dt));
     if (status.remaining <= 0) delete target.statuses[kind];
   }
-  if (target.statuses && Object.keys(target.statuses).length === 0) delete target.statuses;
+  if (!target.statuses.slow && !target.statuses.burn) delete target.statuses;
 }
 
 export function isBurning(target: StatusTarget): boolean {

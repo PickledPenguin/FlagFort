@@ -302,7 +302,15 @@ export class Game {
   private toastQueue: Array<{ message: string; critical: boolean }> = [];
   private enemyHash = new SpatialHash<Enemy>(180);
   private obstacleHash = new SpatialHash<ResourceNode | Structure>(180);
-  private navigationFields = new Map<number, NavigationGrid>();
+  private enemyQueryScratch: Enemy[] = [];
+  private obstacleQueryScratch: Array<ResourceNode | Structure> = [];
+  private navigationFields = new Map<string, NavigationGrid>();
+  private structuresById = new Map<number, Structure>();
+  private spatialStructureRevision = -1;
+  private spatialWorld: World | null = null;
+  private spatialStructures: Structure[] | null = null;
+  private spatialStructureCount = -1;
+  private projectileScratch: Projectile[] = [];
   private structureRevision = 0;
   private tutorialHarvestedNodeIds = new Set<number>();
   private tutorialDoorStartSide = 0;
@@ -793,7 +801,7 @@ export class Game {
     this.structureRevision += 1;
     this.navigationFields.clear();
     this.applyTutorialTaskResources();
-    this.rebuildSpatial();
+    this.rebuildSpatial(false);
     this.markUi(true);
   }
 
@@ -1117,7 +1125,7 @@ export class Game {
       this.toastTime = this.toastCritical ? BALANCE.ui.criticalMessageDuration : BALANCE.ui.messageDuration;
     }
 
-    this.rebuildSpatial();
+    this.rebuildSpatial(false);
     this.updateAim();
     this.updatePlayer(dt);
     this.updateResourceMechanics(dt);
@@ -1197,7 +1205,12 @@ export class Game {
   private moveCircle(entity: { x: number; y: number; radius: number }, dx: number, dy: number, player = false): void {
     entity.x = Math.max(entity.radius, Math.min(BALANCE.mapSize - entity.radius, entity.x + dx));
     entity.y = Math.max(entity.radius, Math.min(BALANCE.mapSize - entity.radius, entity.y + dy));
-    const nearby = this.obstacleHash.query(entity.x, entity.y, entity.radius + 70);
+    const nearby = this.obstacleHash.queryInto(
+      entity.x,
+      entity.y,
+      entity.radius + 70,
+      this.obstacleQueryScratch,
+    );
     for (const obstacle of nearby) {
       if (player && "tier" in obstacle && obstacle.kind === "door") continue;
       if (player && "kind" in obstacle && "health" in obstacle && !("open" in obstacle) && obstacle.health <= 0) {
@@ -1281,7 +1294,12 @@ export class Game {
 
   private resolveMeleeImpact(sword: ReturnType<typeof swordStats>): void {
     const range = sword?.range ?? BALANCE.player.punchRange;
-    const candidates = this.enemyHash.query(this.player.x, this.player.y, range + 40)
+    const candidates = this.enemyHash.queryInto(
+      this.player.x,
+      this.player.y,
+      range + 40,
+      this.enemyQueryScratch,
+    )
       .filter((enemy) => (enemy.ghostRemaining ?? 0) <= 0)
       .filter((enemy) => this.inMeleeArc(enemy, range, sword?.arc ?? BALANCE.player.punchArc))
       .sort((a, b) => distance(this.player, a) - distance(this.player, b));
@@ -1299,9 +1317,11 @@ export class Game {
         });
         this.damageEnemy(enemy, damage, "#fff3c6", "player-melee", this.player.id);
         if (sword) {
-          enemy.x += Math.cos(this.player.angle) * sword.knockback;
-          enemy.y += Math.sin(this.player.angle) * sword.knockback;
-          this.constrainToTutorialArena(enemy);
+          this.applyEnemyKnockback(
+            enemy,
+            Math.cos(this.player.angle) * sword.knockback,
+            Math.sin(this.player.angle) * sword.knockback,
+          );
         }
       }
       const impact = targets[0];
@@ -1325,7 +1345,12 @@ export class Game {
       }
       return;
     }
-    const node = this.obstacleHash.query(this.player.x, this.player.y, range + 70)
+    const node = this.obstacleHash.queryInto(
+      this.player.x,
+      this.player.y,
+      range + 70,
+      this.obstacleQueryScratch,
+    )
       .filter((item): item is ResourceNode => !("tier" in item))
       .filter((item) => this.inMeleeArc(item, range, sword?.arc ?? BALANCE.player.punchArc))
       .sort((a, b) => distance(this.player, a) - distance(this.player, b))[0];
@@ -1707,6 +1732,7 @@ export class Game {
   }
 
   private updateStructures(dt: number): void {
+    const hasBurningEnemies = this.enemies.some((enemy) => enemy.burning);
     for (const structure of this.structures) {
       if (isBurning(structure)) {
         this.applyIncomingDamage(structure, BALANCE.tierMechanics.volcanic.burnDamagePerSecond * dt, "cinderburst", "cinderburst-burst");
@@ -1717,7 +1743,7 @@ export class Game {
       );
       updateStatuses(structure, dt);
       structure.flash = Math.max(0, structure.flash - dt);
-      if (structure.kind === "turret" && (this.phase === "night" || this.tutorialMode || this.enemies.some((enemy) => enemy.burning))) {
+      if (structure.kind === "turret" && (this.phase === "night" || this.tutorialMode || hasBurningEnemies)) {
         this.updateTurret(structure);
       }
       if (structure.kind === "harvester" && this.phase === "day") this.updateHarvester(structure, dt);
@@ -1728,10 +1754,25 @@ export class Game {
     const tierIndex = BALANCE.tierIndex[structure.tier];
     const ownerId = structure.ownerId ?? this.player.id;
     const range = this.getTurretRange(structure.tier, ownerId);
-    const target = this.enemyHash.query(structure.x, structure.y, range)
-      .filter((enemy) => (enemy.ghostRemaining ?? 0) <= 0)
-      .filter((enemy) => distance(structure, enemy) <= range)
-      .sort((a, b) => distance(structure, a) - distance(structure, b))[0];
+    let target: Enemy | undefined;
+    let targetDistanceSquared = range * range;
+    for (const enemy of this.enemyHash.queryInto(
+      structure.x,
+      structure.y,
+      range,
+      this.enemyQueryScratch,
+    )) {
+      if ((enemy.ghostRemaining ?? 0) > 0) continue;
+      const dx = enemy.x - structure.x;
+      const dy = enemy.y - structure.y;
+      const distanceSquared = dx * dx + dy * dy;
+      if (distanceSquared > range * range) continue;
+      if (!target || distanceSquared < targetDistanceSquared
+        || (distanceSquared === targetDistanceSquared && enemy.id < target.id)) {
+        target = enemy;
+        targetDistanceSquared = distanceSquared;
+      }
+    }
     if (!target) return;
     structure.angle = Math.atan2(target.y - structure.y, target.x - structure.x);
     if (structure.cooldown > 0) return;
@@ -1791,7 +1832,12 @@ export class Game {
       y: structure.y + Math.sin(structure.angle) * arm,
       radius: 14,
     };
-    for (const item of this.obstacleHash.query(tip.x, tip.y, 70)) {
+    for (const item of this.obstacleHash.queryInto(
+      tip.x,
+      tip.y,
+      70,
+      this.obstacleQueryScratch,
+    )) {
       if ("tier" in item) continue;
       const node = item;
       if (node.health > 0 && overlaps(tip, node) && !structure.harvesterHitResourceIds.has(node.id)) {
@@ -2232,8 +2278,11 @@ export class Game {
   }
 
   private updateEnemies(dt: number): void {
-    this.activeSandstormers = this.enemies.filter((enemy) =>
-      enemy.kind === "sandstormer" && enemy.health > 0);
+    this.ensureObstacleSpatial();
+    this.activeSandstormers.length = 0;
+    for (const enemy of this.enemies) {
+      if (enemy.kind === "sandstormer" && enemy.health > 0) this.activeSandstormers.push(enemy);
+    }
     for (const enemy of this.enemies) {
       if ((enemy.ghostRemaining ?? 0) > 0) {
         enemy.ghostRemaining = Math.max(0, enemy.ghostRemaining! - dt);
@@ -2254,8 +2303,7 @@ export class Game {
       if (enemy.kind === "dune-burrower" && !enemy.tunnelCreated) {
         enemy.tunnelCooldown = Math.max(0, (enemy.tunnelCooldown ?? 0) - dt);
         if (enemy.tunnelCooldown <= 0) {
-          const blocker = this.structures.filter((structure) => distance(enemy, structure) <= 210)
-            .sort((a, b) => distance(enemy, a) - distance(enemy, b) || a.id - b.id)[0];
+          const blocker = this.nearestStructure(enemy, 210);
           if (blocker) {
             const angleToFlag = Math.atan2(this.flag.y - blocker.y, this.flag.x - blocker.x);
             this.sandTunnels.push({
@@ -2281,8 +2329,7 @@ export class Game {
       }
       const definition = ENEMY_REGISTRY[enemy.kind];
       if (typeof enemy.targetId === "number"
-        && !this.structures.some((structure) =>
-          structure.id === enemy.targetId && structure.health > 0)) {
+        && (this.structuresById.get(enemy.targetId)?.health ?? 0) <= 0) {
         this.invalidateEnemyTarget(enemy);
         this.selectEnemyTarget(enemy);
       }
@@ -2367,6 +2414,7 @@ export class Game {
       this.moveEnemyToward(enemy, target, dt);
     }
 
+    this.rebuildEnemySpatial();
     this.separateEnemies();
     this.updateSandTunnels(dt);
     if (this.tutorialMode) {
@@ -2387,8 +2435,16 @@ export class Game {
         emitAudioCue({ cue: "structure-destroyed", position: { x: structure.x, y: structure.y } });
       }
     }
-    this.enemies = this.enemies.filter((enemy) => enemy.health > 0);
-    this.structures = this.structures.filter((structure) => structure.health > 0);
+    let livingEnemyCount = 0;
+    for (const enemy of this.enemies) {
+      if (enemy.health > 0) this.enemies[livingEnemyCount++] = enemy;
+    }
+    this.enemies.length = livingEnemyCount;
+    let livingStructureCount = 0;
+    for (const structure of this.structures) {
+      if (structure.health > 0) this.structures[livingStructureCount++] = structure;
+    }
+    this.structures.length = livingStructureCount;
     if (this.structures.length !== structureCountBeforeCleanup) {
       const livingStructureIds = new Set(this.structures.map((structure) => structure.id));
       for (const enemy of this.enemies) {
@@ -2400,7 +2456,6 @@ export class Game {
       this.structureRevision += 1;
       this.navigationFields.clear();
     }
-    this.recalculateStructureScore();
   }
 
   private updateSandTunnels(dt: number): void {
@@ -2408,9 +2463,25 @@ export class Game {
       tunnel.remaining -= dt;
       tunnel.cooldown = Math.max(0, tunnel.cooldown - dt);
       if (tunnel.cooldown > 0) continue;
-      const user = this.enemies.filter((enemy) => enemy.health > 0
-        && distance(enemy, tunnel.entry) <= enemy.radius + 32)
-        .sort((a, b) => distance(a, tunnel.entry) - distance(b, tunnel.entry) || a.id - b.id)[0];
+      let user: Enemy | undefined;
+      let userDistanceSquared = Number.POSITIVE_INFINITY;
+      for (const enemy of this.enemyHash.queryInto(
+        tunnel.entry.x,
+        tunnel.entry.y,
+        72,
+        this.enemyQueryScratch,
+      )) {
+        if (enemy.health <= 0) continue;
+        const dx = enemy.x - tunnel.entry.x;
+        const dy = enemy.y - tunnel.entry.y;
+        const distanceSquared = dx * dx + dy * dy;
+        if (distanceSquared > (enemy.radius + 32) ** 2) continue;
+        if (!user || distanceSquared < userDistanceSquared
+          || (distanceSquared === userDistanceSquared && enemy.id < user.id)) {
+          user = enemy;
+          userDistanceSquared = distanceSquared;
+        }
+      }
       if (!user) continue;
       user.x = tunnel.exit.x;
       user.y = tunnel.exit.y;
@@ -2420,7 +2491,11 @@ export class Game {
       tunnel.cooldown = BALANCE.tierMechanics.desert.tunnelInterval;
       this.burst(user.x, user.y, "#f1ca75", 10, "EMERGED");
     }
-    this.sandTunnels = this.sandTunnels.filter((tunnel) => tunnel.remaining > 0);
+    let survivorCount = 0;
+    for (const tunnel of this.sandTunnels) {
+      if (tunnel.remaining > 0) this.sandTunnels[survivorCount++] = tunnel;
+    }
+    this.sandTunnels.length = survivorCount;
   }
 
   private updateSunlight(enemy: Enemy, dt: number): void {
@@ -2459,13 +2534,13 @@ export class Game {
   }
 
   private selectEnemyTarget(enemy: Enemy): void {
+    this.ensureObstacleSpatial();
     if (this.tutorialMode && !this.flagPresent) {
       enemy.targetId = "tutorial";
       return;
     }
     if (enemy.forcedBlockerId) {
-      const blocker = this.structures.find((structure) =>
-        structure.id === enemy.forcedBlockerId && structure.health > 0);
+      const blocker = this.structuresById.get(enemy.forcedBlockerId);
       if (blocker) {
         enemy.targetId = blocker.id;
         return;
@@ -2484,44 +2559,40 @@ export class Game {
     }
     if (definition.targeting.mode === "harvester") {
       const locked = typeof enemy.targetId === "number"
-        ? this.structures.find((item) => item.id === enemy.targetId && item.kind === "harvester")
+        ? this.structuresById.get(enemy.targetId)
         : null;
-      if (locked && locked.health > 0
+      if (locked?.kind === "harvester" && locked.health > 0
         && distance(enemy, locked) <= detection * BALANCE.navigation.targetHysteresis
         && enemy.routeCommitment > 0) return;
-      const harvesters = this.structures
-        .filter((item) => item.kind === "harvester" && item.health > 0
-          && distance(enemy, item) <= detection)
-        .sort((a, b) => distance(enemy, a) - distance(enemy, b) || a.id - b.id);
-      enemy.targetId = harvesters[0]?.id ?? "flag";
+      const harvester = this.nearestStructure(enemy, detection, "harvester");
+      enemy.targetId = harvester?.id ?? "flag";
       enemy.routeCommitment = definition.targeting.lockSeconds;
       return;
     }
     const playerInRange = distance(enemy, this.player) <= detection;
-    const candidates = this.structures.filter((structure) => distance(enemy, structure) <= detection);
-    const turrets = candidates.filter((item) => item.kind === "turret").sort((a, b) => distance(enemy, a) - distance(enemy, b));
-    const harvesters = candidates.filter((item) => item.kind === "harvester").sort((a, b) => distance(enemy, a) - distance(enemy, b));
+    const turret = this.nearestStructure(enemy, detection, "turret");
+    const harvester = this.nearestStructure(enemy, detection, "harvester");
     if (definition.targeting.mode === "archer") {
-      enemy.targetId = turrets[0]?.id ?? (playerInRange ? "player" : "flag");
+      enemy.targetId = turret?.id ?? (playerInRange ? "player" : "flag");
       return;
     }
     if (definition.targeting.mode === "acidslinger") {
-      if (turrets[0]) enemy.targetId = turrets[0].id;
+      if (turret) enemy.targetId = turret.id;
       else if (playerInRange) enemy.targetId = "player";
       else enemy.targetId = "flag";
       return;
     }
     if (distance(enemy, this.flag) <= detection) enemy.targetId = "flag";
     else if (playerInRange) enemy.targetId = "player";
-    else if (turrets[0]) enemy.targetId = turrets[0].id;
-    else if (harvesters[0]) enemy.targetId = harvesters[0].id;
+    else if (turret) enemy.targetId = turret.id;
+    else if (harvester) enemy.targetId = harvester.id;
     else enemy.targetId = "flag";
   }
 
   private getEnemyTarget(enemy: Enemy): (Player | Flag | Structure | TutorialTarget) | null {
+    this.ensureObstacleSpatial();
     if (enemy.forcedBlockerId) {
-      const blocker = this.structures.find((structure) =>
-        structure.id === enemy.forcedBlockerId && structure.health > 0);
+      const blocker = this.structuresById.get(enemy.forcedBlockerId);
       if (blocker) return blocker;
       enemy.forcedBlockerId = null;
     }
@@ -2529,7 +2600,8 @@ export class Game {
     if (enemy.targetId === "flag") return this.flagPresent ? this.flag : null;
     if (enemy.targetId === "tutorial") return this.tutorialTarget;
     if (typeof enemy.targetId === "number") {
-      return this.structures.find((item) => item.id === enemy.targetId && item.health > 0) ?? null;
+      const structure = this.structuresById.get(enemy.targetId);
+      return structure && structure.health > 0 ? structure : null;
     }
     return null;
   }
@@ -2557,7 +2629,15 @@ export class Game {
   }
 
   private resolveEnemyStructureOverlap(enemy: Enemy, dt: number): void {
-    for (const structure of this.structures) {
+    this.ensureObstacleSpatial();
+    for (const obstacle of this.obstacleHash.queryInto(
+      enemy.x,
+      enemy.y,
+      enemy.radius + 70,
+      this.obstacleQueryScratch,
+    )) {
+      if (!("tier" in obstacle)) continue;
+      const structure = obstacle;
       if (structure.health <= 0 || !overlaps(enemy, structure)) continue;
       const d = distance(enemy, structure);
       const minimum = enemy.radius + structure.radius + 1;
@@ -2568,6 +2648,34 @@ export class Game {
       enemy.x += nx * push;
       enemy.y += ny * push;
     }
+  }
+
+  private nearestStructure(
+    origin: { x: number; y: number },
+    radius: number,
+    kind?: StructureKind,
+  ): Structure | undefined {
+    const maximumDistanceSquared = radius * radius;
+    let nearest: Structure | undefined;
+    let nearestDistanceSquared = maximumDistanceSquared;
+    for (const obstacle of this.obstacleHash.queryInto(
+      origin.x,
+      origin.y,
+      radius,
+      this.obstacleQueryScratch,
+    )) {
+      if (!("tier" in obstacle) || (kind && obstacle.kind !== kind) || obstacle.health <= 0) continue;
+      const dx = obstacle.x - origin.x;
+      const dy = obstacle.y - origin.y;
+      const distanceSquared = dx * dx + dy * dy;
+      if (distanceSquared > maximumDistanceSquared) continue;
+      if (!nearest || distanceSquared < nearestDistanceSquared
+        || (distanceSquared === nearestDistanceSquared && obstacle.id < nearest.id)) {
+        nearest = obstacle;
+        nearestDistanceSquared = distanceSquared;
+      }
+    }
+    return nearest;
   }
 
   private tryEnemyLeap(
@@ -2838,7 +2946,19 @@ export class Game {
         const naturalObstacles = this.world.resources.filter((node) => !node.destroyed);
         const navigationalStructures = this.structures.filter((structure) =>
           !("id" in target && target.id === structure.id));
-        const gapRoute = new NavigationGrid([...naturalObstacles, ...navigationalStructures], enemy.radius).find(enemy, target);
+        const radiusKey = Math.ceil(enemy.radius);
+        const excludedStructureId = "tier" in target && "id" in target
+          && typeof target.id === "number" ? target.id : 0;
+        const gapKey = `gap:${radiusKey}:${excludedStructureId}`;
+        let gapNavigation = this.navigationFields.get(gapKey);
+        if (!gapNavigation) {
+          gapNavigation = new NavigationGrid(
+            [...naturalObstacles, ...navigationalStructures],
+            radiusKey,
+          );
+          this.navigationFields.set(gapKey, gapNavigation);
+        }
+        const gapRoute = gapNavigation.find(enemy, target);
         const directDistance = Math.max(1, distance(enemy, target));
         const routeDistance = this.pathLength(enemy, gapRoute);
         if (
@@ -2852,19 +2972,25 @@ export class Game {
           enemy.routeIncludesStructures = true;
           enemy.routeCommitment = BALANCE.navigation.runnerRouteCommitmentDuration;
         } else {
-          const naturalNavigation = new NavigationGrid(naturalObstacles, enemy.radius);
+          const naturalKey = `natural:${radiusKey}`;
+          let naturalNavigation = this.navigationFields.get(naturalKey);
+          if (!naturalNavigation) {
+            naturalNavigation = new NavigationGrid(naturalObstacles, radiusKey);
+            this.navigationFields.set(naturalKey, naturalNavigation);
+          }
           enemy.path = naturalNavigation.find(enemy, target);
           enemy.pathIndex = 0;
         }
       } else {
       const radiusKey = Math.ceil(enemy.radius);
-      let navigation = this.navigationFields.get(radiusKey);
+      const navigationKey = `${this.isBossEnemyKind(enemy.kind) ? "boss" : "natural"}:${radiusKey}`;
+      let navigation = this.navigationFields.get(navigationKey);
       if (!navigation) {
         const naturalObstacles = this.isBossEnemyKind(enemy.kind)
           ? []
           : this.world.resources.filter((node) => !node.destroyed);
         navigation = new NavigationGrid(naturalObstacles, radiusKey);
-        this.navigationFields.set(radiusKey, navigation);
+        this.navigationFields.set(navigationKey, navigation);
       }
       enemy.path = navigation.find(enemy, target);
       enemy.pathIndex = 0;
@@ -2873,38 +2999,55 @@ export class Game {
   }
 
   private firstBlockingStructure(enemy: Enemy, target: { x: number; y: number }): Structure | undefined {
+    this.ensureObstacleSpatial();
     const dx = target.x - enemy.x;
     const dy = target.y - enemy.y;
     const lengthSquared = Math.max(1, dx * dx + dy * dy);
-    return this.structures
-      .filter((structure) => !("id" in target && target.id === structure.id))
-      .filter((structure) => segmentCircle(enemy.x, enemy.y, target.x, target.y, {
-        ...structure,
-        radius: structure.radius + enemy.radius
-          * (this.isBossEnemyKind(enemy.kind) ? BALANCE.boss.obstaclePathWidth : 0.45),
-      }))
-      .sort((a, b) => {
-        const aTravel = ((a.x - enemy.x) * dx + (a.y - enemy.y) * dy) / lengthSquared;
-        const bTravel = ((b.x - enemy.x) * dx + (b.y - enemy.y) * dy) / lengthSquared;
-        return aTravel - bTravel || a.id - b.id;
-      })[0];
+    const padding = enemy.radius
+      * (this.isBossEnemyKind(enemy.kind) ? BALANCE.boss.obstaclePathWidth : 0.45);
+    const queryRadius = Math.sqrt(lengthSquared) / 2 + padding + 70;
+    let first: Structure | undefined;
+    let firstTravel = Number.POSITIVE_INFINITY;
+    for (const obstacle of this.obstacleHash.queryInto(
+      enemy.x + dx / 2,
+      enemy.y + dy / 2,
+      queryRadius,
+      this.obstacleQueryScratch,
+    )) {
+      if (!("tier" in obstacle) || ("id" in target && target.id === obstacle.id)) continue;
+      if (!segmentCircle(enemy.x, enemy.y, target.x, target.y, obstacle, padding)) continue;
+      const travel = ((obstacle.x - enemy.x) * dx + (obstacle.y - enemy.y) * dy) / lengthSquared;
+      if (!first || travel < firstTravel || (travel === firstTravel && obstacle.id < first.id)) {
+        first = obstacle;
+        firstTravel = travel;
+      }
+    }
+    return first;
   }
 
   private firstBlockingResource(enemy: Enemy, target: { x: number; y: number }): ResourceNode | undefined {
     const dx = target.x - enemy.x;
     const dy = target.y - enemy.y;
     const lengthSquared = Math.max(1, dx * dx + dy * dy);
-    return this.world.resources
-      .filter((resource) => !resource.destroyed)
-      .filter((resource) => segmentCircle(enemy.x, enemy.y, target.x, target.y, {
-        ...resource,
-        radius: resource.radius + enemy.radius * 0.45,
-      }))
-      .sort((a, b) => {
-        const aTravel = ((a.x - enemy.x) * dx + (a.y - enemy.y) * dy) / lengthSquared;
-        const bTravel = ((b.x - enemy.x) * dx + (b.y - enemy.y) * dy) / lengthSquared;
-        return aTravel - bTravel || a.id - b.id;
-      })[0];
+    const padding = enemy.radius * 0.45;
+    const queryRadius = Math.sqrt(lengthSquared) / 2 + padding + 70;
+    let first: ResourceNode | undefined;
+    let firstTravel = Number.POSITIVE_INFINITY;
+    for (const obstacle of this.obstacleHash.queryInto(
+      enemy.x + dx / 2,
+      enemy.y + dy / 2,
+      queryRadius,
+      this.obstacleQueryScratch,
+    )) {
+      if ("tier" in obstacle || obstacle.destroyed) continue;
+      if (!segmentCircle(enemy.x, enemy.y, target.x, target.y, obstacle, padding)) continue;
+      const travel = ((obstacle.x - enemy.x) * dx + (obstacle.y - enemy.y) * dy) / lengthSquared;
+      if (!first || travel < firstTravel || (travel === firstTravel && obstacle.id < first.id)) {
+        first = obstacle;
+        firstTravel = travel;
+      }
+    }
+    return first;
   }
 
   private pathLength(start: Vec2, path: readonly Vec2[]): number {
@@ -2919,7 +3062,12 @@ export class Game {
 
   private resolveResourceCollision(enemy: Enemy): void {
     if (this.isBossEnemyKind(enemy.kind)) return;
-    for (const item of this.obstacleHash.query(enemy.x, enemy.y, enemy.radius + 70)) {
+    for (const item of this.obstacleHash.queryInto(
+      enemy.x,
+      enemy.y,
+      enemy.radius + 70,
+      this.obstacleQueryScratch,
+    )) {
       if ("tier" in item || item.destroyed) continue;
       const node = item;
       if (!overlaps(enemy, node)) continue;
@@ -2932,7 +3080,12 @@ export class Game {
 
   private separateEnemies(): void {
     for (const enemy of this.enemies) {
-      for (const other of this.enemyHash.query(enemy.x, enemy.y, enemy.radius * 2.2)) {
+      for (const other of this.enemyHash.queryInto(
+        enemy.x,
+        enemy.y,
+        enemy.radius * 2.2,
+        this.enemyQueryScratch,
+      )) {
         if (other.id <= enemy.id || enemy.jumpTime > 0 || other.jumpTime > 0) continue;
         const minimumDistance = (enemy.radius + other.radius)
           * BALANCE.navigation.zombieSeparationRadiusMultiplier;
@@ -2990,15 +3143,15 @@ export class Game {
       if (effect.kind === "slow") {
         this.applySlowStatus(
           this.player,
-          effect.duration,
+          this.statusEffectDuration(effect),
           effect.popupTextColor,
           effect.particleColor,
           effect.popupText,
         );
-      }
+      } else this.applyBurnStatus(this.player, effect);
       return;
     }
-    if ("tier" in target && target.kind === "turret" && effect.targets.includes("turret")) {
+    if ("tier" in target && effect.targets.includes(target.kind)) {
       if (effect.kind === "slow") {
         this.applySlowStatus(
           target,
@@ -3007,8 +3160,39 @@ export class Game {
           effect.particleColor,
           effect.popupText,
         );
-      }
+      } else this.applyBurnStatus(target, effect);
     }
+  }
+
+  private applyBurnStatus(
+    target: Player | Structure,
+    effect: Pick<EnemyStatusEffect, "duration" | "durationBalance" | "particleColor" | "popupText" | "popupTextColor">,
+  ): void {
+    applyBurn(target, this.statusEffectDuration(effect));
+    this.burst(
+      target.x,
+      target.y,
+      effect.particleColor ?? "#ff6a24",
+      8,
+      effect.popupText ?? "Burning",
+      effect.popupTextColor,
+      -24,
+      BALANCE.ui.statusPopupStrokeColor,
+    );
+  }
+
+  private statusEffectDuration(effect: Pick<EnemyStatusEffect, "duration" | "durationBalance">): number {
+    return effect.durationBalance === "calderaBurn"
+      ? BALANCE.tierMechanics.volcanic.calderaBurnDuration
+      : effect.duration;
+  }
+
+  private applyEnemyKnockback(enemy: Enemy, x: number, y: number): boolean {
+    if (ENEMY_REGISTRY[enemy.kind].capabilities.knockbackImmune) return false;
+    enemy.x += x;
+    enemy.y += y;
+    this.constrainToTutorialArena(enemy);
+    return true;
   }
 
   private enemyRangedAttack(
@@ -3512,18 +3696,18 @@ export class Game {
   }
 
   private updateAreaStrikes(dt: number): void {
-    const survivors: AreaStrike[] = [];
+    let survivorCount = 0;
     for (const strike of this.areaStrikes) {
       if (strike.warningRemaining > 0) {
         strike.warningRemaining = Math.max(0, strike.warningRemaining - dt);
         if (strike.warningRemaining === 0) this.resolveAreaStrike(strike);
-        survivors.push(strike);
+        this.areaStrikes[survivorCount++] = strike;
         continue;
       }
       strike.eruptionRemaining = Math.max(0, strike.eruptionRemaining - dt);
-      if (strike.eruptionRemaining > 0) survivors.push(strike);
+      if (strike.eruptionRemaining > 0) this.areaStrikes[survivorCount++] = strike;
     }
-    this.areaStrikes = survivors;
+    this.areaStrikes.length = survivorCount;
   }
 
   private resolveAreaStrike(strike: AreaStrike): void {
@@ -3610,8 +3794,11 @@ export class Game {
   }
 
   private updateProjectiles(dt: number): void {
-    const survivors: Projectile[] = [];
-    for (const projectile of this.projectiles) {
+    this.ensureObstacleSpatial();
+    const activeProjectiles = this.projectiles;
+    const survivors = this.projectileScratch;
+    survivors.length = 0;
+    for (const projectile of activeProjectiles) {
       projectile.previousX = projectile.x;
       projectile.previousY = projectile.y;
       const dx = projectile.vx * dt;
@@ -3676,7 +3863,14 @@ export class Game {
           impacted = true;
           emitAudioCue({ cue: "flag-damaged" });
         }
-        for (const structure of this.structures) {
+        for (const obstacle of this.obstacleHash.queryInto(
+          projectile.x,
+          projectile.y,
+          Math.hypot(dx, dy) + projectile.radius,
+          this.obstacleQueryScratch,
+        )) {
+          if (!("tier" in obstacle)) continue;
+          const structure = obstacle;
           if (!accepts(structure.id) || projectile.hitIds.has(structure.id)) continue;
           if (!segmentCircle(projectile.previousX, projectile.previousY, projectile.x, projectile.y, structure)) continue;
           projectile.hitIds.add(structure.id);
@@ -3760,7 +3954,14 @@ export class Game {
             this.notify(disabled ? "You are damaged! Healing is disabled." : "You are damaged! Your flag heals you.", true);
           }
         }
-        for (const structure of this.structures) {
+        for (const obstacle of this.obstacleHash.queryInto(
+          projectile.x,
+          projectile.y,
+          Math.hypot(dx, dy) + projectile.radius,
+          this.obstacleQueryScratch,
+        )) {
+          if (!("tier" in obstacle)) continue;
+          const structure = obstacle;
           if (projectile.hitIds.has(structure.id)) continue;
           if (!segmentCircle(projectile.previousX, projectile.previousY, projectile.x, projectile.y, structure)) continue;
           projectile.hitIds.add(structure.id);
@@ -3782,7 +3983,12 @@ export class Game {
         continue;
       }
       let hit = false;
-      for (const enemy of this.enemyHash.query(projectile.x, projectile.y, Math.hypot(dx, dy) + 60)) {
+      for (const enemy of this.enemyHash.queryInto(
+        projectile.x,
+        projectile.y,
+        Math.hypot(dx, dy) + 60,
+        this.enemyQueryScratch,
+      )) {
         if (!segmentCircle(projectile.previousX, projectile.previousY, projectile.x, projectile.y, enemy)) continue;
         this.damageEnemy(
           enemy,
@@ -3796,7 +4002,12 @@ export class Game {
         break;
       }
       if (!hit) {
-        for (const item of this.obstacleHash.query(projectile.x, projectile.y, Math.hypot(dx, dy) + 70)) {
+        for (const item of this.obstacleHash.queryInto(
+          projectile.x,
+          projectile.y,
+          Math.hypot(dx, dy) + 70,
+          this.obstacleQueryScratch,
+        )) {
           if ("tier" in item) continue;
           const node = item;
           if (segmentCircle(projectile.previousX, projectile.previousY, projectile.x, projectile.y, node)) {
@@ -3810,6 +4021,7 @@ export class Game {
       if (!hit && projectile.rangeLeft > 0 && projectile.lifetime > 0) survivors.push(projectile);
     }
     this.projectiles = survivors;
+    this.projectileScratch = activeProjectiles;
   }
 
   private emitArrowImpact(projectile: Projectile): void {
@@ -3832,6 +4044,16 @@ export class Game {
     enemy.lastHitByPlayerId = ownerPlayerId;
     const healthBefore = Math.max(0, enemy.health);
     const appliedDamage = this.routeEnemyDamage(enemy, amount, source);
+    const retaliation = ENEMY_REGISTRY[enemy.kind].capabilities.meleeRetaliation;
+    if (appliedDamage > 0 && source === "player-melee"
+      && ownerPlayerId === this.player.id && retaliation?.kind === "burn") {
+      this.applyBurnStatus(this.player, {
+        duration: BALANCE.tierMechanics.volcanic.calderaBurnDuration,
+        particleColor: "#ff6a24",
+        popupText: "Burning",
+        popupTextColor: "#ffb13b",
+      });
+    }
     if (!enemy.bossHalfSummoned
       && (enemy.kind === "eclipse-regent"
         || enemy.kind === "mireheart-titan"
@@ -3997,16 +4219,22 @@ export class Game {
   }
 
   private updateParticles(dt: number): void {
+    let particleCount = 0;
     for (const particle of this.particles) {
       particle.x += particle.vx * dt;
       particle.y += particle.vy * dt;
       particle.vx *= 0.96;
       particle.vy *= 0.96;
       particle.life -= dt;
+      if (particle.life > 0) this.particles[particleCount++] = particle;
     }
-    this.particles = this.particles.filter((particle) => particle.life > 0);
-    for (const effect of this.areaEffects) effect.remaining -= dt;
-    this.areaEffects = this.areaEffects.filter((effect) => effect.remaining > 0);
+    this.particles.length = particleCount;
+    let effectCount = 0;
+    for (const effect of this.areaEffects) {
+      effect.remaining -= dt;
+      if (effect.remaining > 0) this.areaEffects[effectCount++] = effect;
+    }
+    this.areaEffects.length = effectCount;
     for (const node of this.world.resources) node.hitFlash = Math.max(0, node.hitFlash - dt);
   }
 
@@ -4186,6 +4414,7 @@ export class Game {
   private beginDawn(): void {
     this.finalizeNightPerformance();
     this.phase = "dawn";
+    this.shake = 0;
     this.syncSpatialAudio(false);
     this.nightWaveScheduled = false;
     this.phaseElapsed = 0;
@@ -4418,12 +4647,36 @@ export class Game {
     });
   }
 
-  private rebuildSpatial(): void {
+  private rebuildEnemySpatial(): void {
     this.enemyHash.clear();
-    this.obstacleHash.clear();
     for (const enemy of this.enemies) this.enemyHash.insert(enemy);
+  }
+
+  private ensureObstacleSpatial(): void {
+    if (this.spatialWorld !== this.world
+      || this.spatialStructures !== this.structures
+      || this.spatialStructureCount !== this.structures.length
+      || this.spatialStructureRevision !== this.structureRevision) {
+      this.navigationFields.clear();
+      this.rebuildSpatial(true);
+    }
+  }
+
+  private rebuildSpatial(forceObstacles = true): void {
+    this.rebuildEnemySpatial();
+    if (!forceObstacles && this.spatialWorld === this.world
+      && this.spatialStructureRevision === this.structureRevision) return;
+    this.obstacleHash.clear();
+    this.structuresById.clear();
     for (const node of this.world.resources) if (!node.destroyed) this.obstacleHash.insert(node);
-    for (const structure of this.structures) this.obstacleHash.insert(structure);
+    for (const structure of this.structures) {
+      this.obstacleHash.insert(structure);
+      this.structuresById.set(structure.id, structure);
+    }
+    this.spatialWorld = this.world;
+    this.spatialStructures = this.structures;
+    this.spatialStructureCount = this.structures.length;
+    this.spatialStructureRevision = this.structureRevision;
   }
 
   private burst(

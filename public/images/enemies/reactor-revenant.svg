@@ -1,73 +1,260 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" viewBox="0 0 180 180" role="img" aria-labelledby="title description" version="1.1" id="reactor-revenant-svg" sodipodi:docname="reactor-revenant.svg" inkscape:version="1.4.4">
-  <title id="title">Reactor Revenant boss</title>
-  <desc id="description">A colossal wasteland zombie sealed inside riveted reactor armor, carrying toxic canisters and a warning siren above its glowing containment core.</desc>
-  <defs id="definitions">
-    <linearGradient id="containment-steel" x1="0" y1="0" x2="1" y2="1">
-      <stop id="steel-highlight" offset="0" stop-color="#879178"/>
-      <stop id="steel-mid" offset=".52" stop-color="#515b4c"/>
-      <stop id="steel-shadow" offset="1" stop-color="#28312d"/>
+<svg
+   viewBox="0 0 180 180"
+   role="img"
+   aria-labelledby="title description"
+   version="1.1"
+   id="reactor-revenant-svg"
+   sodipodi:docname="reactor-revenant.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="2.5978829"
+     inkscape:cx="79.102871"
+     inkscape:cy="87.378841"
+     inkscape:window-width="1594"
+     inkscape:window-height="713"
+     inkscape:window-x="0"
+     inkscape:window-y="33"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="warning-siren" />
+  <title
+     id="title">Reactor Revenant boss</title>
+  <desc
+     id="description">A colossal wasteland zombie sealed inside riveted reactor armor, carrying toxic canisters and a warning siren above its glowing containment core.</desc>
+  <defs
+     id="definitions">
+    <linearGradient
+       id="containment-steel"
+       x1="0"
+       y1="0"
+       x2="1"
+       y2="1">
+      <stop
+         id="steel-highlight"
+         offset="0"
+         stop-color="#879178" />
+      <stop
+         id="steel-mid"
+         offset=".52"
+         stop-color="#515b4c" />
+      <stop
+         id="steel-shadow"
+         offset="1"
+         stop-color="#28312d" />
     </linearGradient>
-    <radialGradient id="sealed-reactor-core">
-      <stop id="core-center" offset="0" stop-color="#efff85"/>
-      <stop id="core-mid" offset=".48" stop-color="#91d63c"/>
-      <stop id="core-edge" offset="1" stop-color="#326f39"/>
+    <radialGradient
+       id="sealed-reactor-core">
+      <stop
+         id="core-center"
+         offset="0"
+         stop-color="#efff85" />
+      <stop
+         id="core-mid"
+         offset=".48"
+         stop-color="#91d63c" />
+      <stop
+         id="core-edge"
+         offset="1"
+         stop-color="#326f39" />
     </radialGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#containment-steel"
+       id="linearGradient1"
+       x1="-42.953165"
+       y1="-90.121257"
+       x2="40.323432"
+       y2="-6.8446596"
+       gradientTransform="matrix(1.1407758,0,0,0.87659646,0,10)"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#containment-steel"
+       id="linearGradient2"
+       x1="-37.649935"
+       y1="23.904451"
+       x2="35.391021"
+       y2="96.945407"
+       gradientTransform="matrix(1.3280194,0,0,0.75300105,-4,-8)"
+       gradientUnits="userSpaceOnUse" />
   </defs>
-  <g id="reactor-revenant" transform="translate(90 92)" stroke-linejoin="round">
-    <g id="fallout-haze" fill="#a8d64d" opacity=".55">
-      <circle id="fallout-speck-one" cx="-73" cy="-50" r="4"/>
-      <circle id="fallout-speck-two" cx="70" cy="-36" r="3"/>
-      <circle id="fallout-speck-three" cx="-77" cy="35" r="2.5"/>
-      <path id="toxic-wisp" d="M65 52c-10-12 8-17-1-30 19 9 17 24 8 34Z"/>
+  <g
+     id="reactor-revenant"
+     transform="translate(90 92)"
+     stroke-linejoin="round">
+    <g
+       id="massive-arms"
+       fill="#637357"
+       stroke="#29392f"
+       stroke-width="6">
+      <path
+         id="right-upper-arm"
+         d="M35-32 68-52 84-33 69-7 43 0Z" />
+      <path
+         id="right-lower-arm"
+         d="M41 8 79 19 78 44 50 54 29 32Z" />
+      <path
+         id="right-upper-arm-6"
+         d="m -36.800443,-30.488807 -33,-20 -16,19 15,26.0000003 26,7 z" />
+      <path
+         id="right-lower-arm-7"
+         d="m -42.800443,9.5111933 -38,10.9999997 1,25 28,10 21,-22 z" />
     </g>
-    <g id="massive-arms" fill="#637357" stroke="#29392f" stroke-width="6">
-      <path id="left-arm" d="M-40-25-75-12-84 17-67 35-43 17Z"/>
-      <path id="right-upper-arm" d="M35-32 68-52 84-33 69-7 43 0Z"/>
-      <path id="right-lower-arm" d="M41 8 79 19 78 44 50 54 29 32Z"/>
+    <g
+       id="toxic-canisters"
+       stroke="#25352e"
+       stroke-width="5">
+      <path
+         id="left-canister"
+         d="M-70 7h18v43h-18Z"
+         fill="#70823d" />
+      <path
+         id="right-canister"
+         d="M 48,-39 H 66 V 1 H 48 Z"
+         fill="#70823d" />
+      <path
+         id="left-canister-window"
+         d="M-67 20h12v18h-12Z"
+         fill="#b7e74c" />
+      <path
+         id="right-canister-window"
+         d="m 51,-27 h 12 v 17 H 51 Z"
+         fill="#b7e74c" />
     </g>
-    <g id="toxic-canisters" stroke="#25352e" stroke-width="5">
-      <path id="left-canister" d="M-70 7h18v43h-18Z" fill="#70823d"/>
-      <path id="right-canister" d="M56-35h18V5H56Z" fill="#70823d"/>
-      <path id="left-canister-window" d="M-67 20h12v18h-12Z" fill="#b7e74c"/>
-      <path id="right-canister-window" d="M59-23h12v17H59Z" fill="#b7e74c"/>
+    <ellipse
+       id="body"
+       cx="-2"
+       cy="4"
+       rx="57"
+       ry="61"
+       fill="#596e51"
+       stroke="#263a2d"
+       stroke-width="7" />
+    <circle
+       id="sealed-core"
+       cx="8"
+       cy="15"
+       r="27"
+       fill="url(#sealed-reactor-core)"
+       stroke="#294f32"
+       stroke-width="7" />
+    <g
+       id="containment-armor"
+       fill="url(#containment-steel)"
+       stroke="#202824"
+       stroke-width="6">
+      <path
+         id="helmet"
+         d="m -46,-20 12,-32 25,-14 28,9 24,24 -1,23 -22,11 -33,-2 z"
+         style="fill:url(#linearGradient1)" />
+      <path
+         id="left-chest-plate"
+         d="M-50-25-17-38 2-20-11 5-49 10Z" />
+      <path
+         id="right-chest-plate"
+         d="M7-25 38-33 52-8 35 7 13 3Z" />
+      <path
+         id="lower-plate"
+         d="M -51,23 -28,13 -10.000001,41 14,44 36,28 40,53 9,62 -28,56 Z"
+         style="fill:url(#linearGradient2)" />
+      <path
+         id="reactor-seal"
+         d="M-21 5-2-10 23-5 37 16 27 42 2 50-22 34Z" />
     </g>
-    <ellipse id="body" cx="-2" cy="4" rx="57" ry="61" fill="#596e51" stroke="#263a2d" stroke-width="7"/>
-    <circle id="sealed-core" cx="8" cy="15" r="27" fill="url(#sealed-reactor-core)" stroke="#294f32" stroke-width="7"/>
-    <g id="containment-armor" fill="url(#containment-steel)" stroke="#202824" stroke-width="6">
-      <path id="helmet" d="M-46-30-34-62-9-76 19-67 43-43 42-20 20-9-13-11Z"/>
-      <path id="left-chest-plate" d="M-50-25-17-38 2-20-11 5-49 10Z"/>
-      <path id="right-chest-plate" d="M7-25 38-33 52-8 35 7 13 3Z"/>
-      <path id="reactor-seal" d="M-21 5-2-10 23-5 37 16 27 42 2 50-22 34Z"/>
-      <path id="lower-plate" d="M-47 31-24 21-6 49 18 52 40 36 44 61 13 70-24 64Z"/>
+    <g
+       id="warning-siren"
+       transform="translate(0,-66)"
+       stroke="#352b26"
+       stroke-width="4">
+      <path
+         id="siren-mount"
+         d="M -8,14 V 4 H 8 v 10"
+         fill="#555e51" />
+      <path
+         id="siren-dome"
+         d="m -13,4 c 0,-19 26,-19 26,0 z"
+         fill="#d64b38" />
+      <path
+         id="siren-glint"
+         d="m -5,-6 c 4,-4 8,-2 10,1"
+         fill="none"
+         stroke="#ffb26b"
+         stroke-width="3"
+         stroke-linecap="round" />
     </g>
-    <g id="armor-rivets" fill="#b4bd9b" stroke="#313a31" stroke-width="2">
-      <circle id="rivet-one" cx="-31" cy="-23" r="3"/>
-      <circle id="rivet-two" cx="30" cy="-21" r="3"/>
-      <circle id="rivet-three" cx="-14" cy="28" r="3"/>
-      <circle id="rivet-four" cx="28" cy="25" r="3"/>
-      <circle id="rivet-five" cx="-25" cy="52" r="3"/>
-      <circle id="rivet-six" cx="27" cy="55" r="3"/>
+    <g
+       id="face"
+       stroke="#203029"
+       stroke-width="3" />
+    <g
+       id="hazard-mark"
+       fill="#1f2923">
+      <circle
+         id="hazard-center"
+         cx="5"
+         cy="20"
+         r="5" />
+      <path
+         id="hazard-top"
+         d="M 5,11.923038 -3,-1 c 5.1243741,-2.1113495 10.8756259,-2.1113495 16,0 z"
+         sodipodi:nodetypes="cccc" />
+      <path
+         id="hazard-left"
+         d="M -1.3696354,24.17859 -5.8862932,39.083681 C -10.773174,36.052987 -14.203484,31.15092 -15.376675,25.521503 Z"
+         sodipodi:nodetypes="cccc" />
+      <path
+         id="hazard-right"
+         d="m 10.708691,22.368822 5.5851,16.263456 c 4.984828,-3.679777 8.090248,-9.373047 8.485281,-15.556349 z"
+         sodipodi:nodetypes="cccc" />
     </g>
-    <g id="warning-siren" transform="translate(0 -76)" stroke="#352b26" stroke-width="4">
-      <path id="siren-mount" d="M-8 14V4H8v10" fill="#555e51"/>
-      <path id="siren-dome" d="M-13 4c0-19 26-19 26 0Z" fill="#d64b38"/>
-      <path id="siren-glint" d="M-5-6c4-4 8-2 10 1" fill="none" stroke="#ffb26b" stroke-width="3" stroke-linecap="round"/>
-    </g>
-    <g id="face" stroke="#203029" stroke-width="3">
-      <path id="left-eye" d="m11-15 13-4 8 7-16 5Z" fill="#dfff72"/>
-      <path id="right-eye" d="m27-4 14-1 3 8-15 2Z" fill="#dfff72"/>
-      <path id="mouth" d="m26 20 9-7 11 8 8-6" fill="none" stroke-width="5" stroke-linecap="round"/>
-    </g>
-    <g id="hazard-mark" fill="#1f2923">
-      <circle id="hazard-center" cx="5" cy="20" r="5"/>
-      <path id="hazard-top" d="M5 14-3-1A21 21 0 0 1 13-1Z"/>
-      <path id="hazard-left" d="M0 23-17 27A21 21 0 0 1-10 12Z"/>
-      <path id="hazard-right" d="m10 23 16 7a21 21 0 0 0-5-17Z"/>
-    </g>
-    <g id="ground-runoff" fill="none" stroke="#86bd3d" stroke-width="4" stroke-linecap="round" opacity=".85">
-      <path id="left-runoff" d="M-78 72-56 65-42 72-22 66"/>
-      <path id="right-runoff" d="M18 70 40 63 54 71 78 61"/>
+    <g
+       id="armor-rivets"
+       fill="#b4bd9b"
+       stroke="#313a31"
+       stroke-width="2">
+      <circle
+         id="rivet-one"
+         cx="-31"
+         cy="-23"
+         r="3" />
+      <circle
+         id="rivet-two"
+         cx="30"
+         cy="-21"
+         r="3" />
+      <circle
+         id="rivet-three"
+         cx="-14"
+         cy="28"
+         r="3" />
+      <circle
+         id="rivet-four"
+         cx="28"
+         cy="25"
+         r="3" />
+      <circle
+         id="rivet-five"
+         cx="-25"
+         cy="52"
+         r="3" />
+      <circle
+         id="rivet-six"
+         cx="27"
+         cy="55"
+         r="3" />
     </g>
   </g>
 </svg>

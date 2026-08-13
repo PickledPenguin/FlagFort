@@ -1,11 +1,72 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title description">
-  <title id="title">Depleted astral rift twilight wood</title>
-  <desc id="description">A low violet stump with fading starlight in its cut surface.</desc>
-  <g id="rift-twilight-wood-depleted">
-    <path id="stump" d="m24 84 9-34 14-8 21 8 5 34Z" fill="#493d60" stroke="#211b38" stroke-width="6" stroke-linejoin="round"/>
-    <path id="cut" d="m33 51 14-9 21 8-16 12Z" fill="#735d91" stroke="#302747" stroke-width="4" stroke-linejoin="round"/>
-    <path id="fading-star" d="m51 48 2 4 5 1-4 3 1 5-4-3-5 2 2-5-4-3 5-1Z" fill="#c2a1eb"/>
-    <path id="crack" d="m52 62 5 8-7 11" fill="none" stroke="#29213d" stroke-width="3" stroke-linecap="round"/>
-    <path id="rift-dust" d="M16 88c19-6 47-6 65 0" fill="none" stroke="#62547d" stroke-width="5" stroke-linecap="round"/>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 96 96"
+   role="img"
+   aria-labelledby="title description"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="rift-twilight-wood-depleted.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="4.01692"
+     inkscape:cx="8.9620904"
+     inkscape:cy="92.110373"
+     inkscape:window-width="1559"
+     inkscape:window-height="845"
+     inkscape:window-x="130"
+     inkscape:window-y="156"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="rift-twilight-wood-depleted" />
+  <title
+     id="title">Depleted astral rift twilight wood</title>
+  <desc
+     id="description">A low violet stump with fading starlight in its cut surface.</desc>
+  <path
+     id="trunk"
+     d="m 29.585429,86.383622 c 2,-17 10.081176,-7.063164 7.081176,-24.063164 l 18.934359,-1.588043 c -3,12 5.984465,13.651207 9.984465,25.651207 z"
+     fill="#51436b"
+     stroke="#211b38"
+     stroke-width="6"
+     stroke-linejoin="round"
+     sodipodi:nodetypes="ccccc" />
+  <g
+     id="rift-twilight-wood-depleted"
+     transform="translate(51.517117,2.7233718)">
+    <path
+       id="cut"
+       d="m -15.547087,58.82706 c 2.086404,-2.930626 5.422956,-5.576347 10.1221793,-5.892186 5.58796958,-0.375573 7.5828835,2.638556 10.7676436,4.606928 0,0 -5.75451763,4.649818 -9.3823972,4.999708 -4.1590694,0.401121 -11.5074257,-3.71445 -11.5074257,-3.71445 z"
+       fill="#735d91"
+       stroke="#302747"
+       stroke-width="4"
+       stroke-linejoin="round"
+       sodipodi:nodetypes="cscsc"
+       style="stroke:#211b38;stroke-opacity:1" />
+    <path
+       id="fading-star"
+       d="m -4.7060781,54.493327 1.2746599,1.745052 3.18665007,0.436263 -2.54931997,1.30879 0.63733,2.181315 -2.54932,-1.30879 -3.1866502,0.872527 1.2746601,-2.181315 -2.5493202,-1.30879 3.1866502,-0.436263 z"
+       fill="#c2a1eb"
+       style="stroke-width:0.527298" />
+    <path
+       id="crack-8"
+       d="m -5.1494674,64.598802 5.00000005,9.742629 -4.95747115,6.234099"
+       fill="none"
+       stroke="#29213d"
+       stroke-width="3"
+       stroke-linecap="round"
+       sodipodi:nodetypes="ccc" />
   </g>
 </svg>

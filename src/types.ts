@@ -95,9 +95,10 @@ export interface EntityStatuses {
 }
 
 export interface EnemyStatusEffect {
-  kind: "slow";
+  kind: "slow" | "burn";
   duration: number;
-  targets: readonly ("player" | "turret")[];
+  durationBalance?: "calderaBurn";
+  targets: readonly ("player" | StructureKind)[];
   popupTextColor: string;
   particleColor?: string;
   popupText?: string;

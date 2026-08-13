@@ -5,6 +5,7 @@ import { BALANCE } from "./config";
 import { ENEMY_REGISTRY, isBossEnemyKind, selectEnemyRoster } from "./enemy-registry";
 import { Game } from "./game";
 import { Input } from "./input";
+import { isBurning } from "./status-effects";
 import type { Enemy, Structure, StructureKind } from "./types";
 
 function gameFixture(): Game {
@@ -213,6 +214,71 @@ describe("volcanic enemies", () => {
       reinforcementKind: "cinderburst",
       reinforcementCount: 5,
     });
+    expect(definition.capabilities).toMatchObject({
+      knockbackImmune: true,
+      fireAura: true,
+      meleeRetaliation: { kind: "burn", durationBalance: "calderaBurn" },
+    });
+    expect(definition.areaStrike?.statusEffect).toMatchObject({
+      kind: "burn",
+      durationBalance: "calderaBurn",
+    });
+  });
+
+  it("centralizes complete knockback immunity for every boss", () => {
+    const game = gameFixture();
+    const applyKnockback = (enemy: Enemy) => (game as unknown as {
+      applyEnemyKnockback(target: Enemy, x: number, y: number): boolean;
+    }).applyEnemyKnockback(enemy, 80, -30);
+    const bossKinds = Object.keys(ENEMY_REGISTRY)
+      .filter((kind): kind is Enemy["kind"] => isBossEnemyKind(kind as Enemy["kind"]));
+
+    for (const kind of bossKinds) {
+      const boss = spawn(game, kind, game.player.x + 300, game.player.y);
+      const before = { x: boss.x, y: boss.y };
+      expect(applyKnockback(boss)).toBe(false);
+      expect({ x: boss.x, y: boss.y }).toEqual(before);
+    }
+
+    const ordinary = spawn(game, "basic", game.player.x + 300, game.player.y);
+    expect(applyKnockback(ordinary)).toBe(true);
+    expect(ordinary.x).toBe(game.player.x + 380);
+  });
+
+  it("burns the melee attacker for two seconds but never retaliates against arrows", () => {
+    const game = gameFixture();
+    const boss = spawn(game, "caldera-sovereign", game.player.x + 60, game.player.y);
+    const damage = (source: "player-melee" | "player-bow") => (game as unknown as {
+      damageEnemy(target: Enemy, amount: number, color: string, damageSource: typeof source, ownerPlayerId: string): void;
+    }).damageEnemy(boss, 10, "#ffffff", source, game.player.id);
+
+    damage("player-melee");
+    expect(isBurning(game.player)).toBe(true);
+    expect(game.player.statuses?.burn?.remaining)
+      .toBe(BALANCE.tierMechanics.volcanic.calderaBurnDuration);
+
+    game.player.statuses = undefined;
+    damage("player-bow");
+    expect(isBurning(game.player)).toBe(false);
+  });
+
+  it("adds the shared two-second burn to magma-spike player and structure hits", () => {
+    const game = gameFixture();
+    const boss = spawn(game, "caldera-sovereign", game.player.x + 440, game.player.y);
+    const wall = structure(980, "wall", game.player.x, game.player.y);
+    game.structures = [wall];
+    (game as unknown as { createAreaStrikeAttack(enemy: Enemy): void })
+      .createAreaStrikeAttack(boss);
+    const targeted = game.areaStrikes.find((strike) =>
+      strike.x === game.player.x && strike.y === game.player.y)!;
+
+    (game as unknown as { resolveAreaStrike(strike: typeof targeted): void })
+      .resolveAreaStrike(targeted);
+
+    expect(game.player.statuses?.burn?.remaining)
+      .toBe(BALANCE.tierMechanics.volcanic.calderaBurnDuration);
+    expect(wall.statuses?.burn?.remaining)
+      .toBe(BALANCE.tierMechanics.volcanic.calderaBurnDuration);
   });
 
   it("creates deterministic magma-fissure warnings around the defender", () => {

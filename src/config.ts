@@ -68,7 +68,11 @@ export const BALANCE = {
   },
   tierMechanics: {
     desert: { sandstormRadius: 235, sandstormSpeedMultiplier: 2, tunnelDuration: 9, tunnelInterval: 1, tunnelExitDistance: 150 },
-    volcanic: { burnDuration: 3.5, burnDamagePerSecond: 7 },
+    volcanic: {
+      burnDuration: 3.5,
+      burnDamagePerSecond: 7,
+      calderaBurnDuration: 2,
+    },
     wasteland: { radiationRadius: 230, radiationDamagePerSecond: 0.55 },
     rift: {
       ghostDuration: 2,

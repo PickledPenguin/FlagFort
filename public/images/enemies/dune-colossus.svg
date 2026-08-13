@@ -21,9 +21,9 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="1.8903948"
-     inkscape:cx="26.449501"
-     inkscape:cy="66.123754"
+     inkscape:zoom="3.156703"
+     inkscape:cx="72.860831"
+     inkscape:cy="94.402294"
      inkscape:window-width="1667"
      inkscape:window-height="863"
      inkscape:window-x="16"
@@ -219,24 +219,26 @@
        fill="#fff1a8"
        stroke="#633a2a"
        stroke-width="2"
-       transform="matrix(0,1,1,0,2.2195164,-24.364217)">
+       transform="matrix(0,1.317394,1.317394,0,-1.2514935,-29.125127)">
       <ellipse
          id="left-eye"
-         cx="15"
-         cy="-8"
+         cx="8.9903812"
+         cy="-14.428204"
          rx="9"
-         ry="6" />
+         ry="6"
+         transform="rotate(30)" />
       <ellipse
          id="right-eye"
-         cx="15"
-         cy="10"
+         cx="-4.9540844"
+         cy="-21.419271"
          rx="9"
-         ry="6" />
+         ry="6"
+         transform="rotate(150)" />
     </g>
     <g
        id="pupils"
        fill="#782f2b"
-       transform="matrix(0,1,1,0,2.2195164,-28.364217)">
+       transform="matrix(0,1.317394,1.317394,0,-1.2514935,-34.394704)">
       <circle
          id="left-pupil"
          cx="19"
@@ -245,7 +247,7 @@
       <circle
          id="right-pupil"
          cx="19"
-         cy="10"
+         cy="16.072594"
          r="3.5" />
     </g>
   </g>

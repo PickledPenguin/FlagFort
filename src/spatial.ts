@@ -1,41 +1,48 @@
 import type { Circle } from "./types";
 
 export class SpatialHash<T extends Circle> {
-  private cells = new Map<string, T[]>();
+  private cells = new Map<number, T[]>();
+  private maximumItemRadius = 0;
 
   constructor(private readonly cellSize = 160) {}
 
   clear(): void {
     this.cells.clear();
+    this.maximumItemRadius = 0;
   }
 
   insert(item: T): void {
-    const minX = Math.floor((item.x - item.radius) / this.cellSize);
-    const maxX = Math.floor((item.x + item.radius) / this.cellSize);
-    const minY = Math.floor((item.y - item.radius) / this.cellSize);
-    const maxY = Math.floor((item.y + item.radius) / this.cellSize);
-    for (let x = minX; x <= maxX; x += 1) {
-      for (let y = minY; y <= maxY; y += 1) {
-        const key = `${x}:${y}`;
-        const cell = this.cells.get(key) ?? [];
-        cell.push(item);
-        this.cells.set(key, cell);
-      }
-    }
+    const x = Math.floor(item.x / this.cellSize);
+    const y = Math.floor(item.y / this.cellSize);
+    const key = this.key(x, y);
+    const cell = this.cells.get(key);
+    if (cell) cell.push(item);
+    else this.cells.set(key, [item]);
+    this.maximumItemRadius = Math.max(this.maximumItemRadius, item.radius);
   }
 
   query(x: number, y: number, radius: number): T[] {
-    const found = new Set<T>();
-    const minX = Math.floor((x - radius) / this.cellSize);
-    const maxX = Math.floor((x + radius) / this.cellSize);
-    const minY = Math.floor((y - radius) / this.cellSize);
-    const maxY = Math.floor((y + radius) / this.cellSize);
+    return this.queryInto(x, y, radius, []);
+  }
+
+  queryInto(x: number, y: number, radius: number, found: T[]): T[] {
+    found.length = 0;
+    const reach = radius + this.maximumItemRadius;
+    const minX = Math.floor((x - reach) / this.cellSize);
+    const maxX = Math.floor((x + reach) / this.cellSize);
+    const minY = Math.floor((y - reach) / this.cellSize);
+    const maxY = Math.floor((y + reach) / this.cellSize);
     for (let cx = minX; cx <= maxX; cx += 1) {
       for (let cy = minY; cy <= maxY; cy += 1) {
-        for (const item of this.cells.get(`${cx}:${cy}`) ?? []) found.add(item);
+        const cell = this.cells.get(this.key(cx, cy));
+        if (cell) found.push(...cell);
       }
     }
-    return [...found];
+    return found;
+  }
+
+  private key(x: number, y: number): number {
+    return x * 65_536 + y;
   }
 }
 
@@ -53,6 +60,7 @@ export function segmentCircle(
   bx: number,
   by: number,
   circle: Circle,
+  padding = 0,
 ): boolean {
   const abx = bx - ax;
   const aby = by - ay;
@@ -62,5 +70,5 @@ export function segmentCircle(
     : Math.max(0, Math.min(1, ((circle.x - ax) * abx + (circle.y - ay) * aby) / lengthSquared));
   const x = ax + abx * t;
   const y = ay + aby * t;
-  return Math.hypot(x - circle.x, y - circle.y) <= circle.radius;
+  return Math.hypot(x - circle.x, y - circle.y) <= circle.radius + padding;
 }

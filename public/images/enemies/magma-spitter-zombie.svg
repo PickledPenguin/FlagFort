@@ -1,37 +1,146 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="-56 -50 112 100" role="img" aria-labelledby="title description">
-  <title id="title">Magma Spitter zombie</title>
-  <desc id="description">A volcanic zombie with a furnace-like throat, an obsidian face guard, and a bright glob of magma gathering at its mouth.</desc>
-  <defs id="magma-spitter-definitions">
-    <linearGradient id="magma-gradient" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#fff29c"/>
-      <stop offset=".42" stop-color="#ff9d2f"/>
-      <stop offset="1" stop-color="#df3d23"/>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="-56 -50 112 100"
+   role="img"
+   aria-labelledby="title description"
+   version="1.1"
+   id="svg3"
+   sodipodi:docname="magma-spitter-zombie.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview3"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="3.2854106"
+     inkscape:cx="35.764175"
+     inkscape:cy="48.395778"
+     inkscape:window-width="1602"
+     inkscape:window-height="813"
+     inkscape:window-x="0"
+     inkscape:window-y="33"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="hands" />
+  <title
+     id="title">Magma Spitter zombie</title>
+  <desc
+     id="description">A volcanic zombie with a furnace-like throat, an obsidian face guard, and a bright glob of magma gathering at its mouth.</desc>
+  <defs
+     id="magma-spitter-definitions">
+    <linearGradient
+       id="magma-gradient"
+       x1="0"
+       y1="0"
+       x2="1"
+       y2="1">
+      <stop
+         offset="0"
+         stop-color="#fff29c"
+         id="stop1" />
+      <stop
+         offset=".42"
+         stop-color="#ff9d2f"
+         id="stop2" />
+      <stop
+         offset="1"
+         stop-color="#df3d23"
+         id="stop3" />
     </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#magma-gradient"
+       id="linearGradient6"
+       x1="4.8750412"
+       y1="-8.9419597"
+       x2="24.189674"
+       y2="10.372673"
+       gradientTransform="matrix(0,-1.4477128,0.54214431,0,12.389846,22.024808)"
+       gradientUnits="userSpaceOnUse" />
   </defs>
-  <g id="magma-spitter-zombie">
-    <g id="magma-trail" fill="url(#magma-gradient)" stroke="#9a2f22" stroke-width="2">
-      <path id="magma-stream" d="m28-5 18-6 8 9-8 9-18-5Z"/>
-      <circle id="magma-glob" cx="49" cy="-2" r="7"/>
+  <g
+     id="magma-spitter-zombie">
+    <g
+       id="hands"
+       fill="#61785b"
+       stroke="#29382e"
+       stroke-width="2.5"
+       transform="translate(-10.376617,-0.2117677)">
+      <circle
+         id="upper-hand"
+         cx="38.174393"
+         cy="-16.303728"
+         r="8" />
+      <circle
+         id="lower-hand"
+         cx="37.739384"
+         cy="16.608105"
+         r="8" />
     </g>
-    <g id="hands" fill="#61785b" stroke="#29382e" stroke-width="2.5">
-      <circle id="upper-hand" cx="33" cy="-23" r="8"/>
-      <circle id="lower-hand" cx="35" cy="23" r="8"/>
+    <circle
+       id="body"
+       r="24"
+       fill="#67845f"
+       stroke="#29382e"
+       stroke-width="3"
+       cx="-10.376617"
+       cy="-0.2117677" />
+    <path
+       id="obsidian-face-guard"
+       d="m -15.376617,-23.211768 26,6 9,17.0000003 -9,16.9999997 -26,6 7.9999998,-12.9999997 -2.9999998,-10 2.9999998,-10.0000003 z"
+       fill="#303034"
+       stroke="#17171a"
+       stroke-width="3"
+       stroke-linejoin="round" />
+    <path
+       id="furnace-mouth"
+       d="m 8.51158,0.9061746 c 0,-10.1188164 1.684388,-12.2734596 3.878266,-12.2734596 2.796658,0 4.65392,3.2260623 4.65392,13.3448787 0,6.080652 -2.272524,11.0776483 -4.65392,10.9402803 C 10.167877,12.789703 8.51158,6.8830374 8.51158,0.9061746 Z"
+       fill="url(#magma-gradient)"
+       stroke="#8e3023"
+       stroke-width="2.21482"
+       style="fill:url(#linearGradient6)"
+       sodipodi:nodetypes="sssss" />
+    <g
+       id="eyes"
+       fill="#fff3c0"
+       transform="translate(-10.376617,-0.2117677)">
+      <ellipse
+         id="upper-eye"
+         cx="-4.3531857"
+         cy="-15.685974"
+         rx="6"
+         ry="4"
+         transform="rotate(63)" />
+      <ellipse
+         id="lower-eye"
+         cx="-4.3531857"
+         cy="15.685974"
+         rx="6"
+         ry="4"
+         transform="rotate(-63)" />
     </g>
-    <path id="mantle-cloak" d="M-28-25C-43-7-41 23-24 39L8 37c12-16 16-43 2-61Z" fill="#4a3432" stroke="#261f21" stroke-width="3" stroke-linejoin="round"/>
-    <circle id="body" r="24" fill="#67845f" stroke="#29382e" stroke-width="3"/>
-    <path id="obsidian-face-guard" d="M-5-23 21-17 30 0 21 17-5 23 3 10 0 0 3-10Z" fill="#303034" stroke="#17171a" stroke-width="3" stroke-linejoin="round"/>
-    <path id="furnace-mouth" d="M16-5c10 0 15 3 17 5-2 3-7 6-17 6l-7-6Z" fill="url(#magma-gradient)" stroke="#8e3023" stroke-width="2.5"/>
-    <g id="heat-vents" fill="#ff8c32" stroke="#8e3023" stroke-width="1.5">
-      <path id="upper-vent" d="m-13-19 8-7 3 9-7 5Z"/>
-      <path id="lower-vent" d="m-14 18 7-5 5 9-8 5Z"/>
-    </g>
-    <g id="eyes" fill="#fff3c0">
-      <ellipse id="upper-eye" cx="10" cy="-11" rx="6" ry="4" transform="rotate(18 10 -11)"/>
-      <ellipse id="lower-eye" cx="10" cy="11" rx="6" ry="4" transform="rotate(-18 10 11)"/>
-    </g>
-    <g id="pupils" fill="#ef5728">
-      <circle id="upper-pupil" cx="13" cy="-10" r="2.5"/>
-      <circle id="lower-pupil" cx="13" cy="10" r="2.5"/>
+    <g
+       id="pupils"
+       fill="#ef5728"
+       transform="translate(-10.177957,0.58287114)">
+      <circle
+         id="upper-pupil"
+         cx="13"
+         cy="-10"
+         r="2.5" />
+      <circle
+         id="lower-pupil"
+         cx="13.19866"
+         cy="8.6093817"
+         r="2.5" />
     </g>
   </g>
 </svg>
