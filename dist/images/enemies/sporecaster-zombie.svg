@@ -1,46 +1,177 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="-58 -52 116 104" role="img" aria-labelledby="title description">
-  <title id="title">Sporecaster zombie</title>
-  <desc id="description">A round bog zombie carrying a clean fungus crown and a glowing puffball ready to burst into slowing spores.</desc>
-  <defs id="sporecaster-definitions">
-    <linearGradient id="sporecaster-body-gradient" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#627a63"/>
-      <stop offset="1" stop-color="#304a46"/>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="-58 -52 116 104"
+   role="img"
+   aria-labelledby="title description"
+   version="1.1"
+   id="svg5"
+   sodipodi:docname="sporecaster-zombie.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview5"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="2.9881376"
+     inkscape:cx="43.003375"
+     inkscape:cy="55.051013"
+     inkscape:window-width="1582"
+     inkscape:window-height="836"
+     inkscape:window-x="0"
+     inkscape:window-y="33"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="sporecaster-zombie" />
+  <title
+     id="title">Sporecaster zombie</title>
+  <desc
+     id="description">A round bog zombie carrying a clean fungus crown and a glowing puffball ready to burst into slowing spores.</desc>
+  <defs
+     id="sporecaster-definitions">
+    <linearGradient
+       id="sporecaster-body-gradient"
+       x1="-29.506443"
+       y1="-22.506168"
+       x2="23.508087"
+       y2="30.508362"
+       gradientTransform="matrix(1.0002742,0,0,0.99972592,-1.0119095,-0.66931323)"
+       gradientUnits="userSpaceOnUse">
+      <stop
+         offset="0"
+         stop-color="#627a63"
+         id="stop1" />
+      <stop
+         offset="1"
+         stop-color="#304a46"
+         id="stop2" />
     </linearGradient>
-    <radialGradient id="sporecaster-orb-gradient">
-      <stop offset="0" stop-color="#efffb8"/>
-      <stop offset=".55" stop-color="#b8db70"/>
-      <stop offset="1" stop-color="#6d8f50"/>
+    <radialGradient
+       id="sporecaster-orb-gradient">
+      <stop
+         offset="0"
+         stop-color="#efffb8"
+         id="stop3" />
+      <stop
+         offset=".55"
+         stop-color="#b8db70"
+         id="stop4" />
+      <stop
+         offset="1"
+         stop-color="#6d8f50"
+         id="stop5" />
     </radialGradient>
   </defs>
-  <g id="sporecaster-zombie">
-    <g id="fungus-pack" stroke="#3e523c" stroke-width="2.5" stroke-linejoin="round">
-      <path id="large-mushroom-stem" d="M-25 2c-5-13-4-27 1-39h10c2 13 2 26-1 39Z" fill="#9b9772"/>
-      <path id="large-mushroom-cap" d="M-38-34c5-19 29-22 39-5 2 4 1 8-3 9-10-4-23-3-32 1-4 1-6-1-4-5Z" fill="#9b5d65"/>
-      <path id="small-mushroom-stem" d="M-38 9c-3-10-2-19 2-27h7c2 8 2 17 0 27Z" fill="#aaa482"/>
-      <path id="small-mushroom-cap" d="M-46-16c5-13 20-14 26-2 1 3 0 5-3 6-7-3-14-2-20 1-3 0-4-2-3-5Z" fill="#bb766f"/>
+  <g
+     id="sporecaster-zombie">
+    <ellipse
+       id="body"
+       cx="-4.0119095"
+       cy="3.3306868"
+       rx="25.014532"
+       ry="25"
+       fill="url(#sporecaster-body-gradient)"
+       stroke="#213b39"
+       stroke-width="3"
+       style="fill:url(#sporecaster-body-gradient)" />
+    <path
+       id="face"
+       d="M 12.796182,-14.984571 C 23.433662,-2.5201978 22.526559,14.845375 12.651796,21.535776 -4.8736295,9.7881888 -5.8476525,-7.8462186 12.796182,-14.984571 Z"
+       fill="#263f3e"
+       sodipodi:nodetypes="ccc" />
+    <g
+       id="eyes"
+       fill="#e8ffb1"
+       transform="translate(-7.4661421,-0.66931323)">
+      <circle
+         id="upper-eye"
+         cx="17"
+         cy="-3"
+         r="4" />
+      <circle
+         id="lower-eye"
+         cx="17.83535"
+         cy="9.9398985"
+         r="3" />
     </g>
-    <g id="spore-cloud" fill="#d9ef98" opacity=".72">
-      <circle id="spore-one" cx="-43" cy="-39" r="2.5"/>
-      <circle id="spore-two" cx="-31" cy="-47" r="2"/>
-      <circle id="spore-three" cx="-8" cy="-43" r="3"/>
-      <circle id="spore-four" cx="1" cy="-31" r="1.8"/>
+    <g
+       id="floating-hands"
+       fill="#587764"
+       stroke="#213b39"
+       stroke-width="2.5"
+       transform="translate(-5.0198492,3.0119095)">
+      <circle
+         id="upper-hand"
+         cx="41"
+         cy="-18"
+         r="8" />
+      <circle
+         id="lower-hand"
+         cx="41"
+         cy="18"
+         r="8" />
     </g>
-    <ellipse id="body" cx="-3" cy="4" rx="29" ry="25" fill="url(#sporecaster-body-gradient)" stroke="#213b39" stroke-width="3"/>
-    <path id="hood" d="M-24-16C-12-34 16-31 31-11L20-3C10-16-7-20-17-7Z" fill="#415d4e" stroke="#243e37" stroke-width="3" stroke-linejoin="round"/>
-    <path id="face" d="M1-10c14-4 25 2 29 13-9 9-21 11-34 3Z" fill="#263f3e"/>
-    <g id="eyes" fill="#e8ffb1">
-      <circle id="upper-eye" cx="17" cy="-3" r="4"/>
-      <circle id="lower-eye" cx="18" cy="9" r="3"/>
+    <g
+       id="fungus-pack"
+       stroke="#3e523c"
+       stroke-width="2.5"
+       stroke-linejoin="round"
+       transform="matrix(0,-0.64962872,0.64962872,0,-10.57817,-14.972829)">
+      <path
+         id="large-mushroom-stem"
+         d="m -29.506089,-1.0270302 c 0.965103,-13.8949118 7.790365,-26.1593238 17.394966,-34.9201258 l 9.0622852,4.227881 C -6.7326265,-19.092727 -12.228871,-7.311756 -20.443804,3.2008509 Z"
+         fill="#9b9772" />
+      <path
+         id="large-mushroom-cap"
+         d="m -26.066688,-39.147504 c 12.564118,-15.104402 35.5819671,-7.676173 37.456855,11.957594 0.121304,4.47049 -2.4760769,7.672616 -6.5237789,6.887693 -7.3711331,-7.852796 -19.5748921,-12.442813 -29.4221021,-12.622992 -4.047703,-0.784924 -5.014584,-3.442957 -1.510974,-6.222295 z"
+         fill="#9b5d65" />
+      <path
+         id="small-mushroom-stem"
+         d="m -46.999984,1.3336476 c -5.771163,-8.290839 -7.563184,-16.8673166 -6.295527,-25.4281556 l 6.436268,-2.108934 c 4.249144,6.753182 6.960631,15.028382 8.13446,24.825603 z"
+         fill="#aaa482"
+         style="stroke-width:2.41892" />
+      <path
+         id="small-mushroom-cap"
+         d="m -61.887626,-19.242811 c 0.680742,-13.459451 14.171468,-18.898061 23.303584,-9.672118 1.823295,2.457124 1.506381,4.597334 -0.950743,6.420631 -7.340096,-0.649468 -13.475087,2.378934 -18.088059,6.944991 -2.7584,0.903829 -4.28042,-0.633828 -4.264782,-3.693504 z"
+         fill="#bb766f"
+         style="stroke-width:2.41892" />
     </g>
-    <g id="floating-hands" fill="#587764" stroke="#213b39" stroke-width="2.5">
-      <circle id="upper-hand" cx="41" cy="-18" r="8"/>
-      <circle id="lower-hand" cx="41" cy="18" r="8"/>
-    </g>
-    <circle id="puffball" cx="45" r="14" fill="url(#sporecaster-orb-gradient)" stroke="#405d3f" stroke-width="3"/>
-    <g id="puffball-spots" fill="#f3ffc9">
-      <circle id="puffball-spot-one" cx="42" cy="-5" r="2.5"/>
-      <circle id="puffball-spot-two" cx="50" cy="2" r="2"/>
-      <circle id="puffball-spot-three" cx="40" cy="6" r="1.7"/>
+    <g
+       id="spore-cloud"
+       fill="#d9ef98"
+       opacity="0.72"
+       transform="matrix(0,-0.64962872,0.64962872,0,-10.57817,-14.972829)">
+      <circle
+         id="spore-one"
+         cx="-44.371979"
+         cy="-41.328503"
+         r="2.4189184"
+         style="stroke-width:0.967567"
+         transform="rotate(-18.142115)" />
+      <circle
+         id="spore-two"
+         cx="-29.671532"
+         cy="-30.452015"
+         r="2"
+         transform="rotate(25.010739)" />
+      <circle
+         id="spore-three"
+         cx="-10.173475"
+         cy="-33.455902"
+         r="3"
+         transform="rotate(25.010739)" />
+      <circle
+         id="spore-four"
+         cx="-15.181252"
+         cy="-25.276201"
+         r="1.8"
+         transform="rotate(25.010739)" />
     </g>
   </g>
 </svg>

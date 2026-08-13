@@ -10,7 +10,7 @@ import { costLayoutRows } from "./cost-layout";
 import { projectileVisualColor } from "./projectile-visuals";
 import { SeededRng } from "./rng";
 import type { CampaignBiomeDefinition } from "./campaign";
-import type { AreaStrike, Enemy, EnemyKind, Player, ResourceNode, Structure } from "./types";
+import type { AreaStrike, CampaignTierId, Enemy, EnemyKind, Player, ResourceNode, Structure } from "./types";
 
 const resourceColors = {
   wood: "#315f37",
@@ -20,6 +20,51 @@ const resourceColors = {
 };
 
 const center = BALANCE.mapSize / 2;
+
+export const SIMPLE_ENEMY_OUTLINE_COLORS: Record<CampaignTierId, string> = {
+  forest: "#29462c",
+  snowy: "#173746",
+  desert: "#315640",
+  volcanic: "#29382e",
+  wasteland: "#293d33",
+  rift: "#252952",
+  mire: "#213b39",
+  clockwork: "#273b3b",
+};
+
+export const SIMPLE_ENEMY_BIOME_FILTERS: Record<
+  Exclude<CampaignTierId, "forest">,
+  Record<"basic" | "runner", string>
+> = {
+  snowy: {
+    basic: "hue-rotate(89deg) saturate(.81) brightness(1.129)",
+    runner: "hue-rotate(88deg) saturate(.74) brightness(1.103)",
+  },
+  desert: {
+    basic: "hue-rotate(13deg) saturate(.63) brightness(.951)",
+    runner: "hue-rotate(14deg) saturate(.61) brightness(.963)",
+  },
+  volcanic: {
+    basic: "hue-rotate(16deg) saturate(.42) brightness(.654)",
+    runner: "hue-rotate(8deg) saturate(.55) brightness(.726)",
+  },
+  wasteland: {
+    basic: "hue-rotate(30deg) saturate(.44) brightness(.716)",
+    runner: "hue-rotate(25deg) saturate(.45) brightness(.758)",
+  },
+  rift: {
+    basic: "hue-rotate(149deg) saturate(1.08) brightness(.679)",
+    runner: "hue-rotate(150deg) saturate(1.01) brightness(.725)",
+  },
+  mire: {
+    basic: "hue-rotate(36deg) saturate(.4) brightness(.726)",
+    runner: "hue-rotate(34deg) saturate(.4) brightness(.762)",
+  },
+  clockwork: {
+    basic: "hue-rotate(37deg) saturate(.24) brightness(.829)",
+    runner: "hue-rotate(38deg) saturate(.23) brightness(.854)",
+  },
+};
 
 export interface WeatherParticleDefinition {
   x: number;
@@ -1040,16 +1085,7 @@ export class Renderer {
     let biomeFilter: string | undefined;
     if ((enemy.kind === "basic" || enemy.kind === "runner")
       && game.activeCampaignTierId !== "forest") {
-      const biomeFilters: Record<Exclude<typeof game.activeCampaignTierId, "forest">, string> = {
-        snowy: "hue-rotate(135deg) saturate(.55) brightness(1.55)",
-        desert: "hue-rotate(300deg) saturate(.72) sepia(.45) brightness(1.12)",
-        volcanic: "hue-rotate(265deg) saturate(.85) brightness(.62)",
-        wasteland: "hue-rotate(28deg) saturate(.75) brightness(.78)",
-        rift: "hue-rotate(160deg) saturate(1.35) brightness(.82)",
-        mire: "hue-rotate(48deg) saturate(.58) brightness(.62)",
-        clockwork: "sepia(.8) saturate(.65) brightness(.82)",
-      };
-      biomeFilter = biomeFilters[game.activeCampaignTierId];
+      biomeFilter = SIMPLE_ENEMY_BIOME_FILTERS[game.activeCampaignTierId][enemy.kind];
     }
     if ((enemy.ghostRemaining ?? 0) > 0) {
       ctx.globalAlpha = 0.38 + Math.sin(this.time * 18 + enemy.id) * 0.12;
@@ -1194,7 +1230,10 @@ export class Renderer {
       return;
     }
     const ram = ENEMY_REGISTRY[enemy.kind].ram;
-    if (ram && enemy.attackWindup > 0) {
+    if (ram
+      && enemy.attackWindup > 0
+      && (enemy.chargeProgress ?? 0) > 0
+      && (enemy.chargeCooldown ?? 0) <= 0) {
       ctx.save();
       ctx.rotate(angle);
       ctx.strokeStyle = ram.telegraphColor;
@@ -1231,6 +1270,22 @@ export class Renderer {
     }
     const handReach = enemy.radius + 11 + enemy.attackWindup * 10;
     const handDiameter = enemy.radius * 0.7;
+    const simpleOutlineColor = enemy.kind === "basic" || enemy.kind === "runner"
+      ? SIMPLE_ENEMY_OUTLINE_COLORS[game.activeCampaignTierId]
+      : enemy.kind === "breaker" || enemy.kind === "jumper"
+        ? SIMPLE_ENEMY_OUTLINE_COLORS.forest
+        : undefined;
+    if (simpleOutlineColor) {
+      ctx.fillStyle = enemy.flash > 0 ? "#ffffff" : simpleOutlineColor;
+      for (const handY of [-enemy.radius * 0.55, enemy.radius * 0.55]) {
+        ctx.beginPath();
+        ctx.arc(handReach, handY, handDiameter / 2 + 2.25, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.beginPath();
+      ctx.arc(0, 0, enemy.radius + 2.75, 0, Math.PI * 2);
+      ctx.fill();
+    }
     this.drawFilteredSprite(
       ASSETS.enemyHands[enemy.kind],
       biomeFilter,

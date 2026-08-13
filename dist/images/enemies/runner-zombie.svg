@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="-52 -40 104 80">
-  <g id="runner-zombie-normal-appearance" fill="#a0d653">
+  <g id="runner-zombie-normal-appearance" fill="#82bd5d" stroke="#29462c" stroke-width="3">
     <circle id="upper-hand" cx="31" cy="-11" r="7"/>
     <circle id="lower-hand" cx="31" cy="11" r="7"/>
     <circle id="body" r="20"/>

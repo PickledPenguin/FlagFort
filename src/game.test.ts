@@ -436,7 +436,7 @@ describe("phase and run rules", () => {
     expect(game.selectedTiers.wall).toBe("stone");
   });
 
-  it("reserves future portal zones and evicts only actual footprint overlaps", () => {
+  it("allows future portal zones to be occupied and evicts only actual footprint overlaps", () => {
     const input = fakeInput();
     const game = new Game(input);
     game.startRun("normal", "future-portal-zone-seed");
@@ -445,6 +445,8 @@ describe("phase and run rules", () => {
       spawnPortals(playSpawnSound?: boolean): void;
     };
     const future = internals.portalPositionsForNight(2)[0]!;
+    expect((internals as unknown as { portalNoBuildZones(): Array<{ x: number; y: number }> })
+      .portalNoBuildZones()).not.toContainEqual(future);
     game.structures = [
       testStructure({ id: 901, x: future.x, y: future.y }),
       testStructure({
@@ -481,6 +483,12 @@ describe("phase and run rules", () => {
     expect(Math.hypot(portal.x - secondOrigin.x, portal.y - secondOrigin.y))
       .toBeGreaterThanOrEqual(BALANCE.portal.relocationMinimumDistance);
     expect(portal).not.toMatchObject(firstOrigin);
+    const visited = new Set([`${firstOrigin.x},${firstOrigin.y}`, `${portal.x},${portal.y}`]);
+    for (let count = 0; count < 6; count += 1) {
+      internals.relocatePortal(portal);
+      visited.add(`${portal.x},${portal.y}`);
+    }
+    expect(visited.size).toBe(8);
   });
 
   it("allows focused bounty completion before Night 5", () => {
@@ -510,6 +518,7 @@ describe("phase and run rules", () => {
     expect(game.isCombatMode()).toBe(true);
     expect(game.choices).toHaveLength(3);
 
+    game.update(BALANCE.ui.dawnChoiceClickDelay);
     for (let screen = 0; screen < 3; screen += 1) game.chooseDawn(0);
     if (game.enemyWarning) game.dismissEnemyWarning();
     expect(game.phase).toBe("day");
@@ -523,6 +532,22 @@ describe("phase and run rules", () => {
     game.update(0.02);
     expect(game.phase).toBe("day");
     expect(game.isCombatMode()).toBe(false);
+  });
+
+  it("ignores upgrade clicks during the first second of a dawn screen", () => {
+    const game = new Game(fakeInput());
+    game.startRun("normal", "dawn-click-guard");
+    (game as unknown as { beginDawn(): void }).beginDawn();
+    const firstChoice = game.choices[0]!;
+
+    game.chooseDawn(0);
+    expect(game.dawnScreen).toBe(0);
+    expect(game.dawnPicked).not.toContain(firstChoice.id);
+
+    game.update(BALANCE.ui.dawnChoiceClickDelay);
+    game.chooseDawn(0);
+    expect(game.dawnScreen).toBe(1);
+    expect(game.dawnPicked).toContain(firstChoice.id);
   });
 
   it("stops spawning queued ordinary zombies when the normal night clock ends", () => {
@@ -771,6 +796,8 @@ describe("phase and run rules", () => {
       x: wall.x + 180,
       y: wall.y,
       radius: BALANCE.enemy.rammer.radius,
+      speed: BALANCE.enemy.rammer.speed,
+      damage: BALANCE.enemy.rammer.damage,
       structureDamage: BALANCE.enemy.rammer.structureDamage,
       targetId: "flag",
     });
@@ -828,6 +855,54 @@ describe("phase and run rules", () => {
     } finally {
       ENEMY_REGISTRY.breaker.ram = previousRam;
     }
+  });
+
+  it("keeps charging enemies in normal movement for five seconds between charges", () => {
+    const game = new Game(fakeInput());
+    game.startRun("normal", "rammer-charge-cooldown");
+    game.phase = "night";
+    const wall = testStructure({
+      id: 514,
+      x: game.flag.x + 120,
+      y: game.flag.y,
+      health: 120,
+      maxHealth: 120,
+    });
+    const rammer = testEnemy({
+      id: 714,
+      kind: "rammer",
+      x: wall.x + 180,
+      y: wall.y,
+      radius: BALANCE.enemy.rammer.radius,
+      speed: BALANCE.enemy.rammer.speed,
+      damage: BALANCE.enemy.rammer.damage,
+      structureDamage: BALANCE.enemy.rammer.structureDamage,
+      targetId: "flag",
+    });
+    game.structures = [wall];
+    game.enemies = [rammer];
+    for (const resource of game.world.resources) resource.destroyed = true;
+    const updateRammer = (dt: number) => (game as unknown as {
+      updateEnemyRam(enemy: Enemy, dt: number): boolean;
+    }).updateEnemyRam(rammer, dt);
+
+    updateRammer(ENEMY_REGISTRY.rammer.ram!.loadSeconds);
+    expect(rammer.charging).toBe(true);
+    updateRammer(1);
+
+    expect(rammer.charging).toBe(false);
+    expect(rammer.chargeCooldown).toBe(5);
+    expect(updateRammer(2)).toBe(false);
+    expect(rammer.chargeCooldown).toBe(3);
+    expect(rammer.chargeProgress).toBe(0);
+    rammer.attackWindup = 0.99;
+    rammer.cooldown = 0;
+    const flagHealthBeforeCooldownMelee = game.flag.health;
+    (game as unknown as {
+      enemyAttack(enemy: Enemy, target: typeof game.flag, dt: number): void;
+    }).enemyAttack(rammer, game.flag, 0.1);
+    expect(game.flag.health).toBeLessThan(flagHealthBeforeCooldownMelee);
+    expect(rammer.chargeCooldown).toBeGreaterThan(0);
   });
 
   it("summons roster-aware specials without adding them to wave accounting", () => {
@@ -1118,6 +1193,7 @@ describe("phase and run rules", () => {
       game.timer = 0;
       game.update(0.02);
       expect(game.phase).toBe("dawn");
+      game.update(BALANCE.ui.dawnChoiceClickDelay);
       for (let screen = 0; screen < 3; screen += 1) {
         expect(game.choices).toHaveLength(3);
         game.chooseDawn(0);

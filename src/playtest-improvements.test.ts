@@ -65,7 +65,7 @@ function snapshot(overrides: Partial<NightPerformanceSnapshot> = {}): NightPerfo
 }
 
 describe("auto-corrective difficulty", () => {
-  it("increases only after an easy preceding night and clamps its own additive delta", () => {
+  it("raises pressure after easy play and lowers it after an overwhelmed night", () => {
     const easy = performanceDifficultyDelta(snapshot());
     const pressured = performanceDifficultyDelta(snapshot({
       totalIncomingDamage: 300,
@@ -77,8 +77,28 @@ describe("auto-corrective difficulty", () => {
     }));
     expect(easy.delta).toBeGreaterThan(0);
     expect(easy.delta).toBeLessThanOrEqual(BALANCE.adaptive.autoCorrective.maximumDelta);
-    expect(pressured.delta).toBe(0);
+    expect(pressured.delta).toBeLessThan(0);
+    expect(pressured.delta).toBeGreaterThanOrEqual(BALANCE.adaptive.autoCorrective.minimumDelta);
     expect(performanceDifficultyDelta(null).delta).toBe(0);
+  });
+
+  it("reaches only the modest negative cap after a fully collapsed late night", () => {
+    const collapsed = performanceDifficultyDelta(snapshot({
+      night: 4,
+      totalIncomingDamage: 10_000,
+      damagedStructureCount: 20,
+      damagedStructureValue: 10_000,
+      destroyedStructureCount: 20,
+      destroyedStructureValue: 10_000,
+      flagDamage: 150,
+      zombiesEnteringFlagRadius: 20,
+      personalZombieKills: 0,
+      playerDamageTaken: 100,
+      totalZombieKills: 0,
+      survivingZombiesAtDawn: 20,
+    }));
+    expect(collapsed.delta).toBe(BALANCE.adaptive.autoCorrective.minimumDelta);
+    expect(collapsed.delta).toBe(-0.2);
   });
 
   it("can use the raised corrective ceiling after a completely dominant late night", () => {
@@ -218,7 +238,7 @@ describe("playtest telemetry attribution", () => {
 });
 
 describe("true player-side area attacks", () => {
-  it("boss slam damages the player, flag, and every damageable structure once", () => {
+  it("boss slam damages the player and structures once without damaging the flag", () => {
     const game = gameFixture();
     game.phase = "night";
     const boss = spawn(game, "boss", game.flag.x + 80, game.flag.y);
@@ -232,8 +252,7 @@ describe("true player-side area attacks", () => {
     boss.bossSmashWindup = slam.chargeDuration - 0.01;
     (game as unknown as { updateBoss(enemy: Enemy, dt: number): void }).updateBoss(boss, 0.02);
     expect(game.player.health).toBeLessThan(game.player.maxHealth);
-    expect(game.flag.health).toBeCloseTo(flagBefore - slam.flagDamage
-      * boss.damage / ENEMY_REGISTRY.boss.base.damage);
+    expect(game.flag.health).toBe(flagBefore);
     expect(game.structures.every((item) => item.health < item.maxHealth)).toBe(true);
     expect(game.areaEffects.at(-1)).toMatchObject({ kind: "boss-slam", radius: slam.radius });
   });

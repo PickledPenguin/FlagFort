@@ -69,9 +69,12 @@ export function performanceDifficultyDelta(
   );
   const rampProgress = clamp01((snapshot.night - 1) / Math.max(1, config.fullStrengthAfterNight - 1));
   const strength = config.startingStrength + (1 - config.startingStrength) * rampProgress;
-  const rawDelta = config.maximumDelta * strength * Math.max(0, easyPerformance - pressurePenalty);
+  const performanceDifference = easyPerformance - pressurePenalty;
+  const rawDelta = performanceDifference >= 0
+    ? config.maximumDelta * strength * performanceDifference
+    : Math.abs(config.minimumDelta) * strength * performanceDifference;
   return {
-    delta: Math.max(0, Math.min(config.maximumDelta, rawDelta)),
+    delta: Math.max(config.minimumDelta, Math.min(config.maximumDelta, rawDelta)),
     easyPerformance,
     pressurePenalty,
     clearRate,

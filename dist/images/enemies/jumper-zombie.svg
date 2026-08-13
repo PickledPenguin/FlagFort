@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="-52 -40 104 80">
-  <g id="jumper-zombie-normal-appearance" fill="#62c87b">
+  <g id="jumper-zombie-normal-appearance" fill="#62c87b" stroke="#29462c" stroke-width="3">
     <circle id="upper-hand" cx="33" cy="-12.1" r="7.7"/>
     <circle id="lower-hand" cx="33" cy="12.1" r="7.7"/>
     <circle id="body" r="22"/>

@@ -1,41 +1,133 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="-58 -52 116 104" role="img" aria-labelledby="title description">
-  <title id="title">Springjack zombie</title>
-  <desc id="description">A round clockwork zombie wrapped by an over-wound brass spring, with floating hands, a wind-up key, and cyan eyes.</desc>
-  <defs id="springjack-definitions">
-    <linearGradient id="springjack-coat-gradient" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#66717a"/>
-      <stop offset="1" stop-color="#303841"/>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="-58 -52 116 104"
+   role="img"
+   aria-labelledby="title description"
+   version="1.1"
+   id="svg4"
+   sodipodi:docname="springjack-zombie.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview4"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="4.2492971"
+     inkscape:cx="54.597266"
+     inkscape:cy="51.773269"
+     inkscape:window-width="1665"
+     inkscape:window-height="817"
+     inkscape:window-x="0"
+     inkscape:window-y="33"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="aether-eyes" />
+  <title
+     id="title">Springjack zombie</title>
+  <desc
+     id="description">A round clockwork zombie wrapped by an over-wound brass spring, with floating hands, a wind-up key, and cyan eyes.</desc>
+  <defs
+     id="springjack-definitions">
+    <linearGradient
+       id="springjack-coat-gradient"
+       x1="0"
+       y1="0"
+       x2="1"
+       y2="1">
+      <stop
+         offset="0"
+         stop-color="#66717a"
+         id="stop1" />
+      <stop
+         offset="1"
+         stop-color="#303841"
+         id="stop2" />
     </linearGradient>
-    <linearGradient id="springjack-brass-gradient" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#f0cf72"/>
-      <stop offset="1" stop-color="#9b682d"/>
+    <linearGradient
+       id="springjack-brass-gradient"
+       x1="0"
+       y1="0"
+       x2="1"
+       y2="1">
+      <stop
+         offset="0"
+         stop-color="#f0cf72"
+         id="stop3" />
+      <stop
+         offset="1"
+         stop-color="#9b682d"
+         id="stop4" />
     </linearGradient>
   </defs>
-  <g id="springjack-zombie">
-    <g id="wound-spring" fill="none" stroke="#d3a64c" stroke-width="5" stroke-linecap="round">
-      <path id="spring-coil" d="M-31 22c12 12 50 12 62 0M-27 31c13 10 41 10 54 0M-20 39c11 7 29 7 40 0"/>
+  <g
+     id="springjack-zombie">
+    <path
+       id="face"
+       d="M 11.761479,-20.118539 C 26.006078,-6.672003 16.5142,18.10205 -2.7678551,19.116132 -20.006707,20.022758 -28.814311,4.3834565 -24.94452,-11.648535 c 3.130495,-12.969194 24.98051262,-19.538562 36.705999,-8.470004 z"
+       fill="#6f8478"
+       stroke="#273b3b"
+       stroke-width="3"
+       sodipodi:nodetypes="ssss" />
+    <path
+       id="jaw-plate"
+       d="m -13.415186,-16.8252 4.9999995,28 -14.9999995,-2.9999995 -3,-21.0000005 z"
+       fill="#9a6b32"
+       stroke="#543d25"
+       stroke-width="2" />
+    <g
+       id="aether-eyes"
+       fill="#80fff2"
+       stroke="#205b5d"
+       stroke-width="1.5"
+       transform="rotate(90,-3.6183282,-11.502195)">
+      <path
+         id="left-eye"
+         d="m -7.5720092,-17.045225 8.6875398,-5.79022 -7.4378722,-3.560626 z" />
+      <path
+         id="right-eye"
+         d="m 6.7599729,-22.294505 8.7259851,6.989793 0.690673,-9.875372 z" />
     </g>
-    <path id="coat" d="M-28-10C-27-33-9-43 14-35 31-28 34-4 24 25H-22C-30 12-32 1-28-10Z" fill="url(#springjack-coat-gradient)" stroke="#202831" stroke-width="3" stroke-linejoin="round"/>
-    <path id="face" d="M-16-29C0-40 22-30 27-14 24 3 12 11-4 7-17 4-24-15-16-29Z" fill="#6f8478" stroke="#273b3b" stroke-width="3"/>
-    <path id="jaw-plate" d="M-8-5 20-10 17 5-4 8Z" fill="#9a6b32" stroke="#543d25" stroke-width="2"/>
-    <g id="aether-eyes" fill="#80fff2" stroke="#205b5d" stroke-width="1.5">
-      <path id="left-eye" d="m-9-21 10-3-2 8Z"/>
-      <path id="right-eye" d="m7-25 11 2-7 7Z"/>
+    <path
+       id="shoulder-gear"
+       d="m -14.711834,-4.0638413 4.9999995,4.99999997 -2.9999995,5.99999983 -7,1 -5,-4.9999998 2,-7 z"
+       fill="#d0a24a"
+       stroke="#654923"
+       stroke-width="2" />
+    <g
+       id="floating-hands"
+       fill="#64786e"
+       stroke="#273b3b"
+       stroke-width="2.5"
+       transform="rotate(90,13.560984,14.149106)">
+      <circle
+         id="rear-hand"
+         cx="-20.525364"
+         cy="-4.1179976"
+         r="6.6466694" />
+      <circle
+         id="rear-hand-4"
+         cx="11.239845"
+         cy="-3.7005847"
+         r="6.6466694" />
     </g>
-    <g id="wind-up-key" fill="none" stroke="url(#springjack-brass-gradient)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
-      <path id="key-shaft" d="M-25-15-43-23"/>
-      <path id="key-bow" d="m-43-23-8-10m8 10-12 3"/>
+    <g
+       id="wound-spring"
+       fill="none"
+       stroke="#d3a64c"
+       stroke-width="5"
+       stroke-linecap="round"
+       transform="rotate(90,3.0886634,-0.5592093)">
+      <path
+         id="spring-coil"
+         d="m -11.154638,26.784047 c 4.4642648,4.464265 18.6011028,4.464265 23.065367,0 m -21.5772792,3.348199 c 4.836287,3.72022 15.252905,3.72022 20.0891912,0 m -17.4850362,2.976176 c 4.092242,2.604154 10.788639,2.604154 14.880882,0"
+         style="stroke-width:1.86011" />
     </g>
-    <path id="shoulder-gear" d="m25-19 5-5 6 3 1 7-5 5-7-2Z" fill="#d0a24a" stroke="#654923" stroke-width="2"/>
-    <g id="floating-hands" fill="#64786e" stroke="#273b3b" stroke-width="2.5">
-      <circle id="rear-hand" cx="-45" cy="-2" r="9"/>
-      <circle id="front-hand" cx="46" cy="-1" r="9"/>
-    </g>
-    <g id="claws" fill="none" stroke="#d6b35c" stroke-width="3" stroke-linecap="round">
-      <path id="rear-claw" d="m-48-2-7-7m7 8-9 1"/>
-      <path id="front-claw" d="m48-2 7-8m-6 9 8 1"/>
-    </g>
-    <circle id="chest-cog" cx="4" cy="17" r="8" fill="url(#springjack-brass-gradient)" stroke="#5b4023" stroke-width="2"/>
-    <circle id="chest-axle" cx="4" cy="17" r="3" fill="#79e7df"/>
   </g>
 </svg>

@@ -88,7 +88,7 @@ describe("shared render and transition architecture", () => {
     expect(rendererSource).toContain("ASSETS.enemyHands[enemy.kind]");
     expect(rendererSource).not.toContain("drawZombieBody(ctx");
     expect(uiSource).toContain('data-zombie-portrait="${this.game.enemyWarning}"');
-    expect(uiSource).toContain("ASSETS.enemies[this.game.enemyWarning]");
+    expect(uiSource).toContain("campaignEnemyPortrait(this.game.enemyWarning, this.game.activeCampaignTierId)");
     expect(uiSource).not.toContain('class="zombie-art threat-symbol"');
   });
 

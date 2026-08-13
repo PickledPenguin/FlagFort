@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-52 -40 104 80" role="img" aria-labelledby="title description">
+  <title id="title">Wasteland runner zombie</title>
+  <desc id="description">A runner zombie with slightly lighter muted green Fallout Exclusion skin.</desc>
+  <g id="wasteland-runner-zombie-appearance" fill="#69896f" stroke="#293d33" stroke-width="3">
+    <circle id="upper-hand" cx="31" cy="-11" r="7"/>
+    <circle id="lower-hand" cx="31" cy="11" r="7"/>
+    <circle id="body" r="20"/>
+  </g>
+  <g id="eyes" fill="#f5ffd3">
+    <ellipse cx="8" cy="-9" rx="7" ry="5" transform="rotate(25.783 8 -9)"/>
+    <ellipse cx="8" cy="9" rx="7" ry="5" transform="rotate(-25.783 8 9)"/>
+  </g>
+  <g id="pupils" fill="#c4a83e"><circle cx="11" cy="-8" r="3"/><circle cx="11" cy="8" r="3"/></g>
+  <path id="brows" d="M-9-7 2-2M-7 11 4 5" fill="none" stroke="#26342c" stroke-width="3"/>
+</svg>

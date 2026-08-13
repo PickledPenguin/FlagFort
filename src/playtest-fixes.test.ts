@@ -462,12 +462,58 @@ describe("progression safety and presentation", () => {
     const flippedSnowy = document.querySelector<HTMLElement>('[data-campaign-tier="snowy"]')!
       .closest<HTMLElement>(".campaign-tier-node");
     expect(flippedSnowy?.classList.contains("flipped")).toBe(true);
-    expect(flippedSnowy?.querySelectorAll(".tier-card-enemies > span")).toHaveLength(3);
+    expect(flippedSnowy?.querySelectorAll(".tier-card-enemies > span")).toHaveLength(4);
+    expect(flippedSnowy?.querySelector(".tier-card-enemies > .boss")?.textContent)
+      .toContain("Frost Warden");
     expect(flippedSnowy?.querySelector(".tier-card-back")?.textContent).not.toContain("Coins");
-    flippedSnowy?.querySelector<HTMLElement>('[data-action="flip-campaign-tier-back"]')?.click();
+    expect(flippedSnowy?.querySelector(".tier-card-back")?.textContent).not.toContain("Card Front");
+    expect(flippedSnowy?.querySelector(".tier-card-back")?.textContent).not.toContain("Play Tier");
+    flippedSnowy?.querySelector<HTMLElement>('.tier-card-back')?.click();
     const returnedSnowy = document.querySelector<HTMLElement>('[data-campaign-tier="snowy"]')!
       .closest<HTMLElement>(".campaign-tier-node");
     expect(returnedSnowy?.classList.contains("flipped")).toBe(false);
+  });
+
+  it("keeps Campaign ladder scroll position while flipping a tier", () => {
+    const manager = new ProfileManager(new TestStore());
+    manager.profile.playerLevel = 19;
+    manager.profile.campaign.defeatedTierIds = ["forest", "snowy", "desert"];
+    const game = new Game(new Input(document.querySelector("canvas")!), manager);
+    const ui = new Ui(
+      game,
+      document.querySelector("#hud")!,
+      document.querySelector("#overlay")!,
+      document.querySelector("#toast")!,
+    );
+    game.returnToMenu();
+    ui.render(true);
+    document.querySelector<HTMLElement>('[data-action="open-campaign"]')!.click();
+    const viewport = document.querySelector<HTMLElement>(".campaign-ladder-viewport")!;
+    viewport.scrollTop = 913;
+
+    document.querySelector<HTMLElement>('[data-action="select-campaign-tier"][data-campaign-tier="volcanic"]')!.click();
+
+    expect(document.querySelector<HTMLElement>(".campaign-ladder-viewport")!.scrollTop).toBe(913);
+  });
+
+  it("shows each equipment tier sprite inside its matching shop row", () => {
+    const manager = new ProfileManager(new TestStore());
+    const game = new Game(new Input(document.querySelector("canvas")!), manager);
+    const ui = new Ui(
+      game,
+      document.querySelector("#hud")!,
+      document.querySelector("#overlay")!,
+      document.querySelector("#toast")!,
+    );
+    game.returnToMenu();
+    ui.render(true);
+    document.querySelector<HTMLElement>('[data-action="shop"]')!.click();
+
+    const sword = document.querySelector<HTMLElement>('[data-equipment-item="sword"]')!;
+    expect(sword.querySelector<HTMLImageElement>('.equipment-tier-stat[data-equipment-tier="wood"] img')?.src)
+      .toContain("/images/equipment/sword-wood.svg");
+    expect(sword.querySelector<HTMLImageElement>('.equipment-tier-stat[data-equipment-tier="diamond"] img')?.src)
+      .toContain("/images/equipment/sword-diamond.svg");
   });
 
   it("keeps the coin floor for migration, settlement, and shop purchases", () => {

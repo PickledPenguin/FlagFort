@@ -1,4 +1,5 @@
 import { BALANCE, RESOURCE_ORDER, TIER_ORDER } from "./config";
+import type { EquipmentKind } from "./meta-balance";
 import type { Mutations, ResourceKind, StructureKind, Tier, UnlockState, Upgrades } from "./types";
 
 export type ResourceWallet = Record<ResourceKind, number>;
@@ -176,6 +177,11 @@ export interface AdaptivePowerInput {
   turretCoverageRatio: number;
   upgrades: Upgrades;
   equipmentStrength?: number;
+  equipmentStrengthByKind?: Partial<Record<EquipmentKind, number>>;
+}
+
+export interface AdaptiveDifficultyContext {
+  playerLevelBaseline?: number;
 }
 
 function clamp(value: number, minimum: number, maximum: number): number {
@@ -188,6 +194,7 @@ export function adaptiveDifficulty(
   playerLevel = 1,
   otherAdditiveDeltas: readonly number[] = [],
   power?: AdaptivePowerInput,
+  context?: AdaptiveDifficultyContext,
 ): AdaptiveDifficulty {
   const expected = expectedStructurePoints(night);
   const difference = actual - expected;
@@ -204,8 +211,12 @@ export function adaptiveDifficulty(
     BALANCE.adaptive.structure.maximumMultiplier,
   );
   const safePlayerLevel = Math.max(1, Math.floor(playerLevel));
+  const playerLevelBaseline = Math.max(
+    1,
+    Math.floor(context?.playerLevelBaseline ?? BALANCE.adaptive.level.baselineLevel),
+  );
   const levelRawMultiplier = 1
-    + Math.max(0, safePlayerLevel - BALANCE.adaptive.level.baselineLevel)
+    + Math.max(0, safePlayerLevel - playerLevelBaseline)
       * BALANCE.adaptive.level.deltaPerLevel;
   const levelMultiplier = clamp(
     levelRawMultiplier,
@@ -244,13 +255,28 @@ export function adaptiveDifficulty(
     ? weightedUpgradeProgress / totalUpgradeWeight
     : 0;
   const playerUpgradeDelta = playerUpgradeFraction * powerConfig.playerUpgrades.maximumDelta;
-  const equipmentStrength = Math.max(0, power?.equipmentStrength ?? 0);
-  const equipmentDelta = clamp(
-    equipmentStrength / Math.max(1e-9, powerConfig.equipment.referenceStrength)
-      * powerConfig.equipment.maximumDelta,
-    0,
-    powerConfig.equipment.maximumDelta,
-  );
+  const equipmentStrengthByKind = power?.equipmentStrengthByKind;
+  const equipmentStrength = equipmentStrengthByKind
+    ? (Object.values(equipmentStrengthByKind) as number[])
+      .reduce((total, strength) => total + Math.max(0, strength), 0)
+    : Math.max(0, power?.equipmentStrength ?? 0);
+  const equipmentDelta = equipmentStrengthByKind
+    ? (Object.entries(equipmentStrengthByKind) as Array<[EquipmentKind, number]>)
+      .reduce((total, [kind, strength]) => {
+        const maximumDelta = powerConfig.equipment.maximumDeltaByKind[kind];
+        return total + clamp(
+          Math.max(0, strength) / Math.max(1e-9, powerConfig.equipment.referenceStrength)
+            * maximumDelta,
+          0,
+          maximumDelta,
+        );
+      }, 0)
+    : clamp(
+      equipmentStrength / Math.max(1e-9, powerConfig.equipment.referenceStrength)
+        * powerConfig.equipment.maximumDeltaByKind.wrench,
+      0,
+      powerConfig.equipment.maximumDeltaByKind.wrench,
+    );
   const powerDelta = turretDpsDelta + coverageDelta + playerUpgradeDelta + equipmentDelta;
   const baseMultiplier = BALANCE.adaptive.effective.baseMultiplier;
   const structureDelta = structureMultiplier - baseMultiplier;

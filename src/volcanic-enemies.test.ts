@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 
 import { describe, expect, it } from "vitest";
+import { campaignEnemyPortrait } from "./assets";
 import { BALANCE } from "./config";
 import { ENEMY_REGISTRY, isBossEnemyKind, selectEnemyRoster } from "./enemy-registry";
 import { Game } from "./game";
@@ -34,6 +35,15 @@ function structure(id: number, kind: StructureKind, x: number, y: number): Struc
 }
 
 describe("volcanic enemies", () => {
+  it("uses dark green volcanic portraits for the base zombie and runner", () => {
+    expect(campaignEnemyPortrait("basic", "volcanic"))
+      .toBe("./images/enemies/volcanic-basic-zombie.svg");
+    expect(campaignEnemyPortrait("runner", "volcanic"))
+      .toBe("./images/enemies/volcanic-runner-zombie.svg");
+    expect(campaignEnemyPortrait("runner", "forest"))
+      .toBe("./images/enemies/runner-zombie.svg");
+  });
+
   it("registers Cinderburst for the volcanic roster with complete production behavior", () => {
     const definition = ENEMY_REGISTRY.cinderburst;
     expect(definition.assets.portrait).toBe("enemies/cinderburst-zombie");
@@ -73,6 +83,25 @@ describe("volcanic enemies", () => {
       sourceEnemyKind: "cinderburst",
       radius: ENEMY_REGISTRY.cinderburst.death.burstOuterRadius,
     });
+  });
+
+  it("applies the configured ten-percent Cinderburst damage reduction", () => {
+    const game = gameFixture();
+    game.phase = "night";
+    const cinderburst = spawn(game, "cinderburst", game.flag.x, game.flag.y);
+    game.player.x = cinderburst.x;
+    game.player.y = cinderburst.y;
+    cinderburst.deathReason = "combat";
+    const healthBefore = game.player.health;
+    const definition = ENEMY_REGISTRY.cinderburst;
+    const expectedDamage = definition.death.burstPlayerDamage!
+      * (cinderburst.damage / definition.base.damage)
+      * BALANCE.tierMechanics.volcanic.cinderburstDamageMultiplier;
+
+    (game as unknown as { resolveEnemyDeath(enemy: Enemy): void }).resolveEnemyDeath(cinderburst);
+
+    expect(BALANCE.tierMechanics.volcanic.cinderburstDamageMultiplier).toBe(0.9);
+    expect(healthBefore - game.player.health).toBeCloseTo(expectedDamage);
   });
 
   it("does not erupt when sunlight cleanup removes it", () => {

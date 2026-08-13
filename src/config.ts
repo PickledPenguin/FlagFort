@@ -73,6 +73,7 @@ export const BALANCE = {
       burnDuration: 3.5,
       burnDamagePerSecond: 7,
       calderaBurnDuration: 2,
+      cinderburstDamageMultiplier: 0.9,
     },
     wasteland: { radiationRadius: 230, radiationDamagePerSecond: 0.55 },
     rift: {
@@ -118,6 +119,7 @@ export const BALANCE = {
     stuckBlockerSearchPadding: 12,
   },
   ui: {
+    dawnChoiceClickDelay: 1,
     messageDuration: 2.8,
     criticalMessageDuration: 4.5,
     tutorialPreferenceKey: "countdown-forest-tutorial-seen",
@@ -354,8 +356,13 @@ export const BALANCE = {
         } satisfies Record<keyof Upgrades, number>,
       },
       equipment: {
-        maximumDelta: 0.38,
         referenceStrength: 1,
+        maximumDeltaByKind: {
+          helmet: 0.25,
+          wrench: 0.25,
+          sword: 0.4,
+          mallet: 0.25,
+        },
       },
     },
     pressureIndicator: {
@@ -364,6 +371,7 @@ export const BALANCE = {
     },
     autoCorrective: {
       maximumDelta: 0.55,
+      minimumDelta: -0.2,
       startingStrength: 0.35,
       fullStrengthAfterNight: 4,
       performanceWeights: {

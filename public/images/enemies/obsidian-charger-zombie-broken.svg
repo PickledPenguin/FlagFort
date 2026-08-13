@@ -30,7 +30,7 @@
      inkscape:window-x="0"
      inkscape:window-y="33"
      inkscape:window-maximized="0"
-     inkscape:current-layer="eyes" />
+     inkscape:current-layer="charge-debris" />
   <title
      id="title">Obsidian Charger zombie with broken armor</title>
   <desc
@@ -55,12 +55,12 @@
     </g>
     <path
        id="exposed-head"
-       d="m -37,0 6.062755,-17.871038 11.231805,-8.958237 20.8217611,-3.705441 11.3267289,3.96044 L 24,-12 28,0 24,12 14.422669,25.411983 2,29.651037 -13.642358,29.60759 -27.65855,22.116321 -33.378059,12.062034 Z"
+       d="M -37,0 C -36.655615,-19.478828 -19.235108,-32.168879 1.1163211,-30.534716 12.609361,-29.611857 18.735069,-21.727489 24,-12 26.00697,-8.2919212 28,-4.2163702 28,0 26.223606,14.964796 17.193001,26.80859 2,29.651037 -3.1449967,30.497358 -8.586225,30.881469 -13.642358,29.60759 -26.276139,26.67082 -36.594881,13.095809 -37,0 Z"
        fill="#4f684f"
        stroke="#26342a"
        stroke-width="3"
        stroke-linejoin="round"
-       sodipodi:nodetypes="cccccccccccccc" />
+       sodipodi:nodetypes="sssssss" />
     <g
        id="remaining-obsidian-shards"
        fill="#292630"
@@ -72,7 +72,7 @@
          d="m -16.091973,-26.348963 12.0000005,-7 10,12 -12,7 z" />
       <path
          id="lower-shard"
-         d="m -7.1388624,24.465284 12,7 9.0000004,-13 -12.0000004,-6 z" />
+         d="m -11.138862,24.465284 11.9999996,7 9.0000004,-13 -12.0000004,-6 z" />
       <path
          id="rear-shard"
          d="m -33.225128,-1.6828991 9,-8 5,10.00000004 z" />
@@ -92,13 +92,13 @@
     <g
        id="charge-debris"
        fill="#4b424f"
-       opacity=".9">
+       opacity="0.9">
       <path
          id="flying-shard"
          d="m -20.605954,-14.923055 8,-5 3.9999999,9 -8.9999999,3 z" />
       <path
          id="fallen-shard"
-         d="m -17.358284,10.14067 11.9999996,-5.0000003 4,8.0000003 z" />
+         d="m -29.140669,13.969945 11.999999,-5.0000001 4,8.0000001 z" />
     </g>
     <g
        id="exposed-lava-cracks"
@@ -106,16 +106,16 @@
        stroke="#ff7a2d"
        stroke-width="3"
        stroke-linecap="round"
-       stroke-linejoin="round">
-      <path
-         id="central-crack"
-         d="m-29-5 11 5-9 8 12 6" />
+       stroke-linejoin="round"
+       transform="translate(-4)">
       <path
          id="upper-crack"
-         d="m -10,-21.232642 7,9 10,-6" />
+         d="m -8.356477,-25.061918 6.4108807,6.938083 7.6435229,-4.232642"
+         sodipodi:nodetypes="ccc" />
       <path
          id="lower-crack"
-         d="m -11.356477,20.054404 7.9999999,-8 9,6" />
+         d="M -3.9924862,24.767358 2.2401559,20.302074 8,23.945597"
+         sodipodi:nodetypes="ccc" />
     </g>
   </g>
 </svg>

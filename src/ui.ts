@@ -9,7 +9,7 @@ import { CARD_DEFINITIONS, TUTORIAL_SECTIONS } from "./content";
 import { CHALLENGES, challengeXpBonusPercent, resolveChallengeModifiers } from "./challenges";
 import { challengeIcon } from "./challenge-icons";
 import { audioManager, type AudioVolumeChannel } from "./audio";
-import { ASSETS } from "./assets";
+import { ASSETS, campaignEnemyPortrait } from "./assets";
 import { ENEMY_REGISTRY } from "./enemy-registry";
 import type { ActionKind, CampaignTierId, Choice, Difficulty, EnemyKind, StructureKind, Tier, Upgrades } from "./types";
 import {
@@ -417,17 +417,15 @@ export class Ui {
     const requirements = campaignUnlockRequirementText(tier, this.campaignProgress());
     const enemies = tier.specialEnemies.map((kind) => {
       const enemy = ENEMY_REGISTRY[kind];
-      return `<span><img src="${ASSETS.enemies[kind]}" alt=""><b>${enemy.displayName}</b><small>NIGHT ${enemy.tier}</small></span>`;
+      return `<span><img src="${campaignEnemyPortrait(kind, tier.id)}" alt=""><b>${enemy.displayName}</b><small>NIGHT ${enemy.tier}</small></span>`;
     }).join("");
     const boss = ENEMY_REGISTRY[tier.boss];
-    return `<section class="tier-card-face tier-card-back" aria-label="${tier.name} details" aria-hidden="${!active}">
-      <header><span><small>TIER ${tier.order + 1}</small><b>${tier.name}</b></span><strong>${unlocked ? "READY" : "LOCKED"}</strong></header>
+    const bossCard = `<span class="boss"><img src="${campaignEnemyPortrait(tier.boss, tier.id)}" alt=""><b>${boss.displayName}</b><small>BOSS · NIGHT 10</small></span>`;
+    return `<button class="tier-card-face tier-card-back" data-action="flip-campaign-tier-back" data-campaign-tier="${tier.id}" aria-label="Return to ${tier.name} card front" aria-hidden="${!active}" tabindex="${active ? "0" : "-1"}">
+      <header><span class="tier-card-heading"><small>TIER ${tier.order + 1}</small><b>${tier.name}</b><em>${tier.subtitle}</em></span><span class="tier-card-badges"><span class="tier-card-requirements">${requirements.map((requirement) => `<i class="${requirement.startsWith("Complete") ? "met" : "unmet"}">${requirement}</i>`).join("")}</span><strong>${unlocked ? "READY" : "LOCKED"}</strong></span></header>
       <p>${tier.description}</p>
-      <div class="tier-card-enemies" aria-label="Three special zombie types">${enemies}</div>
-      <div class="tier-card-mechanics"><span><small>BOSS</small><b>${boss.displayName}</b></span><p>${boss.description}</p></div>
-      <div class="tier-card-requirements">${requirements.map((requirement) => `<i class="${requirement.startsWith("Complete") ? "met" : "unmet"}">${requirement}</i>`).join("")}</div>
-      <footer><button class="ghost" data-action="flip-campaign-tier-back" data-campaign-tier="${tier.id}" tabindex="${active ? "0" : "-1"}">${icon("arrow-left")} Card Front</button><button class="primary" data-action="start-campaign-tier-card" data-campaign-tier="${tier.id}" tabindex="${active ? "0" : "-1"}" ${unlocked ? "" : "disabled"}>${icon("play")} ${unlocked ? "Play Tier" : "Tier Locked"}</button></footer>
-    </section>`;
+      <div class="tier-card-enemies" aria-label="Special zombies and boss">${enemies}${bossCard}</div>
+    </button>`;
   }
 
   private campaignLadderMarkup(): string {
@@ -740,7 +738,7 @@ export class Ui {
     const currentStats = stats.map((stat) => `
       <span><small>${stat.label}</small><b>${this.formatEquipmentValue(effective[stat.id] ?? stat.unequipped, stat)}</b></span>`).join("");
     const baseStatus = currentTier ? "UNEQUIPPED BASE" : "CURRENT · UNEQUIPPED BASE";
-    const base = this.equipmentTierStatMarkup("Base", baseStatus, stats, null);
+    const base = this.equipmentTierStatMarkup(kind, "Base", baseStatus, stats, null);
     const ownedIndex = item.tier ? EQUIPMENT_TIER_ORDER.indexOf(item.tier) : -1;
     const next = nextEquipmentTier(item.tier);
     const tiers = EQUIPMENT_TIER_ORDER.map((tier, index) => {
@@ -751,7 +749,7 @@ export class Ui {
           : tier === next
             ? "NEXT"
             : "LOCKED";
-      return this.equipmentTierStatMarkup(tier, status, stats, tier);
+      return this.equipmentTierStatMarkup(kind, tier, status, stats, tier);
     }).join("");
     const permanentNote = kind === "sword" && meleeBonus > 0
       ? `<small class="equipment-effect-note">Current damage includes the owned +${Math.round(meleeBonus * 100)}% permanent melee bonus.</small>`
@@ -765,6 +763,7 @@ export class Ui {
   }
 
   private equipmentTierStatMarkup(
+    kind: EquipmentKind,
     label: string,
     status: string,
     stats: readonly EquipmentStatDefinition[],
@@ -774,8 +773,8 @@ export class Ui {
       const value = tier ? stat.tiers[tier] : stat.unequipped;
       return `<span><small>${stat.label}</small><b>${this.formatEquipmentValue(value, stat)}</b></span>`;
     }).join("");
-    return `<div class="equipment-tier-stat" data-tier-state="${status.toLowerCase().replaceAll(" · ", "-")}">
-      <header><strong>${label}</strong><em>${status}</em></header><div>${values}</div>
+    return `<div class="equipment-tier-stat" data-tier-state="${status.toLowerCase().replaceAll(" · ", "-")}"${tier ? ` data-equipment-tier="${tier}"` : ""}>
+      <header><strong>${label}</strong>${tier ? `<img src="${META_BALANCE.assets.equipment[kind][tier]}" alt="" aria-hidden="true">` : ""}<em>${status}</em></header><div>${values}</div>
     </div>`;
   }
 
@@ -922,7 +921,7 @@ export class Ui {
     return `<section class="screen modal-screen"><div class="modal pause-card" role="dialog" aria-modal="true" aria-labelledby="pause-title">
       <h2 id="pause-title">Pause</h2>
       <button class="primary wide" data-action="resume">${icon("play")} Resume</button>
-      <div class="pause-utility-row"><button class="secondary wide" data-action="open-bounties">${icon("trophy")} Bounties</button><button class="secondary wide" data-action="controls">${icon("gamepad-2")} Controls</button><button class="secondary wide" data-action="settings">${icon("sliders-horizontal")} Settings</button></div>
+      <div class="pause-utility-row"><button class="bounty-hud-button wide" data-action="open-bounties">${icon("trophy")}<span>Bounties</span><b>${this.game.activeBounties.filter((bounty) => bounty.completed).length}/3</b></button><button class="secondary wide" data-action="controls">${icon("gamepad-2")} Controls</button><button class="secondary wide" data-action="settings">${icon("sliders-horizontal")} Settings</button></div>
       <button class="ghost wide" data-action="request-run-exit">End run</button>
     </div></section>`;
   }
@@ -987,7 +986,7 @@ export class Ui {
       const info = enemyInfo[this.game.enemyWarning];
       return `<section class="screen modal-screen danger-screen"><div class="modal warning-card" role="dialog" aria-modal="true" aria-labelledby="threat-warning-title">
         <p class="eyebrow">NEW THREAT · NIGHT ${this.game.night + 1}</p>
-        <img class="threat-symbol" data-zombie-portrait="${this.game.enemyWarning}" src="${ASSETS.enemies[this.game.enemyWarning]}" alt="" aria-hidden="true"><h2 id="threat-warning-title">${info.title}</h2>
+        <img class="threat-symbol" data-zombie-portrait="${this.game.enemyWarning}" src="${campaignEnemyPortrait(this.game.enemyWarning, this.game.activeCampaignTierId)}" alt="" aria-hidden="true"><h2 id="threat-warning-title">${info.title}</h2>
         <p>${info.text}</p><span class="tell">${info.tell}</span>
         <button class="primary wide" data-action="dismiss-warning">${icon("play")} Begin day ${this.game.night + 1}</button>
       </div></section>`;
@@ -1013,17 +1012,18 @@ export class Ui {
         </div>
       </div></section>`;
     }
+    const choicesLocked = this.game.dawnChoiceLockRemaining > 0;
     return `<section class="screen dawn-screen"><div class="dawn-panel" role="region" aria-labelledby="dawn-title" tabindex="-1">
       <header><p class="eyebrow">DAWN ${this.game.night} · COUNT FROZEN</p><h2 id="dawn-title">${heading}</h2><span>Each benefit empowers the horde.</span>
       </header>
-        <div class="choice-viewport"><div class="choice-track" style="--card-transition-duration:${BALANCE.ui.cardTransitionDuration}ms;--card-transition-easing:${BALANCE.ui.cardTransitionEasing}"><div class="choice-set choice-pairs">${this.game.choices.map((choice, index) => this.choicePair(choice, index)).join("")}</div></div></div>
+        <div class="choice-viewport"><div class="choice-track" style="--card-transition-duration:${BALANCE.ui.cardTransitionDuration}ms;--card-transition-easing:${BALANCE.ui.cardTransitionEasing}"><div class="choice-set choice-pairs ${choicesLocked ? "input-locked" : ""}">${this.game.choices.map((choice, index) => this.choicePair(choice, index, choicesLocked)).join("")}</div></div></div>
       <div class="reroll-dock"><p>Rerolls remaining <strong>${BALANCE.reroll.limit - this.game.rerollsUsed}/${BALANCE.reroll.limit}</strong></p>
       <button class="reroll-button" data-action="reroll" ${this.game.rerollsUsed >= BALANCE.reroll.limit ? "disabled" : ""}>${icon("shuffle")} Reroll choices <span>Costs half of every owned resource</span></button></div>
     </div></section>`;
   }
 
-  private choicePair(choice: Choice, index: number): string {
-    return `<button class="choice-pair" data-choice="${index}" aria-label="${choice.name} and ${choice.mutationName}">
+  private choicePair(choice: Choice, index: number, locked = false): string {
+    return `<button class="choice-pair" data-choice="${index}" aria-label="${choice.name} and ${choice.mutationName}" ${locked ? "disabled" : ""}>
       <article class="benefit-card"><span class="card-art">${this.choiceIcon(choice)}</span><small>${choice.kind}</small><h3>${choice.name}</h3><p class="${choice.kind === "upgrade" ? "upgrade-card-copy" : ""}">${this.choiceDescription(choice)}</p></article>
       <span class="choice-connector"><i></i><b>AND</b><i></i></span>
       <article class="mutation-card"><span class="card-art mutation-art">${this.mutationIcon(choice)}</span><small>mutation</small><h3>${choice.mutationName}</h3><p>${choice.mutationDescription}</p></article>
@@ -1075,7 +1075,7 @@ export class Ui {
 
   private mutationIcon(choice: Choice): string {
     if (choice.mutationTargetKinds?.length === 1) {
-      return `<img src="${ASSETS.enemies[choice.mutationTargetKinds[0]!]}" alt="">`;
+      return `<img src="${campaignEnemyPortrait(choice.mutationTargetKinds[0]!, this.game.activeCampaignTierId)}" alt="">`;
     }
     const definition = CARD_DEFINITIONS.find(
       (card) => card.category === "mutation" && card.id === choice.mutationId,
@@ -1263,7 +1263,7 @@ export class Ui {
         const state = night <= completed ? "completed" : night === this.game.night ? "current" : "future";
         const tooltip = milestone?.label ?? (boss ? `Boss Night ${night}` : `Night ${night}`);
         return `<span class="run-node ${state} ${boss ? "boss" : ""}" title="${tooltip}">
-          ${milestone ? `<img src="${ASSETS.enemies[milestone.enemy]}" alt="">` : `<b>${night}</b>`}
+          ${milestone ? `<img src="${campaignEnemyPortrait(milestone.enemy, this.game.activeCampaignTierId)}" alt="">` : `<b>${night}</b>`}
           ${boss ? `<em>${night === 10 ? "BOSS" : `B${night}`}</em>` : ""}
         </span>`;
       }).join("")}
@@ -1503,6 +1503,8 @@ export class Ui {
     const action = target.dataset.action;
     const panelBeforeAction = this.menuPanel;
     const menuModalScrollTop = this.overlay.querySelector<HTMLElement>(".menu-modal > .modal")?.scrollTop;
+    const campaignLadderScrollTop = this.overlay.querySelector<HTMLElement>(".campaign-ladder-viewport")?.scrollTop;
+    let animatedCampaignTierId: CampaignTierId | null = null;
     let upgradeFeedbackSelector: string | null = null;
     const difficulty = target.dataset.difficulty as Difficulty | undefined;
     if (difficulty) {
@@ -1544,12 +1546,19 @@ export class Ui {
         if (tierId && CAMPAIGN_TIERS.some((tier) => tier.id === tierId)) {
           this.selectedCampaignTierId = tierId;
           this.flippedCampaignTierId = tierId;
+          animatedCampaignTierId = tierId;
         }
         break;
       }
-      case "flip-campaign-tier-back":
+      case "flip-campaign-tier-back": {
         this.flippedCampaignTierId = null;
-        break;
+        const node = target.closest<HTMLElement>(".campaign-tier-node");
+        node?.classList.remove("flipped");
+        node?.querySelector<HTMLElement>(".tier-card-front")?.setAttribute("aria-hidden", "false");
+        target.setAttribute("aria-hidden", "true");
+        this.lastOverlayKey = this.overlayKey();
+        return;
+      }
       case "start-campaign-tier":
       case "start-campaign-tier-card": {
         const requestedTierId = target.dataset.campaignTier as CampaignTierId | undefined;
@@ -1753,6 +1762,20 @@ export class Ui {
     }
     this.invalidate();
     this.render(true);
+    if (campaignLadderScrollTop !== undefined && action === "select-campaign-tier") {
+      const viewport = this.overlay.querySelector<HTMLElement>(".campaign-ladder-viewport");
+      if (viewport) viewport.scrollTop = campaignLadderScrollTop;
+    }
+    if (animatedCampaignTierId) {
+      const node = this.overlay.querySelector<HTMLElement>(
+        `.campaign-tier-node [data-campaign-tier="${animatedCampaignTierId}"]`,
+      )?.closest<HTMLElement>(".campaign-tier-node");
+      if (node) {
+        node.classList.remove("flipped");
+        void node.offsetWidth;
+        node.classList.add("flipped");
+      }
+    }
     if (menuModalScrollTop !== undefined && (
       action === "buy-upgrade"
       || action === "buy-equipment"

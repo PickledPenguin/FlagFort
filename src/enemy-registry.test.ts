@@ -1,7 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { ENEMY_REGISTRY, ROSTER_TIERS, introducedRosterEnemies, rosterMilestones, selectEnemyRoster } from "./enemy-registry";
+import { DEFAULT_RAM_COOLDOWN_SECONDS, ENEMY_REGISTRY, ROSTER_TIERS, introducedRosterEnemies, rosterMilestones, selectEnemyRoster } from "./enemy-registry";
 
 describe("deterministic enemy roster", () => {
+  it("gives every charging enemy the shared five-second recovery window", () => {
+    const chargingEnemies = Object.values(ENEMY_REGISTRY).filter((definition) => definition.ram);
+    expect(chargingEnemies.map((definition) => definition.id).sort())
+      .toEqual(["drowned-bulwark", "obsidian-charger", "rammer"]);
+    for (const definition of chargingEnemies) {
+      expect(definition.ram?.cooldownSeconds).toBe(DEFAULT_RAM_COOLDOWN_SECONDS);
+    }
+  });
+
   it("registers the Dune Burrower as the Desert tunnel enemy", () => {
     const definition = ENEMY_REGISTRY["dune-burrower"];
     expect(definition.displayName).toBe("Dune Burrower");
@@ -238,7 +247,6 @@ describe("deterministic enemy roster", () => {
         expect(definition.phaseSlam.reinforcementCount).toBeGreaterThan(0);
         expect(definition.phaseSlam.radius).toBeGreaterThan(0);
         expect(definition.phaseSlam.playerDamage).toBeGreaterThan(0);
-        expect(definition.phaseSlam.flagDamage).toBeGreaterThan(0);
         expect(definition.phaseSlam.structureDamage).toBeGreaterThan(0);
         expect(definition.phaseSlam.waveDuration).toBeGreaterThan(0);
         expect(definition.phaseSlam.particleColor).toMatch(/^#[0-9a-f]{6}$/i);

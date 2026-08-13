@@ -115,9 +115,33 @@ describe("base boss polish", () => {
   });
 
   it("makes both bosses meaningfully dangerous to structures", () => {
-    expect(ENEMY_REGISTRY.boss.base.structureDamage).toBeGreaterThan(ENEMY_REGISTRY.boss.base.damage * 4);
-    expect(ENEMY_REGISTRY["frost-warden"].base.structureDamage)
-      .toBeGreaterThan(ENEMY_REGISTRY["frost-warden"].base.damage * 4);
+    for (const tier of CAMPAIGN_TIERS) {
+      const definition = ENEMY_REGISTRY[tier.boss];
+      expect(definition.base.structureDamage, tier.id)
+        .toBeGreaterThan(definition.base.damage * 4);
+    }
+  });
+
+  it("keeps every half-health slam one-shot and unable to damage the flag", () => {
+    for (const tier of CAMPAIGN_TIERS) {
+      const definition = ENEMY_REGISTRY[tier.boss];
+      const slam = definition.phaseSlam;
+      if (!slam) continue;
+      const game = gameFixture("normal", tier.id);
+      const boss = spawn(game, tier.boss, game.flag.x + 80, game.flag.y);
+      const flagHealth = game.flag.health;
+      boss.health = boss.maxHealth * slam.triggerHealthRatio;
+      const updateBoss = (game as unknown as {
+        updateBoss(enemy: Enemy, dt: number): void;
+      }).updateBoss.bind(game);
+
+      updateBoss(boss, slam.chargeDuration + 0.01);
+      updateBoss(boss, slam.chargeDuration * 2);
+
+      expect(game.flag.health, tier.id).toBe(flagHealth);
+      expect(game.areaEffects.filter((effect) => effect.kind === slam.areaEffect), tier.id)
+        .toHaveLength(1);
+    }
   });
 });
 

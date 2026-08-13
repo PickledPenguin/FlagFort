@@ -1,11 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="-52 -40 104 80">
   <g id="breaker-zombie-normal-appearance">
-    <g id="hands" fill="#4f7e3d">
+    <g id="hands" fill="#4f7e3d" stroke="#29462c" stroke-width="3">
       <circle cx="40" cy="-15.95" r="10.15"/>
       <circle cx="40" cy="15.95" r="10.15"/>
     </g>
-    <circle id="body" r="29" fill="#4f7e3d"/>
-    <path id="helmet" d="M-25.62-7A22.62 22.62 0 0 1 19.62-7Z" fill="#4c5051"/>
+    <circle id="body" r="29" fill="#4f7e3d" stroke="#29462c" stroke-width="3"/>
+    <path id="helmet" d="M-25.62-7A22.62 22.62 0 0 1 19.62-7Z" fill="#4c5051" stroke="#282d2b" stroke-width="3" stroke-linejoin="round"/>
   </g>
   <g id="eyes" fill="#f2f0d9">
     <ellipse cx="8" cy="-9" rx="7" ry="5" transform="rotate(25.783 8 -9)"/>

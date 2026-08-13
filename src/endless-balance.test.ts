@@ -71,19 +71,29 @@ describe("endless balance package", () => {
     expect(powered.multiplier).toBeGreaterThan(baseline.multiplier);
   });
 
-  it("moderately includes configurable equipped-material strength", () => {
+  it("prices sword pressure above utility equipment without overvaluing utility", () => {
     const upgrades = createUpgrades();
-    const wood = adaptiveDifficulty(300, 4, 1, [], {
-      turretDps: 0, turretCoverageRatio: 0, upgrades, equipmentStrength: 0.08,
+    const utility = adaptiveDifficulty(300, 4, 1, [], {
+      turretDps: 0,
+      turretCoverageRatio: 0,
+      upgrades,
+      equipmentStrengthByKind: { wrench: 0.5 },
     });
-    const diamond = adaptiveDifficulty(300, 4, 1, [], {
-      turretDps: 0, turretCoverageRatio: 0, upgrades, equipmentStrength: 0.9,
+    const sword = adaptiveDifficulty(300, 4, 1, [], {
+      turretDps: 0,
+      turretCoverageRatio: 0,
+      upgrades,
+      equipmentStrengthByKind: { sword: 0.5 },
     });
-    expect(diamond.equipmentDelta).toBeGreaterThan(wood.equipmentDelta);
-    expect(diamond.equipmentDelta).toBeLessThanOrEqual(
-      BALANCE.adaptive.powerAwareness.equipment.maximumDelta,
-    );
-    expect(diamond.multiplier).toBeGreaterThan(wood.multiplier);
+    expect(utility.equipmentDelta).toBeCloseTo(0.125);
+    expect(sword.equipmentDelta).toBeCloseTo(0.2);
+    expect(sword.multiplier).toBeGreaterThan(utility.multiplier);
+    expect(BALANCE.adaptive.powerAwareness.equipment.maximumDeltaByKind).toEqual({
+      helmet: 0.25,
+      wrench: 0.25,
+      sword: 0.4,
+      mallet: 0.25,
+    });
   });
 
   it("makes high-tier nodes both rarer and lower-yield than low-tier nodes", () => {

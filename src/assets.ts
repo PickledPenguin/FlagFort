@@ -1,4 +1,4 @@
-import type { EnemyKind, ResourceKind, StructureKind, Tier } from "./types";
+import type { CampaignTierId, EnemyKind, ResourceKind, StructureKind, Tier } from "./types";
 import { ENEMY_REGISTRY } from "./enemy-registry";
 import { CAMPAIGN_TIER_ARTWORK } from "./campaign-artwork";
 
@@ -98,6 +98,40 @@ export const ASSETS = {
   } satisfies Record<ResourceKind, string>,
   resourceStateSkins: RESOURCE_STATE_SKINS,
   enemies: Object.fromEntries(Object.values(ENEMY_REGISTRY).map((entry) => [entry.id, image(entry.assets.portrait)])) as Record<EnemyKind, string>,
+  campaignEnemyPortraits: {
+    forest: {
+      basic: image("enemies/basic-zombie"),
+      runner: image("enemies/runner-zombie"),
+    },
+    snowy: {
+      basic: image("enemies/snowy-basic-zombie"),
+      runner: image("enemies/snowy-runner-zombie"),
+    },
+    desert: {
+      basic: image("enemies/desert-basic-zombie"),
+      runner: image("enemies/desert-runner-zombie"),
+    },
+    volcanic: {
+      basic: image("enemies/volcanic-basic-zombie"),
+      runner: image("enemies/volcanic-runner-zombie"),
+    },
+    wasteland: {
+      basic: image("enemies/wasteland-basic-zombie"),
+      runner: image("enemies/wasteland-runner-zombie"),
+    },
+    rift: {
+      basic: image("enemies/rift-basic-zombie"),
+      runner: image("enemies/rift-runner-zombie"),
+    },
+    mire: {
+      basic: image("enemies/mire-basic-zombie"),
+      runner: image("enemies/mire-runner-zombie"),
+    },
+    clockwork: {
+      basic: image("enemies/clockwork-basic-zombie"),
+      runner: image("enemies/clockwork-runner-zombie"),
+    },
+  } satisfies Record<CampaignTierId, Partial<Record<EnemyKind, string>>>,
   enemyBrokenArmor: Object.fromEntries(Object.values(ENEMY_REGISTRY)
     .filter((entry) => entry.armor)
     .map((entry) => [entry.id, image(entry.armor!.brokenSprite)])) as Partial<Record<EnemyKind, string>>,
@@ -222,6 +256,13 @@ export const ASSETS = {
     ])) as Record<Tier, string>,
   },
 } as const;
+
+export function campaignEnemyPortrait(kind: EnemyKind, tierId: CampaignTierId): string {
+  const tierPortraits = ASSETS.campaignEnemyPortraits[
+    tierId as keyof typeof ASSETS.campaignEnemyPortraits
+  ] as Partial<Record<EnemyKind, string>> | undefined;
+  return tierPortraits?.[kind] ?? ASSETS.enemies[kind];
+}
 
 export function allAssetPaths(value: unknown = ASSETS): string[] {
   if (typeof value === "string") return [value];

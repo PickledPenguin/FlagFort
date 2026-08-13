@@ -191,6 +191,7 @@ export class Game {
   night = 1;
   timer: number = BALANCE.dayDuration;
   phaseElapsed = 0;
+  dawnChoiceLockRemaining = 0;
   world: World = generateWorld("preview");
   player: Player = {
     id: LOCAL_PLAYER_ID,
@@ -470,6 +471,9 @@ export class Game {
       0,
       1,
       this.profileManager?.profile.playerLevel ?? 1,
+      [],
+      undefined,
+      { playerLevelBaseline: this.getCampaignTier().unlock.level },
     );
     this.lastNightPerformance = null;
     this.performanceDifficulty = performanceDifficultyDelta(null);
@@ -910,7 +914,7 @@ export class Game {
   }
 
   chooseDawn(index: number): void {
-    if (this.phase !== "dawn") return;
+    if (this.phase !== "dawn" || this.dawnChoiceLockRemaining > 0) return;
     const choice = this.choices[index];
     if (!choice) return;
     const choiceLog: ChoiceSelectionLog = {
@@ -1092,6 +1096,11 @@ export class Game {
       this.updateTimeRewind(dt);
       this.input.endFrame();
       return;
+    }
+    if (this.phase === "dawn" && this.dawnChoiceLockRemaining > 0) {
+      const wasLocked = this.dawnChoiceLockRemaining > 0;
+      this.dawnChoiceLockRemaining = Math.max(0, this.dawnChoiceLockRemaining - dt);
+      if (wasLocked && this.dawnChoiceLockRemaining === 0) this.markUi(true);
     }
     if (this.phase !== "day" && this.phase !== "night") {
       this.input.endFrame();
@@ -2140,6 +2149,7 @@ export class Game {
       chargeProgress: 0,
       chargeTargetId: null,
       charging: false,
+      chargeCooldown: 0,
       chargeDistanceLeft: 0,
       chargeDamageLeft: 0,
       chargeHitIds: new Set(),
@@ -3281,6 +3291,7 @@ export class Game {
     const ram = definition.ram!;
     enemy.angle ??= 0;
     enemy.chargeProgress ??= 0;
+    enemy.chargeCooldown ??= 0;
     enemy.chargeDistanceLeft ??= 0;
     enemy.chargeDamageLeft ??= 0;
     enemy.chargeHitIds ??= new Set();
@@ -3330,6 +3341,7 @@ export class Game {
       }
       if (resourceHit || enemy.chargeDamageLeft <= 0) {
         enemy.charging = false;
+        enemy.chargeCooldown = ram.cooldownSeconds;
         enemy.chargeTargetId = null;
         enemy.chargeDistanceLeft = 0;
         enemy.pathCooldown = 0;
@@ -3340,9 +3352,17 @@ export class Game {
       enemy.chargeDistanceLeft -= travel;
       if (enemy.chargeDistanceLeft <= 0) {
         enemy.charging = false;
+        enemy.chargeCooldown = ram.cooldownSeconds;
         enemy.chargeTargetId = null;
       }
       return true;
+    }
+    if (enemy.chargeCooldown > 0) {
+      enemy.chargeCooldown = Math.max(0, enemy.chargeCooldown - dt);
+      enemy.chargeProgress = 0;
+      enemy.chargeTargetId = null;
+      enemy.attackWindup = 0;
+      return false;
     }
     if (enemy.chargeTargetId !== null && enemy.chargeTargetId !== undefined
       && enemy.chargeProgress > 0) {
@@ -3496,6 +3516,9 @@ export class Game {
     const outer = death.burstOuterRadius ?? 145;
     const playerScale = enemy.damage / Math.max(1, definition.base.damage);
     const structureScale = enemy.structureDamage / Math.max(1, definition.base.structureDamage);
+    const burstDamageMultiplier = enemy.kind === "cinderburst"
+      ? BALANCE.tierMechanics.volcanic.cinderburstDamageMultiplier
+      : 1;
     const damageAt = (target: { x: number; y: number; radius: number }, maximum: number): number => {
       const edge = Math.max(0, distance(enemy, target) - target.radius);
       if (edge > outer) return 0;
@@ -3504,14 +3527,16 @@ export class Game {
       return maximum * Math.pow(t, death.burstFalloff ?? 1.7);
     };
     if (death.burstTargets?.includes("player")) {
-      const damage = damageAt(this.player, (death.burstPlayerDamage ?? death.burstDamage ?? 30) * playerScale);
+      const damage = damageAt(this.player, (death.burstPlayerDamage ?? death.burstDamage ?? 30)
+        * playerScale * burstDamageMultiplier);
       if (damage > 0) {
         this.applyIncomingDamage(this.player, damage, enemy.kind, damageSource);
         this.player.hurtFlash = 0.25;
       }
     }
     if (this.flagPresent && death.burstTargets?.includes("flag")) {
-      const damage = damageAt(this.flag, (death.burstFlagDamage ?? death.burstDamage ?? 30) * playerScale);
+      const damage = damageAt(this.flag, (death.burstFlagDamage ?? death.burstDamage ?? 30)
+        * playerScale * burstDamageMultiplier);
       if (damage > 0) {
         this.applyIncomingDamage(this.flag, damage, enemy.kind, damageSource);
         this.flag.hurtFlash = 0.25;
@@ -3521,7 +3546,8 @@ export class Game {
     for (const structure of this.structures) {
       if (!this.isOwnedByPlayer(structure, this.player.id)) continue;
       if (!death.burstTargets?.includes(structure.kind)) continue;
-      const damage = damageAt(structure, (death.burstStructureDamage ?? death.burstDamage ?? 30) * structureScale);
+      const damage = damageAt(structure, (death.burstStructureDamage ?? death.burstDamage ?? 30)
+        * structureScale * burstDamageMultiplier);
       if (damage <= 0) continue;
       this.applyIncomingDamage(structure, damage, enemy.kind, damageSource);
       structure.flash = 0.25;
@@ -3620,20 +3646,6 @@ export class Game {
         );
         this.player.hurtFlash = 0.3;
         this.burst(this.player.x, this.player.y, config.particleColor, 10, `-${Math.round(damage)}`);
-      }
-      if (this.flagPresent) {
-        const flagEdgeDistance = Math.max(0, distance(enemy, this.flag) - this.flag.radius);
-        if (flagEdgeDistance <= config.radius) {
-          this.applyIncomingDamage(
-            this.flag,
-            config.flagDamage
-              * (enemy.damage / Math.max(1, ENEMY_REGISTRY[enemy.kind].base.damage)),
-            enemy.kind,
-            "enemy",
-          );
-          this.flag.hurtFlash = 0.3;
-          emitAudioCue({ cue: "flag-damaged" });
-        }
       }
       for (const structure of this.structures) {
         if (!this.isOwnedByPlayer(structure, this.player.id)) continue;
@@ -4352,6 +4364,11 @@ export class Game {
       this.profileManager?.profile.playerLevel ?? 1,
       this.night > 1 ? [this.autoCorrectiveDelta] : [],
       this.getAdaptivePowerInput(),
+      {
+        playerLevelBaseline: this.runMode === "campaign"
+          ? this.getCampaignTier().unlock.level
+          : BALANCE.adaptive.level.baselineLevel,
+      },
     );
     const baseBudget = this.runMode === "endless"
       ? endlessWaveThreatBudget(this.night)
@@ -4454,6 +4471,7 @@ export class Game {
     this.syncSpatialAudio(false);
     this.nightWaveScheduled = false;
     this.phaseElapsed = 0;
+    this.dawnChoiceLockRemaining = BALANCE.ui.dawnChoiceClickDelay;
     this.phaseTransitionImpact = 0.55;
     this.stats.nightsSurvived = Math.max(0, this.night - this.runStartNight + 1);
     this.platform?.reportProgress(Math.min(90, this.night * 10));
@@ -4550,15 +4568,7 @@ export class Game {
     this.portals = [];
     let structureRemoved = false;
     for (const position of positions) {
-      const survivingStructures = this.structures.filter((structure) => {
-        const overlapsFootprint = distance(position, structure)
-          < BALANCE.portal.radius + structure.radius;
-        if (!overlapsFootprint) return true;
-        this.burst(structure.x, structure.y, "#a77cff", 18, "PORTAL BREACH");
-        structureRemoved = true;
-        return false;
-      });
-      this.structures = survivingStructures;
+      structureRemoved = this.destroyPortalFootprintOverlaps(position) || structureRemoved;
       this.portals.push({
         id: this.nextId++,
         ...position,
@@ -4600,15 +4610,7 @@ export class Game {
   }
 
   private portalNoBuildZones(): Vec2[] {
-    if (this.tutorialMode) return this.portals;
-    const finalReservedNight = this.runMode === "campaign"
-      ? 10
-      : Math.max(this.night + 10, 20);
-    const zones = [...this.portals.map(({ x, y }) => ({ x, y }))];
-    for (let night = this.night + 1; night <= finalReservedNight; night += 1) {
-      zones.push(...this.portalPositionsForNight(night));
-    }
-    return zones;
+    return this.portals.map(({ x, y }) => ({ x, y }));
   }
 
   private findPortalPosition(
@@ -4616,8 +4618,9 @@ export class Game {
     night = this.night,
     selected: readonly Vec2[] = [],
     relocationOrigin?: Vec2,
+    relocationCount = 0,
   ): Vec2 {
-    const portalRng = new SeededRng(`${this.seed}:portals:${night}:${index}`);
+    const portalRng = new SeededRng(`${this.seed}:portals:${night}:${index}:relocation:${relocationCount}`);
     const isValid = (candidate: Vec2): boolean => {
       const circle = { ...candidate, radius: BALANCE.portal.noBuildRadius };
       if (distance(candidate, this.flag) < BALANCE.flagGenerationRadius) return false;
@@ -4661,22 +4664,42 @@ export class Game {
 
   private relocatePortal(portal: Portal): void {
     const origin = { x: portal.x, y: portal.y };
+    const relocationCount = (portal.relocationCount ?? 0) + 1;
     const position = this.findPortalPosition(
       portal.id,
       this.night,
       this.portals.filter((item) => item !== portal),
       origin,
+      relocationCount,
     );
     this.bountyCounters.portalsRelocated += 1;
     emitAudioCue({ cue: "portal-destroyed", position: { x: portal.x, y: portal.y } });
     this.burst(portal.x, portal.y, "#a77cff", 24, "RELOCATING");
     portal.x = position.x;
     portal.y = position.y;
+    portal.relocationCount = relocationCount;
     portal.health = portal.maxHealth;
+    if (this.destroyPortalFootprintOverlaps(position)) {
+      this.structureRevision += 1;
+      this.navigationFields.clear();
+      this.recalculateStructureScore();
+      this.rebuildSpatial();
+    }
     this.burst(portal.x, portal.y, "#a77cff", 24, "PORTAL MOVED");
     emitAudioCue({ cue: "portal-spawn", position: { x: portal.x, y: portal.y }, delayMs: 120 });
     this.notify("Portal relocated. Wave size unchanged.");
     this.syncSpatialAudio(true);
+  }
+
+  private destroyPortalFootprintOverlaps(position: Vec2): boolean {
+    let removed = false;
+    this.structures = this.structures.filter((structure) => {
+      if (distance(position, structure) >= BALANCE.portal.radius + structure.radius) return true;
+      this.burst(structure.x, structure.y, "#a77cff", 18, "PORTAL BREACH");
+      removed = true;
+      return false;
+    });
+    return removed;
   }
 
   getBestGlove(): Tier {
@@ -5475,14 +5498,19 @@ export class Game {
       (range, turret) => Math.max(range, this.getTurretRange(turret.tier, turret.ownerId ?? this.player.id)),
       0,
     );
+    const equipmentStrengthByKind = Object.fromEntries(
+      Object.entries(this.profileManager?.profile.equipment ?? {})
+        .filter(([, item]) => item.equipped && item.tier)
+        .map(([kind, item]) => [
+          kind,
+          META_BALANCE.equipment.adaptiveStrength[kind as EquipmentKind][item.tier!],
+        ]),
+    ) as Partial<Record<EquipmentKind, number>>;
     return {
       turretDps,
       turretCoverageRatio: maximumRange / Math.max(1, BALANCE.portal.edgeMin),
       upgrades: { ...this.upgrades },
-      equipmentStrength: Object.entries(this.profileManager?.profile.equipment ?? {})
-        .reduce((total, [kind, item]) => total + (item.equipped && item.tier
-          ? META_BALANCE.equipment.adaptiveStrength[kind as EquipmentKind][item.tier]
-          : 0), 0),
+      equipmentStrengthByKind,
     };
   }
 
@@ -5494,6 +5522,11 @@ export class Game {
         this.profileManager?.profile.playerLevel ?? 1,
         this.night > 1 ? [this.autoCorrectiveDelta] : [],
         this.getAdaptivePowerInput(),
+        {
+          playerLevelBaseline: this.runMode === "campaign"
+            ? this.getCampaignTier().unlock.level
+            : BALANCE.adaptive.level.baselineLevel,
+        },
       )
       : this.adaptiveState;
   }

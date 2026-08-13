@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-52 -40 104 80" role="img" aria-labelledby="title description">
+  <title id="title">Clockwork basic zombie</title>
+  <desc id="description">A basic zombie with the aged metal-green skin of the Clockwork Citadel horde.</desc>
+  <g id="clockwork-basic-zombie-appearance" fill="#6f8478" stroke="#273b3b" stroke-width="3">
+    <circle id="upper-hand" cx="34" cy="-12.65" r="8.05"/>
+    <circle id="lower-hand" cx="34" cy="12.65" r="8.05"/>
+    <circle id="body" r="23"/>
+  </g>
+  <g id="eyes" fill="#dffdf8">
+    <ellipse cx="8" cy="-9" rx="7" ry="5" transform="rotate(25.783 8 -9)"/>
+    <ellipse cx="8" cy="9" rx="7" ry="5" transform="rotate(-25.783 8 9)"/>
+  </g>
+  <g id="pupils" fill="#c49542"><circle cx="11" cy="-8" r="3"/><circle cx="11" cy="8" r="3"/></g>
+  <path id="brows" d="M-9-7 2-2M-7 11 4 5" fill="none" stroke="#263e43" stroke-width="3"/>
+</svg>

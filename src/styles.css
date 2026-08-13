@@ -412,6 +412,7 @@ h3 {
 
 .primary:hover,
 .secondary:hover,
+.bounty-hud-button:hover,
 .ghost:hover {
   filter: brightness(1.12);
   transform: translateY(-2px);
@@ -733,10 +734,11 @@ button:focus-visible > .tooltip,
   margin-bottom: 20px;
   text-align: center;
 }
-.pause-utility-row { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
-.bounty-hud-button { min-width: 132px; display: grid; grid-template-columns: 22px 1fr auto; align-items: center; gap: 7px; padding: 7px 10px; border: 2px solid #c99c35; border-radius: 11px; color: #fff0ad; background: rgba(45,34,12,.92); box-shadow: 0 4px 0 rgba(19,13,3,.7); font-size: 10px; font-weight: 900; text-transform: uppercase; }
+.pause-utility-row { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; margin: 10px 10px; }
+.bounty-hud-button { min-width: 132px; display: grid; grid-template-columns: 22px 1fr auto; align-items: center; gap: 10px; padding: 10px 10px; border: 3px solid #c99c35; border-radius: 11px; color: #fff0ad; background: rgba(45,34,12,.92); box-shadow: 0 4px 0 rgba(19,13,3,.7); font-size: 10px; font-weight: 900; text-transform: uppercase; transition: transform 120ms ease, filter 120ms ease; }
 .bounty-hud-button .icon { width: 20px; height: 20px; }
 .bounty-hud-button b { color: #f7ca4b; }
+.pause-utility-row .bounty-hud-button { width: 100%; min-height: 42px; }
 .bounty-modal { width: min(720px, 92vw); }
 .bounty-modal > p:not(.eyebrow) { color: var(--muted); }
 .bounty-list { display: grid; gap: 10px; margin: 16px 0; }
@@ -1170,6 +1172,7 @@ img.icon.mouse-glyph {
   background: transparent;
   cursor: pointer;
 }
+.choice-set.input-locked .choice-pair { cursor: wait; opacity: .72; filter: saturate(.65); }
 
 .choice-pair article {
   min-width: 0;
@@ -4358,15 +4361,31 @@ img.icon {
 
 .equipment-tier-stat > header {
   display: grid;
-  gap: 1px;
+  grid-template-columns: 40px minmax(0, 1fr);
+  grid-template-rows: auto 40px;
+  align-items: center;
+  gap: 2px 6px;
 }
 
 .equipment-tier-stat > header strong {
+  grid-column: 1 / -1;
+  align-self: end;
   text-transform: capitalize;
   font-size: 13px;
 }
 
+.equipment-tier-stat > header img {
+  grid-column: 1;
+  grid-row: 2;
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+  filter: drop-shadow(0 3px 3px rgba(0,0,0,.35));
+}
+
 .equipment-tier-stat > header em {
+  grid-column: 2;
+  grid-row: 2;
   color: var(--muted);
   font-size: 8px;
   line-height: 1.2;
@@ -5016,28 +5035,25 @@ img.icon {
 .campaign-tier-node.selected .tier-card-face { border-color: var(--tier-accent); box-shadow: inset 0 2px rgba(255,255,255,.12), 0 7px 0 #06130c, 0 0 28px color-mix(in srgb, var(--tier-accent) 50%, transparent); }
 .campaign-tier-node.locked .tier-card-front { filter: saturate(.42) brightness(.72); }
 .campaign-tier-node.current .tier-card-face { border-color: #f7ca4b; box-shadow: inset 0 2px rgba(255,255,255,.12), 0 7px 0 #06130c, 0 0 32px rgba(247,202,75,.42); }
-.tier-card-back { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(220px, .75fr); grid-template-rows: auto auto 1fr auto; gap: 5px 12px; padding: 9px 12px; transform: rotateY(180deg); }
-.tier-card-back > header { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.tier-card-back > header span { min-width: 0; display: grid; }
-.tier-card-back > header small { color: var(--tier-accent); font-size: 7px; font-weight: 950; letter-spacing: .13em; }
-.tier-card-back > header b { overflow-wrap: anywhere; font: 950 20px/1 Impact, sans-serif; text-transform: uppercase; }
-.tier-card-back > header strong { padding: 4px 7px; border: 1px solid var(--tier-accent); border-radius: 999px; color: var(--tier-accent); font-size: 7px; }
-.tier-card-back > p { grid-column: 1; margin: 0; color: #cbd7cc; font-size: 9px; line-height: 1.3; }
-.tier-card-enemies { grid-column: 1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; min-width: 0; }
-.tier-card-enemies span { min-width: 0; display: grid; grid-template-columns: 38px minmax(0, 1fr); grid-template-rows: 1fr 1fr; align-items: center; gap: 0 5px; padding: 3px; border: 1px solid rgba(255,255,255,.12); border-radius: 8px; background: rgba(255,255,255,.04); }
-.tier-card-enemies img { grid-row: 1 / 3; width: 38px; height: 38px; object-fit: contain; }
-.tier-card-enemies b { overflow-wrap: anywhere; font-size: 8px; line-height: 1; }
-.tier-card-enemies small { color: var(--tier-accent); font-size: 6px; }
-.tier-card-mechanics { grid-column: 2; grid-row: 2 / 4; min-width: 0; display: grid; align-content: start; padding: 7px; border: 1px solid rgba(255,101,91,.34); border-radius: 9px; background: rgba(54,17,17,.3); }
-.tier-card-mechanics span { display: grid; }
-.tier-card-mechanics small { color: #ff9f97; font-size: 6px; font-weight: 950; }
-.tier-card-mechanics b { overflow-wrap: anywhere; font-size: 10px; }
-.tier-card-mechanics p { margin: 3px 0 0; color: #d8c5c3; font-size: 7px; line-height: 1.25; }
-.tier-card-requirements { grid-column: 1; display: flex; flex-wrap: wrap; gap: 4px; align-content: end; }
-.tier-card-requirements i { padding: 3px 5px; border: 1px solid #7e413e; border-radius: 5px; color: #ffaaa2; font-size: 6px; font-style: normal; font-weight: 900; }
+.tier-card-back { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto 1fr; gap: 5px; padding: 9px 12px; transform: rotateY(180deg); cursor: pointer; text-align: left; }
+.tier-card-back > header { min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 10px; }
+.tier-card-heading { min-width: 0; display: grid; }
+.tier-card-heading small { color: var(--tier-accent); font-size: 8px; font-weight: 950; letter-spacing: .13em; }
+.tier-card-heading b { overflow-wrap: anywhere; font: 950 21px/1 Impact, sans-serif; text-transform: uppercase; }
+.tier-card-heading em { margin-top: 1px; color: #cbd7cc; font-size: 9px; font-style: normal; }
+.tier-card-badges { min-width: 0; display: flex; align-items: flex-start; justify-content: flex-end; gap: 5px; }
+.tier-card-badges > strong { padding: 5px 8px; border: 1px solid var(--tier-accent); border-radius: 999px; color: var(--tier-accent); font-size: 9px; }
+.tier-card-back > p { margin: 0; overflow: hidden; color: #cbd7cc; font-size: 10px; line-height: 1.25; white-space: nowrap; text-overflow: ellipsis; }
+.tier-card-enemies { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; min-width: 0; }
+.tier-card-enemies span { min-width: 0; display: grid; grid-template-columns: 42px minmax(0, 1fr); grid-template-rows: 1fr 1fr; align-items: center; gap: 0 5px; padding: 3px; border: 1px solid rgba(255,255,255,.12); border-radius: 8px; background: rgba(255,255,255,.04); }
+.tier-card-enemies span.boss { border-color: rgba(255,101,91,.5); background: rgba(54,17,17,.3); }
+.tier-card-enemies img { grid-row: 1 / 3; width: 42px; height: 42px; object-fit: contain; }
+.tier-card-enemies b { overflow-wrap: anywhere; font-size: 9px; line-height: 1; }
+.tier-card-enemies small { color: var(--tier-accent); font-size: 7px; }
+.tier-card-enemies .boss small { color: #ff9f97; }
+.tier-card-requirements { min-width: 0; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; }
+.tier-card-requirements i { padding: 5px 7px; border: 1px solid #7e413e; border-radius: 999px; color: #ffaaa2; font-size: 9px; line-height: 1; font-style: normal; font-weight: 900; }
 .tier-card-requirements i.met { border-color: #477b52; color: #9de0a8; }
-.tier-card-back > footer { grid-column: 2; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; }
-.tier-card-back > footer button { min-height: 28px; padding: 4px 6px; font-size: 8px; }
 .tier-backdrop { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .25; }
 .tier-medallion { position: relative; width: 98px; height: 98px; display: grid; place-items: center; border: 4px solid var(--tier-accent); border-radius: 50%; background: #10261a; box-shadow: inset 0 0 0 5px rgba(255,255,255,.06), 0 0 20px color-mix(in srgb, var(--tier-accent) 36%, transparent); }
 .tier-medallion img { width: 82%; height: 82%; object-fit: contain; }
@@ -5118,7 +5134,7 @@ img.icon {
   .tier-requirements, .tier-enemies, .tier-milestones { grid-column: 1; }
   .campaign-tier-card { height: 150px; }
   .tier-card-front { grid-template-columns: 78px minmax(0, 1fr) auto; }
-  .tier-card-back { grid-template-columns: minmax(0, 1.15fr) minmax(190px, .85fr); }
+  .tier-card-back { grid-template-columns: minmax(0, 1fr); }
   .tier-medallion { width: 68px; height: 68px; }
 }
 

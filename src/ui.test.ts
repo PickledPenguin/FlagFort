@@ -622,7 +622,7 @@ describe("event-driven HUD interaction", () => {
 
     const pauseActions = [...overlay.querySelectorAll<HTMLElement>(".pause-utility-row > button")]
       .map((button) => button.textContent?.trim());
-    expect(pauseActions).toEqual(["Bounties", "Controls", "Settings"]);
+    expect(pauseActions).toEqual(["Bounties0/3", "Controls", "Settings"]);
 
     click(overlay.querySelector('[data-action="open-bounties"]')!);
     expect(game.phase).toBe("paused");

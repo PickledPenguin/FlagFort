@@ -162,6 +162,23 @@ describe("additive adaptive difficulty and rewards", () => {
     expect(combined.levelDelta).toBeCloseTo(0.15);
   });
 
+  it("scales campaign level pressure above the selected tier unlock level", () => {
+    const atCalderaUnlock = adaptiveDifficulty(0, 1, 19, [], undefined, {
+      playerLevelBaseline: 19,
+    });
+    const latestCalderaRun = adaptiveDifficulty(0, 1, 26, [], undefined, {
+      playerLevelBaseline: 19,
+    });
+    const forestAtTheSameLevel = adaptiveDifficulty(0, 1, 26, [], undefined, {
+      playerLevelBaseline: 1,
+    });
+
+    expect(atCalderaUnlock.levelDelta).toBe(0);
+    expect(latestCalderaRun.levelDelta).toBeCloseTo(0.105);
+    expect(forestAtTheSameLevel.levelDelta).toBeCloseTo(0.375);
+    expect(latestCalderaRun.levelDelta).toBeGreaterThan(atCalderaUnlock.levelDelta);
+  });
+
   it("clamps structure, level, and final effective values independently", () => {
     const low = adaptiveDifficulty(0, 1, 1, [-10]);
     const high = adaptiveDifficulty(1_000_000, 1, 999, [10]);
@@ -179,6 +196,7 @@ describe("additive adaptive difficulty and rewards", () => {
     expect(BALANCE.adaptive.structure.maximumMultiplier).toBe(1.85);
     expect(BALANCE.adaptive.level.maximumMultiplier).toBe(1.6);
     expect(BALANCE.adaptive.autoCorrective.maximumDelta).toBe(0.55);
+    expect(BALANCE.adaptive.autoCorrective.minimumDelta).toBe(-0.2);
 
     const maximum = adaptiveDifficulty(1_000_000, 10, 999, [0.55]);
     expect(maximum.structureDelta).toBeCloseTo(0.85);
@@ -260,6 +278,7 @@ describe("campaign and Endless transition", () => {
     expect(game.runMode).toBe("endless");
     expect(game.phase).toBe("dawn");
     expect(game.structures).toHaveLength(1);
+    game.update(BALANCE.ui.dawnChoiceClickDelay);
     for (let screen = 0; screen < 3; screen += 1) game.chooseDawn(0);
     expect(game.phase).toBe("day");
     expect(game.night).toBe(11);

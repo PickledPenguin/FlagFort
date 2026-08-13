@@ -216,6 +216,27 @@ describe("foundational refactor", () => {
     expect(game.flag.health).toBe(71 + BALANCE.upgrades.flagHealth.amount);
   });
 
+  it("adds the player maximum-health upgrade to current health even while damaged", () => {
+    const game = new Game(input());
+    game.startRun("normal", "player-health-upgrade");
+    game.player.health = 61;
+    game.phase = "dawn";
+    game.choices = [{
+      id: "maxHealth",
+      name: "Heartwood",
+      description: "More maximum and current health",
+      mutationId: "health",
+      mutationName: "Thick Skulls",
+      mutationDescription: "More health",
+      kind: "upgrade",
+    }];
+
+    game.chooseDawn(0);
+
+    expect(game.player.maxHealth).toBe(BALANCE.player.maxHealth + BALANCE.upgrades.maxHealth.amount);
+    expect(game.player.health).toBe(61 + BALANCE.upgrades.maxHealth.amount);
+  });
+
   it("resets screen shake immediately when a run ends", () => {
     const game = new Game(input());
     game.startRun("normal", "end-shake");

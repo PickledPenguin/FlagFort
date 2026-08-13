@@ -148,6 +148,7 @@ export interface Portal extends Circle {
   spawned: number;
   spawnCooldown: number;
   flash: number;
+  relocationCount?: number;
   temporary?: boolean;
   temporaryRemaining?: number;
   temporarySpawnKind?: RosterEnemyKind;
@@ -223,6 +224,7 @@ export interface Enemy extends Circle {
   chargeProgress?: number;
   chargeTargetId?: number | null;
   charging?: boolean;
+  chargeCooldown?: number;
   chargeDistanceLeft?: number;
   chargeDamageLeft?: number;
   chargeHitIds?: Set<number>;

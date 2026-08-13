@@ -20,9 +20,9 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="3.6514444"
-     inkscape:cx="29.029608"
-     inkscape:cy="62.167179"
+     inkscape:zoom="4.4514572"
+     inkscape:cx="63.125397"
+     inkscape:cy="52.791702"
      inkscape:window-width="1597"
      inkscape:window-height="799"
      inkscape:window-x="0"
@@ -43,7 +43,7 @@
        fx="-30"
        fy="16"
        gradientUnits="userSpaceOnUse"
-       gradientTransform="translate(-4.7125457,-14.594697)">
+       gradientTransform="translate(1.7748979,-16.075302)">
       <stop
          offset="0"
          stop-color="#efff9d"
@@ -84,8 +84,8 @@
        cy="1.0954568" />
     <rect
        id="radiation-canister"
-       x="-42.683666"
-       y="-3.6161737"
+       x="-36.645821"
+       y="-6.4132395"
        width="19"
        height="25"
        rx="5"
@@ -95,8 +95,8 @@
        transform="rotate(12)" />
     <circle
        id="canister-core"
-       cx="-34.712547"
-       cy="1.4053028"
+       cx="-28.225103"
+       cy="-0.075302273"
        r="6"
        fill="url(#radstalker-glow)"
        stroke="#436828"
@@ -107,7 +107,7 @@
        fill="#f5ffd3"
        stroke="#2d4637"
        stroke-width="1.5"
-       transform="rotate(78.606786,4.4994705,-16.657477)">
+       transform="rotate(78.606786,5.5787628,-15.500771)">
       <path
          id="upper-eye"
          d="M 5,-12 19,-9 7,-3 Z" />
@@ -115,7 +115,7 @@
     <g
        id="pupils"
        fill="#72c83c"
-       transform="rotate(78.606786,4.4994705,-16.657477)">
+       transform="rotate(78.606786,5.5787628,-15.500771)">
       <circle
          id="upper-pupil"
          cx="12"
@@ -127,7 +127,7 @@
        fill="#f5ffd3"
        stroke="#2d4637"
        stroke-width="1.5"
-       transform="matrix(0.19754124,-0.98029458,-0.98029458,-0.19754124,-12.707858,21.359928)">
+       transform="matrix(0.19754124,-0.98029458,-0.98029458,-0.19754124,-10.707858,21.230112)">
       <path
          id="upper-eye-2"
          d="M 5,-12 19,-9 7,-3 Z" />
@@ -149,7 +149,7 @@
     <g
        id="pupils-7"
        fill="#72c83c"
-       transform="matrix(0.19754124,-0.98029458,-0.98029458,-0.19754124,-12.707858,21.359928)">
+       transform="matrix(0.19754124,-0.98029458,-0.98029458,-0.19754124,-10.707858,21.230112)">
       <circle
          id="upper-pupil-3"
          cx="12"
