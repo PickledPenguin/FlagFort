@@ -253,10 +253,10 @@ export class Game {
   lastSettlement: RunSettlementResult | null = null;
   activeBounties: RunBounty[] = [];
   bountyCounters: Record<BountyMetric, number> = {
-    zombiesDefeated: 0, personalKills: 0, meleeKills: 0, bowKills: 0,
-    resourcesGathered: 0, structuresBuilt: 0, turretsBuilt: 0, harvestersBuilt: 0,
-    structuresUpgraded: 0, structuresRepaired: 0, structuresRecycled: 0,
-    portalsDestroyed: 0, nightsSurvived: 0,
+    meleeKills: 0, bowKills: 0, turretKills: 0, spikeKills: 0,
+    portalsRelocated: 0, structuresRecycled: 0, goldHarvestersCreated: 0,
+    diamondSpikesCreated: 0, diamondTurretsCreated: 0, diamondWallsCreated: 0,
+    diamondGlovesObtained: 0, goldStructuresCreated: 0, diamondStructuresCreated: 0,
   };
   choices: Choice[] = [];
   dawnScreen = 0;
@@ -932,6 +932,7 @@ export class Game {
         this.player.punchSerial = 0;
         this.player.cooldown = 0;
       }
+      if (choice.id === "gloves:diamond") this.bountyCounters.diamondGlovesObtained = 1;
     }
     else {
       const key = choice.id as keyof typeof this.upgrades;
@@ -1449,7 +1450,6 @@ export class Game {
     if (!free) this.spendResources(preview.cost);
     structure.health = structure.maxHealth;
     this.recordStructureActivity("repaired", structure.kind, structure.tier);
-    this.bountyCounters.structuresRepaired += 1;
     this.burst(structure.x, structure.y, "#74f3a5", 16, free ? "FREE REPAIR" : "FULL REPAIR");
     if (!free) this.floatWallet(structure.x, structure.y + 30, preview.cost, "-");
     emitAudioCue({ cue: "structure-repair", position: { x: structure.x, y: structure.y } });
@@ -1690,7 +1690,7 @@ export class Game {
       );
       structure.health = structure.maxHealth * ratio;
       this.recordStructureActivity("upgraded", structure.kind, structure.tier);
-      this.bountyCounters.structuresUpgraded += 1;
+      this.recordBountyStructureCreated(structure.kind, structure.tier);
       this.burst(structure.x, structure.y, BALANCE.tierColors[preview.tier], 12, "UPGRADE");
       emitAudioCue({ cue: "structure-upgrade", position: { x: structure.x, y: structure.y } });
       this.recordTutorialEvent(`upgraded-${kind}`);
@@ -1714,9 +1714,7 @@ export class Game {
         flash: 0,
       });
       this.stats.structuresBuilt += 1;
-      this.bountyCounters.structuresBuilt += 1;
-      if (kind === "turret") this.bountyCounters.turretsBuilt += 1;
-      if (kind === "harvester") this.bountyCounters.harvestersBuilt += 1;
+      this.recordBountyStructureCreated(kind, preview.tier);
       this.recordStructureActivity("built", kind, preview.tier);
       this.burst(preview.x, preview.y, BALANCE.tierColors[preview.tier], 10, "BUILT");
       emitAudioCue({ cue: "structure-place", position: { x: preview.x, y: preview.y } });
@@ -1729,6 +1727,15 @@ export class Game {
     this.structureRevision += 1;
     this.navigationFields.clear();
     this.rebuildSpatial();
+  }
+
+  private recordBountyStructureCreated(kind: StructureKind, tier: Tier): void {
+    if (tier === "gold") this.bountyCounters.goldStructuresCreated += 1;
+    if (tier === "diamond") this.bountyCounters.diamondStructuresCreated += 1;
+    if (kind === "harvester" && tier === "gold") this.bountyCounters.goldHarvestersCreated += 1;
+    if (kind === "spikes" && tier === "diamond") this.bountyCounters.diamondSpikesCreated += 1;
+    if (kind === "turret" && tier === "diamond") this.bountyCounters.diamondTurretsCreated += 1;
+    if (kind === "wall" && tier === "diamond") this.bountyCounters.diamondWallsCreated += 1;
   }
 
   private updateStructures(dt: number): void {
@@ -2569,6 +2576,31 @@ export class Game {
       enemy.routeCommitment = definition.targeting.lockSeconds;
       return;
     }
+    if (definition.targeting.mode === "priority") {
+      const lockedTarget = this.getEnemyTarget(enemy);
+      if (lockedTarget && enemy.routeCommitment > 0
+        && distance(enemy, lockedTarget) <= detection * BALANCE.navigation.targetHysteresis) return;
+      enemy.targetId = "flag";
+      for (const priority of definition.targeting.priorities ?? []) {
+        if (priority === "player" && distance(enemy, this.player) <= detection) {
+          enemy.targetId = "player";
+          break;
+        }
+        if (priority === "flag") {
+          enemy.targetId = "flag";
+          break;
+        }
+        if (priority !== "player") {
+          const structure = this.nearestStructure(enemy, detection, priority);
+          if (structure) {
+            enemy.targetId = structure.id;
+            break;
+          }
+        }
+      }
+      enemy.routeCommitment = definition.targeting.lockSeconds;
+      return;
+    }
     const playerInRange = distance(enemy, this.player) <= detection;
     const turret = this.nearestStructure(enemy, detection, "turret");
     const harvester = this.nearestStructure(enemy, detection, "harvester");
@@ -3374,10 +3406,11 @@ export class Game {
       if (enemy.lastHitByPlayerId === this.player.id
         && (enemy.lastDamageSource === "player-melee" || enemy.lastDamageSource === "player-bow")) {
         this.directPlayerKills[enemy.kind] += 1;
-        this.bountyCounters.personalKills += 1;
         if (enemy.lastDamageSource === "player-melee") this.bountyCounters.meleeKills += 1;
         if (enemy.lastDamageSource === "player-bow") this.bountyCounters.bowKills += 1;
       }
+      if (enemy.lastDamageSource === "turret") this.bountyCounters.turretKills += 1;
+      if (enemy.lastDamageSource === "spikes") this.bountyCounters.spikeKills += 1;
     }
     emitAudioCue({
       cue: (definition.audio.death ?? "zombie-death") as import("./audio").SoundId,
@@ -4112,13 +4145,14 @@ export class Game {
         this.stats.zombiesDefeated += 1;
         if (ownerPlayerId === this.player.id && (source === "player-melee" || source === "player-bow")) {
           this.directPlayerKills[enemy.kind] += 1;
-          this.bountyCounters.personalKills += 1;
           if (source === "player-melee") this.bountyCounters.meleeKills += 1;
           if (source === "player-bow") this.bountyCounters.bowKills += 1;
           if (this.nightPerformance?.waveEnemyIds.has(enemy.id)) {
             this.nightPerformance.personalWaveZombieKills += 1;
           }
         }
+        if (source === "turret") this.bountyCounters.turretKills += 1;
+        if (source === "spikes") this.bountyCounters.spikeKills += 1;
       }
       this.burst(enemy.x, enemy.y, "#8fc75d", this.isBossEnemyKind(enemy.kind) ? 40 : 14, this.isBossEnemyKind(enemy.kind) ? "BOSS DOWN" : undefined);
     }
@@ -4420,7 +4454,6 @@ export class Game {
     this.phaseElapsed = 0;
     this.phaseTransitionImpact = 0.55;
     this.stats.nightsSurvived = Math.max(0, this.night - this.runStartNight + 1);
-    this.bountyCounters.nightsSurvived = this.stats.nightsSurvived;
     this.platform?.reportProgress(Math.min(90, this.night * 10));
     if (
       !this.hasChallenge("permanent-player-damage")
@@ -4615,7 +4648,7 @@ export class Game {
   }
 
   private relocatePortal(portal: Portal): void {
-    this.bountyCounters.portalsDestroyed += 1;
+    this.bountyCounters.portalsRelocated += 1;
     const position = this.findPortalPosition(portal.id, this.night, this.portals.filter((item) => item !== portal));
     emitAudioCue({ cue: "portal-destroyed", position: { x: portal.x, y: portal.y } });
     this.burst(portal.x, portal.y, "#a77cff", 24, "RELOCATING");
@@ -4805,15 +4838,14 @@ export class Game {
   }
 
   private updateBounties(): void {
-    this.bountyCounters.zombiesDefeated = this.stats.zombiesDefeated;
-    this.bountyCounters.resourcesGathered = this.stats.resourcesGathered;
     for (const bounty of this.activeBounties) {
       if (bounty.completed) continue;
       bounty.progress = Math.min(
         bounty.definition.requirement.target,
         this.bountyCounters[bounty.definition.requirement.metric],
       );
-      if (bounty.progress < bounty.definition.requirement.target) continue;
+      if (bounty.progress < bounty.definition.requirement.target
+        || this.night < bounty.definition.requirement.minimumNight) continue;
       bounty.completed = true;
       this.profileManager?.grantCoins(bounty.definition.coinReward);
       emitAudioCue({ cue: "ui-confirm" });
@@ -4951,7 +4983,6 @@ export class Game {
     }
     this.defeatReason = reason;
     if (victory && this.runMode === "campaign") this.stats.nightsSurvived = 10;
-    this.bountyCounters.nightsSurvived = this.stats.nightsSurvived;
     this.updateBounties();
     this.recalculateStructureScore();
     if (this.runSettlementId && this.profileManager) {

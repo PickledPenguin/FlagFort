@@ -2,19 +2,19 @@ import { SeededRng } from "./rng";
 
 export type BountyDifficulty = 1 | 2 | 3;
 export type BountyMetric =
-  | "zombiesDefeated"
-  | "personalKills"
   | "meleeKills"
   | "bowKills"
-  | "resourcesGathered"
-  | "structuresBuilt"
-  | "turretsBuilt"
-  | "harvestersBuilt"
-  | "structuresUpgraded"
-  | "structuresRepaired"
+  | "turretKills"
+  | "spikeKills"
+  | "portalsRelocated"
   | "structuresRecycled"
-  | "portalsDestroyed"
-  | "nightsSurvived";
+  | "goldHarvestersCreated"
+  | "diamondSpikesCreated"
+  | "diamondTurretsCreated"
+  | "diamondWallsCreated"
+  | "diamondGlovesObtained"
+  | "goldStructuresCreated"
+  | "diamondStructuresCreated";
 
 export interface BountyDefinition {
   id: string;
@@ -22,7 +22,8 @@ export interface BountyDefinition {
   description: string;
   difficulty: BountyDifficulty;
   coinReward: 10 | 15 | 20;
-  requirement: { metric: BountyMetric; target: number };
+  exclusionGroup: string;
+  requirement: { metric: BountyMetric; target: number; minimumNight: number };
   icon: "trophy" | "timer" | "heart" | "upgrade-node" | "pressure-high" | "sun";
 }
 
@@ -31,69 +32,80 @@ const bounty = (
   name: string,
   description: string,
   difficulty: BountyDifficulty,
+  exclusionGroup: string,
   metric: BountyMetric,
   target: number,
   icon: BountyDefinition["icon"],
+  minimumNight = 5,
 ): BountyDefinition => ({
-  id, name, description, difficulty,
+  id, name, description, difficulty, exclusionGroup,
   coinReward: difficulty === 1 ? 10 : difficulty === 2 ? 15 : 20,
-  requirement: { metric, target }, icon,
+  requirement: { metric, target, minimumNight }, icon,
 });
 
-// 35 Tier 1, 10 Tier 2, and 5 Tier 3 definitions. All targets are biome-neutral.
+// Targets are calibrated against the five latest playtest runs lasting more than two
+// nights. Variants share exclusion groups so a run never offers duplicate objective families.
 export const BOUNTIES: readonly BountyDefinition[] = [
-  bounty("thin-the-crowd", "Thin the Crowd", "Defeat 20 zombies.", 1, "zombiesDefeated", 20, "trophy"),
-  bounty("steady-defense", "Steady Defense", "Defeat 35 zombies.", 1, "zombiesDefeated", 35, "trophy"),
-  bounty("hands-on", "Hands On", "Personally defeat 10 zombies.", 1, "personalKills", 10, "heart"),
-  bounty("front-line", "Front Line", "Personally defeat 18 zombies.", 1, "personalKills", 18, "heart"),
-  bounty("close-quarters", "Close Quarters", "Defeat 6 zombies with melee attacks.", 1, "meleeKills", 6, "heart"),
-  bounty("brawler", "Brawler", "Defeat 12 zombies with melee attacks.", 1, "meleeKills", 12, "heart"),
-  bounty("take-aim", "Take Aim", "Defeat 6 zombies with the bow.", 1, "bowKills", 6, "pressure-high"),
-  bounty("archers-eye", "Archer's Eye", "Defeat 12 zombies with the bow.", 1, "bowKills", 12, "pressure-high"),
-  bounty("gatherer", "Gatherer", "Gather 80 resources.", 1, "resourcesGathered", 80, "sun"),
-  bounty("stockpile", "Stockpile", "Gather 140 resources.", 1, "resourcesGathered", 140, "sun"),
-  bounty("lumber-and-stone", "Lumber and Stone", "Gather 200 resources.", 1, "resourcesGathered", 200, "sun"),
-  bounty("raise-a-wall", "Raise a Wall", "Build 3 structures.", 1, "structuresBuilt", 3, "upgrade-node"),
-  bounty("fortify", "Fortify", "Build 6 structures.", 1, "structuresBuilt", 6, "upgrade-node"),
-  bounty("builder", "Builder", "Build 9 structures.", 1, "structuresBuilt", 9, "upgrade-node"),
-  bounty("first-turret", "First Turret", "Build 1 turret.", 1, "turretsBuilt", 1, "pressure-high"),
-  bounty("crossfire", "Crossfire", "Build 2 turrets.", 1, "turretsBuilt", 2, "pressure-high"),
-  bounty("workshop", "Workshop", "Build 1 harvester.", 1, "harvestersBuilt", 1, "sun"),
-  bounty("industry", "Industry", "Build 2 harvesters.", 1, "harvestersBuilt", 2, "sun"),
-  bounty("better-materials", "Better Materials", "Upgrade 1 structure.", 1, "structuresUpgraded", 1, "upgrade-node"),
-  bounty("reinforced", "Reinforced", "Upgrade 3 structures.", 1, "structuresUpgraded", 3, "upgrade-node"),
-  bounty("field-repair", "Field Repair", "Repair 1 structure.", 1, "structuresRepaired", 1, "heart"),
-  bounty("maintenance", "Maintenance", "Repair 3 structures.", 1, "structuresRepaired", 3, "heart"),
-  bounty("reuse", "Reuse", "Recycle 1 structure.", 1, "structuresRecycled", 1, "upgrade-node"),
-  bounty("redeploy", "Redeploy", "Recycle 2 structures.", 1, "structuresRecycled", 2, "upgrade-node"),
-  bounty("portal-puncher", "Portal Puncher", "Destroy 1 portal.", 1, "portalsDestroyed", 1, "pressure-high"),
-  bounty("hold-one-night", "First Watch", "Survive 1 night.", 1, "nightsSurvived", 1, "timer"),
-  bounty("hold-two-nights", "Second Watch", "Survive 2 nights.", 1, "nightsSurvived", 2, "timer"),
-  bounty("hold-three-nights", "Third Watch", "Survive 3 nights.", 1, "nightsSurvived", 3, "timer"),
-  bounty("mixed-arms", "Mixed Arms", "Personally defeat 15 zombies.", 1, "personalKills", 15, "trophy"),
-  bounty("busy-hands", "Busy Hands", "Build 5 structures.", 1, "structuresBuilt", 5, "upgrade-node"),
-  bounty("resource-run", "Resource Run", "Gather 110 resources.", 1, "resourcesGathered", 110, "sun"),
-  bounty("night-shift", "Night Shift", "Survive 4 nights.", 1, "nightsSurvived", 4, "timer"),
-  bounty("repair-crew", "Repair Crew", "Repair 2 structures.", 1, "structuresRepaired", 2, "heart"),
-  bounty("sharpshooter", "Sharpshooter", "Defeat 9 zombies with the bow.", 1, "bowKills", 9, "pressure-high"),
-  bounty("scrapper", "Scrapper", "Defeat 9 zombies with melee attacks.", 1, "meleeKills", 9, "heart"),
+  bounty("close-quarters", "Close Quarters", "Defeat 110 zombies with melee attacks.", 1, "melee-kills", "meleeKills", 110, "heart"),
+  bounty("brawler", "Brawler", "Defeat 130 zombies with melee attacks.", 1, "melee-kills", "meleeKills", 130, "heart"),
+  bounty("front-line", "Front Line", "Defeat 150 zombies with melee attacks.", 1, "melee-kills", "meleeKills", 150, "heart"),
+  bounty("pugilist", "Pugilist", "Defeat 175 zombies with melee attacks.", 1, "melee-kills", "meleeKills", 175, "heart"),
+  bounty("army-of-one", "Army of One", "Defeat 200 zombies with melee attacks.", 1, "melee-kills", "meleeKills", 200, "trophy"),
 
-  bounty("horde-breaker", "Horde Breaker", "Defeat 75 zombies.", 2, "zombiesDefeated", 75, "trophy"),
-  bounty("personal-best", "Personal Best", "Personally defeat 35 zombies.", 2, "personalKills", 35, "heart"),
-  bounty("melee-specialist", "Melee Specialist", "Defeat 24 zombies with melee attacks.", 2, "meleeKills", 24, "heart"),
-  bounty("bow-specialist", "Bow Specialist", "Defeat 24 zombies with the bow.", 2, "bowKills", 24, "pressure-high"),
-  bounty("quartermaster", "Quartermaster", "Gather 320 resources.", 2, "resourcesGathered", 320, "sun"),
-  bounty("fortress-plan", "Fortress Plan", "Build 14 structures.", 2, "structuresBuilt", 14, "upgrade-node"),
-  bounty("battery", "Battery", "Build 4 turrets.", 2, "turretsBuilt", 4, "pressure-high"),
-  bounty("assembly-line", "Assembly Line", "Build 4 harvesters.", 2, "harvestersBuilt", 4, "sun"),
-  bounty("masterwork", "Masterwork", "Upgrade 6 structures.", 2, "structuresUpgraded", 6, "upgrade-node"),
-  bounty("long-watch", "Long Watch", "Survive 7 nights.", 2, "nightsSurvived", 7, "timer"),
+  bounty("take-aim", "Take Aim", "Defeat 35 zombies with the bow.", 1, "bow-kills", "bowKills", 35, "pressure-high"),
+  bounty("archers-eye", "Archer's Eye", "Defeat 50 zombies with the bow.", 1, "bow-kills", "bowKills", 50, "pressure-high"),
+  bounty("sharpshooter", "Sharpshooter", "Defeat 65 zombies with the bow.", 1, "bow-kills", "bowKills", 65, "pressure-high"),
+  bounty("long-shot", "Long Shot", "Defeat 80 zombies with the bow.", 1, "bow-kills", "bowKills", 80, "pressure-high"),
+  bounty("bow-specialist", "Bow Specialist", "Defeat 100 zombies with the bow.", 1, "bow-kills", "bowKills", 100, "trophy"),
 
-  bounty("army-of-one", "Army of One", "Personally defeat 60 zombies.", 3, "personalKills", 60, "trophy"),
-  bounty("demolition", "Demolition", "Destroy 4 portals.", 3, "portalsDestroyed", 4, "pressure-high"),
-  bounty("grand-fort", "Grand Fort", "Build 22 structures.", 3, "structuresBuilt", 22, "upgrade-node"),
-  bounty("war-economy", "War Economy", "Gather 600 resources.", 3, "resourcesGathered", 600, "sun"),
-  bounty("final-watch", "Final Watch", "Survive 10 nights.", 3, "nightsSurvived", 10, "timer"),
+  bounty("crossfire", "Crossfire", "Let turrets defeat 100 zombies.", 1, "turret-kills", "turretKills", 100, "pressure-high"),
+  bounty("battery", "Battery", "Let turrets defeat 130 zombies.", 1, "turret-kills", "turretKills", 130, "pressure-high"),
+  bounty("kill-zone", "Kill Zone", "Let turrets defeat 160 zombies.", 1, "turret-kills", "turretKills", 160, "pressure-high"),
+  bounty("automated-defense", "Automated Defense", "Let turrets defeat 200 zombies.", 1, "turret-kills", "turretKills", 200, "upgrade-node"),
+  bounty("overwatch", "Overwatch", "Let turrets defeat 250 zombies.", 1, "turret-kills", "turretKills", 250, "trophy"),
+
+  bounty("thorn-line", "Thorn Line", "Let spikes defeat 30 zombies.", 1, "spike-kills", "spikeKills", 30, "upgrade-node"),
+  bounty("barbed-path", "Barbed Path", "Let spikes defeat 45 zombies.", 1, "spike-kills", "spikeKills", 45, "upgrade-node"),
+  bounty("deadfall", "Deadfall", "Let spikes defeat 60 zombies.", 1, "spike-kills", "spikeKills", 60, "upgrade-node"),
+  bounty("gauntlet", "The Gauntlet", "Let spikes defeat 80 zombies.", 1, "spike-kills", "spikeKills", 80, "pressure-high"),
+  bounty("diamond-teeth", "Diamond Teeth", "Let spikes defeat 100 zombies.", 1, "spike-kills", "spikeKills", 100, "trophy"),
+
+  bounty("portal-puncher", "Portal Puncher", "Relocate 8 portals.", 1, "portal-relocation", "portalsRelocated", 8, "pressure-high"),
+  bounty("forced-march", "Forced March", "Relocate 10 portals.", 1, "portal-relocation", "portalsRelocated", 10, "pressure-high"),
+  bounty("moving-targets", "Moving Targets", "Relocate 12 portals.", 1, "portal-relocation", "portalsRelocated", 12, "pressure-high"),
+  bounty("banishment", "Banishment", "Relocate 15 portals.", 1, "portal-relocation", "portalsRelocated", 15, "trophy"),
+  bounty("no-fixed-address", "No Fixed Address", "Relocate 18 portals.", 1, "portal-relocation", "portalsRelocated", 18, "trophy"),
+
+  bounty("redeploy", "Redeploy", "Recycle 8 structures.", 1, "structure-recycling", "structuresRecycled", 8, "upgrade-node"),
+  bounty("salvage-plan", "Salvage Plan", "Recycle 12 structures.", 1, "structure-recycling", "structuresRecycled", 12, "upgrade-node"),
+  bounty("mobile-fort", "Mobile Fort", "Recycle 16 structures.", 1, "structure-recycling", "structuresRecycled", 16, "upgrade-node"),
+  bounty("nothing-wasted", "Nothing Wasted", "Recycle 20 structures.", 1, "structure-recycling", "structuresRecycled", 20, "sun"),
+  bounty("circular-economy", "Circular Economy", "Recycle 25 structures.", 1, "structure-recycling", "structuresRecycled", 25, "sun"),
+
+  bounty("gold-rush", "Gold Rush", "Establish 3 gold harvesters.", 1, "gold-harvesters", "goldHarvestersCreated", 3, "sun"),
+  bounty("gold-industry", "Gold Industry", "Establish 4 gold harvesters.", 1, "gold-harvesters", "goldHarvestersCreated", 4, "sun"),
+  bounty("gold-network", "Gold Network", "Establish 5 gold harvesters.", 1, "gold-harvesters", "goldHarvestersCreated", 5, "sun"),
+  bounty("gold-works", "Gold Works", "Establish 6 gold harvesters.", 1, "gold-harvesters", "goldHarvestersCreated", 6, "sun"),
+  bounty("diamond-gloves", "Diamond Hands", "Obtain diamond gloves during the run.", 1, "diamond-gloves", "diamondGlovesObtained", 1, "heart"),
+
+  bounty("diamond-caltrops", "Diamond Caltrops", "Establish 10 diamond spikes.", 2, "diamond-spikes", "diamondSpikesCreated", 10, "upgrade-node"),
+  bounty("diamond-thicket", "Diamond Thicket", "Establish 14 diamond spikes.", 2, "diamond-spikes", "diamondSpikesCreated", 14, "upgrade-node"),
+  bounty("diamond-maze", "Diamond Maze", "Establish 18 diamond spikes.", 2, "diamond-spikes", "diamondSpikesCreated", 18, "pressure-high"),
+  bounty("diamond-gauntlet", "Diamond Gauntlet", "Establish 22 diamond spikes.", 2, "diamond-spikes", "diamondSpikesCreated", 22, "trophy"),
+
+  bounty("diamond-battery", "Diamond Battery", "Establish 4 diamond turrets.", 2, "diamond-turrets", "diamondTurretsCreated", 4, "pressure-high"),
+  bounty("diamond-crossfire", "Diamond Crossfire", "Establish 5 diamond turrets.", 2, "diamond-turrets", "diamondTurretsCreated", 5, "pressure-high"),
+  bounty("diamond-arsenal", "Diamond Arsenal", "Establish 6 diamond turrets.", 2, "diamond-turrets", "diamondTurretsCreated", 6, "upgrade-node"),
+  bounty("diamond-overwatch", "Diamond Overwatch", "Establish 8 diamond turrets.", 2, "diamond-turrets", "diamondTurretsCreated", 8, "trophy"),
+
+  bounty("diamond-rampart", "Diamond Rampart", "Establish 10 diamond walls.", 2, "diamond-walls", "diamondWallsCreated", 10, "upgrade-node"),
+  bounty("diamond-ring", "Diamond Ring", "Establish 14 diamond walls.", 2, "diamond-walls", "diamondWallsCreated", 14, "upgrade-node"),
+  bounty("diamond-bastion", "Diamond Bastion", "Establish 18 diamond walls.", 3, "diamond-walls", "diamondWallsCreated", 18, "trophy"),
+  bounty("diamond-citadel", "Diamond Citadel", "Establish 24 diamond walls.", 3, "diamond-walls", "diamondWallsCreated", 24, "trophy"),
+
+  bounty("gilded-fort", "Gilded Fort", "Establish 30 gold structures.", 3, "gold-structures", "goldStructuresCreated", 30, "upgrade-node"),
+  bounty("gold-standard", "Gold Standard", "Establish 40 gold structures.", 3, "gold-structures", "goldStructuresCreated", 40, "trophy"),
+  bounty("all-diamond", "All Diamond", "Establish 20 diamond structures.", 3, "diamond-structures", "diamondStructuresCreated", 20, "trophy"),
 ] as const;
 
 export interface RunBounty {
@@ -103,6 +115,14 @@ export interface RunBounty {
 }
 
 export function selectRunBounties(seed: string): BountyDefinition[] {
-  const rng = new SeededRng(`${seed}:bounties:v1`);
-  return rng.shuffle(BOUNTIES).slice(0, 3);
+  const rng = new SeededRng(`${seed}:bounties:v2`);
+  const selected: BountyDefinition[] = [];
+  const excludedGroups = new Set<string>();
+  for (const candidate of rng.shuffle(BOUNTIES)) {
+    if (excludedGroups.has(candidate.exclusionGroup)) continue;
+    selected.push(candidate);
+    excludedGroups.add(candidate.exclusionGroup);
+    if (selected.length === 3) break;
+  }
+  return selected;
 }

@@ -276,11 +276,12 @@ export class Ui {
     const viewport = this.overlay.querySelector<HTMLElement>(".campaign-ladder-viewport");
     const selected = this.overlay.querySelector<HTMLElement>(".campaign-tier-node.selected");
     if (!viewport || !selected) return;
-    const selectedTop = selected.offsetTop;
-    const selectedBottom = selectedTop + selected.offsetHeight;
-    if (selectedTop < viewport.scrollTop) viewport.scrollTop = Math.max(0, selectedTop - 8);
-    else if (selectedBottom > viewport.scrollTop + viewport.clientHeight) {
-      viewport.scrollTop = Math.max(0, selectedBottom - viewport.clientHeight + 8);
+    const viewportRect = viewport.getBoundingClientRect();
+    const selectedRect = selected.getBoundingClientRect();
+    if (selectedRect.top < viewportRect.top) {
+      viewport.scrollTop = Math.max(0, viewport.scrollTop - (viewportRect.top - selectedRect.top) - 12);
+    } else if (selectedRect.bottom > viewportRect.bottom) {
+      viewport.scrollTop = Math.max(0, viewport.scrollTop + selectedRect.bottom - viewportRect.bottom + 12);
     }
   }
 
@@ -412,34 +413,48 @@ export class Ui {
     const claimed = new Set(profile?.campaign.claimedRewardIds ?? []);
     const selected = campaignTier(this.selectedCampaignTierId);
     const selectedUnlocked = isCampaignTierUnlocked(selected, progress);
-    const tiers = [...CAMPAIGN_TIERS].reverse().map((tier) => {
+    const currentTierId = highestUnlockedCampaignTierId(progress);
+    const maximumLevel = Math.max(...CAMPAIGN_TIERS.flatMap((tier) => [
+      tier.unlock.level,
+      ...tier.milestones.map((milestone) => milestone.level),
+    ]));
+    const levelPosition = (level: number) => Math.max(0, Math.min(100,
+      (level - 1) / Math.max(1, maximumLevel - 1) * 100));
+    const events: Array<{ level: number; markup: string }> = CAMPAIGN_TIERS.map((tier) => {
       const unlocked = isCampaignTierUnlocked(tier, progress);
       const defeated = progress.defeatedTierIds.includes(tier.id);
       const active = tier.id === selected.id;
-      const requirements = campaignUnlockRequirementText(tier, progress);
-      return `<article class="campaign-tier-node ${unlocked ? "unlocked" : "locked"} ${defeated ? "defeated" : ""} ${active ? "selected" : ""}" style="--tier-accent:${tier.accent}">
+      const current = tier.id === currentTierId;
+      return {
+        level: tier.unlock.level,
+        markup: `<article class="campaign-track-event campaign-tier-node ${unlocked ? "unlocked" : "locked"} ${defeated ? "defeated" : ""} ${current ? "current" : ""} ${active ? "selected" : ""}" style="--tier-accent:${tier.accent};--track-position:${levelPosition(tier.unlock.level)}%">
+        <span class="campaign-track-marker"><small>LV</small><b>${tier.unlock.level}</b></span>
         <button data-action="select-campaign-tier" data-campaign-tier="${tier.id}" aria-pressed="${active}" aria-label="${tier.name}${unlocked ? " unlocked" : " locked"}">
           <img class="tier-backdrop" src="${tier.backdrop}" alt="">
           <span class="tier-medallion"><img src="${tier.icon}" alt=""></span>
           <span class="tier-node-copy"><small>TIER ${tier.order + 1}</small><b>${tier.name}</b><em>${tier.subtitle}</em></span>
-          <span class="tier-state">${defeated ? "CLEARED" : unlocked ? "READY" : `LEVEL ${tier.unlock.level}`}</span>
+          <span class="tier-state">${defeated ? "CLEARED" : current ? "CURRENT" : unlocked ? "UNLOCKED" : "LOCKED"}</span>
         </button>
-        <div class="tier-details">
-          <p>${tier.description}</p>
-          <div class="tier-requirements">${requirements.map((requirement) => `<span class="${requirement.startsWith("Complete") ? "met" : "unmet"}">${requirement}</span>`).join("")}</div>
-          <div class="tier-enemies"><strong>Tier threats</strong>${tier.specialEnemies.length
-            ? tier.specialEnemies.map((kind) => `<span><img src="${ASSETS.enemies[kind]}" alt=""><b>${ENEMY_REGISTRY[kind].displayName}</b><small>Night ${ENEMY_REGISTRY[kind].introductionNight}</small></span>`).join("")
-            : `<span><img src="${ASSETS.enemies.basic}" alt=""><b>Classic Horde</b><small>Base roster</small></span>`}
-            <span class="boss"><img src="${ASSETS.enemies[tier.boss]}" alt=""><b>${ENEMY_REGISTRY[tier.boss].displayName}</b><small>Boss</small></span>
-          </div>
-          <div class="tier-milestones">${tier.milestones.map((milestone) => `<span class="${claimed.has(milestone.id) ? "claimed" : progress.level >= milestone.level ? "earned" : ""}"><small>LEVEL ${milestone.level}</small>${this.rewardMarkup(milestone.reward)}</span>`).join("")}</div>
-        </div>
-      </article>`;
-    }).join("");
+      </article>`,
+      };
+    });
+    events.push(...CAMPAIGN_TIERS.flatMap((tier) => tier.milestones.map((milestone) => {
+      const rewardClaimed = claimed.has(milestone.id);
+      const earned = progress.level >= milestone.level;
+      return {
+        level: milestone.level,
+        markup: `<article class="campaign-track-event campaign-reward-node ${rewardClaimed ? "claimed" : earned ? "earned" : "locked"}" style="--tier-accent:${tier.accent};--track-position:${levelPosition(milestone.level)}%">
+          <span class="campaign-track-marker reward"><small>LV</small><b>${milestone.level}</b></span>
+          <span class="campaign-track-reward">${this.rewardMarkup(milestone.reward)}<small>${rewardClaimed ? "CLAIMED" : earned ? "EARNED" : "LEVEL REWARD"}</small></span>
+        </article>`,
+      };
+    })));
+    const trackEvents = events.sort((a, b) => b.level - a.level).map((event) => event.markup).join("");
+    const requirements = campaignUnlockRequirementText(selected, progress);
     return `<section class="screen modal-screen campaign-ladder-screen"><div class="campaign-ladder-modal" role="dialog" aria-modal="true" aria-labelledby="campaign-ladder-title">
       <header><div><p class="eyebrow">SINGLE-PLAYER CAMPAIGN</p><h2 id="campaign-ladder-title">Raise Your Standard</h2><p>Climb with XP, claim rewards, and clear each tier to unlock the next.</p></div><span class="campaign-level">LEVEL <b>${progress.level}</b></span><button class="icon-button" data-action="close-campaign" aria-label="Close">${icon("close")}</button></header>
-      <div class="campaign-ladder-viewport"><div class="campaign-ladder-rail" style="--ladder-progress:${Math.max(0, Math.min(100, (progress.level - 1) / (CAMPAIGN_TIERS.at(-1)!.unlock.level - 1) * 100))}%">${tiers}</div></div>
-      <footer><div><small>SELECTED TIER</small><b>${selected.name}</b><span>${selectedUnlocked ? "Ready to defend" : "Complete every requirement to unlock"}</span></div>
+      <div class="campaign-ladder-viewport"><div class="campaign-ladder-rail" style="--ladder-progress:${levelPosition(progress.level)}%">${trackEvents}</div></div>
+      <footer><div><small>SELECTED TIER</small><b>${selected.name}</b><span>${selected.description}</span><div class="campaign-footer-requirements">${requirements.map((requirement) => `<i class="${requirement.startsWith("Complete") ? "met" : "unmet"}">${requirement}</i>`).join("")}</div></div>
         <button class="primary" data-action="start-campaign-tier" ${selectedUnlocked ? "" : "disabled"}>${icon("play")} ${selectedUnlocked ? `Play ${selected.name}` : "Tier Locked"}</button></footer>
     </div></section>`;
   }
@@ -575,7 +590,6 @@ export class Ui {
     const profile = manager.profile;
     const progress = levelProgress(profile.lifetimeXp);
     const user = this.game.platform?.user;
-    const helmet = profile.equipment.helmet;
     const upgradeLevels = PERMANENT_UPGRADES.reduce(
       (total, upgrade) => total + profile.permanentUpgrades[upgrade.id],
       0,
@@ -598,7 +612,6 @@ export class Ui {
             <i class="preview-body"></i>
             <img class="preview-details" src="${META_BALANCE.assets.player.bodyDetails}" alt="">
             <img class="preview-eyes" src="${META_BALANCE.assets.player.eyes[this.profileEyeDraft]}" alt="">
-            ${helmet.equipped && helmet.tier ? `<img class="preview-helmet" src="${META_BALANCE.assets.equipment.helmet[helmet.tier]}" alt="">` : ""}
           </div>
           <div class="customization-group"><b>Player color</b><div class="swatch-row">
             ${META_BALANCE.customization.colors.map((color) => `<button data-action="pick-color" data-color="${color}"
@@ -791,7 +804,7 @@ export class Ui {
       const progress = Math.min(target, bounty.progress);
       return `<article class="bounty-row ${bounty.completed ? "complete" : ""}">
         <span class="bounty-icon">${icon(definition.icon)}</span>
-        <div><small>TIER ${definition.difficulty} · ${coinAmount(definition.coinReward)}</small><h3>${definition.name}</h3><p>${definition.description}</p>
+        <div><small>TIER ${definition.difficulty} · ${coinAmount(definition.coinReward)} · COMPLETES NIGHT ${definition.requirement.minimumNight}+</small><h3>${definition.name}</h3><p>${definition.description}</p>
           <span class="bounty-progress"><i style="width:${progress / target * 100}%"></i></span><b>${bounty.completed ? "COMPLETE" : `${progress} / ${target}`}</b></div>
       </article>`;
     }).join("");

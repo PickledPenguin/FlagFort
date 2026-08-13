@@ -92,7 +92,8 @@ describe("volcanic enemies", () => {
     expect(definition.assets.portrait).toBe("enemies/magma-spitter-zombie");
     expect(definition.render).toEqual({ aspectRatio: 112 / 104, width: 82, height: 76 });
     expect(definition.targeting).toMatchObject({
-      mode: "harvester",
+      mode: "priority",
+      priorities: ["turret", "player", "harvester", "flag"],
       attackRange: 430,
       innerRadius: 190,
     });
@@ -112,8 +113,10 @@ describe("volcanic enemies", () => {
   it("bombards a harvester from range with extra structure damage", () => {
     const game = gameFixture();
     const definition = ENEMY_REGISTRY["magma-spitter"];
-    const magmaSpitter = spawn(game, "magma-spitter", game.player.x - 300, game.player.y);
-    const harvester = structure(950, "harvester", game.player.x, game.player.y);
+    const magmaSpitter = spawn(game, "magma-spitter", 500, 500);
+    const harvester = structure(950, "harvester", 800, 500);
+    game.player.x = 1500;
+    game.player.y = 1500;
     game.structures = [harvester];
 
     (game as unknown as { selectEnemyTarget(enemy: Enemy): void })
@@ -135,6 +138,57 @@ describe("volcanic enemies", () => {
     });
     (game as unknown as { updateProjectiles(dt: number): void }).updateProjectiles(0.8);
     expect(harvester.health).toBe(harvester.maxHealth - magmaSpitter.structureDamage);
+    expect(game.projectiles).toHaveLength(0);
+  });
+
+  it("prioritizes turrets, then the player, then harvesters", () => {
+    const game = gameFixture();
+    const magmaSpitter = spawn(game, "magma-spitter", 500, 500);
+    const turret = structure(951, "turret", 780, 500);
+    const harvester = structure(952, "harvester", 740, 500);
+    game.player.x = 700;
+    game.player.y = 500;
+    game.structures = [harvester, turret];
+
+    const selectTarget = () => (game as unknown as { selectEnemyTarget(enemy: Enemy): void })
+      .selectEnemyTarget(magmaSpitter);
+    selectTarget();
+    expect(magmaSpitter.targetId).toBe(turret.id);
+
+    game.structures = [harvester];
+    (game as unknown as { rebuildSpatial(): void }).rebuildSpatial();
+    selectTarget();
+    expect(magmaSpitter.targetId).toBe("player");
+
+    game.player.x = 1500;
+    game.player.y = 1500;
+    selectTarget();
+    expect(magmaSpitter.targetId).toBe(harvester.id);
+  });
+
+  it("sends magma projectiles through resource nodes to valid targets", () => {
+    const game = gameFixture();
+    const definition = ENEMY_REGISTRY["magma-spitter"];
+    const magmaSpitter = spawn(game, "magma-spitter", 500, 500);
+    const harvester = structure(953, "harvester", 800, 500);
+    game.player.x = 1500;
+    game.player.y = 1500;
+    game.structures = [harvester];
+    for (const resource of game.world.resources) resource.destroyed = true;
+    const blockingNode = game.world.resources[0]!;
+    blockingNode.destroyed = false;
+    blockingNode.x = 650;
+    blockingNode.y = 500;
+    (game as unknown as { rebuildSpatial(): void }).rebuildSpatial();
+
+    (game as unknown as { selectEnemyTarget(enemy: Enemy): void }).selectEnemyTarget(magmaSpitter);
+    (game as unknown as {
+      enemyRangedAttack(enemy: Enemy, target: Structure, dt: number): void;
+    }).enemyRangedAttack(magmaSpitter, harvester, definition.attack.chargeSeconds);
+    (game as unknown as { updateProjectiles(dt: number): void }).updateProjectiles(0.8);
+
+    expect(harvester.health).toBe(harvester.maxHealth - magmaSpitter.structureDamage);
+    expect(blockingNode.destroyed).toBe(false);
     expect(game.projectiles).toHaveLength(0);
   });
 

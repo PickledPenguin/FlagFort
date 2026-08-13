@@ -8,6 +8,8 @@ describe("seeded run bounties", () => {
     expect(BOUNTIES.filter((item) => item.difficulty === 2)).toHaveLength(10);
     expect(BOUNTIES.filter((item) => item.difficulty === 3)).toHaveLength(5);
     expect(new Set(BOUNTIES.map((item) => item.id)).size).toBe(50);
+    expect(BOUNTIES.every((item) => item.requirement.minimumNight >= 5)).toBe(true);
+    expect(BOUNTIES.every((item) => item.exclusionGroup.length > 0)).toBe(true);
   });
 
   it("selects three distinct deterministic bounties without tier input", () => {
@@ -16,5 +18,19 @@ describe("seeded run bounties", () => {
     expect(first).toHaveLength(3);
     expect(new Set(first.map((item) => item.id)).size).toBe(3);
     expect(selectRunBounties("another-seed")).not.toEqual(first);
+  });
+
+  it("never selects two variants from the same exclusion group", () => {
+    for (let index = 0; index < 500; index += 1) {
+      const selected = selectRunBounties(`exclusion-seed-${index}`);
+      expect(new Set(selected.map((item) => item.exclusionGroup)).size).toBe(3);
+    }
+  });
+
+  it("keeps deterministic selection stable across repeated calls", () => {
+    const seeds = ["forest-run", "snow-run", "volcanic-run", "endless-run"];
+    const firstPass = seeds.map((seed) => selectRunBounties(seed).map((item) => item.id));
+    const secondPass = seeds.map((seed) => selectRunBounties(seed).map((item) => item.id));
+    expect(secondPass).toEqual(firstPass);
   });
 });

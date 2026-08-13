@@ -224,7 +224,10 @@ export class Renderer {
     ctx.save();
     ctx.clearRect(0, 0, BALANCE.logicalWidth, BALANCE.logicalHeight);
     const biomePalette = game.getCampaignTier().biome.palette;
-    ctx.fillStyle = game.tutorialMode ? "#000000" : biomePalette.viewport;
+    const viewportColor = game.tutorialMode ? "#000000" : biomePalette.viewport;
+    this.canvas.style.backgroundColor = viewportColor;
+    document.documentElement.style.setProperty("--biome-viewport", viewportColor);
+    ctx.fillStyle = viewportColor;
     ctx.fillRect(0, 0, BALANCE.logicalWidth, BALANCE.logicalHeight);
 
     const shakeX = game.tutorialMode ? 0 : Math.sin(this.time * 71) * game.shake;

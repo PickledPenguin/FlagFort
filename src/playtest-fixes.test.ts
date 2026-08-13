@@ -435,7 +435,7 @@ describe("progression safety and presentation", () => {
     expect(document.querySelector('[data-equipment-item="helmet"].upgrade-feedback')).not.toBeNull();
   });
 
-  it("opens Campaign on the highest unlocked expanded tier with simple rewards", () => {
+  it("opens Campaign on the highest unlocked tier with level-positioned rewards", () => {
     const manager = new ProfileManager(new TestStore());
     manager.profile.playerLevel = 7;
     manager.profile.campaign.defeatedTierIds = ["forest"];
@@ -452,8 +452,11 @@ describe("progression safety and presentation", () => {
     const snowy = document.querySelector<HTMLElement>('[data-campaign-tier="snowy"]')!
       .closest(".campaign-tier-node");
     expect(snowy?.classList.contains("selected")).toBe(true);
-    expect(snowy?.querySelector(".tier-details")).not.toBeNull();
-    expect(document.querySelector(".tier-milestones > span > b")).toBeNull();
+    expect(snowy?.classList.contains("current")).toBe(true);
+    expect(snowy?.querySelector(".campaign-track-marker")?.textContent).toContain("7");
+    expect(document.querySelectorAll(".campaign-reward-node")).toHaveLength(16);
+    expect(document.querySelector(".campaign-footer-requirements")?.textContent)
+      .toContain("Reach Level 7");
   });
 
   it("keeps the coin floor for migration, settlement, and shop purchases", () => {
