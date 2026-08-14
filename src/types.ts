@@ -1,6 +1,6 @@
 export type Difficulty = "easy" | "normal" | "hard" | "extreme";
 export type RunMode = "campaign" | "endless";
-export const CAMPAIGN_TIER_IDS = ["forest", "snowy", "desert", "volcanic", "wasteland", "rift", "mire", "clockwork"] as const;
+export const CAMPAIGN_TIER_IDS = ["forest", "snowy", "desert", "wasteland", "volcanic", "rift", "mire", "clockwork"] as const;
 export type CampaignTierId = typeof CAMPAIGN_TIER_IDS[number];
 
 export function isCampaignTierId(value: unknown): value is CampaignTierId {
@@ -87,21 +87,24 @@ export interface Circle extends Vec2 {
 
 export interface TimedStatusEffect {
   remaining: number;
+  visual?: "frost" | "slime";
 }
 
 export interface EntityStatuses {
   slow?: TimedStatusEffect;
   burn?: TimedStatusEffect;
+  poison?: TimedStatusEffect;
 }
 
 export interface EnemyStatusEffect {
-  kind: "slow" | "burn";
+  kind: "slow" | "burn" | "poison";
   duration: number;
-  durationBalance?: "calderaBurn";
+  durationBalance?: "calderaBurn" | "wastelandPoison";
   targets: readonly ("player" | StructureKind)[];
   popupTextColor: string;
   particleColor?: string;
   popupText?: string;
+  visual?: "frost" | "slime";
 }
 
 export interface Player extends Circle {
@@ -138,6 +141,7 @@ export interface ResourceNode extends Circle {
   infectionCooldown?: number;
   harvestDamage?: number;
   radiationDamage?: number;
+  radiationAffected?: boolean;
 }
 
 export interface Portal extends Circle {
@@ -263,6 +267,7 @@ export interface Projectile extends Circle {
   appearance?: "arrow" | "snowball" | "sandblast" | "magma" | "sludge" | "comet" | "spore" | "aether";
   pierces?: boolean;
   statusEffect?: EnemyStatusEffect;
+  secondaryStatusEffect?: EnemyStatusEffect;
   impactBurst?: {
     color: string;
     count: number;

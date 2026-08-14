@@ -534,10 +534,13 @@ describe("phase and run rules", () => {
     expect(game.isCombatMode()).toBe(false);
   });
 
-  it("ignores upgrade clicks during the first second of a dawn screen", () => {
+  it("enables visible upgrade cards after 0.5 seconds without replaying the screen entrance", () => {
     const game = new Game(fakeInput());
+    let majorScreenTransitions = 0;
+    game.bindUi(() => undefined, () => { majorScreenTransitions += 1; });
     game.startRun("normal", "dawn-click-guard");
     (game as unknown as { beginDawn(): void }).beginDawn();
+    majorScreenTransitions = 0;
     const firstChoice = game.choices[0]!;
 
     game.chooseDawn(0);
@@ -545,6 +548,8 @@ describe("phase and run rules", () => {
     expect(game.dawnPicked).not.toContain(firstChoice.id);
 
     game.update(BALANCE.ui.dawnChoiceClickDelay);
+    expect(game.dawnChoiceLockRemaining).toBe(0);
+    expect(majorScreenTransitions).toBe(0);
     game.chooseDawn(0);
     expect(game.dawnScreen).toBe(1);
     expect(game.dawnPicked).toContain(firstChoice.id);

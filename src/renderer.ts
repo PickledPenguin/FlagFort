@@ -1,5 +1,5 @@
 import { BALANCE } from "./config";
-import { isBurning, isSlowed } from "./status-effects";
+import { isBurning, isPoisoned, isSlowed } from "./status-effects";
 import { allAssetPaths, ASSETS } from "./assets";
 import { BUILD_BAR_ICON_PATHS } from "./build-bar-icons";
 import { ENEMY_REGISTRY } from "./enemy-registry";
@@ -365,6 +365,8 @@ export class Renderer {
     }
     if (game.tutorialMode) this.drawTutorialMarkers(game);
 
+    this.drawRadiationFields(game);
+
     for (const node of game.world.resources) {
       if (node.destroyed) continue;
       if (this.visible(game, node.x, node.y, node.radius)) {
@@ -694,6 +696,34 @@ export class Renderer {
     ctx.strokeRect(0, 0, BALANCE.mapSize, BALANCE.mapSize);
   }
 
+  private drawRadiationFields(game: Game): void {
+    const ctx = this.ctx;
+    const activationDuration = BALANCE.tierMechanics.wasteland.radiationActivationDuration;
+    for (const hazard of game.radiationHazards) {
+      if (!this.visible(game, hazard.x, hazard.y, hazard.radius + 30)) continue;
+      const progress = Math.max(0, Math.min(1, 1 - hazard.activationRemaining / activationDuration));
+      const radius = hazard.radius * (0.12 + progress * 0.88);
+      ctx.save();
+      ctx.globalAlpha = 0.15 * progress;
+      ctx.fillStyle = "#79d63c";
+      ctx.beginPath(); ctx.arc(hazard.x, hazard.y, radius, 0, Math.PI * 2); ctx.fill();
+      ctx.globalAlpha = 0.82;
+      this.drawSprite(ASSETS.effects.uraniumBloodSplatter, hazard.x - 32, hazard.y - 24, 64, 48);
+      ctx.restore();
+    }
+    for (const enemy of game.enemies) {
+      if (enemy.health <= 0 || !ENEMY_REGISTRY[enemy.kind].capabilities.radiationAura) continue;
+      const radius = BALANCE.tierMechanics.wasteland.radiationRadius;
+      if (!this.visible(game, enemy.x, enemy.y, radius + 20)) continue;
+      ctx.save();
+      ctx.fillStyle = "rgba(121,214,60,.08)";
+      ctx.strokeStyle = "rgba(183,221,99,.2)";
+      ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc(enemy.x, enemy.y, radius, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      ctx.restore();
+    }
+  }
+
   private drawSandTunnels(game: Game): void {
     const ctx = this.ctx;
     for (const tunnel of game.sandTunnels) {
@@ -884,10 +914,16 @@ export class Renderer {
       ctx.save(); ctx.fillStyle = "rgba(255,105,32,.24)"; ctx.beginPath();
       ctx.arc(structure.x, structure.y, structure.radius + 9 + Math.sin(this.time * 9) * 3, 0, Math.PI * 2); ctx.fill(); ctx.restore();
     }
+    if (isPoisoned(structure)) {
+      ctx.save(); ctx.fillStyle = "rgba(121,214,60,.22)"; ctx.beginPath();
+      ctx.arc(structure.x, structure.y, structure.radius + 10 + Math.sin(this.time * 8) * 2, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+    }
     ctx.save();
     ctx.translate(structure.x, structure.y);
     if (structure.kind === "turret" && isSlowed(structure)) {
-      ctx.filter = "saturate(.68) brightness(1.1) contrast(.94)";
+      ctx.filter = structure.statuses?.slow?.visual === "slime"
+        ? "sepia(.35) saturate(1.35) hue-rotate(42deg) brightness(1.02)"
+        : "saturate(.68) brightness(1.1) contrast(.94)";
     }
     if (structure.kind === "door") {
       const proximity = Math.max(0, Math.min(1,
@@ -1183,23 +1219,6 @@ export class Renderer {
         ? ASSETS.enemyBrokenArmor[enemy.kind] ?? ASSETS.enemyBodies[enemy.kind]
         : ASSETS.enemyBodies[enemy.kind];
       this.drawSprite(bossSprite, -size / 2, -size / 2, size, size, enemy.flash > 0);
-      if (armored) {
-        ctx.fillStyle = "rgba(174,239,250,.22)";
-        ctx.strokeStyle = "rgba(225,252,255,.92)";
-        ctx.lineWidth = 5;
-        for (let index = 0; index < 8; index += 1) {
-          const shardAngle = index / 8 * Math.PI * 2;
-          const inner = enemy.radius * 0.78;
-          const outer = enemy.radius * (1.08 + (index % 2) * 0.08);
-          ctx.beginPath();
-          ctx.moveTo(Math.cos(shardAngle - 0.24) * inner, Math.sin(shardAngle - 0.24) * inner);
-          ctx.lineTo(Math.cos(shardAngle) * outer, Math.sin(shardAngle) * outer);
-          ctx.lineTo(Math.cos(shardAngle + 0.24) * inner, Math.sin(shardAngle + 0.24) * inner);
-          ctx.closePath();
-          ctx.fill();
-          ctx.stroke();
-        }
-      }
       ctx.restore();
       if (armored) {
         this.healthBar(
@@ -1402,6 +1421,29 @@ export class Renderer {
     const rise = Math.min(1, progress / 0.38);
     const fade = progress > 0.72 ? 1 - (progress - 0.72) / 0.28 : 1;
     ctx.globalAlpha = Math.max(0, fade);
+    if (appearance.shape === "nuclear-cloud") {
+      const stemHeight = strike.radius * 0.72 * rise;
+      const cloudRadius = strike.radius * (0.22 + rise * 0.32);
+      const gradient = ctx.createRadialGradient(0, -stemHeight, 0, 0, -stemHeight, cloudRadius);
+      gradient.addColorStop(0, appearance.eruptionHighlight);
+      gradient.addColorStop(0.5, appearance.eruptionFarEdge);
+      gradient.addColorStop(1, "rgba(48,71,45,0)");
+      ctx.fillStyle = appearance.eruptionShadow;
+      ctx.beginPath(); ctx.ellipse(0, 8, strike.radius * 0.82, strike.radius * 0.3, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = appearance.eruptionEdge;
+      ctx.beginPath(); ctx.roundRect(-strike.radius * 0.12, -stemHeight, strike.radius * 0.24, stemHeight, strike.radius * 0.1); ctx.fill();
+      ctx.fillStyle = gradient;
+      for (let index = 0; index < 7; index += 1) {
+        const angle = index / 7 * Math.PI * 2 + strike.id * 0.31;
+        const lobeX = Math.cos(angle) * cloudRadius * 0.55;
+        const lobeY = -stemHeight + Math.sin(angle) * cloudRadius * 0.26;
+        ctx.beginPath();
+        ctx.arc(lobeX, lobeY, cloudRadius * (0.58 + (index % 3) * 0.08), 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+      return;
+    }
     ctx.rotate(strike.angle);
     ctx.fillStyle = appearance.eruptionShadow;
     ctx.beginPath();
@@ -1432,6 +1474,10 @@ export class Renderer {
       ctx.save(); ctx.fillStyle = "rgba(255,105,32,.25)"; ctx.beginPath();
       ctx.arc(game.player.x, game.player.y, game.player.radius + 11 + Math.sin(this.time * 10) * 3, 0, Math.PI * 2); ctx.fill(); ctx.restore();
     }
+    if (isPoisoned(game.player)) {
+      ctx.save(); ctx.fillStyle = "rgba(121,214,60,.24)"; ctx.beginPath();
+      ctx.arc(game.player.x, game.player.y, game.player.radius + 12 + Math.sin(this.time * 8) * 2, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+    }
     const player = game.player;
     const angle = player.angle;
     const punching = player.cooldown > 0 && game.getSelectedAction() === "fists";
@@ -1441,7 +1487,9 @@ export class Renderer {
     ctx.translate(player.x, player.y);
     ctx.rotate(angle);
     if (isSlowed(player)) {
-      ctx.filter = "saturate(.7) brightness(1.08) contrast(.95)";
+      ctx.filter = player.statuses?.slow?.visual === "slime"
+        ? "sepia(.35) saturate(1.35) hue-rotate(42deg) brightness(1.02)"
+        : "saturate(.7) brightness(1.08) contrast(.95)";
     }
     const action = game.getSelectedAction();
     const gloveTier = game.getBestGlove();
@@ -1538,7 +1586,7 @@ export class Renderer {
       this.drawSprite(META_BALANCE.assets.equipment.helmet[helmet.tier], -30, -37, 60, 55, flashing);
       ctx.restore();
     }
-    if (isSlowed(player)) {
+    if (isSlowed(player) && player.statuses?.slow?.visual !== "slime") {
       ctx.filter = "none";
       ctx.rotate(-angle);
       this.drawFrostAccumulation(player.radius);

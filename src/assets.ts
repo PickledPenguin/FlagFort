@@ -186,6 +186,7 @@ export const ASSETS = {
   },
   effects: {
     bossSlamWave: image("effects/boss-slam-wave"),
+    uraniumBloodSplatter: image("effects/uranium-blood-splatter"),
   },
   cursors: {
     ringAllowed: image("gameplay/cursors/ring-allowed"),

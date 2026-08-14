@@ -237,7 +237,10 @@ export class Ui {
   private renderOverlay(force: boolean): void {
     if (this.choiceAnimating) return;
     const key = this.overlayKey();
-    if (!force && key === this.lastOverlayKey) return;
+    if (!force && key === this.lastOverlayKey) {
+      this.syncDawnChoiceLock();
+      return;
+    }
     this.lastOverlayKey = key;
     if (this.tutorialOpen) this.overlay.innerHTML = this.tutorialMarkup();
     else if (this.game.skipNightConfirmation) this.overlay.innerHTML = this.skipNightMarkup();
@@ -270,6 +273,16 @@ export class Ui {
       this.overlay.querySelector<HTMLElement>(".dawn-panel")?.focus();
     } else if (this.game.phase === "victory" || this.game.phase === "defeat") {
       this.overlay.querySelector<HTMLElement>(".result-card")?.focus();
+    }
+  }
+
+  private syncDawnChoiceLock(): void {
+    if (this.game.phase !== "dawn" || this.game.dawnChoiceLockRemaining > 0) return;
+    const choiceSet = this.overlay.querySelector<HTMLElement>(".choice-set.input-locked");
+    if (!choiceSet) return;
+    choiceSet.classList.remove("input-locked");
+    for (const choice of choiceSet.querySelectorAll<HTMLButtonElement>(".choice-pair")) {
+      choice.disabled = false;
     }
   }
 

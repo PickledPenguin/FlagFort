@@ -207,7 +207,7 @@ describe("deterministic enemy roster", () => {
         expect(definition.ram.breachBurst.popupText).toBeTruthy();
       }
       if (definition.areaStrike) {
-        expect(definition.areaStrike.appearance.shape).toBe("spike");
+        expect(["spike", "nuclear-cloud"]).toContain(definition.areaStrike.appearance.shape);
         for (const color of Object.entries(definition.areaStrike.appearance)
           .filter(([key]) => key !== "shape")
           .map(([, value]) => value)) {

@@ -10,6 +10,7 @@ export type CampaignReward =
 
 export interface CampaignMilestone {
   id: string;
+  legacyIds?: readonly string[];
   level: number;
   reward: CampaignReward;
 }
@@ -392,26 +393,8 @@ export const CAMPAIGN_TIERS: readonly CampaignTierDefinition[] = [
     music: DEFAULT_TIER_MUSIC,
   },
   {
-    id: "volcanic",
-    order: 3,
-    name: "Caldera Crucible",
-    subtitle: "Fortress at the fireline",
-    description: "Hold the blackened slopes where volatile dead erupt, magma hunts industry, and obsidian charges break the line.",
-    accent: "#ff8a3d",
-    ...CAMPAIGN_TIER_ARTWORK.volcanic,
-    boss: "caldera-sovereign",
-    specialEnemies: ["cinderburst", "magma-spitter", "obsidian-charger"],
-    unlock: { level: 19, previousTierId: "desert" },
-    milestones: [
-      { id: "volcanic-level-11-coins", level: 21, reward: { kind: "coins", amount: 130 } },
-      { id: "volcanic-level-12-coins", level: 23, reward: { kind: "coins", amount: 155 } },
-    ],
-    biome: CAMPAIGN_BIOMES.volcanic,
-    music: DEFAULT_TIER_MUSIC,
-  },
-  {
     id: "wasteland",
-    order: 4,
+    order: 3,
     name: "Fallout Exclusion",
     subtitle: "Last stand in the dead zone",
     description: "Defend the irradiated ruins where hunters breach gaps, toxic volleys suppress defenders, and sirens rally the dead.",
@@ -419,12 +402,30 @@ export const CAMPAIGN_TIERS: readonly CampaignTierDefinition[] = [
     ...CAMPAIGN_TIER_ARTWORK.wasteland,
     boss: "reactor-revenant",
     specialEnemies: ["radstalker", "sludge-lobber", "ruin-siren"],
-    unlock: { level: 25, previousTierId: "volcanic" },
+    unlock: { level: 19, previousTierId: "desert" },
     milestones: [
-      { id: "wasteland-level-14-coins", level: 27, reward: { kind: "coins", amount: 185 } },
-      { id: "wasteland-level-15-coins", level: 29, reward: { kind: "coins", amount: 220 } },
+      { id: "wasteland-level-11-coins", legacyIds: ["volcanic-level-11-coins"], level: 21, reward: { kind: "coins", amount: 130 } },
+      { id: "wasteland-level-12-coins", legacyIds: ["volcanic-level-12-coins"], level: 23, reward: { kind: "coins", amount: 155 } },
     ],
     biome: CAMPAIGN_BIOMES.wasteland,
+    music: DEFAULT_TIER_MUSIC,
+  },
+  {
+    id: "volcanic",
+    order: 4,
+    name: "Caldera Crucible",
+    subtitle: "Fortress at the fireline",
+    description: "Hold the blackened slopes where volatile dead erupt, magma hunts industry, and obsidian charges break the line.",
+    accent: "#ff8a3d",
+    ...CAMPAIGN_TIER_ARTWORK.volcanic,
+    boss: "caldera-sovereign",
+    specialEnemies: ["cinderburst", "magma-spitter", "obsidian-charger"],
+    unlock: { level: 25, previousTierId: "wasteland" },
+    milestones: [
+      { id: "volcanic-level-14-coins", legacyIds: ["wasteland-level-14-coins"], level: 27, reward: { kind: "coins", amount: 185 } },
+      { id: "volcanic-level-15-coins", legacyIds: ["wasteland-level-15-coins"], level: 29, reward: { kind: "coins", amount: 220 } },
+    ],
+    biome: CAMPAIGN_BIOMES.volcanic,
     music: DEFAULT_TIER_MUSIC,
   },
   {
@@ -437,7 +438,7 @@ export const CAMPAIGN_TIERS: readonly CampaignTierDefinition[] = [
     ...CAMPAIGN_TIER_ARTWORK.rift,
     boss: "eclipse-regent",
     specialEnemies: ["rift-strider", "comet-slinger", "void-herald"],
-    unlock: { level: 31, previousTierId: "wasteland" },
+    unlock: { level: 31, previousTierId: "volcanic" },
     milestones: [
       { id: "rift-level-17-coins", level: 33, reward: { kind: "coins", amount: 260 } },
       { id: "rift-level-18-coins", level: 35, reward: { kind: "coins", amount: 305 } },
@@ -539,7 +540,9 @@ export function earnedCampaignMilestones(
   return CAMPAIGN_TIERS.flatMap((tier) => (
     isCampaignTierUnlocked(tier, progress)
       ? tier.milestones.filter((milestone) => (
-          milestone.level <= progress.level && !claimed.has(milestone.id)
+          milestone.level <= progress.level
+          && !claimed.has(milestone.id)
+          && !(milestone.legacyIds ?? []).some((id) => claimed.has(id))
         ))
       : []
   ));

@@ -327,7 +327,9 @@ describe("Frost Warden", () => {
     expect(turret.statuses?.slow?.remaining).toBe(pulse.statusEffect.duration);
     expect(wall.statuses).toBeUndefined();
     expect(game.areaEffects.filter((effect) => effect.kind === "frost-slam")).toHaveLength(1);
-    expect(game.shake).toBe(ENEMY_REGISTRY["frost-warden"].armor!.breakShake);
+    expect(game.shake).toBe(
+      ENEMY_REGISTRY["frost-warden"].armor!.breakShake * BALANCE.boss.strongShakeMultiplier,
+    );
 
     damageEnemy(game, warden, 5, "player-melee");
     expect(game.areaEffects.filter((effect) => effect.kind === "frost-slam")).toHaveLength(1);

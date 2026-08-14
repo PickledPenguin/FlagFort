@@ -75,7 +75,15 @@ export const BALANCE = {
       calderaBurnDuration: 2,
       cinderburstDamageMultiplier: 0.9,
     },
-    wasteland: { radiationRadius: 230, radiationDamagePerSecond: 0.55 },
+    wasteland: {
+      radiationRadius: 230,
+      radiationDamagePerSecond: 0.55,
+      radiationActivationDuration: 1,
+      poisonDuration: 7,
+      poisonDamagePerSecond: 3.5,
+      standardAreaAttackCooldown: 4.25,
+      largeAreaAttackFrequencyMultiplier: 0.5,
+    },
     rift: {
       ghostDuration: 2,
       deathPortalDuration: 8,
@@ -119,7 +127,7 @@ export const BALANCE = {
     stuckBlockerSearchPadding: 12,
   },
   ui: {
-    dawnChoiceClickDelay: 1,
+    dawnChoiceClickDelay: 0.5,
     messageDuration: 2.8,
     criticalMessageDuration: 4.5,
     tutorialPreferenceKey: "countdown-forest-tutorial-seen",
@@ -220,6 +228,7 @@ export const BALANCE = {
   boss: {
     obstacleAttackRange: 18,
     obstaclePathWidth: 0.55,
+    strongShakeMultiplier: 0.55,
   },
   punchHands: ["right", "left"] as const,
   harvester: {

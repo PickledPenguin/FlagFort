@@ -47,7 +47,7 @@ import {
   type PermanentUpgradeId,
 } from "./meta-balance";
 import { resolveActionCooldown, resolveEffectiveStat } from "./modifiers";
-import { applyBurn, applySlow, isBurning, isSlowed, updateStatuses } from "./status-effects";
+import { applyBurn, applyPoison, applySlow, isBurning, isPoisoned, isSlowed, updateStatuses } from "./status-effects";
 import {
   performanceDifficultyDelta,
   type NightPerformanceSnapshot,
@@ -224,7 +224,7 @@ export class Game {
   particles: Particle[] = [];
   areaEffects: AreaEffect[] = [];
   areaStrikes: AreaStrike[] = [];
-  radiationHazards: Array<{ x: number; y: number; radius: number; createdNight: number }> = [];
+  radiationHazards: Array<{ x: number; y: number; radius: number; createdNight: number; activationRemaining: number }> = [];
   infectionTravelers: Array<{ x: number; y: number; targetId: number; speed: number }> = [];
   sandTunnels: Array<{ id: number; entry: Vec2; exit: Vec2; remaining: number; cooldown: number }> = [];
   private activeSandstormers: Enemy[] = [];
@@ -1100,7 +1100,7 @@ export class Game {
     if (this.phase === "dawn" && this.dawnChoiceLockRemaining > 0) {
       const wasLocked = this.dawnChoiceLockRemaining > 0;
       this.dawnChoiceLockRemaining = Math.max(0, this.dawnChoiceLockRemaining - dt);
-      if (wasLocked && this.dawnChoiceLockRemaining === 0) this.markUi(true);
+      if (wasLocked && this.dawnChoiceLockRemaining === 0) this.markUi();
     }
     if (this.phase !== "day" && this.phase !== "night") {
       this.input.endFrame();
@@ -1120,6 +1120,9 @@ export class Game {
     this.player.toolCooldown = Math.max(0, this.player.toolCooldown - dt * playerAttackSpeed);
     if (isBurning(this.player)) {
       this.applyIncomingDamage(this.player, BALANCE.tierMechanics.volcanic.burnDamagePerSecond * dt, "cinderburst", "cinderburst-burst");
+    }
+    if (isPoisoned(this.player)) {
+      this.applyIncomingDamage(this.player, BALANCE.tierMechanics.wasteland.poisonDamagePerSecond * dt, "sludge-lobber", "sludge-lobber");
     }
     updateStatuses(this.player, dt);
     this.player.hurtFlash = Math.max(0, this.player.hurtFlash - dt);
@@ -1753,6 +1756,9 @@ export class Game {
       if (isBurning(structure)) {
         this.applyIncomingDamage(structure, BALANCE.tierMechanics.volcanic.burnDamagePerSecond * dt, "cinderburst", "cinderburst-burst");
       }
+      if (isPoisoned(structure)) {
+        this.applyIncomingDamage(structure, BALANCE.tierMechanics.wasteland.poisonDamagePerSecond * dt, "sludge-lobber", "sludge-lobber");
+      }
       structure.cooldown = Math.max(
         0,
         structure.cooldown - dt * this.statusAttackSpeedMultiplier(structure),
@@ -1897,7 +1903,8 @@ export class Game {
       return;
     }
     const harvestAmount = Math.max(1, Math.floor(amount * damageScale));
-    const actualHarvest = Math.min(harvestAmount, node.health);
+    const actualHarvest = Math.floor(Math.min(harvestAmount, node.health));
+    if (actualHarvest <= 0) return;
     node.health = Math.max(0, node.health - actualHarvest);
     node.harvestDamage = Math.min(node.maxHealth, (node.harvestDamage ?? 0) + actualHarvest);
     node.hitFlash = 0.16;
@@ -1932,13 +1939,15 @@ export class Game {
       node.infectionHintTime = 0.42;
     }
     for (const hazard of this.radiationHazards) {
-      for (const node of this.world.resources) {
-        if (node.destroyed || distance(hazard, node) > hazard.radius + node.radius) continue;
-        const remaining = Math.max(0, node.maxHealth - (node.harvestDamage ?? 0) - (node.radiationDamage ?? 0));
-        const damage = Math.min(remaining, BALANCE.tierMechanics.wasteland.radiationDamagePerSecond * dt);
-        node.radiationDamage = (node.radiationDamage ?? 0) + damage;
-        node.health = Math.max(0, node.health - damage);
-      }
+      const beforeActivation = hazard.activationRemaining;
+      hazard.activationRemaining = Math.max(0, hazard.activationRemaining - dt);
+      if (hazard.activationRemaining > 0) continue;
+      const activeDt = Math.max(0, dt - beforeActivation);
+      if (activeDt > 0) this.applyRadiationAt(hazard, hazard.radius, activeDt);
+    }
+    for (const enemy of this.enemies) {
+      if (enemy.health <= 0 || !ENEMY_REGISTRY[enemy.kind].capabilities.radiationAura) continue;
+      this.applyRadiationAt(enemy, BALANCE.tierMechanics.wasteland.radiationRadius, dt);
     }
     this.infectionTravelers = this.infectionTravelers.filter((traveler) => {
       const target = this.world.resources.find((node) => node.id === traveler.targetId && !node.infected);
@@ -1954,6 +1963,20 @@ export class Game {
       this.burst(target.x, target.y, "#79e6c1", 16, "INFECTED");
       return false;
     });
+  }
+
+  private applyRadiationAt(source: Vec2, radius: number, dt: number): void {
+    for (const node of this.world.resources) {
+      if (node.destroyed || distance(source, node) > radius + node.radius) continue;
+      if (!node.radiationAffected) {
+        node.radiationAffected = true;
+        this.burst(node.x, node.y - node.radius, "#b7dd63", 5, "Radiation", "#b7dd63");
+      }
+      const remaining = Math.max(0, node.maxHealth - (node.harvestDamage ?? 0) - (node.radiationDamage ?? 0));
+      const damage = Math.min(remaining, BALANCE.tierMechanics.wasteland.radiationDamagePerSecond * dt);
+      node.radiationDamage = (node.radiationDamage ?? 0) + damage;
+      node.health = Math.max(0, node.health - damage);
+    }
   }
 
   private updatePortals(dt: number): void {
@@ -2894,7 +2917,7 @@ export class Game {
         target.ownerId ?? this.player.id,
       );
     }
-    this.shake = Math.max(this.shake, this.isBossEnemyKind(enemy.kind) ? 10 : 3);
+    this.shake = Math.max(this.shake, this.isBossEnemyKind(enemy.kind) ? this.bossShake(10) : 3);
     this.burst(target.x, target.y, "#ff695f", this.isBossEnemyKind(enemy.kind) ? 14 : 6, `-${Math.round(damage)}`);
   }
 
@@ -3164,8 +3187,9 @@ export class Game {
     popupTextColor: string = BALANCE.snowyEnemies.slow.popupTextColor,
     particleColor: string = BALANCE.snowyEnemies.slow.tint,
     popupText = "Slowed",
+    visual: "frost" | "slime" = "frost",
   ): void {
-    applySlow(target, duration);
+    applySlow(target, duration, visual);
     this.burst(
       target.x,
       target.y,
@@ -3191,8 +3215,10 @@ export class Game {
           effect.popupTextColor,
           effect.particleColor,
           effect.popupText,
+          effect.visual,
         );
-      } else this.applyBurnStatus(this.player, effect);
+      } else if (effect.kind === "burn") this.applyBurnStatus(this.player, effect);
+      else this.applyPoisonStatus(this.player, effect);
       return;
     }
     if ("tier" in target && effect.targets.includes(target.kind)) {
@@ -3203,8 +3229,10 @@ export class Game {
           effect.popupTextColor,
           effect.particleColor,
           effect.popupText,
+          effect.visual,
         );
-      } else this.applyBurnStatus(target, effect);
+      } else if (effect.kind === "burn") this.applyBurnStatus(target, effect);
+      else this.applyPoisonStatus(target, effect);
     }
   }
 
@@ -3225,10 +3253,27 @@ export class Game {
     );
   }
 
-  private statusEffectDuration(effect: Pick<EnemyStatusEffect, "duration" | "durationBalance">): number {
-    return effect.durationBalance === "calderaBurn"
-      ? BALANCE.tierMechanics.volcanic.calderaBurnDuration
-      : effect.duration;
+  private applyPoisonStatus(
+    target: Player | Structure,
+    effect: Pick<EnemyStatusEffect, "duration" | "durationBalance" | "particleColor" | "popupText" | "popupTextColor">,
+  ): void {
+    applyPoison(target, this.statusEffectDuration(effect));
+    this.burst(target.x, target.y, effect.particleColor ?? "#79d63c", 8,
+      effect.popupText ?? "Poisoned", effect.popupTextColor, -24, BALANCE.ui.statusPopupStrokeColor);
+  }
+
+  private statusEffectDuration(
+    effect: Pick<EnemyStatusEffect, "duration" | "durationBalance"> & Partial<Pick<EnemyStatusEffect, "kind">>,
+  ): number {
+    if (effect.durationBalance === "calderaBurn") return BALANCE.tierMechanics.volcanic.calderaBurnDuration;
+    if (effect.kind === "poison" || effect.durationBalance === "wastelandPoison") {
+      return BALANCE.tierMechanics.wasteland.poisonDuration;
+    }
+    return effect.duration;
+  }
+
+  private bossShake(intensity: number): number {
+    return intensity * BALANCE.boss.strongShakeMultiplier;
   }
 
   private applyEnemyKnockback(enemy: Enemy, x: number, y: number): boolean {
@@ -3278,6 +3323,7 @@ export class Game {
       appearance: projectile.appearance,
       pierces: projectile.pierces,
       statusEffect: projectile.statusEffect,
+      secondaryStatusEffect: projectile.secondaryStatusEffect,
       impactBurst: projectile.impactBurst,
     });
     emitAudioCue({
@@ -3462,6 +3508,7 @@ export class Game {
         x: enemy.x, y: enemy.y,
         radius: BALANCE.tierMechanics.wasteland.radiationRadius,
         createdNight: this.night,
+        activationRemaining: BALANCE.tierMechanics.wasteland.radiationActivationDuration,
       });
       this.burst(enemy.x, enemy.y, "#b7dd63", 20, "FALLOUT");
     }
@@ -3560,7 +3607,9 @@ export class Game {
     this.areaEffects.push({ kind: "death-burst", sourceEnemyKind: enemy.kind, x: enemy.x, y: enemy.y, radius: outer, remaining: duration, duration });
     this.burst(enemy.x, enemy.y, death.particleColor ?? "#67d73e",
       death.particleCount ?? 34, death.popupText ?? "ACID BURST");
-    this.shake = Math.max(this.shake, death.screenShake ?? 7);
+    const deathShake = death.screenShake ?? 7;
+    this.shake = Math.max(this.shake,
+      this.isBossEnemyKind(enemy.kind) ? this.bossShake(deathShake) : deathShake);
   }
 
   private updateEnemySummon(enemy: Enemy, dt: number): void {
@@ -3671,7 +3720,7 @@ export class Game {
         duration: config.waveDuration,
       });
       this.burst(enemy.x, enemy.y, config.particleColor, config.particleCount, config.popupText);
-      this.shake = config.screenShake;
+      this.shake = this.bossShake(config.screenShake);
       emitAudioCue({
         cue: config.impactAudio as import("./audio").SoundId,
         position: { x: enemy.x, y: enemy.y },
@@ -3690,7 +3739,10 @@ export class Game {
       (enemy.areaStrikeCooldown ?? 0) - dt * (enemy.attackSpeedMultiplier ?? 1),
     );
     if (enemy.areaStrikeCooldown > 0) return;
-    enemy.areaStrikeCooldown = config.cooldown;
+      enemy.areaStrikeCooldown = config.cooldownBalance === "wastelandLargeAreaAttack"
+        ? BALANCE.tierMechanics.wasteland.standardAreaAttackCooldown
+          / BALANCE.tierMechanics.wasteland.largeAreaAttackFrequencyMultiplier
+        : config.cooldown;
     this.createAreaStrikeAttack(enemy);
   }
 
@@ -3792,7 +3844,7 @@ export class Game {
       emitAudioCue({ cue: "structure-damaged", position: { x: structure.x, y: structure.y } });
     }
     this.shardBurst(strike.x, strike.y, config.impactParticleCount);
-    this.shake = Math.max(this.shake, config.screenShake);
+    this.shake = Math.max(this.shake, this.bossShake(config.screenShake));
     emitAudioCue({
       cue: config.impactAudio as import("./audio").SoundId,
       position: { x: strike.x, y: strike.y },
@@ -3878,15 +3930,8 @@ export class Game {
           const playerStatusEffect = projectile.statusEffect?.targets.includes("player")
             ? projectile.statusEffect
             : undefined;
-          if (playerStatusEffect?.kind === "slow") {
-            this.applySlowStatus(
-              this.player,
-              playerStatusEffect.duration,
-              playerStatusEffect.popupTextColor,
-              playerStatusEffect.particleColor,
-              playerStatusEffect.popupText,
-            );
-          }
+          this.applyEnemyStatusEffect(playerStatusEffect, this.player);
+          this.applyEnemyStatusEffect(projectile.secondaryStatusEffect, this.player);
           emitAudioCue({ cue: "player-hurt", position: { x: this.player.x, y: this.player.y } });
           this.burst(
             this.player.x,
@@ -3929,17 +3974,8 @@ export class Game {
           );
           structure.flash = 0.22;
           impacted = true;
-          if (projectile.statusEffect?.kind === "slow"
-            && structure.kind === "turret"
-            && projectile.statusEffect.targets.includes("turret")) {
-            this.applySlowStatus(
-              structure,
-              projectile.statusEffect.duration,
-              projectile.statusEffect.popupTextColor,
-              projectile.statusEffect.particleColor,
-              projectile.statusEffect.popupText,
-            );
-          }
+          this.applyEnemyStatusEffect(projectile.statusEffect, structure);
+          this.applyEnemyStatusEffect(projectile.secondaryStatusEffect, structure);
           this.burst(structure.x, structure.y, projectile.color, 8);
         }
         if (impacted) {
@@ -4210,7 +4246,9 @@ export class Game {
       cue: armorConfig.breakAudio as import("./audio").SoundId,
       position: { x: enemy.x, y: enemy.y },
     });
-    this.shake = Math.max(this.shake, armorConfig.breakShake);
+    this.shake = Math.max(this.shake, this.isBossEnemyKind(enemy.kind)
+      ? this.bossShake(armorConfig.breakShake)
+      : armorConfig.breakShake);
     const pulse = armorConfig.breakStatusPulse;
     if (!pulse) return;
     this.applyRadialStatusEffect(enemy, pulse.radius, pulse.statusEffect);
@@ -4322,6 +4360,7 @@ export class Game {
     this.radiationHazards = this.radiationHazards.filter((hazard) => hazard.createdNight >= this.night);
     for (const node of this.world.resources) {
       node.radiationDamage = 0;
+      node.radiationAffected = false;
       node.health = Math.max(0, node.maxHealth - (node.harvestDamage ?? 0));
     }
     this.combatMode = true;
@@ -4899,7 +4938,7 @@ export class Game {
     this.timeRewind = { bossId: boss.id, elapsed: 0, startTimer: this.timer, removed: 0 };
     boss.bossSmashWindup = 0;
     boss.health = Math.max(boss.health, boss.maxHealth * 0.5);
-    this.shake = 18;
+    this.shake = this.bossShake(18);
     this.burst(boss.x, boss.y, "#79e7df", 52, "TIME REWINDS");
     emitAudioCue({ cue: "countdown-final-tick" });
   }
@@ -4987,7 +5026,7 @@ export class Game {
       enemy.deathReason = "forced";
       this.burst(enemy.x, enemy.y, "#79e7df", 9, "POOF");
     }
-    this.shake = Math.max(this.shake, 6 + progress * 15);
+    this.shake = Math.max(this.shake, this.bossShake(6 + progress * 15));
     if (progress < 1) return;
     this.enemies = this.enemies.filter((enemy) => enemy.id === rewind.bossId);
     const boss = this.enemies[0];

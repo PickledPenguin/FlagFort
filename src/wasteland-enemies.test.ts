@@ -5,7 +5,7 @@ import { BALANCE } from "./config";
 import { ENEMY_REGISTRY, isBossEnemyKind, selectEnemyRoster } from "./enemy-registry";
 import { Game } from "./game";
 import { Input } from "./input";
-import type { Enemy, Structure } from "./types";
+import type { Enemy, EnemyStatusEffect, ResourceNode, Structure } from "./types";
 
 function gameFixture(): Game {
   document.body.innerHTML = "<canvas></canvas>";
@@ -40,12 +40,13 @@ describe("wasteland enemies", () => {
     expect(definition.render).toEqual({ aspectRatio: 110 / 100, width: 83, height: 75 });
     expect(definition.targeting).toMatchObject({ mode: "player", detectionRadius: 720 });
     expect(definition.attack.statusEffect).toEqual({
-      kind: "slow",
-      duration: 2.6,
+      kind: "poison",
+      duration: 0,
+      durationBalance: "wastelandPoison",
       targets: ["player"],
       popupTextColor: "#cfff71",
       particleColor: "#79d63c",
-      popupText: "Irradiated",
+      popupText: "Poisoned",
     });
     expect(definition.rosterEligible).toBe(false);
     for (const tier of ["forest", "snowy", "desert", "volcanic"] as const) {
@@ -54,7 +55,7 @@ describe("wasteland enemies", () => {
     }
   });
 
-  it("pursues and irradiates the player instead of nearby fortifications", () => {
+  it("pursues and poisons the player without slowing them", () => {
     const game = gameFixture();
     const radstalker = spawn(game, "radstalker", game.player.x + 100, game.player.y);
     game.flag.x = radstalker.x + 30;
@@ -71,10 +72,11 @@ describe("wasteland enemies", () => {
     }).enemyAttack(radstalker, game.player, 1);
 
     expect(game.player.health).toBeLessThan(game.player.maxHealth);
-    expect(game.player.statuses?.slow?.remaining).toBe(2.6);
+    expect(game.player.statuses?.slow).toBeUndefined();
+    expect(game.player.statuses?.poison?.remaining).toBe(BALANCE.tierMechanics.wasteland.poisonDuration);
     expect(game.particles.some((particle) => particle.color === "#79d63c")).toBe(true);
     expect(game.particles.some((particle) =>
-      particle.text === "Irradiated" && particle.color === "#cfff71"))
+      particle.text === "Poisoned" && particle.color === "#cfff71"))
       .toBe(true);
   });
 
@@ -102,11 +104,13 @@ describe("wasteland enemies", () => {
       statusEffect: {
         kind: "slow",
         duration: 3.4,
+        visual: "slime",
         targets: ["player", "turret"],
-        popupTextColor: "#dfff86",
-        particleColor: "#75c83b",
-        popupText: "Sludged",
+        popupTextColor: "#cfff71",
+        particleColor: "#79d63c",
+        popupText: "Slowed",
       },
+      secondaryStatusEffect: { kind: "poison", duration: 0, durationBalance: "wastelandPoison", targets: ["player", "turret"] },
     });
     expect(definition.rosterEligible).toBe(false);
     for (const tier of ["forest", "snowy", "desert", "volcanic"] as const) {
@@ -141,9 +145,11 @@ describe("wasteland enemies", () => {
 
     expect(target.health).toBe(target.maxHealth - lobber.structureDamage);
     expect(target.statuses?.slow?.remaining).toBe(3.4);
-    expect(game.particles.some((particle) => particle.color === "#75c83b")).toBe(true);
+    expect(target.statuses?.slow?.visual).toBe("slime");
+    expect(target.statuses?.poison?.remaining).toBe(BALANCE.tierMechanics.wasteland.poisonDuration);
+    expect(game.particles.some((particle) => particle.color === "#79d63c")).toBe(true);
     expect(game.particles.some((particle) =>
-      particle.text === "Sludged" && particle.color === "#dfff86"))
+      particle.text === "Poisoned" && particle.color === "#cfff71"))
       .toBe(true);
   });
 
@@ -152,6 +158,7 @@ describe("wasteland enemies", () => {
 
     expect(definition.assets.portrait).toBe("enemies/ruin-siren-zombie");
     expect(definition.render).toEqual({ aspectRatio: 120 / 108, width: 94, height: 85 });
+    expect(definition.capabilities.radiationAura).toBe(true);
     expect(definition.summon).toMatchObject({
       cooldown: 5.2,
       cappedRetryCooldown: 1.8,
@@ -217,6 +224,8 @@ describe("wasteland enemies", () => {
       warningDuration: 2.8,
       radius: 245,
       screenShake: 30,
+      cooldownBalance: "wastelandLargeAreaAttack",
+      appearance: { shape: "nuclear-cloud" },
     });
     expect(definition.phaseSlam).toMatchObject({
       reinforcementKind: "ruin-siren",
@@ -277,5 +286,74 @@ describe("wasteland enemies", () => {
       .updateBoss(boss, definition.phaseSlam!.chargeDuration * 2);
     expect(game.enemies.filter((enemy) => enemy.summonedBy === boss.id))
       .toHaveLength(definition.phaseSlam!.reinforcementCount);
+  });
+
+  it("delays Radstalker radiation for the full reveal and floors harvest awards", () => {
+    const game = gameFixture();
+    const node = game.world.resources[0]!;
+    const radstalker = spawn(game, "radstalker", node.x, node.y);
+    radstalker.health = 0;
+    radstalker.deathReason = "combat";
+    (game as unknown as { resolveEnemyDeath(enemy: Enemy): void }).resolveEnemyDeath(radstalker);
+    const updateResources = (dt: number) => (game as unknown as {
+      updateResourceMechanics(dt: number): void;
+    }).updateResourceMechanics(dt);
+
+    updateResources(BALANCE.tierMechanics.wasteland.radiationActivationDuration);
+    expect(node.radiationDamage ?? 0).toBe(0);
+    updateResources(0.5);
+    expect(node.radiationDamage).toBeCloseTo(BALANCE.tierMechanics.wasteland.radiationDamagePerSecond * 0.5);
+    expect(node.radiationAffected).toBe(true);
+    expect(game.particles.some((particle) => particle.text === "Radiation")).toBe(true);
+
+    node.health = 2.045;
+    const resourcesBefore = game.resources[node.kind];
+    (game as unknown as {
+      harvestNode(node: ResourceNode, tier: "diamond", damageScale: number): void;
+    }).harvestNode(node, "diamond", 1);
+    expect(game.resources[node.kind] - resourcesBefore).toBe(2);
+    expect(Number.isInteger(game.resources[node.kind])).toBe(true);
+  });
+
+  it("moves the shared radiation effect with the living Ruin Siren", () => {
+    const game = gameFixture();
+    const first = game.world.resources[0]!;
+    const second = game.world.resources.find((node) => node.id !== first.id)!;
+    const siren = spawn(game, "ruin-siren", first.x, first.y);
+    const updateResources = () => (game as unknown as {
+      updateResourceMechanics(dt: number): void;
+    }).updateResourceMechanics(1);
+    updateResources();
+    expect(first.radiationDamage).toBeCloseTo(BALANCE.tierMechanics.wasteland.radiationDamagePerSecond);
+    siren.x = second.x;
+    siren.y = second.y;
+    updateResources();
+    expect(second.radiationDamage).toBeCloseTo(BALANCE.tierMechanics.wasteland.radiationDamagePerSecond);
+  });
+
+  it("keeps poison damage equal to the equivalent full fire effect", () => {
+    const game = gameFixture();
+    game.flagPresent = false;
+    const effect = ENEMY_REGISTRY.radstalker.attack.statusEffect!;
+    const healthBefore = game.player.health;
+    (game as unknown as {
+      applyEnemyStatusEffect(effect: EnemyStatusEffect, target: typeof game.player): void;
+    }).applyEnemyStatusEffect(effect, game.player);
+    game.update(1);
+    expect(healthBefore - game.player.health).toBeCloseTo(BALANCE.tierMechanics.wasteland.poisonDamagePerSecond);
+    expect(BALANCE.tierMechanics.wasteland.poisonDamagePerSecond * BALANCE.tierMechanics.wasteland.poisonDuration)
+      .toBe(BALANCE.tierMechanics.volcanic.burnDamagePerSecond * BALANCE.tierMechanics.volcanic.burnDuration);
+  });
+
+  it("runs the large nuclear area attack at half the standard cadence", () => {
+    const game = gameFixture();
+    const boss = spawn(game, "reactor-revenant", game.player.x + 300, game.player.y);
+    boss.areaStrikeCooldown = 0;
+    (game as unknown as { updateAreaStrikeEnemy(enemy: Enemy, dt: number): void })
+      .updateAreaStrikeEnemy(boss, BALANCE.fixedStep);
+    expect(boss.areaStrikeCooldown).toBe(
+      BALANCE.tierMechanics.wasteland.standardAreaAttackCooldown
+        / BALANCE.tierMechanics.wasteland.largeAreaAttackFrequencyMultiplier,
+    );
   });
 });
