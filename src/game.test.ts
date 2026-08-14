@@ -1176,12 +1176,20 @@ describe("phase and run rules", () => {
 
     expect((game as unknown as { timeRewind: unknown }).timeRewind).not.toBeNull();
     (game as unknown as { updateTimeRewind(dt: number): void })
-      .updateTimeRewind(BALANCE.tierMechanics.clockwork.rewindDuration);
+      .updateTimeRewind(BALANCE.tierMechanics.clockwork.rewindFreezeSeconds);
+    expect(game.enemies).toHaveLength(0);
+    expect(game.phase).toBe("night");
+    (game as unknown as { updateTimeRewind(dt: number): void })
+      .updateTimeRewind(
+        BALANCE.tierMechanics.clockwork.rewindDuration
+        + BALANCE.tierMechanics.clockwork.rewindMergeDuration,
+      );
 
-    expect(game.timer).toBe(BALANCE.nightDuration);
+    expect(game.timer).toBe(game.getPhaseDuration());
     expect(game.player.health).toBe(63);
     expect(boss.health).toBe(boss.maxHealth * 0.5);
     expect(boss.bossHalfSummoned).toBe(true);
+    expect(game.enemies).toEqual([boss]);
     expect((game as unknown as { timeRewind: unknown }).timeRewind).toBeNull();
   });
 

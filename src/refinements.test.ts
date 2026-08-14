@@ -116,6 +116,28 @@ describe("interface refinements", () => {
     }
   });
 
+  it("scales turret arrow lifetime and travel distance to the full effective upgraded range", () => {
+    const game = new Game(input());
+    game.startRun("normal", "turret-projectile-range", [], true, { settle: false });
+    game.world.resources = [];
+    game.upgrades.turretRange = 0.6;
+    const turret = structure("turret", 1800, 1800, "diamond");
+    const range = game.getTurretRange(turret.tier);
+    const edgeTarget = enemy({ id: 701, x: turret.x + range - 1, y: turret.y });
+    game.structures = [turret];
+    game.enemies = [edgeTarget];
+    (game as unknown as { rebuildSpatial(force: boolean): void }).rebuildSpatial(true);
+
+    (game as unknown as { updateTurret(target: Structure): void }).updateTurret(turret);
+
+    const arrow = game.projectiles[0]!;
+    expect(arrow.rangeLeft).toBe(range);
+    expect(arrow.lifetime).toBeGreaterThanOrEqual(range / BALANCE.bow.speed);
+    (game as unknown as { updateProjectiles(dt: number): void })
+      .updateProjectiles(range / BALANCE.bow.speed);
+    expect(edgeTarget.health).toBeLessThan(edgeTarget.maxHealth);
+  });
+
   it("removes the clock hand and exposes ten milestone nodes", () => {
     const game = new Game(input());
     game.startRun("normal", "progress");

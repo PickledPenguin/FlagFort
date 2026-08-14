@@ -87,24 +87,25 @@ export interface Circle extends Vec2 {
 
 export interface TimedStatusEffect {
   remaining: number;
-  visual?: "frost" | "slime";
+  visual?: "frost" | "slime" | "spore" | "time-lock";
 }
 
 export interface EntityStatuses {
   slow?: TimedStatusEffect;
   burn?: TimedStatusEffect;
   poison?: TimedStatusEffect;
+  timeLock?: TimedStatusEffect;
 }
 
 export interface EnemyStatusEffect {
-  kind: "slow" | "burn" | "poison";
+  kind: "slow" | "burn" | "poison" | "time-lock";
   duration: number;
   durationBalance?: "calderaBurn" | "wastelandPoison";
   targets: readonly ("player" | StructureKind)[];
   popupTextColor: string;
   particleColor?: string;
   popupText?: string;
-  visual?: "frost" | "slime";
+  visual?: "frost" | "slime" | "spore" | "time-lock";
 }
 
 export interface Player extends Circle {
@@ -136,12 +137,14 @@ export interface ResourceNode extends Circle {
   biomeOverlay?: boolean;
   infected?: boolean;
   infectionHinted?: boolean;
+  infectionProximityInside?: boolean;
   infectionHintTime?: number;
   infectionAttackTime?: number;
   infectionCooldown?: number;
   harvestDamage?: number;
   radiationDamage?: number;
   radiationAffected?: boolean;
+  persistentRadiation?: boolean;
 }
 
 export interface Portal extends Circle {

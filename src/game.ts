@@ -47,7 +47,17 @@ import {
   type PermanentUpgradeId,
 } from "./meta-balance";
 import { resolveActionCooldown, resolveEffectiveStat } from "./modifiers";
-import { applyBurn, applyPoison, applySlow, isBurning, isPoisoned, isSlowed, updateStatuses } from "./status-effects";
+import {
+  applyBurn,
+  applyPoison,
+  applySlow,
+  applyTimeLock,
+  isBurning,
+  isPoisoned,
+  isSlowed,
+  isTimeLocked,
+  updateStatuses,
+} from "./status-effects";
 import {
   performanceDifficultyDelta,
   type NightPerformanceSnapshot,
@@ -163,6 +173,25 @@ interface TutorialTarget {
   tutorialTarget: true;
 }
 
+interface RadiationHazard {
+  x: number;
+  y: number;
+  radius: number;
+  createdNight: number;
+  activationRemaining: number;
+  decayRemaining?: number;
+}
+
+interface TimeRewindState {
+  bossId: number;
+  boss: Enemy;
+  elapsed: number;
+  startTimer: number;
+  fullDuration: number;
+  removed: number;
+  lastTickSecond: number;
+}
+
 const center = BALANCE.mapSize / 2;
 export const LOCAL_PLAYER_ID: PlayerId = "local-player";
 function emptyEnemyCounts(): Record<EnemyKind, number> {
@@ -224,13 +253,13 @@ export class Game {
   particles: Particle[] = [];
   areaEffects: AreaEffect[] = [];
   areaStrikes: AreaStrike[] = [];
-  radiationHazards: Array<{ x: number; y: number; radius: number; createdNight: number; activationRemaining: number }> = [];
+  radiationHazards: RadiationHazard[] = [];
   infectionTravelers: Array<{ x: number; y: number; targetId: number; speed: number }> = [];
   sandTunnels: Array<{ id: number; entry: Vec2; exit: Vec2; remaining: number; cooldown: number }> = [];
   private activeSandstormers: Enemy[] = [];
   clockworkEarlyKills = 0;
   clockPenaltyNotice: { kills: number; seconds: number } | null = null;
-  timeRewind: { bossId: number; elapsed: number; startTimer: number; removed: number } | null = null;
+  timeRewind: TimeRewindState | null = null;
   selectedSlot = 1;
   selectedTiers: Record<StructureKind, Tier> = {
     wall: "wood",
@@ -1081,6 +1110,9 @@ export class Game {
     if (!this.skipNightConfirmation || this.phase !== "day") return;
     this.skipNightConfirmation = false;
     this.modalLock = false;
+    this.radiationHazards = this.radiationHazards.filter(
+      (hazard) => hazard.decayRemaining === undefined,
+    );
     this.timer = 0;
     this.beginNight();
   }
@@ -1256,6 +1288,7 @@ export class Game {
 
   private handleAction(): void {
     if (!this.input.mouseDown) return;
+    if (isTimeLocked(this.player)) return;
     if (this.tutorialMode && !this.isTutorialSlotAllowed(this.selectedSlot)) return;
     const action = this.getSelectedAction();
     if (!action) return;
@@ -1766,7 +1799,7 @@ export class Game {
       updateStatuses(structure, dt);
       structure.flash = Math.max(0, structure.flash - dt);
       if (structure.kind === "turret" && (this.phase === "night" || this.tutorialMode || hasBurningEnemies)) {
-        this.updateTurret(structure);
+        if (!isTimeLocked(structure)) this.updateTurret(structure);
       }
       if (structure.kind === "harvester" && this.phase === "day") this.updateHarvester(structure, dt);
     }
@@ -1893,8 +1926,8 @@ export class Game {
       );
       if ("tier" in target) target.flash = 0.3;
       else target.hurtFlash = 0.3;
-      this.burst(node.x, node.y, "#79e6c1", 18, "TENTACLES");
-      emitAudioCue({ cue: "zombie-attack", position: { x: node.x, y: node.y } });
+      this.burst(node.x, node.y, "#79e6c1", 18, "PARASITE");
+      emitAudioCue({ cue: "portal-spawn", position: { x: node.x, y: node.y } });
       return;
     }
     const amount = BALANCE.harvest[tier][node.kind];
@@ -1927,6 +1960,9 @@ export class Game {
     if (node.health <= 0) {
       this.burst(node.x, node.y, "#aab0aa", 12, "DEPLETED");
       emitAudioCue({ cue: "resource-depleted", position: { x: node.x, y: node.y } });
+      if (node.kind === "diamond" && this.activeCampaignTierId === "clockwork") {
+        this.createTimeLockBurst(node);
+      }
       if (this.tutorialMode && node.kind === "wood") this.recordTutorialEvent("tree-depleted");
     }
   }
@@ -1936,17 +1972,35 @@ export class Game {
       node.infectionHintTime = Math.max(0, (node.infectionHintTime ?? 0) - dt);
       node.infectionAttackTime = Math.max(0, (node.infectionAttackTime ?? 0) - dt);
       node.infectionCooldown = Math.max(0, (node.infectionCooldown ?? 0) - dt);
-      if (!node.infected || node.infectionHinted
-        || distance(node, this.player) > BALANCE.tierMechanics.mire.hintRadius) continue;
-      node.infectionHinted = true;
-      node.infectionHintTime = 0.42;
+      if (!node.infected) continue;
+      const inside = distance(node, this.player) <= BALANCE.tierMechanics.mire.hintRadius;
+      if (inside && !node.infectionProximityInside) {
+        node.infectionHinted = true;
+        node.infectionHintTime = 0.42;
+      }
+      node.infectionProximityInside = inside;
     }
+    const decayDuration = BALANCE.tierMechanics.wasteland.radiationDayDecayDuration;
     for (const hazard of this.radiationHazards) {
       const beforeActivation = hazard.activationRemaining;
       hazard.activationRemaining = Math.max(0, hazard.activationRemaining - dt);
+      if (this.phase === "day" && hazard.decayRemaining !== undefined) {
+        hazard.decayRemaining = Math.max(0, hazard.decayRemaining - dt);
+        hazard.radius = BALANCE.tierMechanics.wasteland.radiationRadius
+          * hazard.decayRemaining / decayDuration;
+      }
       if (hazard.activationRemaining > 0) continue;
       const activeDt = Math.max(0, dt - beforeActivation);
-      if (activeDt > 0) this.applyRadiationAt(hazard, hazard.radius, activeDt);
+      if (activeDt > 0 && hazard.radius > 0) {
+        this.applyRadiationAt(hazard, hazard.radius, activeDt, true);
+      }
+    }
+    this.radiationHazards = this.radiationHazards.filter(
+      (hazard) => (hazard.decayRemaining ?? 1) > 0,
+    );
+    for (const node of this.world.resources) {
+      if (!node.persistentRadiation || node.destroyed) continue;
+      this.applyPersistentResourceRadiation(node, dt);
     }
     for (const enemy of this.enemies) {
       if (enemy.health <= 0 || !ENEMY_REGISTRY[enemy.kind].capabilities.radiationAura) continue;
@@ -1962,13 +2016,14 @@ export class Game {
       if (distance(traveler, target) > target.radius) return true;
       target.infected = true;
       target.infectionHinted = false;
+      target.infectionProximityInside = false;
       target.infectionAttackTime = 0.45;
       this.burst(target.x, target.y, "#79e6c1", 16, "INFECTED");
       return false;
     });
   }
 
-  private applyRadiationAt(source: Vec2, radius: number, dt: number): void {
+  private applyRadiationAt(source: Vec2, radius: number, dt: number, persistent = false): void {
     if (distance(source, this.player) <= radius + this.player.radius) {
       applyPoison(this.player, BALANCE.tierMechanics.wasteland.poisonDuration);
     }
@@ -1978,11 +2033,20 @@ export class Game {
         node.radiationAffected = true;
         this.burst(node.x, node.y - node.radius, "#b7dd63", 5, "Radiation", "#b7dd63");
       }
+      if (persistent) {
+        node.persistentRadiation = true;
+        continue;
+      }
+      if (node.persistentRadiation) continue;
+      this.applyPersistentResourceRadiation(node, dt);
+    }
+  }
+
+  private applyPersistentResourceRadiation(node: ResourceNode, dt: number): void {
       const remaining = Math.max(0, node.maxHealth - (node.harvestDamage ?? 0) - (node.radiationDamage ?? 0));
       const damage = Math.min(remaining, BALANCE.tierMechanics.wasteland.radiationDamagePerSecond * dt);
       node.radiationDamage = (node.radiationDamage ?? 0) + damage;
       node.health = Math.max(0, node.health - damage);
-    }
   }
 
   private updatePortals(dt: number): void {
@@ -2646,7 +2710,8 @@ export class Game {
     const turret = this.nearestStructure(enemy, detection, "turret");
     const harvester = this.nearestStructure(enemy, detection, "harvester");
     if (definition.targeting.mode === "archer") {
-      enemy.targetId = turret?.id ?? (playerInRange ? "player" : "flag");
+      const canTargetFlag = definition.projectile?.targets.includes("flag") ?? true;
+      enemy.targetId = turret?.id ?? (playerInRange || !canTargetFlag ? "player" : "flag");
       return;
     }
     if (definition.targeting.mode === "acidslinger") {
@@ -2869,7 +2934,12 @@ export class Game {
         : "flag";
     if (lifeSteal?.targets.includes(targetKind)) {
       const appliedDamage = Math.min(targetHealthBefore, damage);
-      const healed = Math.min(enemy.maxHealth - enemy.health, appliedDamage * lifeSteal.healingRatio);
+      const healed = Math.min(
+        enemy.maxHealth - enemy.health,
+        lifeSteal.fullHealOnSuccess && appliedDamage > 0
+          ? enemy.maxHealth
+          : appliedDamage * lifeSteal.healingRatio,
+      );
       if (healed > 0) {
         enemy.health += healed;
         this.burst(
@@ -3180,10 +3250,12 @@ export class Game {
   }
 
   private statusMovementMultiplier(target: Player | Structure): number {
+    if (isTimeLocked(target)) return 0;
     return isSlowed(target) ? BALANCE.snowyEnemies.slow.movementMultiplier : 1;
   }
 
   private statusAttackSpeedMultiplier(target: Player | Structure): number {
+    if (isTimeLocked(target)) return 0;
     return isSlowed(target) ? BALANCE.snowyEnemies.slow.attackSpeedMultiplier : 1;
   }
 
@@ -3193,7 +3265,7 @@ export class Game {
     popupTextColor: string = BALANCE.snowyEnemies.slow.popupTextColor,
     particleColor: string = BALANCE.snowyEnemies.slow.tint,
     popupText = "Slowed",
-    visual: "frost" | "slime" = "frost",
+    visual: "frost" | "slime" | "spore" | "time-lock" = "frost",
   ): void {
     applySlow(target, duration, visual);
     this.burst(
@@ -3224,6 +3296,7 @@ export class Game {
           effect.visual,
         );
       } else if (effect.kind === "burn") this.applyBurnStatus(this.player, effect);
+      else if (effect.kind === "time-lock") this.applyTimeLockStatus(this.player, effect.duration);
       else this.applyPoisonStatus(this.player, effect);
       return;
     }
@@ -3238,8 +3311,44 @@ export class Game {
           effect.visual,
         );
       } else if (effect.kind === "burn") this.applyBurnStatus(target, effect);
+      else if (effect.kind === "time-lock") this.applyTimeLockStatus(target, effect.duration);
       else this.applyPoisonStatus(target, effect);
     }
+  }
+
+  private applyTimeLockStatus(target: Player | Structure, duration: number): void {
+    applyTimeLock(target, duration);
+    this.burst(target.x, target.y, "#79e7df", 8, "TIME LOCK", "#d9fffb", -24);
+  }
+
+  private createTimeLockBurst(origin: Vec2): void {
+    const radius = BALANCE.tierMechanics.clockwork.timeLockBurstRadius;
+    const duration = BALANCE.tierMechanics.clockwork.timeLockSeconds;
+    this.areaEffects.push({
+      kind: "death-burst",
+      x: origin.x,
+      y: origin.y,
+      radius,
+      remaining: 0.48,
+      duration: 0.48,
+      appearance: {
+        center: "rgba(121,231,223,.1)",
+        middle: "rgba(121,231,223,.2)",
+        edge: "rgba(121,231,223,.38)",
+        stroke: "rgba(183,255,248,.98)",
+        highlight: "rgba(217,255,251,.98)",
+      },
+    });
+    if (distance(origin, this.player) <= radius + this.player.radius) {
+      this.applyTimeLockStatus(this.player, duration);
+    }
+    for (const structure of this.structures) {
+      if (structure.kind !== "turret"
+        || distance(origin, structure) > radius + structure.radius) continue;
+      this.applyTimeLockStatus(structure, duration);
+    }
+    this.burst(origin.x, origin.y, "#79e7df", 28, "TIME LOCK", "#d9fffb");
+    emitAudioCue({ cue: "popper-burst", position: origin });
   }
 
   private applyBurnStatus(
@@ -3495,6 +3604,7 @@ export class Game {
       && (reason === "combat" || (reason === "sunlight" && definition.death.triggersFromSunlight))) {
       this.resolveDeathBurst(enemy);
     }
+    if (enemy.kind === "aether-gunner") this.createTimeLockBurst(enemy);
     if (enemy.kind === "void-herald" && reason === "combat") {
       this.portals.push({
         id: this.nextId++, x: enemy.x, y: enemy.y, radius: BALANCE.portal.radius,
@@ -3515,6 +3625,9 @@ export class Game {
         radius: BALANCE.tierMechanics.wasteland.radiationRadius,
         createdNight: this.night,
         activationRemaining: BALANCE.tierMechanics.wasteland.radiationActivationDuration,
+        decayRemaining: this.phase === "day"
+          ? BALANCE.tierMechanics.wasteland.radiationDayDecayDuration
+          : undefined,
       });
       this.burst(enemy.x, enemy.y, "#b7dd63", 20, "FALLOUT");
     }
@@ -3985,6 +4098,10 @@ export class Game {
           this.burst(structure.x, structure.y, projectile.color, 8);
         }
         if (impacted) {
+          if (projectileEnemyKind === "sporecaster") {
+            this.spawnEnemy(projectile, "basic", undefined, true, false);
+            this.burst(projectile.x, projectile.y, "#68cda6", 12, "SPORE SEEDED", "#c9ffe8");
+          }
           const projectileDefinition = ENEMY_REGISTRY[projectileEnemyKind];
           emitAudioCue({
             cue: (projectileDefinition.audio.impact ?? "structure-damaged") as import("./audio").SoundId,
@@ -4184,15 +4301,6 @@ export class Game {
         emitAudioCue({ cue: "countdown-final-tick", position: { x: enemy.x, y: enemy.y } });
         this.burst(enemy.x, enemy.y, "#e2b85d", 16, "TIME STOLEN");
       }
-      if (enemy.kind === "aether-gunner") {
-        if (source === "player-melee" || source === "player-bow") {
-          this.applySlowStatus(this.player, BALANCE.tierMechanics.clockwork.retaliationSlowSeconds, "#e2b85d", "#79e7df", "Time Drag");
-        } else if (source === "turret") {
-          const turret = this.structures.filter((item) => item.kind === "turret")
-            .sort((a, b) => distance(enemy, a) - distance(enemy, b) || a.id - b.id)[0];
-          if (turret) this.applySlowStatus(turret, BALANCE.tierMechanics.clockwork.retaliationSlowSeconds, "#e2b85d", "#79e7df", "Time Drag");
-        }
-      }
       if (healthBefore > 0) this.recordEnemyKill(enemy, source);
       enemy.deathReason = source === "sunlight" ? "sunlight" : "combat";
       const definition = ENEMY_REGISTRY[enemy.kind];
@@ -4255,6 +4363,7 @@ export class Game {
     this.shake = Math.max(this.shake, this.isBossEnemyKind(enemy.kind)
       ? this.bossShake(armorConfig.breakShake)
       : armorConfig.breakShake);
+    if (enemy.kind === "chronoforge-colossus") return;
     const pulse = armorConfig.breakStatusPulse;
     if (!pulse) return;
     this.applyRadialStatusEffect(enemy, pulse.radius, pulse.statusEffect);
@@ -4363,11 +4472,11 @@ export class Game {
 
   private beginNight(): void {
     this.phase = "night";
-    this.radiationHazards = this.radiationHazards.filter((hazard) => hazard.createdNight >= this.night);
     for (const node of this.world.resources) {
-      node.radiationDamage = 0;
-      node.radiationAffected = false;
-      node.health = Math.max(0, node.maxHealth - (node.harvestDamage ?? 0));
+      node.health = Math.max(
+        0,
+        node.maxHealth - (node.harvestDamage ?? 0) - (node.radiationDamage ?? 0),
+      );
     }
     this.combatMode = true;
     this.phaseElapsed = 0;
@@ -4562,6 +4671,9 @@ export class Game {
     this.phase = "day";
     this.phaseElapsed = 0;
     this.phaseTransitionImpact = 0.55;
+    for (const hazard of this.radiationHazards) {
+      hazard.decayRemaining ??= BALANCE.tierMechanics.wasteland.radiationDayDecayDuration;
+    }
     for (const structure of this.structures) structure.harvesterHitResourceIds.clear();
     const earlyKills = this.clockworkEarlyKills;
     const penaltySeconds = Math.min(
@@ -4941,7 +5053,15 @@ export class Game {
 
   private beginTimeRewind(boss: Enemy): void {
     if (this.timeRewind) return;
-    this.timeRewind = { bossId: boss.id, elapsed: 0, startTimer: this.timer, removed: 0 };
+    this.timeRewind = {
+      bossId: boss.id,
+      boss,
+      elapsed: 0,
+      startTimer: this.timer,
+      fullDuration: this.getPhaseDuration(),
+      removed: 0,
+      lastTickSecond: Math.ceil(this.timer),
+    };
     boss.bossSmashWindup = 0;
     boss.health = Math.max(boss.health, boss.maxHealth * 0.5);
     this.shake = this.bossShake(18);
@@ -5019,32 +5139,43 @@ export class Game {
     const rewind = this.timeRewind;
     if (!rewind) return;
     rewind.elapsed += dt;
+    const freezeDuration = BALANCE.tierMechanics.clockwork.rewindFreezeSeconds;
+    if (rewind.elapsed < freezeDuration) {
+      this.shake = Math.max(this.shake, this.bossShake(6));
+      return;
+    }
+    if (rewind.removed === 0) {
+      rewind.removed = this.enemies.filter((enemy) => enemy.health > 0).length;
+      this.enemies = [];
+      this.projectiles = [];
+      this.areaStrikes = [];
+    }
+    const rewindElapsed = rewind.elapsed - freezeDuration;
     const duration = BALANCE.tierMechanics.clockwork.rewindDuration;
-    const progress = Math.min(1, rewind.elapsed / duration);
-    const accelerated = progress * progress;
-    this.timer = rewind.startTimer + (BALANCE.nightDuration - rewind.startTimer) * accelerated;
-    const removable = this.enemies.filter((enemy) => enemy.id !== rewind.bossId && enemy.health > 0)
-      .sort((a, b) => a.id - b.id);
-    const shouldRemove = Math.ceil(progress * removable.length);
-    for (let index = 0; index < shouldRemove && removable[index]; index += 1) {
-      const enemy = removable[index]!;
-      enemy.health = 0;
-      enemy.deathReason = "forced";
-      this.burst(enemy.x, enemy.y, "#79e7df", 9, "POOF");
+    const progress = Math.min(1, rewindElapsed / duration);
+    const accelerated = progress * progress * progress;
+    const displayedTimer = rewind.startTimer
+      + (rewind.fullDuration - rewind.startTimer) * accelerated;
+    const tickSecond = Math.ceil(displayedTimer);
+    if (tickSecond > rewind.lastTickSecond) {
+      rewind.lastTickSecond = tickSecond;
+      emitAudioCue({ cue: "countdown-tick", reverse: true });
     }
-    this.shake = Math.max(this.shake, this.bossShake(6 + progress * 15));
+    this.shake = Math.max(this.shake, this.bossShake(6 + progress * 10));
     if (progress < 1) return;
-    this.enemies = this.enemies.filter((enemy) => enemy.id === rewind.bossId);
-    const boss = this.enemies[0];
-    if (boss) {
-      boss.health = boss.maxHealth * 0.5;
-      boss.bossHalfSummoned = true;
-      boss.bossSmashWindup = 0;
-      boss.path = [];
-      boss.pathIndex = 0;
-      boss.pathCooldown = 0;
-    }
-    this.timer = BALANCE.nightDuration;
+    const mergeElapsed = rewindElapsed - duration;
+    if (mergeElapsed < BALANCE.tierMechanics.clockwork.rewindMergeDuration) return;
+    const boss = rewind.boss;
+    boss.health = boss.maxHealth * 0.5;
+    boss.bossHalfSummoned = true;
+    boss.bossSmashWindup = 0;
+    boss.path = [];
+    boss.pathIndex = 0;
+    boss.pathCooldown = 0;
+    boss.deathReason = null;
+    boss.deathResolved = false;
+    this.enemies = [boss];
+    this.timer = rewind.fullDuration;
     this.phaseElapsed = 0;
     this.waveScheduleCursor = 0;
     for (const portal of this.portals) {

@@ -58,23 +58,38 @@ const zeroCoins: CoinSettlement = {
 };
 
 describe("data-driven campaign tiers", () => {
+  it("places exactly one campaign milestone on every level with three coin rewards between tiers", () => {
+    const events = CAMPAIGN_TIERS.flatMap((tier) => [
+      { level: tier.unlock.level, kind: "tier" },
+      ...tier.milestones.map((milestone) => ({ level: milestone.level, kind: milestone.reward.kind })),
+    ]).sort((a, b) => a.level - b.level);
+    expect(events.map((event) => event.level)).toEqual(
+      Array.from({ length: 29 }, (_, index) => index + 1),
+    );
+    expect(CAMPAIGN_TIERS.map((tier) => tier.unlock.level)).toEqual([1, 5, 9, 13, 17, 21, 25, 29]);
+    expect(CAMPAIGN_TIERS.slice(0, -1).every((tier) => tier.milestones.length === 3)).toBe(true);
+    expect(events.every((event) => event.kind === "tier" || event.kind === "coins")).toBe(true);
+  });
+
   it("gates ladder rewards behind both their level and owning tier", () => {
     const lockedSnowRewards = earnedCampaignMilestones({
       level: 13,
       defeatedTierIds: [],
     }, []);
     expect(lockedSnowRewards.map((reward) => reward.id)).toEqual([
-      "forest-level-2-coins",
-      "forest-level-3-coins",
+      "campaign-v2-level-2-coins",
+      "campaign-v2-level-3-coins",
+      "campaign-v2-level-4-coins",
     ]);
 
     const unlockedSnowRewards = earnedCampaignMilestones({
       level: 13,
       defeatedTierIds: ["forest"],
-    }, ["forest-level-2-coins", "forest-level-3-coins"]);
+    }, CAMPAIGN_TIERS[0]!.milestones.map((milestone) => milestone.id));
     expect(unlockedSnowRewards.map((reward) => reward.id)).toEqual([
-      "snowy-level-5-coins",
-      "snowy-level-6-coins",
+      "campaign-v2-level-6-coins",
+      "campaign-v2-level-7-coins",
+      "campaign-v2-level-8-coins",
     ]);
   });
 
@@ -418,9 +433,9 @@ describe("data-driven campaign tiers", () => {
       },
       weather: {
         activeDuring: "always",
-        color: "#79e6c1",
-        seedKey: "drowned-mire-wisp-weather",
-        particleCount: 58,
+        color: "#f5df68",
+        seedKey: "drowned-mire-fireflies",
+        particleCount: 24,
       },
     });
     expect(campaignTier("mire").biome).toBe(CAMPAIGN_BIOMES.mire);
@@ -464,7 +479,7 @@ describe("data-driven campaign tiers", () => {
   it("keeps tier order, requirements, rewards, enemies, bosses, and effects on definitions", () => {
     expect(CAMPAIGN_TIERS.map((tier) => tier.id)).toEqual(CAMPAIGN_TIER_IDS);
     expect(campaignTier("snowy")).toMatchObject({
-      unlock: { level: 7, previousTierId: "forest" },
+      unlock: { level: 5, previousTierId: "forest" },
       boss: "frost-warden",
       specialEnemies: ["frostbite", "snowballer", "icebound"],
       biome: {
@@ -495,42 +510,42 @@ describe("data-driven campaign tiers", () => {
     expect(campaignTier("snowy").milestones.every((item) => item.reward.kind === "coins")).toBe(true);
     expect(campaignTier("desert")).toMatchObject({
       order: 2,
-      unlock: { level: 13, previousTierId: "snowy" },
+      unlock: { level: 9, previousTierId: "snowy" },
       boss: "dune-colossus",
       specialEnemies: ["dune-burrower", "sandstormer", "tombguard"],
       biome: CAMPAIGN_BIOMES.desert,
     });
     expect(campaignTier("wasteland")).toMatchObject({
       order: 3,
-      unlock: { level: 19, previousTierId: "desert" },
+      unlock: { level: 13, previousTierId: "desert" },
       boss: "reactor-revenant",
       specialEnemies: ["radstalker", "sludge-lobber", "ruin-siren"],
       biome: CAMPAIGN_BIOMES.wasteland,
     });
     expect(campaignTier("volcanic")).toMatchObject({
       order: 4,
-      unlock: { level: 25, previousTierId: "wasteland" },
+      unlock: { level: 17, previousTierId: "wasteland" },
       boss: "caldera-sovereign",
       specialEnemies: ["cinderburst", "magma-spitter", "obsidian-charger"],
       biome: CAMPAIGN_BIOMES.volcanic,
     });
     expect(campaignTier("rift")).toMatchObject({
       order: 5,
-      unlock: { level: 31, previousTierId: "volcanic" },
+      unlock: { level: 21, previousTierId: "volcanic" },
       boss: "eclipse-regent",
       specialEnemies: ["rift-strider", "comet-slinger", "void-herald"],
       biome: CAMPAIGN_BIOMES.rift,
     });
     expect(campaignTier("mire")).toMatchObject({
       order: 6,
-      unlock: { level: 37, previousTierId: "rift" },
+      unlock: { level: 25, previousTierId: "rift" },
       boss: "mireheart-titan",
       specialEnemies: ["mire-lurker", "sporecaster", "drowned-bulwark"],
       biome: CAMPAIGN_BIOMES.mire,
     });
     expect(campaignTier("clockwork")).toMatchObject({
       order: 7,
-      unlock: { level: 43, previousTierId: "mire" },
+      unlock: { level: 29, previousTierId: "mire" },
       boss: "chronoforge-colossus",
       specialEnemies: ["springjack", "aether-gunner", "gearwright"],
       biome: CAMPAIGN_BIOMES.clockwork,
@@ -610,84 +625,84 @@ describe("data-driven campaign tiers", () => {
   it("requires both player level and the previous clear", () => {
     const snowy = campaignTier("snowy");
     const desert = campaignTier("desert");
-    expect(isCampaignTierUnlocked(snowy, { level: 7, defeatedTierIds: [] })).toBe(false);
-    expect(isCampaignTierUnlocked(snowy, { level: 6, defeatedTierIds: ["forest"] })).toBe(false);
-    expect(isCampaignTierUnlocked(snowy, { level: 7, defeatedTierIds: ["forest"] })).toBe(true);
-    expect(highestUnlockedCampaignTierId({ level: 6, defeatedTierIds: ["forest"] })).toBe("forest");
-    expect(highestUnlockedCampaignTierId({ level: 7, defeatedTierIds: ["forest"] })).toBe("snowy");
-    expect(isCampaignTierUnlocked(desert, { level: 13, defeatedTierIds: ["forest"] })).toBe(false);
-    expect(isCampaignTierUnlocked(desert, { level: 12, defeatedTierIds: ["forest", "snowy"] })).toBe(false);
-    expect(isCampaignTierUnlocked(desert, { level: 13, defeatedTierIds: ["forest", "snowy"] })).toBe(true);
+    expect(isCampaignTierUnlocked(snowy, { level: 5, defeatedTierIds: [] })).toBe(false);
+    expect(isCampaignTierUnlocked(snowy, { level: 4, defeatedTierIds: ["forest"] })).toBe(false);
+    expect(isCampaignTierUnlocked(snowy, { level: 5, defeatedTierIds: ["forest"] })).toBe(true);
+    expect(highestUnlockedCampaignTierId({ level: 4, defeatedTierIds: ["forest"] })).toBe("forest");
+    expect(highestUnlockedCampaignTierId({ level: 5, defeatedTierIds: ["forest"] })).toBe("snowy");
+    expect(isCampaignTierUnlocked(desert, { level: 9, defeatedTierIds: ["forest"] })).toBe(false);
+    expect(isCampaignTierUnlocked(desert, { level: 8, defeatedTierIds: ["forest", "snowy"] })).toBe(false);
+    expect(isCampaignTierUnlocked(desert, { level: 9, defeatedTierIds: ["forest", "snowy"] })).toBe(true);
     expect(highestUnlockedCampaignTierId({
       level: 13,
       defeatedTierIds: ["forest", "snowy"],
     })).toBe("desert");
     const wasteland = campaignTier("wasteland");
     expect(isCampaignTierUnlocked(wasteland, {
-      level: 19,
+      level: 13,
       defeatedTierIds: ["forest", "snowy"],
     })).toBe(false);
     expect(isCampaignTierUnlocked(wasteland, {
-      level: 18,
+      level: 12,
       defeatedTierIds: ["forest", "snowy", "desert"],
     })).toBe(false);
     expect(isCampaignTierUnlocked(wasteland, {
-      level: 19,
+      level: 13,
       defeatedTierIds: ["forest", "snowy", "desert"],
     })).toBe(true);
     expect(highestUnlockedCampaignTierId({
-      level: 19,
+      level: 13,
       defeatedTierIds: ["forest", "snowy", "desert"],
     })).toBe("wasteland");
     const volcanic = campaignTier("volcanic");
     expect(isCampaignTierUnlocked(volcanic, {
-      level: 25,
+      level: 17,
       defeatedTierIds: ["forest", "snowy", "desert"],
     })).toBe(false);
     expect(isCampaignTierUnlocked(volcanic, {
-      level: 24,
+      level: 16,
       defeatedTierIds: ["forest", "snowy", "desert", "wasteland"],
     })).toBe(false);
     expect(isCampaignTierUnlocked(volcanic, {
-      level: 25,
+      level: 17,
       defeatedTierIds: ["forest", "snowy", "desert", "wasteland"],
     })).toBe(true);
     expect(highestUnlockedCampaignTierId({
-      level: 25,
+      level: 17,
       defeatedTierIds: ["forest", "snowy", "desert", "wasteland"],
     })).toBe("volcanic");
     const rift = campaignTier("rift");
     expect(isCampaignTierUnlocked(rift, {
-      level: 31,
+      level: 21,
       defeatedTierIds: ["forest", "snowy", "desert", "wasteland"],
     })).toBe(false);
     expect(isCampaignTierUnlocked(rift, {
-      level: 30,
+      level: 20,
       defeatedTierIds: ["forest", "snowy", "desert", "wasteland", "volcanic"],
     })).toBe(false);
     expect(isCampaignTierUnlocked(rift, {
-      level: 31,
+      level: 21,
       defeatedTierIds: ["forest", "snowy", "desert", "wasteland", "volcanic"],
     })).toBe(true);
     expect(highestUnlockedCampaignTierId({
-      level: 31,
+      level: 21,
       defeatedTierIds: ["forest", "snowy", "desert", "wasteland", "volcanic"],
     })).toBe("rift");
     const mire = campaignTier("mire");
     expect(isCampaignTierUnlocked(mire, {
-      level: 37,
+      level: 25,
       defeatedTierIds: ["forest", "snowy", "desert", "volcanic", "wasteland"],
     })).toBe(false);
     expect(isCampaignTierUnlocked(mire, {
-      level: 36,
+      level: 24,
       defeatedTierIds: ["forest", "snowy", "desert", "volcanic", "wasteland", "rift"],
     })).toBe(false);
     expect(isCampaignTierUnlocked(mire, {
-      level: 37,
+      level: 25,
       defeatedTierIds: ["forest", "snowy", "desert", "volcanic", "wasteland", "rift"],
     })).toBe(true);
     expect(highestUnlockedCampaignTierId({
-      level: 37,
+      level: 25,
       defeatedTierIds: ["forest", "snowy", "desert", "volcanic", "wasteland", "rift"],
     })).toBe("mire");
     const clockwork = campaignTier("clockwork");
@@ -695,19 +710,19 @@ describe("data-driven campaign tiers", () => {
       "forest", "snowy", "desert", "volcanic", "wasteland", "rift",
     ] as const;
     expect(isCampaignTierUnlocked(clockwork, {
-      level: 43,
+      level: 29,
       defeatedTierIds: previousClears,
     })).toBe(false);
     expect(isCampaignTierUnlocked(clockwork, {
-      level: 42,
+      level: 28,
       defeatedTierIds: [...previousClears, "mire"],
     })).toBe(false);
     expect(isCampaignTierUnlocked(clockwork, {
-      level: 43,
+      level: 29,
       defeatedTierIds: [...previousClears, "mire"],
     })).toBe(true);
     expect(highestUnlockedCampaignTierId({
-      level: 43,
+      level: 29,
       defeatedTierIds: [...previousClears, "mire"],
     })).toBe("clockwork");
   });
@@ -844,11 +859,14 @@ describe("data-driven campaign tiers", () => {
     });
     expect(result?.newlyUnlockedTierIds).toEqual(["snowy"]);
     expect(result?.grantedCampaignRewards?.map((item) => item.id)).toEqual([
-      "forest-level-2-coins",
-      "forest-level-3-coins",
+      "campaign-v2-level-2-coins",
+      "campaign-v2-level-3-coins",
+      "campaign-v2-level-4-coins",
+      "campaign-v2-level-6-coins",
+      "campaign-v2-level-7-coins",
     ]);
     expect(manager.profile.campaign.defeatedTierIds).toContain("forest");
-    expect(manager.profile.coins).toBe(70);
+    expect(manager.profile.coins).toBe(190);
     expect(manager.settleRun("forest-clear", zeroXp, zeroCoins, {
       nightsSurvived: 10,
       victory: true,
@@ -864,12 +882,8 @@ describe("data-driven campaign tiers", () => {
     profile.spendableXp = profile.lifetimeXp;
     profile.playerLevel = 13;
     profile.campaign.defeatedTierIds = ["forest"];
-    profile.campaign.claimedRewardIds = [
-      "forest-level-2-coins",
-      "forest-level-3-coins",
-      "snowy-level-5-coins",
-      "snowy-level-6-coins",
-    ];
+    profile.campaign.claimedRewardIds = CAMPAIGN_TIERS
+      .flatMap((tier) => tier.milestones.map((milestone) => milestone.id));
     store.setItem("flagfort-profile-v2", JSON.stringify(profile));
     const manager = new ProfileManager(store);
 

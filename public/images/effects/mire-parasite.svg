@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="-64 -64 128 128" role="img" aria-labelledby="title desc">
+  <title id="title">Mire parasite</title>
+  <desc id="desc">A five-armed clockwise-bent swamp parasite.</desc>
+  <metadata>FlagFort editable gameplay asset. Center pivot: 0,0.</metadata>
+  <g id="parasite" aria-label="Parasite">
+    <g id="tentacles" fill="none" stroke="#79e6c1" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+      <path id="arm-1" d="M 0,-5 C 3,-20 15,-29 11,-48 C 9,-56 14,-61 22,-62"/>
+      <path id="arm-2" d="M 5,-1 C 20,-5 32,2 47,-10 C 53,-15 60,-12 63,-4" transform="rotate(72)"/>
+      <path id="arm-3" d="M 5,-1 C 20,-5 32,2 47,-10 C 53,-15 60,-12 63,-4" transform="rotate(144)"/>
+      <path id="arm-4" d="M 5,-1 C 20,-5 32,2 47,-10 C 53,-15 60,-12 63,-4" transform="rotate(216)"/>
+      <path id="arm-5" d="M 5,-1 C 20,-5 32,2 47,-10 C 53,-15 60,-12 63,-4" transform="rotate(288)"/>
+    </g>
+    <circle id="core-shadow" cx="0" cy="0" r="18" fill="#173f34" stroke="#0b261f" stroke-width="4"/>
+    <circle id="core" cx="-2" cy="-3" r="10" fill="#a9f0ce" opacity=".9"/>
+    <circle id="core-glint" cx="-6" cy="-8" r="3" fill="#e7fff4"/>
+  </g>
+</svg>

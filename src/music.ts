@@ -63,6 +63,7 @@ export class MusicManager {
   private musicVolume = 1;
   private countdownVolume = 0.35;
   private muted = false;
+  private paused = false;
   private transitionToken = 0;
   private readonly crossfadeMs: number;
   private readonly createAudio: AudioFactory;
@@ -78,6 +79,7 @@ export class MusicManager {
   initialize(): void {
     if (typeof window === "undefined") return;
     const retry = (): void => {
+      if (this.paused) return;
       const audio = this.active?.audio;
       if (audio?.paused) void audio.play().catch(() => undefined);
     };
@@ -152,6 +154,10 @@ export class MusicManager {
     audio.addEventListener("error", () => {
       fallback(true);
     }, { once: true });
+    if (this.paused) {
+      audio.pause();
+      return;
+    }
     void audio.play()
       .then(() => this.crossfade(outgoing, incoming, token))
       .catch(() => fallback(false));
@@ -159,6 +165,17 @@ export class MusicManager {
 
   getCurrentContext(): MusicContext | null {
     return this.context;
+  }
+
+  setPaused(paused: boolean): void {
+    if (this.paused === paused) return;
+    this.paused = paused;
+    if (paused) {
+      for (const track of this.tracks) track.audio.pause();
+      return;
+    }
+    const active = this.active;
+    if (active?.audio.paused) void active.audio.play().catch(() => undefined);
   }
 
   stop(): void {

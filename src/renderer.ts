@@ -1,8 +1,8 @@
 import { BALANCE } from "./config";
-import { isBurning, isPoisoned, isSlowed } from "./status-effects";
+import { isBurning, isPoisoned, isSlowed, isTimeLocked } from "./status-effects";
 import { allAssetPaths, ASSETS } from "./assets";
 import { BUILD_BAR_ICON_PATHS } from "./build-bar-icons";
-import { ENEMY_REGISTRY } from "./enemy-registry";
+import { ENEMY_REGISTRY, enemyRenderDimensions } from "./enemy-registry";
 import type { Game } from "./game";
 import { META_BALANCE } from "./meta-balance";
 import { affordability, type ResourceWallet } from "./rules";
@@ -294,22 +294,77 @@ export class Renderer {
     if (game.tutorialMode) this.drawTutorialArenaFade();
     ctx.restore();
     if (game.timeRewind) {
-      const progress = Math.min(1, game.timeRewind.elapsed / BALANCE.tierMechanics.clockwork.rewindDuration);
-      const radius = Math.max(1, Math.hypot(BALANCE.logicalWidth, BALANCE.logicalHeight) * progress);
+      const rewind = game.timeRewind;
+      const freeze = BALANCE.tierMechanics.clockwork.rewindFreezeSeconds;
+      const rewindElapsed = Math.max(0, rewind.elapsed - freeze);
+      const progress = Math.min(1,
+        rewindElapsed / BALANCE.tierMechanics.clockwork.rewindDuration);
       ctx.save();
-      const gradient = ctx.createRadialGradient(BALANCE.logicalWidth / 2, BALANCE.logicalHeight / 2, 0, BALANCE.logicalWidth / 2, BALANCE.logicalHeight / 2, radius);
-      gradient.addColorStop(0, "rgba(121,231,223,.08)");
-      gradient.addColorStop(0.82, "rgba(121,231,223,.18)");
-      gradient.addColorStop(1, "rgba(255,240,184,.62)");
+      const gradient = ctx.createRadialGradient(
+        BALANCE.logicalWidth / 2,
+        BALANCE.logicalHeight / 2,
+        0,
+        BALANCE.logicalWidth / 2,
+        BALANCE.logicalHeight / 2,
+        Math.hypot(BALANCE.logicalWidth, BALANCE.logicalHeight) * 0.72,
+      );
+      gradient.addColorStop(0, "rgba(121,231,223,.06)");
+      gradient.addColorStop(0.72, "rgba(31,127,139,.18)");
+      gradient.addColorStop(1, "rgba(15,63,78,.58)");
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, BALANCE.logicalWidth, BALANCE.logicalHeight);
       ctx.restore();
+      if (rewind.elapsed >= freeze) this.drawTimeRewindClock(game, progress);
     }
     if (game.tutorialMode) this.drawTutorialArenaBoundary();
     else {
       this.drawVignette(game);
       this.drawMinimap(game);
     }
+  }
+
+  private drawTimeRewindClock(game: Game, rewindProgress: number): void {
+    const rewind = game.timeRewind;
+    if (!rewind) return;
+    const config = BALANCE.tierMechanics.clockwork;
+    const rewindElapsed = Math.max(0, rewind.elapsed - config.rewindFreezeSeconds);
+    const mergeProgress = Math.max(0, Math.min(1,
+      (rewindElapsed - config.rewindDuration) / config.rewindMergeDuration));
+    const easedMerge = mergeProgress * mergeProgress * (3 - 2 * mergeProgress);
+    const centerX = BALANCE.logicalWidth / 2;
+    const centerY = BALANCE.logicalHeight / 2;
+    const hudX = BALANCE.logicalWidth - 76;
+    const hudY = 78;
+    const x = centerX + (hudX - centerX) * easedMerge;
+    const y = centerY + (hudY - centerY) * easedMerge;
+    const radius = 84 + (31 - 84) * easedMerge;
+    const accelerated = rewindProgress * rewindProgress * rewindProgress;
+    const displayed = rewind.startTimer
+      + (rewind.fullDuration - rewind.startTimer) * accelerated;
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.globalAlpha = Math.min(1, rewindElapsed / 0.35);
+    ctx.translate(x, y);
+    ctx.shadowColor = "#79e7df";
+    ctx.shadowBlur = 26 * (1 - easedMerge);
+    ctx.fillStyle = "rgba(11,33,39,.94)";
+    ctx.strokeStyle = "#b7fff8";
+    ctx.lineWidth = Math.max(3, radius * 0.07);
+    ctx.beginPath();
+    ctx.arc(0, 0, radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = "#d9fffb";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.font = `950 ${Math.max(18, radius * 0.78)}px Impact, system-ui`;
+    ctx.fillText(`${Math.ceil(displayed)}`, 0, radius * 0.03);
+    if (radius > 50) {
+      ctx.font = `900 ${Math.max(10, radius * 0.14)}px system-ui`;
+      ctx.fillText("NIGHT REWIND", 0, radius * 0.58);
+    }
+    ctx.restore();
   }
 
   private drawTutorialArenaFade(): void {
@@ -684,10 +739,8 @@ export class Renderer {
       if (!this.visible(game, traveler.x, traveler.y, 24)) continue;
       ctx.save();
       ctx.translate(traveler.x, traveler.y);
-      ctx.fillStyle = "rgba(8,25,20,.72)";
-      ctx.strokeStyle = "#79e6c1";
-      ctx.lineWidth = 3;
-      ctx.beginPath(); ctx.ellipse(0, 0, 14, 5, this.time * 2, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      ctx.rotate(this.time * 2);
+      this.drawSprite(ASSETS.effects.infestingNode, -22, -16, 44, 32);
       ctx.restore();
     }
     ctx.globalAlpha = 1;
@@ -699,17 +752,20 @@ export class Renderer {
   private drawRadiationFields(game: Game): void {
     const ctx = this.ctx;
     const activationDuration = BALANCE.tierMechanics.wasteland.radiationActivationDuration;
+    const fadeSizeRatio = BALANCE.tierMechanics.wasteland.radiationFadeSizeRatio;
     ctx.save();
     ctx.fillStyle = "rgba(121,214,60,.075)";
     ctx.beginPath();
+    let hasCompositeField = false;
     for (const hazard of game.radiationHazards) {
       if (!this.visible(game, hazard.x, hazard.y, hazard.radius + 30)) continue;
       const progress = Math.max(0, Math.min(1, 1 - hazard.activationRemaining / activationDuration));
+      const sizeRatio = hazard.radius / BALANCE.tierMechanics.wasteland.radiationRadius;
+      if (progress <= 0 || sizeRatio <= fadeSizeRatio) continue;
       const radius = hazard.radius * (0.12 + progress * 0.88);
-      if (progress > 0) {
-        ctx.moveTo(hazard.x + radius, hazard.y);
-        ctx.arc(hazard.x, hazard.y, radius, 0, Math.PI * 2);
-      }
+      ctx.moveTo(hazard.x + radius, hazard.y);
+      ctx.arc(hazard.x, hazard.y, radius, 0, Math.PI * 2);
+      hasCompositeField = true;
     }
     for (const enemy of game.enemies) {
       if (enemy.health <= 0 || !ENEMY_REGISTRY[enemy.kind].capabilities.radiationAura) continue;
@@ -717,13 +773,32 @@ export class Renderer {
       if (!this.visible(game, enemy.x, enemy.y, radius + 20)) continue;
       ctx.moveTo(enemy.x + radius, enemy.y);
       ctx.arc(enemy.x, enemy.y, radius, 0, Math.PI * 2);
+      hasCompositeField = true;
     }
-    ctx.fill();
+    if (hasCompositeField) ctx.fill();
     ctx.restore();
     for (const hazard of game.radiationHazards) {
       if (!this.visible(game, hazard.x, hazard.y, hazard.radius + 30)) continue;
+      const progress = Math.max(0, Math.min(1, 1 - hazard.activationRemaining / activationDuration));
+      const sizeRatio = hazard.radius / BALANCE.tierMechanics.wasteland.radiationRadius;
+      if (progress <= 0 || sizeRatio > fadeSizeRatio) continue;
+      const radius = hazard.radius * (0.12 + progress * 0.88);
       ctx.save();
-      ctx.globalAlpha = 0.82;
+      ctx.fillStyle = "rgba(121,214,60,.075)";
+      ctx.globalAlpha = sizeRatio / fadeSizeRatio;
+      ctx.beginPath();
+      ctx.arc(hazard.x, hazard.y, radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+    for (const hazard of game.radiationHazards) {
+      if (!this.visible(game, hazard.x, hazard.y, hazard.radius + 30)) continue;
+      ctx.save();
+      const sizeRatio = hazard.radius / BALANCE.tierMechanics.wasteland.radiationRadius;
+      const fade = sizeRatio <= fadeSizeRatio
+        ? sizeRatio / fadeSizeRatio
+        : 1;
+      ctx.globalAlpha = 0.82 * fade;
       this.drawSprite(ASSETS.effects.uraniumBloodSplatter, hazard.x - 32, hazard.y - 24, 64, 48);
       ctx.restore();
     }
@@ -812,20 +887,11 @@ export class Renderer {
       const ctx = this.ctx;
       const reveal = Math.sin(Math.min(1, node.infectionAttackTime! / 0.7) * Math.PI);
       ctx.save();
-      ctx.strokeStyle = "#79e6c1";
-      ctx.lineWidth = 7;
-      for (let index = 0; index < 5; index += 1) {
-        const angle = index / 5 * Math.PI * 2 + this.time * 0.7;
-        ctx.beginPath();
-        ctx.moveTo(node.x, node.y + node.radius * 0.4);
-        ctx.quadraticCurveTo(
-          node.x + Math.cos(angle + 0.5) * node.radius,
-          node.y + Math.sin(angle + 0.5) * node.radius,
-          node.x + Math.cos(angle) * node.radius * (1.25 + reveal),
-          node.y + Math.sin(angle) * node.radius * (1.25 + reveal),
-        );
-        ctx.stroke();
-      }
+      ctx.translate(node.x, node.y);
+      ctx.rotate(this.time * 0.7);
+      const size = node.radius * (2.2 + reveal * 2.2);
+      ctx.scale(0.82 + reveal * 0.18, 0.82 + reveal * 0.18);
+      this.drawSprite(ASSETS.effects.mireParasite, -size / 2, -size / 2, size, size);
       ctx.restore();
     }
     if (node.health > 0 && node.health < node.maxHealth) {
@@ -928,6 +994,8 @@ export class Renderer {
     if (structure.kind === "turret" && isSlowed(structure)) {
       ctx.filter = structure.statuses?.slow?.visual === "slime"
         ? "sepia(.35) saturate(1.35) hue-rotate(42deg) brightness(1.02)"
+        : structure.statuses?.slow?.visual === "spore"
+          ? "none"
         : "saturate(.68) brightness(1.1) contrast(.94)";
     }
     if (structure.kind === "door") {
@@ -973,8 +1041,10 @@ export class Renderer {
     if (structure.kind === "turret" && isSlowed(structure)) {
       ctx.filter = "none";
       if (structure.statuses?.slow?.visual === "slime") this.drawSlimeAccumulation(structure.radius);
+      else if (structure.statuses?.slow?.visual === "spore") this.drawSporeDots(structure.radius);
       else this.drawFrostAccumulation(structure.radius);
     }
+    if (isTimeLocked(structure)) this.drawTimeLockChains(structure.radius);
     ctx.restore();
   }
 
@@ -997,6 +1067,39 @@ export class Renderer {
       ctx.arc(radius * x, radius * y, radius * size, 0, Math.PI * 2);
       ctx.fill();
     }
+    ctx.restore();
+  }
+
+  private drawSporeDots(radius: number): void {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.fillStyle = "#68cda6";
+    for (let index = 0; index < 7; index += 1) {
+      const angle = index / 7 * Math.PI * 2 + 0.35;
+      const distance = radius * (0.45 + (index % 3) * 0.17);
+      ctx.beginPath();
+      ctx.arc(Math.cos(angle) * distance, Math.sin(angle) * distance, 2.5 + index % 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  private drawTimeLockChains(radius: number): void {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.shadowColor = "#79e7df";
+    ctx.shadowBlur = 10;
+    ctx.strokeStyle = "rgba(183,255,248,.92)";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(0, 0, radius + 9 + Math.sin(this.time * 8) * 2, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.setLineDash([7, 5]);
+    ctx.beginPath();
+    ctx.ellipse(0, 0, radius * 1.15, radius * 0.5, -0.48, 0, Math.PI * 2);
+    ctx.ellipse(0, 0, radius * 1.15, radius * 0.5, 0.48, 0, Math.PI * 2);
+    ctx.stroke();
     ctx.restore();
   }
 
@@ -1140,12 +1243,13 @@ export class Renderer {
     ctx.save();
     ctx.translate(enemy.x, enemy.y);
     if (enemy.mireTentacle) {
-      ctx.fillStyle = "rgba(34,80,70,.62)";
-      ctx.beginPath();
-      ctx.ellipse(0, 7, enemy.radius * 1.7, enemy.radius * 0.65, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.globalAlpha = 0.86;
-      ctx.scale(1.05, 0.5);
+      const size = enemy.radius * 4.6;
+      ctx.rotate(this.time * 0.35);
+      this.drawSprite(ASSETS.effects.mireParasite, -size / 2, -size / 2, size, size, enemy.flash > 0);
+      ctx.restore();
+      this.healthBar(enemy.x, enemy.y - enemy.radius - 12, 55,
+        enemy.health / enemy.maxHealth, "#68cda6");
+      return;
     }
     let biomeFilter: string | undefined;
     if ((enemy.kind === "basic" || enemy.kind === "runner")
@@ -1173,9 +1277,16 @@ export class Renderer {
       if (enemy.timedLifeExpired) ctx.filter = "grayscale(1) brightness(.72)";
       else {
         ctx.fillStyle = "rgba(19,27,33,.9)";
-        ctx.strokeStyle = "#e2b85d";
+        const ringRatio = Math.max(0, Math.min(1,
+          enemy.timedLifeRemaining / BALANCE.tierMechanics.clockwork.timedLifeSeconds));
+        ctx.strokeStyle = "rgba(226,184,93,.28)";
         ctx.lineWidth = 3;
         ctx.beginPath(); ctx.arc(0, -enemy.radius - 18, 17, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.strokeStyle = "#e2b85d";
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(0, -enemy.radius - 18, 17, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * ringRatio);
+        ctx.stroke();
         ctx.fillStyle = "#fff0b8"; ctx.font = "900 12px system-ui"; ctx.textAlign = "center";
         ctx.fillText(`${Math.ceil(enemy.timedLifeRemaining)}`, 0, -enemy.radius - 14);
       }
@@ -1295,8 +1406,8 @@ export class Renderer {
     const render = definition.render;
     if (render) {
       const armorConfig = definition.armor;
-      const height = render.height;
-      const width = render.width ?? height;
+      const dimensions = enemyRenderDimensions(definition, game.activeCampaignTierId)!;
+      const { width, height } = dimensions;
       const sprite = armorConfig && (enemy.armor ?? 0) <= 0
         ? ASSETS.enemyBrokenArmor[enemy.kind] ?? ASSETS.enemies[enemy.kind]
         : ASSETS.enemies[enemy.kind];
@@ -1518,6 +1629,8 @@ export class Renderer {
     if (isSlowed(player)) {
       ctx.filter = player.statuses?.slow?.visual === "slime"
         ? "sepia(.35) saturate(1.35) hue-rotate(42deg) brightness(1.02)"
+        : player.statuses?.slow?.visual === "spore"
+          ? "none"
         : "saturate(.7) brightness(1.08) contrast(.95)";
     }
     const action = game.getSelectedAction();
@@ -1619,8 +1732,10 @@ export class Renderer {
       ctx.filter = "none";
       ctx.rotate(-angle);
       if (player.statuses?.slow?.visual === "slime") this.drawSlimeAccumulation(player.radius);
+      else if (player.statuses?.slow?.visual === "spore") this.drawSporeDots(player.radius);
       else this.drawFrostAccumulation(player.radius);
     }
+    if (isTimeLocked(player)) this.drawTimeLockChains(player.radius);
     ctx.restore();
   }
 
@@ -1847,6 +1962,10 @@ export class Renderer {
     ctx.save();
     ctx.globalAlpha = this.weatherIntensity;
     ctx.fillStyle = weather.color;
+    if (game.activeCampaignTierId === "mire") {
+      ctx.shadowColor = weather.color;
+      ctx.shadowBlur = 5;
+    }
     const elapsed = game.stats.elapsed;
     for (const particle of this.weatherField) {
       const cycleHeight = BALANCE.mapSize + particle.spawnGap;

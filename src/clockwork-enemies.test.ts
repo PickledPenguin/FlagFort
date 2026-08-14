@@ -38,6 +38,7 @@ describe("clockwork enemies", () => {
 
     expect(definition.assets.portrait).toBe("enemies/springjack-zombie");
     expect(definition.render).toEqual({ aspectRatio: 116 / 104, width: 86, height: 77 });
+    expect(BALANCE.tierMechanics.clockwork.timedLifeSeconds).toBe(10);
     expect(definition.tier).toBe(3);
     expect(definition.introductionNight).toBe(3);
     expect(definition.leap).toMatchObject({
@@ -262,7 +263,7 @@ describe("clockwork enemies", () => {
       strike.x === first.player.x && strike.y === first.player.y)).toBe(true);
   });
 
-  it("breaks its shell, time-locks defenders, and opens a capped foundry", () => {
+  it("breaks its shell without a slow zone and opens a capped foundry", () => {
     const game = gameFixture();
     const boss = spawn(game, "chronoforge-colossus", game.flag.x + 780, game.flag.y);
     const definition = ENEMY_REGISTRY["chronoforge-colossus"];
@@ -277,10 +278,10 @@ describe("clockwork enemies", () => {
 
     expect(boss.health).toBe(boss.maxHealth);
     expect(boss.armor).toBe(0);
-    expect(game.player.statuses?.slow?.remaining).toBe(5.2);
-    expect(nearbyTurret.statuses?.slow?.remaining).toBe(5.2);
+    expect(game.player.statuses?.slow).toBeUndefined();
+    expect(nearbyTurret.statuses?.slow).toBeUndefined();
     expect(game.particles.some((particle) => particle.text === "TIMELOCK SURGE"))
-      .toBe(true);
+      .toBe(false);
 
     boss.summonCooldown = 0;
     (game as unknown as { updateEnemySummon(enemy: Enemy, dt: number): void })
@@ -288,5 +289,100 @@ describe("clockwork enemies", () => {
     expect(game.enemies.find((enemy) => enemy.summonedBy === boss.id))
       .toMatchObject({ kind: "gearwright", countsTowardWave: false });
     expect(boss.summonCooldown).toBe(definition.summon!.cooldown);
+  });
+
+  it("applies a non-damaging one-second Time Lock burst when an Aether Gunner dies", () => {
+    const game = gameFixture();
+    const gunner = spawn(game, "aether-gunner", game.player.x + 40, game.player.y);
+    const nearbyTurret = turret(2500, game.player.x - 40, game.player.y);
+    game.structures = [nearbyTurret];
+    const playerHealth = game.player.health;
+    const turretHealth = nearbyTurret.health;
+
+    (game as unknown as {
+      damageEnemy(enemy: Enemy, amount: number, color: string, source: "player-melee", owner: string): void;
+      resolveEnemyDeath(enemy: Enemy): void;
+    }).damageEnemy(gunner, gunner.health, "#fff", "player-melee", game.player.id);
+    (game as unknown as { resolveEnemyDeath(enemy: Enemy): void }).resolveEnemyDeath(gunner);
+
+    expect(game.player.health).toBe(playerHealth);
+    expect(nearbyTurret.health).toBe(turretHealth);
+    expect(game.player.statuses?.timeLock?.remaining).toBe(1);
+    expect(nearbyTurret.statuses?.timeLock?.remaining).toBe(1);
+    expect((game as unknown as { statusMovementMultiplier(target: typeof game.player): number })
+      .statusMovementMultiplier(game.player)).toBe(0);
+    expect((game as unknown as { statusAttackSpeedMultiplier(target: Structure): number })
+      .statusAttackSpeedMultiplier(nearbyTurret)).toBe(0);
+  });
+
+  it("triggers the same Time Lock burst when a Clockwork diamond node is depleted", () => {
+    const game = gameFixture();
+    game.activeCampaignTierId = "clockwork";
+    const node = game.world.resources.find((resource) => resource.kind === "diamond")!;
+    node.health = 1;
+    game.player.x = node.x;
+    game.player.y = node.y;
+    const nearbyTurret = turret(2600, node.x + 30, node.y);
+    game.structures = [nearbyTurret];
+
+    (game as unknown as {
+      harvestNode(target: typeof node, tier: "diamond", scale: number): void;
+    }).harvestNode(node, "diamond", 1);
+
+    expect(node.health).toBe(0);
+    expect(game.player.statuses?.timeLock?.remaining).toBe(1);
+    expect(nearbyTurret.statuses?.timeLock?.remaining).toBe(1);
+  });
+
+  it("rewinds the full night once while preserving defender damage and broken boss state", () => {
+    const game = gameFixture();
+    game.phase = "night";
+    game.timer = 11.25;
+    game.player.health -= 17;
+    game.flag.health -= 23;
+    const nearbyTurret = turret(2700, game.player.x + 80, game.player.y);
+    nearbyTurret.health -= 41;
+    game.structures = [nearbyTurret];
+    const boss = spawn(game, "chronoforge-colossus", game.flag.x + 700, game.flag.y);
+    spawn(game, "basic", boss.x - 70, boss.y);
+    boss.armor = 0;
+    boss.health = boss.maxHealth * 0.6;
+    const playerHealth = game.player.health;
+    const flagHealth = game.flag.health;
+    const turretHealth = nearbyTurret.health;
+    const defeatedBefore = game.stats.zombiesDefeated;
+
+    (game as unknown as {
+      damageEnemy(enemy: Enemy, amount: number, color: string, source: "player-melee", owner: string): void;
+    }).damageEnemy(boss, boss.maxHealth * 0.11, "#fff", "player-melee", game.player.id);
+
+    expect(game.timeRewind).toMatchObject({ startTimer: 11.25, fullDuration: BALANCE.nightDuration });
+    expect(boss.bossHalfSummoned).toBe(true);
+    (game as unknown as { updateTimeRewind(dt: number): void }).updateTimeRewind(
+      BALANCE.tierMechanics.clockwork.rewindFreezeSeconds,
+    );
+    expect(game.enemies).toEqual([]);
+    expect(game.stats.zombiesDefeated).toBe(defeatedBefore);
+
+    (game as unknown as { updateTimeRewind(dt: number): void }).updateTimeRewind(
+      BALANCE.tierMechanics.clockwork.rewindDuration
+        + BALANCE.tierMechanics.clockwork.rewindMergeDuration,
+    );
+
+    expect(game.timeRewind).toBeNull();
+    expect(game.enemies).toEqual([boss]);
+    expect(boss.health).toBe(boss.maxHealth * 0.5);
+    expect(boss.armor).toBe(0);
+    expect(boss.bossHalfSummoned).toBe(true);
+    expect(game.timer).toBe(BALANCE.nightDuration);
+    expect(game.player.health).toBe(playerHealth);
+    expect(game.flag.health).toBe(flagHealth);
+    expect(nearbyTurret.health).toBe(turretHealth);
+    expect(game.stats.zombiesDefeated).toBe(defeatedBefore);
+
+    (game as unknown as {
+      damageEnemy(enemy: Enemy, amount: number, color: string, source: "player-melee", owner: string): void;
+    }).damageEnemy(boss, 1, "#fff", "player-melee", game.player.id);
+    expect(game.timeRewind).toBeNull();
   });
 });

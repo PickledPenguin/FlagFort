@@ -99,7 +99,7 @@ describe("astral enemies", () => {
     const definition = ENEMY_REGISTRY["comet-slinger"];
 
     expect(definition.assets.portrait).toBe("enemies/comet-slinger-zombie");
-    expect(definition.render).toEqual({ aspectRatio: 120 / 106, width: 85, height: 75 });
+    expect(definition.render).toEqual({ aspectRatio: 120 / 108, width: 83, height: 75 });
     expect(definition.targeting).toMatchObject({ mode: "flag", attackRange: 470, innerRadius: 210 });
     expect(definition.projectile).toMatchObject({
       appearance: "comet",

@@ -119,7 +119,7 @@ describe("volcanic enemies", () => {
   it("registers Magma Spitter for the volcanic roster with a complete ranged siege role", () => {
     const definition = ENEMY_REGISTRY["magma-spitter"];
     expect(definition.assets.portrait).toBe("enemies/magma-spitter-zombie");
-    expect(definition.render).toEqual({ aspectRatio: 112 / 104, width: 82, height: 76 });
+    expect(definition.render).toEqual({ aspectRatio: 112 / 100, width: 85, height: 76 });
     expect(definition.targeting).toMatchObject({
       mode: "priority",
       priorities: ["turret", "player", "harvester", "flag"],

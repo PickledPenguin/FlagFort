@@ -84,6 +84,34 @@ describe("music manager", () => {
     vi.unstubAllGlobals();
   });
 
+  it("pauses and resumes the active track at the same position without recreating it", async () => {
+    vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
+      callback(performance.now());
+      return 1;
+    });
+    const created: FakeAudio[] = [];
+    const manager = new MusicManager((file) => {
+      const audio = new FakeAudio(file);
+      created.push(audio);
+      return audio as unknown as HTMLAudioElement;
+    }, 0);
+    manager.setContext("night");
+    await Promise.resolve();
+    created[0]!.currentTime = 17.25;
+
+    manager.setPaused(true);
+    manager.setPaused(false);
+    manager.setContext("night");
+    await Promise.resolve();
+
+    expect(created).toHaveLength(1);
+    expect(created[0]?.currentTime).toBe(17.25);
+    expect(created[0]?.pauseCalls).toBe(1);
+    expect(created[0]?.playCalls).toBe(2);
+    expect(manager.getCurrentContext()).toBe("night");
+    vi.unstubAllGlobals();
+  });
+
   it("crossfades cleanly and follows volume and mute settings", async () => {
     vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
       callback(performance.now());

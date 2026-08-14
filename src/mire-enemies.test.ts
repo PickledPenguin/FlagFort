@@ -50,6 +50,7 @@ describe("mire enemies", () => {
     expect(definition.targeting).toMatchObject({ mode: "player", detectionRadius: 760 });
     expect(definition.attack.lifeSteal).toEqual({
       healingRatio: 0.75,
+      fullHealOnSuccess: true,
       targets: ["player"],
       particleColor: "#6fc9a8",
       particleCount: 12,
@@ -62,7 +63,7 @@ describe("mire enemies", () => {
     }
   });
 
-  it("hunts an exposed defender and heals from damage actually dealt", () => {
+  it("hunts an exposed defender and fully heals on a successful leech", () => {
     const game = gameFixture();
     const lurker = spawn(game, "mire-lurker", game.player.x + 100, game.player.y);
     game.flag.x = lurker.x + 30;
@@ -76,14 +77,13 @@ describe("mire enemies", () => {
     lurker.x = game.player.x + lurker.radius + game.player.radius - 1;
     lurker.y = game.player.y;
     const playerHealthBefore = game.player.health;
-    const lurkerHealthBefore = lurker.health;
     (game as unknown as {
       enemyAttack(enemy: Enemy, target: typeof game.player, dt: number): void;
     }).enemyAttack(lurker, game.player, 1);
 
     const damageDealt = playerHealthBefore - game.player.health;
     expect(damageDealt).toBeGreaterThan(0);
-    expect(lurker.health).toBeCloseTo(lurkerHealthBefore + damageDealt * 0.75);
+    expect(lurker.health).toBe(lurker.maxHealth);
     expect(game.particles.some((particle) => particle.color === "#6fc9a8")).toBe(true);
     expect(game.particles.some((particle) => particle.text === "LEECH")).toBe(true);
   });
@@ -98,7 +98,33 @@ describe("mire enemies", () => {
     expect(lurker.targetId).toBe("flag");
   });
 
-  it("registers Sporecaster as a Drowned Mire piercing suppression enemy", () => {
+  it("shakes an infected resource once on every proximity re-entry", () => {
+    const game = gameFixture();
+    const node = game.world.resources[0]!;
+    node.infected = true;
+    const updateResources = (dt: number) => (game as unknown as {
+      updateResourceMechanics(value: number): void;
+    }).updateResourceMechanics(dt);
+    game.player.x = node.x + BALANCE.tierMechanics.mire.hintRadius + 20;
+    game.player.y = node.y;
+    updateResources(0.1);
+    expect(node.infectionHintTime ?? 0).toBe(0);
+
+    game.player.x = node.x;
+    updateResources(0.1);
+    expect(node.infectionHintTime).toBe(0.42);
+    updateResources(0.1);
+    expect(node.infectionHintTime).toBeCloseTo(0.32);
+
+    game.player.x = node.x + BALANCE.tierMechanics.mire.hintRadius + 20;
+    updateResources(0.5);
+    expect(node.infectionHintTime).toBe(0);
+    game.player.x = node.x;
+    updateResources(0.1);
+    expect(node.infectionHintTime).toBe(0.42);
+  });
+
+  it("registers Sporecaster as a Drowned Mire seeding suppression enemy", () => {
     const definition = ENEMY_REGISTRY.sporecaster;
 
     expect(definition.assets.portrait).toBe("enemies/sporecaster-zombie");
@@ -107,8 +133,8 @@ describe("mire enemies", () => {
     expect(definition.projectile).toMatchObject({
       appearance: "spore",
       damageSource: "sporecaster",
-      pierces: true,
-      targets: ["turret", "player", "flag"],
+      pierces: false,
+      targets: ["turret", "player"],
       statusEffect: {
         kind: "slow",
         duration: 3,
@@ -116,6 +142,7 @@ describe("mire enemies", () => {
         popupTextColor: "#c9ffe8",
         particleColor: "#68cda6",
         popupText: "Spored",
+        visual: "spore",
       },
     });
     expect(definition).toMatchObject({ rosterEligible: true, campaignTierIds: ["mire"] });
@@ -125,14 +152,15 @@ describe("mire enemies", () => {
     }
   });
 
-  it("pierces a priority turret and suppresses an aligned defender", () => {
+  it("passes over structures, hits a turret, and seeds one basic zombie", () => {
     const game = gameFixture();
     const definition = ENEMY_REGISTRY.sporecaster;
     const caster = spawn(game, "sporecaster", game.flag.x - 360, game.flag.y);
     const target = turret(1700, game.flag.x - 150, game.flag.y);
+    const wall = structure(1701, "wall", caster.x + 100, caster.y);
     game.player.x = game.flag.x + 25;
     game.player.y = game.flag.y;
-    game.structures = [target];
+    game.structures = [wall, target];
 
     (game as unknown as { selectEnemyTarget(enemy: Enemy): void }).selectEnemyTarget(caster);
     expect(caster.targetId).toBe(target.id);
@@ -146,17 +174,20 @@ describe("mire enemies", () => {
       damageSource: "sporecaster",
       intendedTargetId: target.id,
       appearance: "spore",
-      pierces: true,
+      pierces: false,
       damage: caster.damage,
       structureDamage: caster.structureDamage,
     });
     (game as unknown as { updateProjectiles(dt: number): void }).updateProjectiles(0.9);
 
     expect(target.health).toBe(target.maxHealth - caster.structureDamage);
+    expect(wall.health).toBe(wall.maxHealth);
     expect(target.statuses?.slow?.remaining).toBe(3);
-    expect(game.player.health).toBe(game.player.maxHealth - caster.damage);
-    expect(game.player.statuses?.slow?.remaining).toBe(3);
-    expect(game.projectiles).toHaveLength(1);
+    expect(target.statuses?.slow?.visual).toBe("spore");
+    expect(game.player.health).toBe(game.player.maxHealth);
+    expect(game.player.statuses?.slow).toBeUndefined();
+    expect(game.projectiles).toHaveLength(0);
+    expect(game.enemies.filter((enemy) => enemy.kind === "basic" && enemy.child)).toHaveLength(1);
     expect(game.particles.some((particle) => particle.color === "#68cda6")).toBe(true);
     expect(game.particles.some((particle) =>
       particle.text === "Spored" && particle.color === "#c9ffe8"))

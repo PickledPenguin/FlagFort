@@ -251,6 +251,7 @@ export interface AudioCueDetail {
   delayMs?: number;
   volumeMultiplier?: number;
   playbackChannel?: "default" | "player-harvest" | "harvester-harvest";
+  reverse?: boolean;
 }
 
 export interface AudioSpatialStateDetail {
@@ -399,6 +400,7 @@ export class AudioManager {
   private platformMuted = false;
   private encoded = new Map<SoundId, Promise<ArrayBuffer | null>>();
   private buffers = new Map<SoundId, Promise<AudioBuffer | null>>();
+  private reversedBuffers = new Map<SoundId, AudioBuffer>();
   private cooldowns = new Map<string, number>();
   private activeByGroup = new Map<string, Set<ActivePlayback>>();
   private loops = new Map<string, ActiveLoop>();
@@ -582,6 +584,27 @@ export class AudioManager {
     return decoded;
   }
 
+  private async getPlaybackBuffer(id: SoundId, reverse = false): Promise<AudioBuffer | null> {
+    const buffer = await this.getBuffer(id);
+    if (!buffer || !reverse || !this.context) return buffer;
+    const cached = this.reversedBuffers.get(id);
+    if (cached) return cached;
+    const reversed = this.context.createBuffer(
+      buffer.numberOfChannels,
+      buffer.length,
+      buffer.sampleRate,
+    );
+    for (let channel = 0; channel < buffer.numberOfChannels; channel += 1) {
+      const source = buffer.getChannelData(channel);
+      const destination = reversed.getChannelData(channel);
+      for (let index = 0; index < source.length; index += 1) {
+        destination[index] = source[source.length - index - 1] ?? 0;
+      }
+    }
+    this.reversedBuffers.set(id, reversed);
+    return reversed;
+  }
+
   private async playReady(detail: AudioCueDetail): Promise<void> {
     const context = this.context;
     if (!context || context.state !== "running") return;
@@ -595,7 +618,7 @@ export class AudioManager {
     if (config.cooldown) this.cooldowns.set(cooldownKey, now + config.cooldown);
     if (config.concurrencyGroup && groupKey
       && !this.hasConcurrency(groupKey, config.concurrencyGroup)) return;
-    const buffer = await this.getBuffer(detail.cue);
+    const buffer = await this.getPlaybackBuffer(detail.cue, detail.reverse);
     if (!buffer || !this.context || this.context !== context) return;
     if (config.concurrencyGroup && groupKey
       && !this.hasConcurrency(groupKey, config.concurrencyGroup)) return;

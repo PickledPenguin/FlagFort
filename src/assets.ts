@@ -187,6 +187,8 @@ export const ASSETS = {
   effects: {
     bossSlamWave: image("effects/boss-slam-wave"),
     uraniumBloodSplatter: image("effects/uranium-blood-splatter"),
+    mireParasite: image("effects/mire-parasite"),
+    infestingNode: image("effects/infesting-node"),
   },
   cursors: {
     ringAllowed: image("gameplay/cursors/ring-allowed"),

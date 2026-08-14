@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_RAM_COOLDOWN_SECONDS, ENEMY_REGISTRY, ROSTER_TIERS, introducedRosterEnemies, rosterMilestones, selectEnemyRoster } from "./enemy-registry";
+import { DEFAULT_RAM_COOLDOWN_SECONDS, ENEMY_REGISTRY, ROSTER_TIERS, enemyRenderDimensions, introducedRosterEnemies, rosterMilestones, selectEnemyRoster } from "./enemy-registry";
 
 describe("deterministic enemy roster", () => {
   it("gives every charging enemy the shared five-second recovery window", () => {
@@ -28,7 +28,7 @@ describe("deterministic enemy roster", () => {
     const definition = ENEMY_REGISTRY.sandstormer;
     expect(definition.displayName).toBe("Sandstormer");
     expect(definition.assets.portrait).toBe("enemies/sandstormer-zombie");
-    expect(definition.render).toEqual({ aspectRatio: 88 / 104, width: 68, height: 80 });
+    expect(definition.render).toEqual({ aspectRatio: 108 / 92, width: 94, height: 80 });
     expect(definition.tier).toBe(5);
     expect(definition.introductionNight).toBe(5);
     expect(definition.rosterEligible).toBe(true);
@@ -40,6 +40,20 @@ describe("deterministic enemy roster", () => {
       color: "#d8a84f",
     });
     expect(selectEnemyRoster("desert-roster", "desert")[5]).toBe("sandstormer");
+  });
+
+  it("normalizes Desert-and-later special sprites by 20 percent without resizing bosses", () => {
+    for (const tierId of ["desert", "volcanic", "wasteland", "rift", "mire", "clockwork"] as const) {
+      for (const definition of Object.values(ENEMY_REGISTRY)) {
+        if (!definition.rosterEligible || !definition.campaignTierIds?.includes(tierId)
+          || !definition.render) continue;
+        const dimensions = enemyRenderDimensions(definition, tierId)!;
+        expect(dimensions.height).toBeCloseTo(definition.render.height * 1.2);
+        expect(dimensions.width / dimensions.height).toBeCloseTo(definition.render.aspectRatio);
+      }
+    }
+    const boss = ENEMY_REGISTRY["chronoforge-colossus"];
+    expect(enemyRenderDimensions(boss, "clockwork")?.height).toBe(boss.render?.height);
   });
 
   it("registers the Tombguard as the Desert armored bruiser", () => {

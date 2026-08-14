@@ -5268,7 +5268,7 @@ img.icon {
   .campaign-ladder-modal > header { padding: 10px 14px; }
   .campaign-ladder-modal header > div > p:last-child { display: none; }
   .campaign-ladder-modal > footer { grid-template-columns: minmax(0, 1fr) minmax(170px, 48%); padding: 9px 14px; }
-  .campaign-ladder-viewport { padding: 12px; }
+  .campaign-ladder-viewport { padding: 12px 12px 96px; }
   .tier-details { grid-template-columns: minmax(0, 1fr); }
   .tier-requirements, .tier-enemies, .tier-milestones { grid-column: 1; }
   .campaign-tier-card { height: 150px; }

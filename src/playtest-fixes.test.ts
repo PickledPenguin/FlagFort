@@ -453,10 +453,10 @@ describe("progression safety and presentation", () => {
       .closest(".campaign-tier-node");
     expect(snowy?.classList.contains("selected")).toBe(true);
     expect(snowy?.classList.contains("current")).toBe(true);
-    expect(snowy?.querySelector(".campaign-track-marker")?.textContent).toContain("7");
-    expect(document.querySelectorAll(".campaign-reward-node")).toHaveLength(16);
+    expect(snowy?.querySelector(".campaign-track-marker")?.textContent).toContain("5");
+    expect(document.querySelectorAll(".campaign-reward-node")).toHaveLength(21);
     expect(document.querySelector(".campaign-footer-requirements")?.textContent)
-      .toContain("Reach Level 7");
+      .toContain("Reach Level 5");
 
     const snowyCardInner = snowy?.querySelector<HTMLElement>(".campaign-tier-card-inner");
     snowy?.querySelector<HTMLElement>('[data-action="select-campaign-tier"]')?.click();

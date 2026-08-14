@@ -343,6 +343,61 @@ describe("wasteland enemies", () => {
       .toHaveLength(1);
   });
 
+  it("holds Radstalker zones at night, shrinks them for 50 daytime seconds, and preserves touched-resource decay", () => {
+    const game = gameFixture();
+    const node = game.world.resources[0]!;
+    node.maxHealth = 1000;
+    node.health = 1000;
+    game.radiationHazards = [{
+      x: node.x,
+      y: node.y,
+      radius: BALANCE.tierMechanics.wasteland.radiationRadius,
+      createdNight: game.night,
+      activationRemaining: 0,
+    }];
+    const updateResources = (dt: number) => (game as unknown as {
+      updateResourceMechanics(value: number): void;
+    }).updateResourceMechanics(dt);
+
+    game.phase = "night";
+    updateResources(8);
+    expect(game.radiationHazards[0]?.radius)
+      .toBe(BALANCE.tierMechanics.wasteland.radiationRadius);
+    expect(node.persistentRadiation).toBe(true);
+    const damageWhileTouched = node.radiationDamage!;
+
+    game.phase = "day";
+    game.radiationHazards[0]!.decayRemaining = 50;
+    game.radiationHazards[0]!.x = node.x + 1000;
+    updateResources(45);
+    expect(game.radiationHazards[0]?.radius).toBeCloseTo(
+      BALANCE.tierMechanics.wasteland.radiationRadius * 0.1,
+    );
+    expect(node.radiationDamage).toBeGreaterThan(damageWhileTouched);
+    updateResources(5);
+    expect(game.radiationHazards).toHaveLength(0);
+    const damageAfterRemoval = node.radiationDamage!;
+    updateResources(1);
+    expect(node.radiationDamage).toBeGreaterThan(damageAfterRemoval);
+  });
+
+  it("immediately removes daytime-decaying Radstalker zones when skipping to night", () => {
+    const game = gameFixture();
+    game.phase = "day";
+    game.radiationHazards = [{
+      x: game.player.x,
+      y: game.player.y,
+      radius: 100,
+      createdNight: game.night,
+      activationRemaining: 0,
+      decayRemaining: 20,
+    }];
+    game.requestSkipNight();
+    game.confirmSkipNight();
+    expect(game.phase).toBe("night");
+    expect(game.radiationHazards).toHaveLength(0);
+  });
+
   it("moves the shared radiation effect with the living Ruin Siren", () => {
     const game = gameFixture();
     const first = game.world.resources[0]!;

@@ -314,6 +314,9 @@ async function bootstrap(): Promise<void> {
       audio.master * audio.countdown,
       audioManager.isEffectivelyMuted(),
     );
+    const paused = game.phase === "paused";
+    musicManager.setPaused(paused);
+    if (paused) return;
     musicManager.setContext(musicContextForState({
       phase: game.phase,
       timer: game.timer,
