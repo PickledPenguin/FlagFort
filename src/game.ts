@@ -1903,16 +1903,19 @@ export class Game {
       return;
     }
     const harvestAmount = Math.max(1, Math.floor(amount * damageScale));
-    const actualHarvest = Math.floor(Math.min(harvestAmount, node.health));
-    if (actualHarvest <= 0) return;
-    node.health = Math.max(0, node.health - actualHarvest);
-    node.harvestDamage = Math.min(node.maxHealth, (node.harvestDamage ?? 0) + actualHarvest);
+    const harvestDamage = Math.min(harvestAmount, node.health);
+    const actualHarvest = Math.floor(harvestDamage);
+    if (harvestDamage <= 0) return;
+    node.health = Math.max(0, node.health - harvestDamage);
+    node.harvestDamage = Math.min(node.maxHealth, (node.harvestDamage ?? 0) + harvestDamage);
     node.hitFlash = 0.16;
-    this.resources[node.kind] += actualHarvest;
-    this.stats.resourcesGathered += actualHarvest;
-    this.recordResources("gathered", { ...emptyWallet(), [node.kind]: actualHarvest });
+    if (actualHarvest > 0) {
+      this.resources[node.kind] += actualHarvest;
+      this.stats.resourcesGathered += actualHarvest;
+      this.recordResources("gathered", { ...emptyWallet(), [node.kind]: actualHarvest });
+      this.floatResource(node.x, node.y - 24, node.kind, `+${actualHarvest}`);
+    }
     this.burst(node.x, node.y, BALANCE.tierColors[node.kind], 4);
-    this.floatResource(node.x, node.y - 24, node.kind, `+${actualHarvest}`);
     const hitCue = `${node.kind}-hit` as "wood-hit" | "stone-hit" | "gold-hit" | "diamond-hit";
     emitAudioCue({
       cue: hitCue,
@@ -1966,6 +1969,9 @@ export class Game {
   }
 
   private applyRadiationAt(source: Vec2, radius: number, dt: number): void {
+    if (distance(source, this.player) <= radius + this.player.radius) {
+      applyPoison(this.player, BALANCE.tierMechanics.wasteland.poisonDuration);
+    }
     for (const node of this.world.resources) {
       if (node.destroyed || distance(source, node) > radius + node.radius) continue;
       if (!node.radiationAffected) {
@@ -2513,7 +2519,7 @@ export class Game {
         72,
         this.enemyQueryScratch,
       )) {
-        if (enemy.health <= 0) continue;
+        if (enemy.health <= 0 || !ENEMY_REGISTRY[enemy.kind].capabilities.canUseTunnels) continue;
         const dx = enemy.x - tunnel.entry.x;
         const dy = enemy.y - tunnel.entry.y;
         const distanceSquared = dx * dx + dy * dy;

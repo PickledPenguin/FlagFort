@@ -441,12 +441,19 @@ export class Ui {
     </button>`;
   }
 
+  private campaignTierFooterMarkup(tier: (typeof CAMPAIGN_TIERS)[number]): string {
+    const progress = this.campaignProgress();
+    const unlocked = isCampaignTierUnlocked(tier, progress);
+    const requirements = campaignUnlockRequirementText(tier, progress);
+    return `<div><small>SELECTED TIER</small><b>${tier.name}</b><span>Select its card to inspect special zombies and mechanics.</span><div class="campaign-footer-requirements">${requirements.map((requirement) => `<i class="${requirement.startsWith("Complete") ? "met" : "unmet"}">${requirement}</i>`).join("")}</div></div>
+      <button class="primary" data-action="start-campaign-tier" ${unlocked ? "" : "disabled"}>${icon("play")} ${unlocked ? `Play ${tier.name}` : "Tier Locked"}</button>`;
+  }
+
   private campaignLadderMarkup(): string {
     const progress = this.campaignProgress();
     const profile = this.game.profileManager?.profile;
     const claimed = new Set(profile?.campaign.claimedRewardIds ?? []);
     const selected = campaignTier(this.selectedCampaignTierId);
-    const selectedUnlocked = isCampaignTierUnlocked(selected, progress);
     const currentTierId = highestUnlockedCampaignTierId(progress);
     const maximumLevel = Math.max(...CAMPAIGN_TIERS.flatMap((tier) => [
       tier.unlock.level,
@@ -488,12 +495,10 @@ export class Ui {
       };
     })));
     const trackEvents = events.sort((a, b) => b.level - a.level).map((event) => event.markup).join("");
-    const requirements = campaignUnlockRequirementText(selected, progress);
     return `<section class="screen modal-screen campaign-ladder-screen"><div class="campaign-ladder-modal" role="dialog" aria-modal="true" aria-labelledby="campaign-ladder-title">
       <header><div><p class="eyebrow">SINGLE-PLAYER CAMPAIGN</p><h2 id="campaign-ladder-title">Raise Your Standard</h2><p>Climb with XP, claim rewards, and clear each tier to unlock the next.</p></div><span class="campaign-level">LEVEL <b>${progress.level}</b></span><button class="icon-button" data-action="close-campaign" aria-label="Close">${icon("close")}</button></header>
       <div class="campaign-ladder-viewport"><div class="campaign-ladder-rail" style="--ladder-progress:${levelPosition(progress.level)}%">${trackEvents}</div></div>
-      <footer><div><small>SELECTED TIER</small><b>${selected.name}</b><span>Select its card to inspect special zombies and mechanics.</span><div class="campaign-footer-requirements">${requirements.map((requirement) => `<i class="${requirement.startsWith("Complete") ? "met" : "unmet"}">${requirement}</i>`).join("")}</div></div>
-        <button class="primary" data-action="start-campaign-tier" ${selectedUnlocked ? "" : "disabled"}>${icon("play")} ${selectedUnlocked ? `Play ${selected.name}` : "Tier Locked"}</button></footer>
+      <footer>${this.campaignTierFooterMarkup(selected)}</footer>
     </div></section>`;
   }
 
@@ -1517,7 +1522,6 @@ export class Ui {
     const panelBeforeAction = this.menuPanel;
     const menuModalScrollTop = this.overlay.querySelector<HTMLElement>(".menu-modal > .modal")?.scrollTop;
     const campaignLadderScrollTop = this.overlay.querySelector<HTMLElement>(".campaign-ladder-viewport")?.scrollTop;
-    let animatedCampaignTierId: CampaignTierId | null = null;
     let upgradeFeedbackSelector: string | null = null;
     const difficulty = target.dataset.difficulty as Difficulty | undefined;
     if (difficulty) {
@@ -1559,16 +1563,34 @@ export class Ui {
         if (tierId && CAMPAIGN_TIERS.some((tier) => tier.id === tierId)) {
           this.selectedCampaignTierId = tierId;
           this.flippedCampaignTierId = tierId;
-          animatedCampaignTierId = tierId;
+          const node = target.closest<HTMLElement>(".campaign-tier-node");
+          for (const candidate of this.overlay.querySelectorAll<HTMLElement>(".campaign-tier-node")) {
+            candidate.classList.toggle("selected", candidate === node);
+          }
+          node?.classList.add("flipped");
+          target.setAttribute("aria-pressed", "true");
+          target.setAttribute("aria-hidden", "true");
+          target.setAttribute("tabindex", "-1");
+          const back = node?.querySelector<HTMLElement>(".tier-card-back");
+          back?.setAttribute("aria-hidden", "false");
+          back?.setAttribute("tabindex", "0");
+          const tier = campaignTier(tierId);
+          const footer = this.overlay.querySelector<HTMLElement>(".campaign-ladder-modal > footer");
+          if (footer) footer.innerHTML = this.campaignTierFooterMarkup(tier);
+          this.lastOverlayKey = this.overlayKey();
         }
-        break;
+        return;
       }
       case "flip-campaign-tier-back": {
         this.flippedCampaignTierId = null;
         const node = target.closest<HTMLElement>(".campaign-tier-node");
         node?.classList.remove("flipped");
-        node?.querySelector<HTMLElement>(".tier-card-front")?.setAttribute("aria-hidden", "false");
+        const front = node?.querySelector<HTMLElement>(".tier-card-front");
+        front?.setAttribute("aria-pressed", "false");
+        front?.setAttribute("aria-hidden", "false");
+        front?.setAttribute("tabindex", "0");
         target.setAttribute("aria-hidden", "true");
+        target.setAttribute("tabindex", "-1");
         this.lastOverlayKey = this.overlayKey();
         return;
       }
@@ -1778,16 +1800,6 @@ export class Ui {
     if (campaignLadderScrollTop !== undefined && action === "select-campaign-tier") {
       const viewport = this.overlay.querySelector<HTMLElement>(".campaign-ladder-viewport");
       if (viewport) viewport.scrollTop = campaignLadderScrollTop;
-    }
-    if (animatedCampaignTierId) {
-      const node = this.overlay.querySelector<HTMLElement>(
-        `.campaign-tier-node [data-campaign-tier="${animatedCampaignTierId}"]`,
-      )?.closest<HTMLElement>(".campaign-tier-node");
-      if (node) {
-        node.classList.remove("flipped");
-        void node.offsetWidth;
-        node.classList.add("flipped");
-      }
     }
     if (menuModalScrollTop !== undefined && (
       action === "buy-upgrade"

@@ -699,27 +699,32 @@ export class Renderer {
   private drawRadiationFields(game: Game): void {
     const ctx = this.ctx;
     const activationDuration = BALANCE.tierMechanics.wasteland.radiationActivationDuration;
+    ctx.save();
+    ctx.fillStyle = "rgba(121,214,60,.075)";
+    ctx.beginPath();
     for (const hazard of game.radiationHazards) {
       if (!this.visible(game, hazard.x, hazard.y, hazard.radius + 30)) continue;
       const progress = Math.max(0, Math.min(1, 1 - hazard.activationRemaining / activationDuration));
       const radius = hazard.radius * (0.12 + progress * 0.88);
-      ctx.save();
-      ctx.globalAlpha = 0.15 * progress;
-      ctx.fillStyle = "#79d63c";
-      ctx.beginPath(); ctx.arc(hazard.x, hazard.y, radius, 0, Math.PI * 2); ctx.fill();
-      ctx.globalAlpha = 0.82;
-      this.drawSprite(ASSETS.effects.uraniumBloodSplatter, hazard.x - 32, hazard.y - 24, 64, 48);
-      ctx.restore();
+      if (progress > 0) {
+        ctx.moveTo(hazard.x + radius, hazard.y);
+        ctx.arc(hazard.x, hazard.y, radius, 0, Math.PI * 2);
+      }
     }
     for (const enemy of game.enemies) {
       if (enemy.health <= 0 || !ENEMY_REGISTRY[enemy.kind].capabilities.radiationAura) continue;
       const radius = BALANCE.tierMechanics.wasteland.radiationRadius;
       if (!this.visible(game, enemy.x, enemy.y, radius + 20)) continue;
+      ctx.moveTo(enemy.x + radius, enemy.y);
+      ctx.arc(enemy.x, enemy.y, radius, 0, Math.PI * 2);
+    }
+    ctx.fill();
+    ctx.restore();
+    for (const hazard of game.radiationHazards) {
+      if (!this.visible(game, hazard.x, hazard.y, hazard.radius + 30)) continue;
       ctx.save();
-      ctx.fillStyle = "rgba(121,214,60,.08)";
-      ctx.strokeStyle = "rgba(183,221,99,.2)";
-      ctx.lineWidth = 3;
-      ctx.beginPath(); ctx.arc(enemy.x, enemy.y, radius, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      ctx.globalAlpha = 0.82;
+      this.drawSprite(ASSETS.effects.uraniumBloodSplatter, hazard.x - 32, hazard.y - 24, 64, 48);
       ctx.restore();
     }
   }
@@ -967,7 +972,8 @@ export class Renderer {
     this.drawStructureCracks(structure);
     if (structure.kind === "turret" && isSlowed(structure)) {
       ctx.filter = "none";
-      this.drawFrostAccumulation(structure.radius);
+      if (structure.statuses?.slow?.visual === "slime") this.drawSlimeAccumulation(structure.radius);
+      else this.drawFrostAccumulation(structure.radius);
     }
     ctx.restore();
   }
@@ -990,6 +996,29 @@ export class Renderer {
       ctx.beginPath();
       ctx.arc(radius * x, radius * y, radius * size, 0, Math.PI * 2);
       ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  private drawSlimeAccumulation(radius: number): void {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.fillStyle = "rgba(121,214,60,.78)";
+    ctx.strokeStyle = "rgba(49,111,35,.9)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.ellipse(0, radius * 0.62, radius * 0.82, radius * 0.24, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    for (const [x, y, size] of [
+      [-0.54, 0.08, 0.14],
+      [0.48, -0.16, 0.11],
+      [0.08, 0.32, 0.09],
+    ] as const) {
+      ctx.beginPath();
+      ctx.arc(radius * x, radius * y, radius * size, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
     }
     ctx.restore();
   }
@@ -1586,10 +1615,11 @@ export class Renderer {
       this.drawSprite(META_BALANCE.assets.equipment.helmet[helmet.tier], -30, -37, 60, 55, flashing);
       ctx.restore();
     }
-    if (isSlowed(player) && player.statuses?.slow?.visual !== "slime") {
+    if (isSlowed(player)) {
       ctx.filter = "none";
       ctx.rotate(-angle);
-      this.drawFrostAccumulation(player.radius);
+      if (player.statuses?.slow?.visual === "slime") this.drawSlimeAccumulation(player.radius);
+      else this.drawFrostAccumulation(player.radius);
     }
     ctx.restore();
   }

@@ -120,6 +120,28 @@ describe("staged Desert enemies", () => {
     expect(game.sandTunnels).toHaveLength(1);
   });
 
+  it("keeps bosses out of Burrower tunnels while normal zombies still emerge", () => {
+    const game = gameFixture();
+    const entry = { x: game.flag.x + 260, y: game.flag.y };
+    const exit = { x: entry.x + 180, y: entry.y };
+    const boss = spawn(game, "dune-colossus", entry.x, entry.y);
+    game.sandTunnels = [{ id: 991, entry, exit, remaining: 8, cooldown: 0 }];
+    (game as unknown as { rebuildSpatial(): void }).rebuildSpatial();
+    (game as unknown as { updateSandTunnels(dt: number): void }).updateSandTunnels(0);
+
+    expect(ENEMY_REGISTRY[boss.kind].capabilities.canUseTunnels).toBe(false);
+    expect({ x: boss.x, y: boss.y }).toEqual(entry);
+    expect(game.sandTunnels[0]?.cooldown).toBe(0);
+
+    const basic = spawn(game, "basic", entry.x, entry.y);
+    (game as unknown as { rebuildSpatial(): void }).rebuildSpatial();
+    (game as unknown as { updateSandTunnels(dt: number): void }).updateSandTunnels(0);
+
+    expect(ENEMY_REGISTRY[basic.kind].capabilities.canUseTunnels).toBe(true);
+    expect({ x: basic.x, y: basic.y }).toEqual(exit);
+    expect({ x: boss.x, y: boss.y }).toEqual(entry);
+  });
+
   it("keeps the Sandstormer speed buff dramatic", () => {
     expect(BALANCE.tierMechanics.desert.sandstormSpeedMultiplier).toBeGreaterThanOrEqual(2);
   });

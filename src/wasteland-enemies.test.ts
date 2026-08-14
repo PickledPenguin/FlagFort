@@ -288,7 +288,7 @@ describe("wasteland enemies", () => {
       .toHaveLength(definition.phaseSlam!.reinforcementCount);
   });
 
-  it("delays Radstalker radiation for the full reveal and floors harvest awards", () => {
+  it("delays Radstalker radiation, floors awards, and depletes fractional remnants", () => {
     const game = gameFixture();
     const node = game.world.resources[0]!;
     const radstalker = spawn(game, "radstalker", node.x, node.y);
@@ -313,6 +313,34 @@ describe("wasteland enemies", () => {
     }).harvestNode(node, "diamond", 1);
     expect(game.resources[node.kind] - resourcesBefore).toBe(2);
     expect(Number.isInteger(game.resources[node.kind])).toBe(true);
+    expect(node.health).toBe(0);
+    expect(game.particles.some((particle) => particle.text === "DEPLETED")).toBe(true);
+  });
+
+  it("refreshes one poison status from active death zones during day and night", () => {
+    const game = gameFixture();
+    game.radiationHazards = [{
+      x: game.player.x,
+      y: game.player.y,
+      radius: BALANCE.tierMechanics.wasteland.radiationRadius,
+      createdNight: game.night,
+      activationRemaining: 0,
+    }];
+    const updateResources = () => (game as unknown as {
+      updateResourceMechanics(dt: number): void;
+    }).updateResourceMechanics(0.25);
+
+    game.phase = "day";
+    updateResources();
+    expect(game.player.statuses?.poison?.remaining)
+      .toBe(BALANCE.tierMechanics.wasteland.poisonDuration);
+    game.player.statuses!.poison!.remaining = 0.5;
+    game.phase = "night";
+    updateResources();
+    expect(game.player.statuses?.poison?.remaining)
+      .toBe(BALANCE.tierMechanics.wasteland.poisonDuration);
+    expect(Object.keys(game.player.statuses ?? {}).filter((kind) => kind === "poison"))
+      .toHaveLength(1);
   });
 
   it("moves the shared radiation effect with the living Ruin Siren", () => {
@@ -327,8 +355,13 @@ describe("wasteland enemies", () => {
     expect(first.radiationDamage).toBeCloseTo(BALANCE.tierMechanics.wasteland.radiationDamagePerSecond);
     siren.x = second.x;
     siren.y = second.y;
+    game.player.x = siren.x;
+    game.player.y = siren.y;
+    game.player.statuses = { poison: { remaining: 0 } };
     updateResources();
     expect(second.radiationDamage).toBeCloseTo(BALANCE.tierMechanics.wasteland.radiationDamagePerSecond);
+    expect(game.player.statuses?.poison?.remaining)
+      .toBe(BALANCE.tierMechanics.wasteland.poisonDuration);
   });
 
   it("keeps poison damage equal to the equivalent full fire effect", () => {

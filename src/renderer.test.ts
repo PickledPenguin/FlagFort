@@ -83,7 +83,70 @@ describe("world-space biome weather", () => {
   });
 });
 
+describe("radiation field rendering", () => {
+  it("composites overlapping hazards and auras into one subtle fill", () => {
+    const renderer = Object.create(Renderer.prototype) as {
+      ctx: Partial<CanvasRenderingContext2D> & { fillStyle: string };
+      visible(): boolean;
+      drawSprite: ReturnType<typeof vi.fn>;
+      drawRadiationFields(game: unknown): void;
+    };
+    renderer.ctx = {
+      save: vi.fn(), restore: vi.fn(), beginPath: vi.fn(), moveTo: vi.fn(),
+      arc: vi.fn(), fill: vi.fn(), fillStyle: "",
+    };
+    renderer.visible = () => true;
+    renderer.drawSprite = vi.fn();
+
+    renderer.drawRadiationFields({
+      radiationHazards: [
+        { x: 100, y: 100, radius: 230, activationRemaining: 0 },
+        { x: 220, y: 100, radius: 230, activationRemaining: 0 },
+      ],
+      enemies: [{ kind: "ruin-siren", health: 100, x: 160, y: 100 }],
+    });
+
+    expect(renderer.ctx.fillStyle).toBe("rgba(121,214,60,.075)");
+    expect(renderer.ctx.fill).toHaveBeenCalledTimes(1);
+    expect(renderer.ctx.arc).toHaveBeenCalledTimes(3);
+    expect(renderer.drawSprite).toHaveBeenCalledTimes(2);
+  });
+});
+
 describe("player appearance rendering", () => {
+  it("routes Fallout slows to slime accumulation without drawing frost", () => {
+    const renderer = Object.create(Renderer.prototype) as {
+      ctx: Pick<CanvasRenderingContext2D, "save" | "translate" | "rotate" | "restore"> & { filter: string };
+      drawPlayer(game: unknown): void;
+      drawSprite: ReturnType<typeof vi.fn>;
+      drawTintedSprite: ReturnType<typeof vi.fn>;
+      drawSlimeAccumulation: ReturnType<typeof vi.fn>;
+      drawFrostAccumulation: ReturnType<typeof vi.fn>;
+    };
+    renderer.ctx = {
+      save: vi.fn(), translate: vi.fn(), rotate: vi.fn(), restore: vi.fn(), filter: "none",
+    };
+    renderer.drawSprite = vi.fn();
+    renderer.drawTintedSprite = vi.fn();
+    renderer.drawSlimeAccumulation = vi.fn();
+    renderer.drawFrostAccumulation = vi.fn();
+
+    renderer.drawPlayer({
+      player: {
+        x: 100, y: 200, radius: 25, angle: 0, cooldown: 0, punchHand: "right", hurtFlash: 0,
+        statuses: { slow: { remaining: 2, visual: "slime" } },
+      },
+      upgrades: { punchRate: 0 },
+      profileManager: { profile: { playerColor: "#d9b783", eyeStyle: "round" } },
+      getSelectedAction: () => "fists",
+      getBestGlove: () => "wood",
+      isCombatMode: () => false,
+    });
+
+    expect(renderer.drawSlimeAccumulation).toHaveBeenCalledWith(25);
+    expect(renderer.drawFrostAccumulation).not.toHaveBeenCalled();
+  });
+
   it("composes the saved body color, body details, and selected eyes", () => {
     const renderer = Object.create(Renderer.prototype) as {
       ctx: Pick<CanvasRenderingContext2D, "save" | "translate" | "rotate" | "restore">;

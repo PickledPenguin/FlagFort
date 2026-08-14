@@ -458,10 +458,13 @@ describe("progression safety and presentation", () => {
     expect(document.querySelector(".campaign-footer-requirements")?.textContent)
       .toContain("Reach Level 7");
 
+    const snowyCardInner = snowy?.querySelector<HTMLElement>(".campaign-tier-card-inner");
     snowy?.querySelector<HTMLElement>('[data-action="select-campaign-tier"]')?.click();
     const flippedSnowy = document.querySelector<HTMLElement>('[data-campaign-tier="snowy"]')!
       .closest<HTMLElement>(".campaign-tier-node");
     expect(flippedSnowy?.classList.contains("flipped")).toBe(true);
+    expect(flippedSnowy?.querySelector(".campaign-tier-card-inner")).toBe(snowyCardInner);
+    expect(flippedSnowy?.querySelector(".tier-card-front")?.getAttribute("aria-pressed")).toBe("true");
     expect(flippedSnowy?.querySelectorAll(".tier-card-enemies > span")).toHaveLength(4);
     expect(flippedSnowy?.querySelector(".tier-card-enemies > .boss")?.textContent)
       .toContain("Frost Warden");
@@ -472,6 +475,8 @@ describe("progression safety and presentation", () => {
     const returnedSnowy = document.querySelector<HTMLElement>('[data-campaign-tier="snowy"]')!
       .closest<HTMLElement>(".campaign-tier-node");
     expect(returnedSnowy?.classList.contains("flipped")).toBe(false);
+    expect(returnedSnowy?.querySelector(".campaign-tier-card-inner")).toBe(snowyCardInner);
+    expect(returnedSnowy?.querySelector(".tier-card-front")?.getAttribute("aria-pressed")).toBe("false");
   });
 
   it("keeps Campaign ladder scroll position while flipping a tier", () => {
