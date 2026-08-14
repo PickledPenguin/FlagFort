@@ -5,6 +5,7 @@ import {
   canAffordAnyEquipment,
   canAffordAnyPermanentUpgrade,
   createDefaultProfile,
+  createPlaytestingProfile,
   crazyGamesCalendarDate,
   derivePlayerLevel,
   migrateProfile,
@@ -20,6 +21,42 @@ class TestStore {
 }
 
 describe("versioned profile persistence", () => {
+  it("builds a fully unlocked Level 50 playtesting profile", () => {
+    const profile = createPlaytestingProfile(createDefaultProfile());
+
+    expect(profile.playerLevel).toBe(50);
+    expect(derivePlayerLevel(profile.lifetimeXp)).toBe(50);
+    expect(Object.values(profile.permanentUpgrades).every(
+      (level) => level === META_BALANCE.permanentUpgrade.maximumLevel,
+    )).toBe(true);
+    expect(Object.values(profile.equipment).every(
+      (item) => item.tier === "diamond" && item.equipped,
+    )).toBe(true);
+    expect(profile.campaign.defeatedTierIds).toHaveLength(8);
+  });
+
+  it("isolates playtesting changes from the stored account", () => {
+    const store = new TestStore();
+    const manager = new ProfileManager(store);
+    manager.profile.coins = 42;
+    manager.profile.lifetimeXp = 300;
+    manager.reload();
+    const storedBefore = store.getItem(META_BALANCE.profileStorageKey);
+
+    expect(manager.enterPlaytestingMode()).toBe(true);
+    expect(manager.isPlaytestingMode).toBe(true);
+    manager.grantCoins(999);
+    manager.profile.permanentUpgrades.bowDamage = 0;
+    expect(store.getItem(META_BALANCE.profileStorageKey)).toBe(storedBefore);
+
+    expect(manager.exitPlaytestingMode()).toBe(true);
+    expect(manager.isPlaytestingMode).toBe(false);
+    expect(manager.profile.coins).toBe(10);
+    expect(manager.profile.playerLevel).toBe(1);
+    expect(manager.profile.permanentUpgrades.bowDamage).toBe(0);
+    expect(store.getItem(META_BALANCE.profileStorageKey)).toBe(storedBefore);
+  });
+
   it("recovers from corrupt data and writes the current schema", () => {
     const profile = parseProfile("{not-json");
     expect(profile).toEqual(createDefaultProfile());

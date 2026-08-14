@@ -311,6 +311,35 @@ describe("event-driven HUD interaction", () => {
     audioManager.setMuted(false);
   });
 
+  it("enters and exits isolated playtesting mode from settings", () => {
+    const { game, overlay, ui } = createHarness(() => undefined);
+    game.returnToMenu();
+    ui.render(true);
+    click(overlay.querySelector('[data-action="settings"]')!);
+
+    click(overlay.querySelector('[data-action="enter-playtesting"]')!);
+    expect(game.profileManager?.isPlaytestingMode).toBe(true);
+    expect(game.profileManager?.profile.playerLevel).toBe(50);
+    expect(overlay.textContent).toContain("Account progression is isolated");
+    expect(overlay.querySelector('[data-action="exit-playtesting"]')).not.toBeNull();
+
+    click(overlay.querySelector('[data-action="exit-playtesting"]')!);
+    expect(game.profileManager?.isPlaytestingMode).toBe(false);
+    expect(game.profileManager?.profile.playerLevel).toBe(1);
+    expect(overlay.querySelector('[data-action="enter-playtesting"]')).not.toBeNull();
+  });
+
+  it("does not allow profile mode switching during an active run", () => {
+    const { game, overlay, ui } = createHarness(() => undefined);
+    game.togglePause();
+    ui.render(true);
+    click(overlay.querySelector('[data-action="settings"]')!);
+
+    const toggle = overlay.querySelector<HTMLButtonElement>('[data-action="enter-playtesting"]')!;
+    expect(toggle.disabled).toBe(true);
+    expect(overlay.textContent).toContain("main menu");
+  });
+
   it("plays hover audio once on interactive entry, not for movement within the control", () => {
     const { game, overlay, ui } = createHarness();
     game.returnToMenu();

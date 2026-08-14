@@ -22,9 +22,9 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="4.3824517"
-     inkscape:cx="51.455217"
-     inkscape:cy="59.555705"
+     inkscape:zoom="3.1057363"
+     inkscape:cx="50.712612"
+     inkscape:cy="55.381392"
      inkscape:window-width="1608"
      inkscape:window-height="739"
      inkscape:window-x="0"
@@ -37,7 +37,7 @@
      id="description">A jagged deadwood stump with a faint patch of toxic fungus.</desc>
   <path
      id="trunk"
-     d="m 31.910668,83.750182 6,-26.555744 21.688855,-0.653908 5.31115,27.209652 z"
+     d="m 33.910668,85.750182 6,-26.555744 21.688855,-0.653908 5.31115,27.209652 z"
      fill="#554a40"
      stroke="#252527"
      stroke-width="6"
@@ -47,7 +47,7 @@
      id="wasteland-deadwood-depleted">
     <path
        id="cut-0"
-       d="m 37.049099,56.589459 9.150687,-6.145807 13.990917,5.401034 -10.13948,7.622994 z"
+       d="m 39.049099,58.589459 9.150687,-6.145807 13.990917,5.401034 -10.13948,7.622994 z"
        fill="#766558"
        stroke="#2e2929"
        stroke-width="2.8636"
@@ -56,7 +56,7 @@
        sodipodi:nodetypes="ccccc" />
     <path
        id="crack-4"
-       d="m 48.166176,63.097104 4.999997,8 -5.999997,10"
+       d="m 50.166176,65.097104 4.999997,8 -5.999997,10"
        fill="none"
        stroke="#262326"
        stroke-width="3"

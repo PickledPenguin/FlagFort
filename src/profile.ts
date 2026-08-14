@@ -178,6 +178,23 @@ export function createDefaultProfile(): PlayerProfile {
   };
 }
 
+export function createPlaytestingProfile(profile: PlayerProfile): PlayerProfile {
+  const playtestingProfile = migrateProfile(profile);
+  playtestingProfile.lifetimeXp = lifetimeXpAtLevel(50);
+  playtestingProfile.spendableXp = playtestingProfile.lifetimeXp;
+  playtestingProfile.playerLevel = 50;
+  for (const definition of PERMANENT_UPGRADES) {
+    playtestingProfile.permanentUpgrades[definition.id]
+      = META_BALANCE.permanentUpgrade.maximumLevel;
+  }
+  for (const kind of EQUIPMENT_ORDER) {
+    playtestingProfile.equipment[kind] = { tier: "diamond", equipped: true };
+  }
+  playtestingProfile.campaign.defeatedTierIds = CAMPAIGN_TIERS.map((tier) => tier.id);
+  playtestingProfile.pendingRunSettlement = null;
+  return playtestingProfile;
+}
+
 function finiteNonNegative(value: unknown, fallback = 0): number {
   return typeof value === "number" && Number.isFinite(value) && value >= 0
     ? Math.floor(value)
@@ -383,6 +400,8 @@ export function parseProfile(serialized: string | null): PlayerProfile {
 
 export class ProfileManager {
   profile: PlayerProfile;
+  private accountProfile: PlayerProfile;
+  private playtestingMode = false;
   private readonly listeners = new Set<(profile: PlayerProfile) => void>();
 
   constructor(private storage: KeyValueStore) {
@@ -410,6 +429,28 @@ export class ProfileManager {
     }
     this.refreshDailyRewardEligibility();
     this.save();
+    this.accountProfile = this.profile;
+  }
+
+  get isPlaytestingMode(): boolean {
+    return this.playtestingMode;
+  }
+
+  enterPlaytestingMode(): boolean {
+    if (this.playtestingMode) return false;
+    this.accountProfile = this.profile;
+    this.profile = createPlaytestingProfile(this.accountProfile);
+    this.playtestingMode = true;
+    this.emit();
+    return true;
+  }
+
+  exitPlaytestingMode(): boolean {
+    if (!this.playtestingMode) return false;
+    this.profile = this.accountProfile;
+    this.playtestingMode = false;
+    this.emit();
+    return true;
   }
 
   setStorage(storage: KeyValueStore): void {
@@ -418,9 +459,11 @@ export class ProfileManager {
   }
 
   reload(): void {
+    this.playtestingMode = false;
     this.profile = parseProfile(this.storage.getItem(META_BALANCE.profileStorageKey));
     this.refreshDailyRewardEligibility();
     this.save();
+    this.accountProfile = this.profile;
     this.emit();
   }
 
@@ -636,7 +679,10 @@ export class ProfileManager {
 
   private commit(): void {
     this.profile.playerLevel = derivePlayerLevel(this.profile.lifetimeXp);
-    this.save();
+    if (!this.playtestingMode) {
+      this.accountProfile = this.profile;
+      this.save();
+    }
     this.emit();
   }
 

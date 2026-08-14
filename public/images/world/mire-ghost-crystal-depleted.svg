@@ -23,8 +23,8 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:zoom="3.4248238"
-     inkscape:cx="75.624329"
-     inkscape:cy="71.244542"
+     inkscape:cx="55.185321"
+     inkscape:cy="51.389505"
      inkscape:window-width="1475"
      inkscape:window-height="679"
      inkscape:window-x="0"
@@ -39,31 +39,32 @@
      id="mire-ghost-crystal-depleted">
     <path
        id="left-husk"
-       d="m12 76 11-29 13-10 10 17-7 29Z"
+       d="M 13.171348,79.127278 19.773354,48.82194 31.156092,37.013753 43.554302,52.352736 40.90854,82.068051 Z"
        fill="#527d77"
        stroke="#244846"
        stroke-width="6"
        stroke-linejoin="round" />
     <path
        id="center-husk"
-       d="m36 80 10-35 12-11 11 19-8 31Z"
+       d="M 37.498839,81.543385 42.22675,45.451186 52.472921,32.801443 66.155204,49.971043 62.815392,81.811986 Z"
        fill="#638f87"
        stroke="#244846"
        stroke-width="6"
        stroke-linejoin="round" />
     <path
        id="right-husk"
-       d="m61 80 7-24 11-8 9 15-9 21Z"
+       d="M 62.225369,77.855741 65.60866,53.085732 75.308287,43.55068 86.422424,57.059046 80.618494,79.156883 Z"
        fill="#4b746f"
        stroke="#244846"
        stroke-width="6"
        stroke-linejoin="round" />
     <path
        id="breaks"
-       d="m24 49 8 9-8 12m24-24 9 10-10 12m24-10 7 7-8 9"
+       d="m 21.057427,50.652557 9.240041,7.721505 -6.142421,13.04878 m 20.197331,-25.277607 10.376609,8.563061 -8.120543,13.343791 m 22.262411,-13.430749 7.955968,5.890888 -6.584937,10.081596"
        fill="none"
        stroke="#315b57"
        stroke-width="3"
-       stroke-linecap="round" />
+       stroke-linecap="round"
+       sodipodi:nodetypes="ccccccccc" />
   </g>
 </svg>

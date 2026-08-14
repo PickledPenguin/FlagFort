@@ -22,9 +22,9 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="3.3107126"
-     inkscape:cx="31.564202"
-     inkscape:cy="45.005417"
+     inkscape:zoom="4.4820521"
+     inkscape:cx="50.758"
+     inkscape:cy="51.315781"
      inkscape:window-width="1494"
      inkscape:window-height="707"
      inkscape:window-x="0"
@@ -46,18 +46,19 @@
        stroke-linejoin="round" />
     <path
        id="star-metal"
-       d="M 17,55 36,59 46,39 58,53 77,45 84,63 66,66 56,81 42,67 22,75 Z"
+       d="M 78.390937,50.167325 61.976836,56.721344 62.422637,72.691068 47.951459,70.420893 38.475126,80.280995 38.168297,60.237728 19.782174,59.022589 35.827033,49.909472 47.805502,30.239599 54.976833,45.138223 64.995382,43.017478 Z"
        fill="#d9a936"
        stroke="#70491c"
        stroke-width="4"
        stroke-linejoin="round"
-       sodipodi:nodetypes="ccccccccccc" />
+       sodipodi:nodetypes="cccccccccccc" />
     <path
        id="hot-glints"
-       d="m42 54 8-10m15 12 10-5M45 70l8 7"
+       d="m 41.330664,51.991991 8,-10 m -1.207094,21.314646 8.892448,3.430207"
        fill="none"
        stroke="#fff1a3"
        stroke-width="4"
-       stroke-linecap="round" />
+       stroke-linecap="round"
+       sodipodi:nodetypes="cccc" />
   </g>
 </svg>

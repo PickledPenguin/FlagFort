@@ -5106,8 +5106,10 @@ export class Game {
     this.records = this.records.slice(0, 10);
     if (this.profileManager) this.profileManager.saveRunRecords(this.records);
     else browserStorage()?.setItem("countdown-forest-records", JSON.stringify(this.records));
-    this.platform?.reportProgress(victory ? 100 : Math.min(90, this.stats.nightsSurvived * 10));
-    if (victory) this.platform?.happytime();
+    if (!this.profileManager?.isPlaytestingMode) {
+      this.platform?.reportProgress(victory ? 100 : Math.min(90, this.stats.nightsSurvived * 10));
+      if (victory) this.platform?.happytime();
+    }
     this.platform?.clearGameContext();
     finishRunDifficultyLog({
       schema: "flagfort-dev-run-v2",

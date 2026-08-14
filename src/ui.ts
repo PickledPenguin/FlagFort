@@ -513,9 +513,9 @@ export class Ui {
       : `<span class="guest-avatar" style="--player-color:${profile.playerColor};--body-asset:url('${META_BALANCE.assets.player.body}')">
           <i></i><img src="${META_BALANCE.assets.player.bodyDetails}" alt=""><img src="${META_BALANCE.assets.player.eyes[profile.eyeStyle]}" alt="">
         </span>`;
-    return `<button class="profile-chip" data-action="profile" aria-label="Open player profile">
+    return `<button class="profile-chip ${manager.isPlaytestingMode ? "playtesting" : ""}" data-action="profile" aria-label="Open player profile${manager.isPlaytestingMode ? ". Playtesting mode active" : ""}">
       ${avatar}
-      <span class="profile-chip-copy"><b>${user?.username ?? "Guest Defender"}</b>
+      <span class="profile-chip-copy"><b>${manager.isPlaytestingMode ? "Playtesting Mode" : user?.username ?? "Guest Defender"}</b>
         <small>Level ${progress.level} · ${progress.current}/${progress.required} XP</small>
         <i style="--profile-xp:${progress.ratio * 100}%"></i>
       </span>
@@ -589,7 +589,7 @@ export class Ui {
       </div></div>`;
     }
     if (this.menuPanel === "settings") {
-      return `<div class="menu-modal"><div class="modal compact">
+      return `<div class="menu-modal"><div class="modal compact settings-card">
         <button class="modal-close" data-action="close-panel" aria-label="Close">${icon("close")}</button>
         ${this.settingsMarkup()}
         <button class="secondary wide" data-action="tutorial-menu">${icon("book")} Show tutorial again</button>
@@ -902,6 +902,9 @@ export class Ui {
 
   private settingsMarkup(titleId = "settings-title"): string {
     const audio = audioManager.getSettings();
+    const manager = this.game.profileManager;
+    const playtesting = manager?.isPlaytestingMode ?? false;
+    const canSwitchMode = this.game.phase === "menu";
     return `<p class="eyebrow">SETTINGS</p><h2 id="${titleId}">Audio</h2>
       <div class="audio-settings">
         ${this.volumeControl("master", "Master", audio.master)}
@@ -912,7 +915,17 @@ export class Ui {
         <button class="setting-toggle ${audio.muted ? "active" : ""}" data-action="audio-mute" aria-pressed="${audio.muted}">
           <span>${audio.muted ? buildBarIcon("selected-tier") : icon("close")}<b>Mute all audio</b></span><em>${audio.muted ? "ON" : "OFF"}</em>
         </button>
-      </div>`;
+      </div>
+      ${manager ? `<section class="playtesting-setting ${playtesting ? "active" : ""}">
+        <header><span>${icon("settings")}<b>Playtesting mode</b></span><em>${playtesting ? "ACTIVE" : "OFF"}</em></header>
+        <p>${playtesting
+          ? "Level 50, every diamond equipment item, maximum permanent upgrades, and every campaign tier are active. Account progression is isolated."
+          : "Temporarily test every campaign tier with a Level 50 defender, diamond equipment, and maximum permanent upgrades."}</p>
+        <button class="${playtesting ? "ghost" : "secondary"} wide" data-action="${playtesting ? "exit-playtesting" : "enter-playtesting"}" ${canSwitchMode ? "" : "disabled"}>
+          ${playtesting ? "Exit to normal account" : "Enter playtesting mode"}
+        </button>
+        <small>${canSwitchMode ? "Playtesting rewards and progress are never saved to your account." : "Finish or end this run to switch modes from the main menu."}</small>
+      </section>` : ""}`;
   }
 
   private difficultyText(difficulty: Difficulty): string {
@@ -931,7 +944,7 @@ export class Ui {
       </div></section>`;
     }
     if (this.menuPanel === "settings") {
-      return `<section class="screen modal-screen"><div class="modal compact pause-card" role="dialog" aria-modal="true" aria-labelledby="pause-settings-title">
+      return `<section class="screen modal-screen"><div class="modal compact pause-card settings-card" role="dialog" aria-modal="true" aria-labelledby="pause-settings-title">
         <button class="modal-close" data-action="close-panel" aria-label="Back to pause menu">${icon("arrow-left")}</button>
         ${this.settingsMarkup("pause-settings-title")}
       </div></section>`;
@@ -1684,6 +1697,18 @@ export class Ui {
         break;
       case "audio-mute":
         audioManager.toggleMuted();
+        break;
+      case "enter-playtesting":
+        if (this.game.phase === "menu" && this.game.profileManager?.enterPlaytestingMode()) {
+          this.dailyRewardVisible = false;
+          this.selectedCampaignTierId = highestUnlockedCampaignTierId(this.campaignProgress());
+        }
+        break;
+      case "exit-playtesting":
+        if (this.game.phase === "menu" && this.game.profileManager?.exitPlaytestingMode()) {
+          this.dailyRewardVisible = false;
+          this.selectedCampaignTierId = highestUnlockedCampaignTierId(this.campaignProgress());
+        }
         break;
       case "dismiss-daily":
         this.dailyRewardVisible = false;
