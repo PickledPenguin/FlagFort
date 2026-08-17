@@ -3235,7 +3235,10 @@ export class Game {
       .sort((a, b) => distance(enemy, a) - distance(enemy, b) || a.id - b.id)[0];
   }
 
-  private refreshEnemyPath(enemy: Enemy, target: { x: number; y: number }): void {
+  private refreshEnemyPath(
+    enemy: Enemy,
+    target: { x: number; y: number; radius?: number },
+  ): void {
     const routeInvalidated = enemy.routeIncludesStructures
       && enemy.routeStructureRevision !== this.structureRevision;
     if ((enemy.path.length === 0 || (enemy.pathCooldown <= 0 && enemy.routeCommitment <= 0)) || routeInvalidated) {
@@ -3261,7 +3264,10 @@ export class Game {
           );
           this.navigationFields.set(gapKey, gapNavigation);
         }
-        const gapRoute = gapNavigation.find(enemy, target);
+        const targetRadius = typeof target.radius === "number"
+          ? target.radius + enemy.radius + 5
+          : 0;
+        const gapRoute = gapNavigation.find(enemy, target, targetRadius);
         const directDistance = Math.max(1, distance(enemy, target));
         const routeDistance = this.pathLength(enemy, gapRoute);
         if (
@@ -3281,7 +3287,7 @@ export class Game {
             naturalNavigation = new NavigationGrid(naturalObstacles, radiusKey);
             this.navigationFields.set(naturalKey, naturalNavigation);
           }
-          enemy.path = naturalNavigation.find(enemy, target);
+          enemy.path = naturalNavigation.find(enemy, target, targetRadius);
           enemy.pathIndex = 0;
         }
       } else {
@@ -3295,7 +3301,10 @@ export class Game {
         navigation = new NavigationGrid(naturalObstacles, radiusKey);
         this.navigationFields.set(navigationKey, navigation);
       }
-      enemy.path = navigation.find(enemy, target);
+      const targetRadius = typeof target.radius === "number"
+        ? target.radius + enemy.radius + 5
+        : 0;
+      enemy.path = navigation.find(enemy, target, targetRadius);
       enemy.pathIndex = 0;
       }
     }
@@ -3476,8 +3485,8 @@ export class Game {
     }
   }
 
-  private applyTimeLockStatus(target: Player | Structure, duration: number): void {
-    applyTimeLock(target, duration);
+  private applyTimeLockStatus(target: Player | Structure, duration: number): boolean {
+    if (!applyTimeLock(target, duration)) return false;
     const config = BALANCE.tierMechanics.clockwork;
     this.burst(
       target.x,
@@ -3489,6 +3498,7 @@ export class Game {
       -24,
     );
     emitAudioCue({ cue: "portal-spawn", position: { x: target.x, y: target.y } });
+    return true;
   }
 
   private createTimeLockBurst(origin: Vec2): void {
@@ -4149,6 +4159,21 @@ export class Game {
   private resolveAreaStrike(strike: AreaStrike): void {
     const config = ENEMY_REGISTRY[strike.sourceEnemyKind].areaStrike;
     if (!config) return;
+    if (config.resolution === "time-lock") {
+      if (distance(strike, this.player) <= strike.radius + this.player.radius) {
+        this.applyEnemyStatusEffect(config.statusEffect, this.player);
+      }
+      for (const structure of this.structures) {
+        if (structure.kind !== "turret"
+          || distance(strike, structure) > strike.radius + structure.radius) continue;
+        this.applyEnemyStatusEffect(config.statusEffect, structure);
+      }
+      emitAudioCue({
+        cue: config.impactAudio as import("./audio").SoundId,
+        position: { x: strike.x, y: strike.y },
+      });
+      return;
+    }
     if (distance(strike, this.player) <= strike.radius + this.player.radius) {
       const damage = this.applyIncomingDamage(
         this.player,
@@ -4479,8 +4504,7 @@ export class Game {
       });
     }
     if (!enemy.bossHalfSummoned
-      && (enemy.kind === "eclipse-regent"
-        || enemy.kind === "chronoforge-colossus")
+      && enemy.kind === "eclipse-regent"
       && healthBefore > enemy.maxHealth * 0.5
       && enemy.health <= enemy.maxHealth * 0.5) {
       enemy.bossHalfSummoned = true;
@@ -4594,7 +4618,13 @@ export class Game {
       }
       return;
     }
-    if (enemy.kind === "chronoforge-colossus") return;
+    if (enemy.kind === "chronoforge-colossus") {
+      if (!enemy.bossHalfSummoned) {
+        enemy.bossHalfSummoned = true;
+        this.beginTimeRewind(enemy);
+      }
+      return;
+    }
     const pulse = armorConfig.breakStatusPulse;
     if (!pulse) return;
     this.applyRadialStatusEffect(enemy, pulse.radius, pulse.statusEffect);

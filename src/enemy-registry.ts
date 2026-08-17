@@ -205,7 +205,7 @@ export interface EnemyDefinition {
   };
   areaStrike?: {
     appearance: {
-      shape: "spike" | "nuclear-cloud";
+      shape: "spike" | "nuclear-cloud" | "time-lock";
       warningFill: string;
       warningOutline: string;
       warningProgress: string;
@@ -216,6 +216,7 @@ export interface EnemyDefinition {
       eruptionFarEdge: string;
       eruptionOutline: string;
     };
+    resolution?: "damage" | "time-lock";
     rngSeedKey: string;
     initialCooldown: number;
     cooldown: number;
@@ -285,7 +286,7 @@ export const TARGETED_ENEMY_BALANCE = {
     lurkerSpawnInterval: 5,
     maximumLivingLurkers: 18,
   },
-  aetherGunner: { targetingRangeMultiplier: 1.5, timeLockDuration: 2 },
+  aetherGunner: { targetingRangeMultiplier: 1.125, timeLockDuration: 2 },
 } as const;
 
 const enemy = (definition: EnemyDefinitionInput): EnemyDefinition => {
@@ -353,6 +354,10 @@ const enemy = (definition: EnemyDefinitionInput): EnemyDefinition => {
     tuned.description = "Fires aether bolts that Time Lock targets; on death, a cyan burst Time Locks nearby players and turrets for 2 seconds without damage.";
   }
   if (tuned.id === "chronoforge-colossus" && tuned.areaStrike?.statusEffect) {
+    tuned.areaStrike.resolution = "time-lock";
+    tuned.areaStrike.appearance.shape = "time-lock";
+    tuned.areaStrike.playerDamage = 0;
+    tuned.areaStrike.structureDamage = 0;
     tuned.areaStrike.statusEffect = {
       ...tuned.areaStrike.statusEffect,
       kind: "time-lock",
@@ -360,6 +365,7 @@ const enemy = (definition: EnemyDefinitionInput): EnemyDefinition => {
       popupText: "Time Lock",
       visual: "time-lock",
     };
+    tuned.description = "Break its clockwork shell to rewind the night, then evade Time Lock circles while it rebuilds its foundry.";
   }
   return tuned;
 };

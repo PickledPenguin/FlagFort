@@ -7,6 +7,7 @@ import { BALANCE } from "./config";
 import { Game } from "./game";
 import { Input } from "./input";
 import { ProfileManager } from "./profile";
+import { ENEMY_REGISTRY } from "./enemy-registry";
 import { Ui } from "./ui";
 
 interface Harness {
@@ -459,6 +460,56 @@ describe("event-driven HUD interaction", () => {
       .toBe("+8% attack speed for Basic Zombie, Runner");
     expect(cards[1]?.querySelector(".mutation-comparison")?.textContent).toBe("+9% -> +17%");
     expect(cards[0]?.textContent).not.toContain("stale copy");
+  });
+
+  it("uses the Basic zombie registry portrait for a Basic spawn mutation", () => {
+    const { game, overlay, ui } = createHarness();
+    game.phase = "dawn";
+    game.choices = [{
+      id: "bowDamage",
+      name: "Strong Draw",
+      description: "More damage",
+      mutationId: "basicWeight",
+      mutationName: "Basic Surge",
+      mutationDescription: "More Basics",
+      kind: "upgrade",
+    }];
+
+    ui.render(true);
+
+    const image = overlay.querySelector<HTMLImageElement>(".mutation-art img")!;
+    expect(image.src).toContain("/images/enemies/basic-zombie.svg");
+    expect(image.src).not.toContain("runner-zombie.svg");
+  });
+
+  it("opens a sortable full-roster enemy encyclopedia with clickable locked details", () => {
+    const { game, overlay, ui } = createHarness((manager) => {
+      manager.profile.playerLevel = 1;
+      manager.profile.campaign.defeatedTierIds = [];
+    });
+    game.returnToMenu();
+    ui.render(true);
+
+    expect(overlay.querySelectorAll(".meta-actions > button")).toHaveLength(3);
+    click(overlay.querySelector('[data-action="encyclopedia"]')!);
+    expect(overlay.querySelectorAll(".enemy-codex-tile"))
+      .toHaveLength(Object.keys(ENEMY_REGISTRY).length);
+
+    const clockwork = overlay.querySelector<HTMLElement>(
+      '[data-enemy-kind="chronoforge-colossus"]',
+    )!;
+    expect(clockwork.classList.contains("locked")).toBe(true);
+    expect(overlay.querySelector('[data-enemy-kind="radstalker"]')?.classList.contains("locked"))
+      .toBe(true);
+    click(clockwork);
+    const details = overlay.querySelector<HTMLElement>(".enemy-details-modal")!;
+    expect(details.getAttribute("aria-modal")).toBe("true");
+    expect(details.textContent).toContain("Chronoforge Colossus");
+    expect(details.textContent).toContain("Telegraphed circles Time Lock players and turrets without dealing damage.");
+
+    click(details.querySelector('[data-action="close-enemy-details"]')!);
+    click(overlay.querySelector('[data-codex-sort="name"]')!);
+    expect(overlay.querySelector(".enemy-codex-tile b")?.textContent).toBe("Acidslinger");
   });
 
   it("contains keyboard focus in the new threat warning", () => {

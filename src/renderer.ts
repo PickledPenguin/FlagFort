@@ -512,7 +512,15 @@ export class Renderer {
     this.drawSandTunnels(game);
     if (game.hasActiveFlag()) this.drawFlag(game);
     for (const structure of game.structures) {
-      if (this.visible(game, structure.x, structure.y, structure.radius + 140)) this.drawStructure(structure, game.player);
+      if (this.visible(game, structure.x, structure.y, structure.radius + 140)) {
+        this.drawStructure(structure, game.player, false);
+      }
+    }
+    for (const structure of game.structures) {
+      if (structure.kind === "harvester"
+        && this.visible(game, structure.x, structure.y, structure.radius + 140)) {
+        this.drawHarvesterArm(structure);
+      }
     }
     for (const effect of game.areaEffects) {
       if (effect.kind !== "frost-slam"
@@ -1029,7 +1037,11 @@ export class Renderer {
     this.healthBar(flag.x, flag.y + 70, 118, flag.health / flag.maxHealth, "#ef6258");
   }
 
-  private drawStructure(structure: Structure, player: Player): void {
+  private drawStructure(
+    structure: Structure,
+    player: Player,
+    drawHarvesterArm = true,
+  ): void {
     const ctx = this.ctx;
     if (isBurning(structure)) {
       ctx.save(); ctx.fillStyle = "rgba(255,105,32,.24)"; ctx.beginPath();
@@ -1074,18 +1086,8 @@ export class Renderer {
         structure.flash > 0,
       );
       ctx.restore();
-    } else if (structure.kind === "harvester") {
-      ctx.save();
-      ctx.rotate(structure.angle);
-      this.drawSprite(
-        ASSETS.structureParts.harvesterArms[structure.tier],
-        -5,
-        -15,
-        harvesterArmSpriteWidth[structure.tier],
-        30,
-        structure.flash > 0,
-      );
-      ctx.restore();
+    } else if (structure.kind === "harvester" && drawHarvesterArm) {
+      this.drawHarvesterArmAtOrigin(structure);
     }
     this.drawStructureCracks(structure);
     if (structure.kind === "turret" && isSlowed(structure)) {
@@ -1096,6 +1098,27 @@ export class Renderer {
     }
     if (isTimeLocked(structure)) this.drawTimeLockChains(structure.radius);
     ctx.restore();
+  }
+
+  private drawHarvesterArm(structure: Structure): void {
+    this.ctx.save();
+    this.ctx.translate(structure.x, structure.y);
+    this.drawHarvesterArmAtOrigin(structure);
+    this.ctx.restore();
+  }
+
+  private drawHarvesterArmAtOrigin(structure: Structure): void {
+    this.ctx.save();
+    this.ctx.rotate(structure.angle);
+    this.drawSprite(
+      ASSETS.structureParts.harvesterArms[structure.tier],
+      -5,
+      -15,
+      harvesterArmSpriteWidth[structure.tier],
+      30,
+      structure.flash > 0,
+    );
+    this.ctx.restore();
   }
 
   private drawFrostAccumulation(radius: number): void {
@@ -1623,6 +1646,19 @@ export class Renderer {
     const rise = Math.min(1, progress / 0.38);
     const fade = progress > 0.72 ? 1 - (progress - 0.72) / 0.28 : 1;
     ctx.globalAlpha = Math.max(0, fade);
+    if (appearance.shape === "time-lock") {
+      const size = strike.radius * 2;
+      ctx.globalAlpha = Math.max(0.22, fade);
+      this.drawSprite(
+        ASSETS.effects.timeLockBurst,
+        -strike.radius,
+        -strike.radius,
+        size,
+        size,
+      );
+      ctx.restore();
+      return;
+    }
     if (appearance.shape === "nuclear-cloud") {
       const stemHeight = strike.radius * 0.72 * rise;
       const cloudRadius = strike.radius * (0.22 + rise * 0.32);

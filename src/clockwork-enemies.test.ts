@@ -102,7 +102,7 @@ describe("clockwork enemies", () => {
 
     expect(definition.assets.portrait).toBe("enemies/aether-gunner-zombie");
     expect(definition.render).toEqual({ aspectRatio: 116 / 104, width: 86, height: 77 });
-    expect(definition.targeting).toMatchObject({ mode: "archer", attackRange: 735, innerRadius: 220 });
+    expect(definition.targeting).toMatchObject({ mode: "archer", attackRange: 551.25, innerRadius: 220 });
     expect(definition.projectile).toMatchObject({
       appearance: "aether",
       damageSource: "aether-gunner",
@@ -158,6 +158,30 @@ describe("clockwork enemies", () => {
       particle.text === "TIME LOCK"
       && particle.color === "#d9fffb"))
       .toBe(true);
+  });
+
+  it("damages an already Time Locked turret without refreshing the lock", () => {
+    const game = gameFixture();
+    const definition = ENEMY_REGISTRY["aether-gunner"];
+    const firstGunner = spawn(game, "aether-gunner", game.flag.x - 390, game.flag.y);
+    const secondGunner = spawn(game, "aether-gunner", firstGunner.x, firstGunner.y + 30);
+    const target = turret(2250, game.flag.x - 130, game.flag.y);
+    game.structures = [target];
+
+    const combat = game as unknown as {
+      enemyRangedAttack(enemy: Enemy, target: Structure, dt: number): void;
+      updateProjectiles(dt: number): void;
+    };
+    combat.enemyRangedAttack(firstGunner, target, definition.attack.chargeSeconds);
+    combat.updateProjectiles(0.5);
+    target.statuses!.timeLock!.remaining = 0.65;
+    const healthBeforeSecondHit = target.health;
+
+    combat.enemyRangedAttack(secondGunner, target, definition.attack.chargeSeconds);
+    combat.updateProjectiles(0.5);
+
+    expect(target.health).toBe(healthBeforeSecondHit - secondGunner.structureDamage);
+    expect(target.statuses?.timeLock?.remaining).toBe(0.65);
   });
 
   it("registers Gearwright as Clockwork Citadel's reinforcement engineer", () => {
@@ -262,7 +286,7 @@ describe("clockwork enemies", () => {
       strike.x === first.player.x && strike.y === first.player.y)).toBe(true);
   });
 
-  it("breaks its shell without a slow zone and opens a capped foundry", () => {
+  it("starts its one-time rewind when its clockwork shell breaks", () => {
     const game = gameFixture();
     const boss = spawn(game, "chronoforge-colossus", game.flag.x + 780, game.flag.y);
     const definition = ENEMY_REGISTRY["chronoforge-colossus"];
@@ -281,6 +305,8 @@ describe("clockwork enemies", () => {
     expect(nearbyTurret.statuses?.slow).toBeUndefined();
     expect(game.particles.some((particle) => particle.text === "TIMELOCK SURGE"))
       .toBe(false);
+    expect(game.timeRewind).toMatchObject({ bossId: boss.id, boss });
+    expect(boss.bossHalfSummoned).toBe(true);
 
     boss.summonCooldown = 0;
     (game as unknown as { updateEnemySummon(enemy: Enemy, dt: number): void })
@@ -358,8 +384,6 @@ describe("clockwork enemies", () => {
     game.structures = [nearbyTurret];
     const boss = spawn(game, "chronoforge-colossus", game.flag.x + 700, game.flag.y);
     spawn(game, "basic", boss.x - 70, boss.y);
-    boss.armor = 0;
-    boss.health = boss.maxHealth * 0.6;
     const playerHealth = game.player.health;
     const flagHealth = game.flag.health;
     const turretHealth = nearbyTurret.health;
@@ -367,7 +391,7 @@ describe("clockwork enemies", () => {
 
     (game as unknown as {
       damageEnemy(enemy: Enemy, amount: number, color: string, source: "player-melee", owner: string): void;
-    }).damageEnemy(boss, boss.maxHealth * 0.11, "#fff", "player-melee", game.player.id);
+    }).damageEnemy(boss, boss.armor!, "#fff", "player-melee", game.player.id);
 
     expect(game.timeRewind).toMatchObject({ startTimer: 11.25, fullDuration: BALANCE.nightDuration });
     expect(boss.bossHalfSummoned).toBe(true);
@@ -397,5 +421,32 @@ describe("clockwork enemies", () => {
       damageEnemy(enemy: Enemy, amount: number, color: string, source: "player-melee", owner: string): void;
     }).damageEnemy(boss, 1, "#fff", "player-melee", game.player.id);
     expect(game.timeRewind).toBeNull();
+  });
+
+  it("resolves Chronoforge targeting circles as non-damaging turret-only Time Locks", () => {
+    const game = gameFixture();
+    const boss = spawn(game, "chronoforge-colossus", game.player.x + 500, game.player.y);
+    const nearbyTurret = turret(2800, game.player.x + 20, game.player.y);
+    const nearbyWall = { ...turret(2801, game.player.x - 20, game.player.y), kind: "wall" as const };
+    game.structures = [nearbyTurret, nearbyWall];
+    const playerHealth = game.player.health;
+    const turretHealth = nearbyTurret.health;
+    const wallHealth = nearbyWall.health;
+    const config = ENEMY_REGISTRY["chronoforge-colossus"].areaStrike!;
+
+    (game as unknown as { createAreaStrikeAttack(enemy: Enemy): void })
+      .createAreaStrikeAttack(boss);
+    const targeted = game.areaStrikes.find((strike) =>
+      strike.x === game.player.x && strike.y === game.player.y)!;
+    (game as unknown as { resolveAreaStrike(strike: typeof targeted): void })
+      .resolveAreaStrike(targeted);
+
+    expect(config.resolution).toBe("time-lock");
+    expect(game.player.health).toBe(playerHealth);
+    expect(nearbyTurret.health).toBe(turretHealth);
+    expect(nearbyWall.health).toBe(wallHealth);
+    expect(game.player.statuses?.timeLock?.remaining).toBe(2);
+    expect(nearbyTurret.statuses?.timeLock?.remaining).toBe(2);
+    expect(nearbyWall.statuses?.timeLock).toBeUndefined();
   });
 });

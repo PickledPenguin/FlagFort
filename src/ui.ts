@@ -122,7 +122,8 @@ const enemyInfo = Object.fromEntries(Object.values(ENEMY_REGISTRY).map((entry) =
   title: entry.displayName, text: entry.description, tell: entry.tell,
 }])) as Record<EnemyKind, { title: string; text: string; tell: string }>;
 
-type MenuPanel = "controls" | "settings" | "challenges" | "credits" | "profile" | "upgrades" | "shop" | null;
+type MenuPanel = "controls" | "settings" | "challenges" | "credits" | "profile" | "upgrades" | "shop" | "encyclopedia" | null;
+type EnemyCodexSort = "tier" | "introduction" | "name";
 type TutorialOrigin = "menu";
 type BountyOrigin = "gameplay" | "pause" | "run-start";
 
@@ -153,6 +154,8 @@ export class Ui {
   private bountyOrigin: BountyOrigin | null = null;
   private selectedCampaignTierId: CampaignTierId = "forest";
   private flippedCampaignTierId: CampaignTierId | null = null;
+  private enemyCodexSort: EnemyCodexSort = "tier";
+  private selectedEnemyCodexKind: EnemyKind | null = null;
   private profileColorDraft: string;
   private profileEyeDraft: EyeStyle;
   private dailyRewardVisible: boolean;
@@ -265,7 +268,9 @@ export class Ui {
     else this.overlay.innerHTML = "";
     this.decorateMenuPanel();
     this.syncCampaignLadderScroll();
-    if (this.tutorialOpen && !this.tutorialExitConfirmation) {
+    if (this.selectedEnemyCodexKind && this.menuPanel === "encyclopedia") {
+      this.focusDialog(".enemy-details-modal");
+    } else if (this.tutorialOpen && !this.tutorialExitConfirmation) {
       this.overlay.querySelector<HTMLElement>(".tutorial-guide-card")?.focus();
     } else if (this.dailyRewardVisible && this.game.phase === "menu") {
       this.focusDialog(".daily-rewards-modal");
@@ -333,6 +338,8 @@ export class Ui {
       this.game.activeBounties.map((bounty) => `${bounty.definition.id}:${bounty.progress}:${bounty.completed}`).join(","),
       this.campaignOpen,
       this.selectedCampaignTierId,
+      this.enemyCodexSort,
+      this.selectedEnemyCodexKind,
       this.dailyRewardVisible,
       this.game.profileManager
         ? JSON.stringify(this.game.profileManager.profile)
@@ -369,6 +376,7 @@ export class Ui {
         <nav class="meta-actions" aria-label="Progression and equipment">
           <button class="progression-action" data-action="upgrades" aria-label="Upgrades. Spend XP${upgradeAvailable ? ". Upgrade available" : ""}"><img src="${ASSETS.ui["upgrade-node"]}" alt="" aria-hidden="true"><span><b>Upgrades</b><small>Spend XP</small></span>${this.purchaseBadgeMarkup(upgradeAvailable)}</button>
           <button data-action="shop" aria-label="Shop. Manage gear${equipmentAvailable ? ". Purchase available" : ""}"><img src="${META_BALANCE.assets.equipment.sword.wood}" alt="" aria-hidden="true"><span><b>Shop</b><small>Manage gear</small></span>${this.purchaseBadgeMarkup(equipmentAvailable)}</button>
+          <button data-action="encyclopedia" aria-label="Enemy encyclopedia"><img src="${campaignEnemyPortrait("basic", "forest")}" alt="" aria-hidden="true"><span><b>Enemies</b><small>Open codex</small></span></button>
         </nav>
         <main class="menu-card">
           <h1>FLAG <span>FORT</span></h1>
@@ -479,10 +487,10 @@ export class Ui {
     const requirements = campaignUnlockRequirementText(tier, this.campaignProgress());
     const enemies = tier.specialEnemies.map((kind) => {
       const enemy = ENEMY_REGISTRY[kind];
-      return `<span><img src="${campaignEnemyPortrait(kind, tier.id)}" alt=""><b>${enemy.displayName}</b><small>NIGHT ${enemy.tier}</small></span>`;
+      return `<span><b>${enemy.displayName}</b><img src="${campaignEnemyPortrait(kind, tier.id)}" alt=""><small>NIGHT ${enemy.introductionNight}</small></span>`;
     }).join("");
     const boss = ENEMY_REGISTRY[tier.boss];
-    const bossCard = `<span class="boss"><img src="${campaignEnemyPortrait(tier.boss, tier.id)}" alt=""><b>${boss.displayName}</b><small>BOSS · NIGHT 10</small></span>`;
+    const bossCard = `<span class="boss"><b>${boss.displayName}</b><img src="${campaignEnemyPortrait(tier.boss, tier.id)}" alt=""><small>BOSS · NIGHT ${boss.introductionNight}</small></span>`;
     return `<button class="tier-card-face tier-card-back" data-action="flip-campaign-tier-back" data-campaign-tier="${tier.id}" aria-label="Return to ${tier.name} card front" aria-hidden="${!active}" tabindex="${active ? "0" : "-1"}">
       <header><span class="tier-card-heading"><small>TIER ${tier.order + 1}</small><b>${tier.name}</b><em>${tier.subtitle}</em></span><span class="tier-card-badges"><span class="tier-card-requirements">${requirements.map((requirement) => `<i class="${requirement.startsWith("Complete") ? "met" : requirement.startsWith("Alternative") ? "alternative" : "unmet"}">${requirement}</i>`).join("")}</span><strong>${unlocked ? "READY" : "LOCKED"}</strong></span></header>
       <p>${tier.description}</p>
@@ -602,6 +610,7 @@ export class Ui {
     if (this.menuPanel === "profile") return this.profileModalMarkup();
     if (this.menuPanel === "upgrades") return this.upgradesModalMarkup();
     if (this.menuPanel === "shop") return this.shopModalMarkup();
+    if (this.menuPanel === "encyclopedia") return this.enemyEncyclopediaMarkup();
     if (this.menuPanel === "controls") {
       return `<div class="menu-modal"><div class="modal compact">
         <button class="modal-close" data-action="close-panel" aria-label="Close">${icon("close")}</button>
@@ -768,6 +777,127 @@ export class Ui {
     return available
       ? '<i class="purchase-badge" aria-hidden="true">!</i>'
       : "";
+  }
+
+  private enemyCampaignTier(kind: EnemyKind): (typeof CAMPAIGN_TIERS)[number] {
+    const definition = ENEMY_REGISTRY[kind];
+    const tierId = definition.campaignTierIds?.[0];
+    return CAMPAIGN_TIERS.find((tier) =>
+      tier.boss === kind || tier.specialEnemies.some((enemyKind) => enemyKind === kind))
+      ?? CAMPAIGN_TIERS.find((tier) => tier.id === tierId)
+      ?? CAMPAIGN_TIERS[0]!;
+  }
+
+  private enemyEncyclopediaMarkup(): string {
+    const progress = this.campaignProgress();
+    const definitions = Object.values(ENEMY_REGISTRY).sort((a, b) => {
+      if (this.enemyCodexSort === "name") return a.displayName.localeCompare(b.displayName);
+      if (this.enemyCodexSort === "introduction") {
+        return a.introductionNight - b.introductionNight
+          || a.displayName.localeCompare(b.displayName);
+      }
+      return a.tier - b.tier
+        || a.introductionNight - b.introductionNight
+        || a.displayName.localeCompare(b.displayName);
+    });
+    const tiles = definitions.map((definition) => {
+      const tier = this.enemyCampaignTier(definition.id);
+      const unlocked = isCampaignTierUnlocked(tier, progress);
+      return `<button class="enemy-codex-tile ${unlocked ? "unlocked" : "locked"}"
+        data-action="open-enemy-details" data-enemy-kind="${definition.id}"
+        aria-label="${definition.displayName}, night ${definition.introductionNight}${unlocked ? "" : ", locked tier"}">
+        <b>${definition.displayName}</b>
+        <span><img src="${campaignEnemyPortrait(definition.id, tier.id)}" alt=""></span>
+        <small>NIGHT ${definition.introductionNight}</small>
+        ${unlocked ? "" : `<i aria-hidden="true">${buildBarIcon("locked", { className: "enemy-lock-icon" })}</i>`}
+      </button>`;
+    }).join("");
+    const details = this.selectedEnemyCodexKind
+      ? this.enemyDetailsMarkup(this.selectedEnemyCodexKind)
+      : "";
+    return `<div class="menu-modal"><div class="modal enemy-codex-modal">
+      <button class="modal-close" data-action="close-panel" aria-label="Close">${icon("close")}</button>
+      <header><p class="eyebrow">ENEMY ENCYCLOPEDIA</p><h2>Know the horde</h2>
+        <p>Review every recognizable threat, its arrival night, and the traits that matter in a defense.</p></header>
+      <div class="enemy-codex-sort" role="group" aria-label="Sort enemies">
+        ${(["tier", "introduction", "name"] as EnemyCodexSort[]).map((sort) => `<button
+          data-action="sort-enemy-codex" data-codex-sort="${sort}"
+          class="${this.enemyCodexSort === sort ? "selected" : ""}"
+          aria-pressed="${this.enemyCodexSort === sort}">${sort === "introduction" ? "Introduction night" : sort}</button>`).join("")}
+      </div>
+      <div class="enemy-codex-grid">${tiles}</div>
+      ${details}
+    </div></div>`;
+  }
+
+  private enemyDetailsMarkup(kind: EnemyKind): string {
+    const definition = ENEMY_REGISTRY[kind];
+    const campaign = this.enemyCampaignTier(kind);
+    const unlocked = isCampaignTierUnlocked(campaign, this.campaignProgress());
+    const health = Math.round(definition.base.health);
+    const armor = definition.armor ? Math.round(definition.armor.health) : 0;
+    const speedLabel = definition.base.speed >= 155 ? "Very fast"
+      : definition.base.speed >= 125 ? "Fast"
+        : definition.base.speed >= 90 ? "Steady"
+          : definition.base.speed >= 60 ? "Slow" : "Very slow";
+    const attackLabel = definition.projectile
+      ? `Ranged ${definition.attack.mode}`
+      : definition.attack.mode === "boss" ? "Heavy melee" : "Melee";
+    const rangeRatio = Math.min(100, definition.targeting.attackRange / 8);
+    const abilities = this.enemyAbilityNotes(kind);
+    return `<section class="enemy-details-layer"><article class="enemy-details-modal ${unlocked ? "" : "locked"}"
+      role="dialog" aria-modal="true" aria-labelledby="enemy-details-title">
+      <button class="modal-close" data-action="close-enemy-details" aria-label="Back to enemy encyclopedia">${icon("arrow-left")}</button>
+      <div class="enemy-details-hero">
+        <span class="enemy-details-art"><img src="${campaignEnemyPortrait(kind, campaign.id)}" alt=""></span>
+        <div><p class="eyebrow">${campaign.name} · TIER ${definition.tier}</p>
+          <h2 id="enemy-details-title">${definition.displayName}</h2>
+          <strong>INTRODUCED NIGHT ${definition.introductionNight}</strong>
+          <p>${definition.description}</p></div>
+      </div>
+      ${unlocked ? "" : `<p class="enemy-spoiler-note">${buildBarIcon("locked", { className: "enemy-lock-icon" })} This enemy belongs to a campaign tier you have not unlocked yet. The campaign already previews its roster, so tactical details remain available here.</p>`}
+      <div class="enemy-detail-stats">
+        <span style="--stat:${Math.min(100, health / 18)}%"><small>HEALTH</small><b>${health}</b><i></i></span>
+        <span style="--stat:${Math.min(100, armor / 12)}%"><small>ARMOR</small><b>${armor || "None"}</b><i></i></span>
+        <span style="--stat:${Math.min(100, definition.base.speed / 1.8)}%"><small>MOVEMENT</small><b>${speedLabel}</b><i></i></span>
+        <span style="--stat:${Math.min(100, definition.base.damage * 2.2)}%"><small>PLAYER DAMAGE</small><b>${Math.round(definition.base.damage)}</b><i></i></span>
+        <span style="--stat:${rangeRatio}%"><small>ATTACK</small><b>${attackLabel}</b><i></i></span>
+      </div>
+      <div class="enemy-detail-notes">
+        <section><small>RECOGNIZE IT</small><p>${definition.tell}</p></section>
+        <section><small>COMBAT TRAITS</small><ul>${abilities.map((ability) => `<li>${ability}</li>`).join("")}</ul></section>
+      </div>
+    </article></section>`;
+  }
+
+  private enemyAbilityNotes(kind: EnemyKind): string[] {
+    const definition = ENEMY_REGISTRY[kind];
+    const notes: string[] = [];
+    if (definition.armor) {
+      notes.push(`${definition.armor.label.toLowerCase()} absorbs damage${definition.armor.projectileResistance > 0 ? ` and resists ${Math.round(definition.armor.projectileResistance * 100)}% of projectile damage` : ""}.`);
+    }
+    if (definition.projectile?.statusEffect) {
+      notes.push(`Projectiles inflict ${definition.projectile.statusEffect.kind.replace("-", " ")} on ${definition.projectile.statusEffect.targets.join(" and ")}.`);
+    }
+    if (definition.attack.statusEffect) {
+      notes.push(`Melee hits inflict ${definition.attack.statusEffect.kind.replace("-", " ")}.`);
+    }
+    if (definition.attack.lifeSteal) notes.push("Successful attacks restore its health.");
+    if (definition.leap) notes.push("Telegraphs a leap over constructed defenses.");
+    if (definition.ram) notes.push("Loads a charge that can breach several structures in one rush.");
+    if (definition.summon) {
+      const summons = definition.summon.kinds?.map((summon) => ENEMY_REGISTRY[summon].displayName).join(" or ")
+        ?? "reinforcements";
+      notes.push(`Summons ${summons}, with a cap on living reinforcements.`);
+    }
+    if (definition.areaStrike?.resolution === "time-lock") {
+      notes.push("Telegraphed circles Time Lock players and turrets without dealing damage.");
+    } else if (definition.areaStrike) notes.push("Marks several circles before a damaging area strike.");
+    if (definition.death.mode === "split") notes.push("Splits into smaller enemies when defeated in combat.");
+    if (definition.death.mode === "burst") notes.push("Bursts on combat defeat and threatens nearby defenders or structures.");
+    if (definition.capabilities.knockbackImmune) notes.push("Immune to knockback.");
+    if (notes.length === 0) notes.push("Relies on straightforward movement and attacks.");
+    return notes;
   }
 
   private equipmentEffectMarkup(kind: EquipmentKind, item: EquipmentState): string {
@@ -1139,6 +1269,9 @@ export class Ui {
   }
 
   private mutationIcon(choice: Choice): string {
+    if (choice.mutationId === "basicWeight") {
+      return `<img src="${campaignEnemyPortrait("basic", this.game.activeCampaignTierId)}" alt="">`;
+    }
     if (choice.mutationTargetKinds?.length === 1) {
       return `<img src="${campaignEnemyPortrait(choice.mutationTargetKinds[0]!, this.game.activeCampaignTierId)}" alt="">`;
     }
@@ -1731,14 +1864,32 @@ export class Ui {
       case "profile":
       case "upgrades":
       case "shop":
+      case "encyclopedia":
         this.menuPanel = target.dataset.action as Exclude<MenuPanel, null>;
+        if (this.menuPanel === "encyclopedia") this.selectedEnemyCodexKind = null;
         if (this.menuPanel === "profile" && this.game.profileManager) {
           this.profileColorDraft = this.game.profileManager.profile.playerColor;
           this.profileEyeDraft = this.game.profileManager.profile.eyeStyle;
         }
         break;
+      case "sort-enemy-codex": {
+        const sort = target.dataset.codexSort as EnemyCodexSort | undefined;
+        if (sort && ["tier", "introduction", "name"].includes(sort)) {
+          this.enemyCodexSort = sort;
+        }
+        break;
+      }
+      case "open-enemy-details": {
+        const kind = target.dataset.enemyKind as EnemyKind | undefined;
+        if (kind && ENEMY_REGISTRY[kind]) this.selectedEnemyCodexKind = kind;
+        break;
+      }
+      case "close-enemy-details":
+        this.selectedEnemyCodexKind = null;
+        break;
       case "close-panel":
         this.menuPanel = null;
+        this.selectedEnemyCodexKind = null;
         break;
       case "audio-mute":
         audioManager.toggleMuted();
@@ -2144,8 +2295,22 @@ export class Ui {
       this.overlay.querySelector<HTMLElement>('[data-action="open-campaign"]')?.focus();
       return;
     }
+    if (this.selectedEnemyCodexKind && event.code === "Tab") {
+      this.trapDialogFocus(event, ".enemy-details-modal");
+      return;
+    }
     if (this.menuPanel && event.code === "Tab") {
       this.trapMenuPanelFocus(event);
+      return;
+    }
+    if (this.selectedEnemyCodexKind && event.code === "Escape") {
+      const kind = this.selectedEnemyCodexKind;
+      this.selectedEnemyCodexKind = null;
+      this.game.input.escapePressed = false;
+      event.preventDefault();
+      this.invalidate();
+      this.render(true);
+      this.overlay.querySelector<HTMLElement>(`[data-enemy-kind="${kind}"]`)?.focus();
       return;
     }
     if (this.menuPanel && event.code === "Escape") {

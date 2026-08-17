@@ -243,7 +243,8 @@ describe("deterministic enemy roster", () => {
         expect(definition.ram.breachBurst.popupText).toBeTruthy();
       }
       if (definition.areaStrike) {
-        expect(["spike", "nuclear-cloud"]).toContain(definition.areaStrike.appearance.shape);
+        expect(["spike", "nuclear-cloud", "time-lock"])
+          .toContain(definition.areaStrike.appearance.shape);
         for (const color of Object.entries(definition.areaStrike.appearance)
           .filter(([key]) => key !== "shape")
           .map(([, value]) => value)) {
@@ -262,8 +263,17 @@ describe("deterministic enemy roster", () => {
         expect(definition.areaStrike.warningDuration).toBeGreaterThan(0);
         expect(definition.areaStrike.eruptionDuration).toBeGreaterThan(0);
         expect(definition.areaStrike.radius).toBeGreaterThan(0);
-        expect(definition.areaStrike.playerDamage).toBeGreaterThan(0);
-        expect(definition.areaStrike.structureDamage).toBeGreaterThan(0);
+        if (definition.areaStrike.resolution === "time-lock") {
+          expect(definition.areaStrike.playerDamage).toBe(0);
+          expect(definition.areaStrike.structureDamage).toBe(0);
+          expect(definition.areaStrike.statusEffect).toMatchObject({
+            kind: "time-lock",
+            targets: ["player", "turret"],
+          });
+        } else {
+          expect(definition.areaStrike.playerDamage).toBeGreaterThan(0);
+          expect(definition.areaStrike.structureDamage).toBeGreaterThan(0);
+        }
         expect(definition.areaStrike.damageSource).toBeTruthy();
         if (definition.areaStrike.statusEffect?.durationBalance) {
           expect(definition.areaStrike.statusEffect.durationBalance).toBe("calderaBurn");

@@ -1169,11 +1169,10 @@ describe("phase and run rules", () => {
     game.timer = 11;
     game.update(BALANCE.fixedStep);
     const boss = game.enemies.find((enemy) => enemy.kind === "chronoforge-colossus")!;
-    boss.armor = 0;
     game.player.health = 63;
     (game as unknown as {
       damageEnemy(enemy: Enemy, amount: number, color: string, source: "player-melee", owner: string): void;
-    }).damageEnemy(boss, boss.health * 0.55, "#fff", "player-melee", game.player.id);
+    }).damageEnemy(boss, boss.armor!, "#fff", "player-melee", game.player.id);
 
     expect((game as unknown as { timeRewind: unknown }).timeRewind).not.toBeNull();
     (game as unknown as { updateTimeRewind(dt: number): void })

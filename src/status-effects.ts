@@ -11,13 +11,15 @@ export function applySlow(target: StatusTarget, duration: number, visual: "frost
   target.statuses.slow = { remaining: Math.max(current, duration), visual };
 }
 
-export function applyTimeLock(target: StatusTarget, duration: number): void {
-  if (!Number.isFinite(duration) || duration <= 0) return;
+export function applyTimeLock(target: StatusTarget, duration: number): boolean {
+  if (!Number.isFinite(duration) || duration <= 0) return false;
+  if ((target.statuses?.timeLock?.remaining ?? 0) > 0) return false;
   target.statuses ??= {};
   target.statuses.timeLock = {
-    remaining: Math.max(target.statuses.timeLock?.remaining ?? 0, duration),
+    remaining: duration,
     visual: "time-lock",
   };
+  return true;
 }
 
 export function applyPoison(target: StatusTarget, duration: number): void {

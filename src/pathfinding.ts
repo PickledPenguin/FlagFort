@@ -39,12 +39,18 @@ export class NavigationGrid {
     this.buildBlockedCells();
   }
 
-  find(start: Vec2, goal: Vec2): Vec2[] {
+  find(start: Vec2, goal: Vec2, goalRadius = 0): Vec2[] {
     const startCell = this.nearestOpen(this.toCell(start));
-    const goalCell = this.nearestOpen(this.toCell(goal));
+    const exactGoalCell = this.toCell(goal);
+    const exactGoalOpen = !this.isBlocked(exactGoalCell);
+    const goalCell = exactGoalOpen
+      ? exactGoalCell
+      : this.nearestOpenGoal(exactGoalCell, startCell, goal, goalRadius);
     const startKey = this.key(startCell.x, startCell.y);
     const goalKey = this.key(goalCell.x, goalCell.y);
-    if (startKey === goalKey) return [goal];
+    if (startKey === goalKey) {
+      return [exactGoalOpen ? goal : this.cellCenter(goalCell)];
+    }
 
     this.cameFrom.fill(-1);
     this.gScore.fill(Number.POSITIVE_INFINITY);
@@ -59,7 +65,16 @@ export class NavigationGrid {
       iterations += 1;
       const currentKey = this.popOpen();
       if (currentKey < 0 || this.closed[currentKey]) continue;
-      if (currentKey === goalKey) return this.reconstruct(this.cameFrom, currentKey, startKey, start, goal);
+      if (currentKey === goalKey) {
+        return this.reconstruct(
+          this.cameFrom,
+          currentKey,
+          startKey,
+          start,
+          goal,
+          exactGoalOpen,
+        );
+      }
       this.closed[currentKey] = 1;
       const current = this.fromKey(currentKey);
       for (const [dx, dy, movementCost] of DIRECTIONS) {
@@ -111,8 +126,9 @@ export class NavigationGrid {
     startKey: number,
     start: Vec2,
     goal: Vec2,
+    useExactGoal: boolean,
   ): Vec2[] {
-    const reversed: Vec2[] = [goal];
+    const reversed: Vec2[] = [useExactGoal ? goal : this.cellCenter(this.fromKey(goalKey))];
     let current = goalKey;
     while (current !== startKey) {
       const previous = cameFrom[current] ?? -1;
@@ -187,6 +203,44 @@ export class NavigationGrid {
       }
     }
     return origin;
+  }
+
+  private nearestOpenGoal(
+    origin: GridCell,
+    start: GridCell,
+    goal: Vec2,
+    goalRadius: number,
+  ): GridCell {
+    const maximumCellRadius = Math.max(
+      1,
+      Math.ceil((Math.max(0, goalRadius) + this.cellSize * 0.5) / this.cellSize),
+    );
+    let best: GridCell | null = null;
+    let bestStartDistance = Number.POSITIVE_INFINITY;
+    let bestGoalDistance = Number.POSITIVE_INFINITY;
+    for (let radius = 1; radius <= Math.max(6, maximumCellRadius); radius += 1) {
+      for (let dx = -radius; dx <= radius; dx += 1) {
+        for (let dy = -radius; dy <= radius; dy += 1) {
+          if (Math.abs(dx) !== radius && Math.abs(dy) !== radius) continue;
+          const candidate = { x: origin.x + dx, y: origin.y + dy };
+          if (!this.inBounds(candidate) || this.isBlocked(candidate)) continue;
+          const center = this.cellCenter(candidate);
+          const goalDistance = Math.hypot(center.x - goal.x, center.y - goal.y);
+          if (goalRadius > 0 && goalDistance > goalRadius) continue;
+          const startDistance = this.heuristic(candidate, start);
+          if (!best || startDistance < bestStartDistance
+            || (startDistance === bestStartDistance && goalDistance < bestGoalDistance)
+            || (startDistance === bestStartDistance && goalDistance === bestGoalDistance
+              && this.key(candidate.x, candidate.y) < this.key(best.x, best.y))) {
+            best = candidate;
+            bestStartDistance = startDistance;
+            bestGoalDistance = goalDistance;
+          }
+        }
+      }
+      if (best) return best;
+    }
+    return this.nearestOpen(origin);
   }
 
   private heuristic(a: GridCell, b: GridCell): number {

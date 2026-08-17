@@ -7,6 +7,7 @@ import { ENEMY_REGISTRY, introducedRosterEnemies, mutationWeightKey, selectEnemy
 import { Game, LOCAL_PLAYER_ID } from "./game";
 import { Input } from "./input";
 import { META_BALANCE } from "./meta-balance";
+import { pathIntersectsObstacle } from "./pathfinding";
 import type { KeyValueStore } from "./platform";
 import { ProfileManager, lifetimeXpAtLevel, migrateProfile } from "./profile";
 import { calculateXpRewards } from "./rewards";
@@ -195,6 +196,48 @@ describe("Gremlin target recovery", () => {
     }
     expect(zombie.x).toBeGreaterThan(startX);
     expect(zombie.forcedBlockerId).toBeFalsy();
+  });
+});
+
+describe("shared harvester obstruction routing", () => {
+  it("routes a Basic zombie around resource geometry to attack a reachable harvester", () => {
+    const game = createGame();
+    const target = harvester(67, game.flag.x + 420, game.flag.y);
+    game.structures = [target];
+    game.world.resources = [{
+      id: 6800,
+      kind: "stone",
+      x: target.x - 82,
+      y: target.y,
+      radius: 42,
+      health: 100,
+      maxHealth: 100,
+      hitFlash: 0,
+    }];
+    const zombie = spawn(game, "basic", target.x - 360, target.y);
+    zombie.targetId = target.id;
+    zombie.scanCooldown = 10;
+    (game as unknown as {
+      refreshEnemyPath(enemy: Enemy, target: Structure): void;
+    }).refreshEnemyPath(zombie, target);
+    expect(pathIntersectsObstacle(
+      zombie,
+      zombie.path,
+      game.world.resources,
+      zombie.radius,
+    )).toBe(false);
+    const healthBefore = target.health;
+    const positions: number[] = [];
+
+    for (let index = 0; index < 360; index += 1) {
+      (game as unknown as { updateEnemies(dt: number): void }).updateEnemies(BALANCE.fixedStep);
+      if (index % 12 === 0) positions.push(Math.hypot(zombie.x - target.x, zombie.y - target.y));
+    }
+
+    expect(target.health).toBeLessThan(healthBefore);
+    const largeReversals = positions.slice(1).filter((distance, index) =>
+      distance > positions[index]! + 28);
+    expect(largeReversals).toHaveLength(0);
   });
 });
 
