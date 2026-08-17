@@ -20,15 +20,15 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="4.5826708"
-     inkscape:cx="56.517261"
-     inkscape:cy="47.897833"
+     inkscape:zoom="4.7441414"
+     inkscape:cx="37.098388"
+     inkscape:cy="63.341282"
      inkscape:window-width="1635"
      inkscape:window-height="814"
      inkscape:window-x="0"
      inkscape:window-y="33"
      inkscape:window-maximized="0"
-     inkscape:current-layer="mire-lurker-zombie" />
+     inkscape:current-layer="eyes" />
   <title
      id="title">Mire Lurker zombie</title>
   <desc
@@ -94,16 +94,16 @@
        fill="#45675c"
        stroke="#1c3433"
        stroke-width="2.5"
-       transform="translate(-4)">
+       transform="translate(-5.1230195)">
       <circle
          id="upper-hand"
          cx="46"
-         cy="-20"
+         cy="-17.473206"
          r="9" />
       <circle
          id="lower-hand"
          cx="46"
-         cy="24"
+         cy="20.911697"
          r="9" />
     </g>
     <circle
@@ -126,10 +126,15 @@
        stroke-width="1.5">
       <path
          id="lower-eye"
-         d="m 9.8260191,-13.950879 4.9999999,16.0000004 -10.9999994,-12 z" />
+         d="M 11.785179,-13.504885 12.473703,3.2440242 4.9543481,-11.194095 Z" />
+      <path
+         id="lower-eye-9"
+         d="M 12.237126,-7.0378143 6.6222327,-7.6111821 Z"
+         sodipodi:nodetypes="ccc" />
       <path
          id="lower-eye-4"
-         d="m 8.3789506,19.691179 5.0000004,-16.000001 -10.9999998,12 z" />
+         d="M 11.924866,19.245185 12.613391,2.4962751 5.0940357,16.934395 Z m 0.677079,-7.732739 -5.3916431,1.572395 z"
+         sodipodi:nodetypes="ccccccc" />
     </g>
     <g
        id="grasping-claws"
@@ -137,13 +142,6 @@
        stroke="#9fb87c"
        stroke-width="3"
        stroke-linecap="round"
-       transform="translate(-4)">
-      <path
-         id="upper-claws"
-         d="m 44.918389,-20.118371 8.732683,-9.366977 m -7.598104,10.211211 10.88347,-1.596899 m -11.727703,2.731478 10.066037,6.608697" />
-      <path
-         id="lower-claws"
-         d="m 46,24 10,-7 m -9,8 10,2 m -11,-2 7,9" />
-    </g>
+       transform="translate(-4)" />
   </g>
 </svg>

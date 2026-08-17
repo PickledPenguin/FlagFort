@@ -100,25 +100,16 @@ export function createWeatherField(
   }));
 }
 
-export function createViewportWeatherField(
-  seed: string,
-  count: number,
-  weather: ParticleWeather,
-): WeatherParticleDefinition[] {
-  const rng = new SeededRng(`${seed}:viewport:${weather.seedKey}`);
-  return Array.from({ length: count }, () => ({
-    x: rng.range(0, BALANCE.logicalWidth),
-    y: rng.range(0, BALANCE.logicalHeight),
-    fallSpeed: rng.range(...weather.fallSpeed),
-    radius: rng.range(...weather.radius),
-    driftAmplitude: rng.range(...weather.driftAmplitude),
-    driftSpeed: rng.range(...weather.driftSpeed),
-    phase: rng.range(0, Math.PI * 2),
-    spawnGap: rng.range(
-      weather.spawnGapRatio[0] * BALANCE.logicalHeight,
-      weather.spawnGapRatio[1] * BALANCE.logicalHeight,
-    ),
-  }));
+export function worldWeatherParticlePosition(
+  particle: WeatherParticleDefinition,
+  elapsed: number,
+): { x: number; y: number } {
+  const cycleHeight = BALANCE.mapSize + particle.spawnGap;
+  return {
+    x: particle.x
+      + Math.sin(elapsed * particle.driftSpeed + particle.phase) * particle.driftAmplitude,
+    y: (particle.y + elapsed * particle.fallSpeed) % cycleHeight - particle.spawnGap,
+  };
 }
 
 export function enemyAttackTelegraphColor(kind: EnemyKind): string {
@@ -1296,11 +1287,28 @@ export class Renderer {
     );
   }
 
+  private drawEnemyAttackWindup(enemy: Enemy): void {
+    if (enemy.attackWindup <= 0) return;
+    const ctx = this.ctx;
+    ctx.strokeStyle = enemyAttackTelegraphColor(enemy.kind);
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.arc(
+      0,
+      0,
+      enemy.radius + 11,
+      -Math.PI / 2,
+      -Math.PI / 2 + Math.PI * 2 * enemy.attackWindup,
+    );
+    ctx.stroke();
+  }
+
   private drawEnemy(enemy: Enemy, game: Game): void {
     const ctx = this.ctx;
     const angle = enemy.angle ?? Math.atan2(center - enemy.y, center - enemy.x);
     ctx.save();
     ctx.translate(enemy.x, enemy.y);
+    this.drawEnemyAttackWindup(enemy);
     if (enemy.mireTentacle) {
       const size = enemy.radius * 4.6;
       ctx.rotate(this.time * 0.35);
@@ -1363,13 +1371,6 @@ export class Renderer {
         : 0;
       ctx.translate(0, -lift);
       ctx.globalAlpha = 0.82;
-    }
-    if (enemy.attackWindup > 0) {
-      ctx.strokeStyle = enemyAttackTelegraphColor(enemy.kind);
-      ctx.lineWidth = 5;
-      ctx.beginPath();
-      ctx.arc(0, 0, enemy.radius + 11, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * enemy.attackWindup);
-      ctx.stroke();
     }
     const phaseSlam = ENEMY_REGISTRY[enemy.kind].phaseSlam;
     if (phaseSlam && enemy.bossSmashWindup > 0) {
@@ -2010,17 +2011,14 @@ export class Renderer {
     this.weatherIntensity += Math.sign(target - this.weatherIntensity)
       * Math.min(Math.abs(target - this.weatherIntensity), dt / Math.max(0.1, fadeSeconds));
     if (!weather || this.weatherIntensity <= 0.002) return;
-    const viewportBound = game.activeCampaignTierId === "mire";
-    const fieldCount = viewportBound ? weather.particleCount : Math.ceil(
+    const fieldCount = Math.ceil(
       weather.particleCount * BALANCE.mapSize * BALANCE.mapSize
       / (BALANCE.logicalWidth * BALANCE.logicalHeight),
     );
     const fieldKey = `${game.seed}:${game.activeCampaignTierId}:${fieldCount}`;
     if (fieldKey !== this.weatherFieldKey) {
       this.weatherFieldKey = fieldKey;
-      this.weatherField = viewportBound
-        ? createViewportWeatherField(fieldKey, fieldCount, weather)
-        : createWeatherField(fieldKey, fieldCount, weather);
+      this.weatherField = createWeatherField(fieldKey, fieldCount, weather);
     }
     const ctx = this.ctx;
     ctx.save();
@@ -2032,14 +2030,7 @@ export class Renderer {
     }
     const elapsed = game.stats.elapsed;
     for (const particle of this.weatherField) {
-      const cycleHeight = (viewportBound ? BALANCE.logicalHeight : BALANCE.mapSize)
-        + particle.spawnGap;
-      const localY = (particle.y + elapsed * particle.fallSpeed) % cycleHeight
-        - particle.spawnGap;
-      const localX = particle.x
-        + Math.sin(elapsed * particle.driftSpeed + particle.phase) * particle.driftAmplitude;
-      const x = viewportBound ? game.camera.x - BALANCE.logicalWidth / 2 + localX : localX;
-      const y = viewportBound ? game.camera.y - BALANCE.logicalHeight / 2 + localY : localY;
+      const { x, y } = worldWeatherParticlePosition(particle, elapsed);
       if (!this.visible(game, x, y, particle.radius + 4)) continue;
       ctx.beginPath();
       ctx.arc(x, y, particle.radius, 0, Math.PI * 2);

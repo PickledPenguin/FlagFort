@@ -22,14 +22,14 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:zoom="2.5775097"
-     inkscape:cx="99.708646"
-     inkscape:cy="101.06655"
+     inkscape:cx="99.708645"
+     inkscape:cy="101.06654"
      inkscape:window-width="1549"
      inkscape:window-height="762"
-     inkscape:window-x="368"
-     inkscape:window-y="305"
+     inkscape:window-x="161"
+     inkscape:window-y="277"
      inkscape:window-maximized="0"
-     inkscape:current-layer="chronoforge-colossus-broken" />
+     inkscape:current-layer="clock-shards" />
   <title
      id="title">Chronoforge Colossus with shattered armor</title>
   <desc
@@ -275,17 +275,10 @@
          d="m -11.416321,-49.327828 14.0000002,-7 5,16 -14,7 z" />
       <path
          id="dial-shard-two"
-         d="m 47.60143,11.867879 14,8 -9,14 -12,-9 z" />
-      <path
-         id="dial-shard-three"
-         d="m 26.366776,49.775943 15,4 -10,13 -12,-6 z" />
+         d="m 39.454031,26.610792 14,8 -9,14 -12,-9 z" />
       <path
          id="dial-shard-four"
          d="m -50.377374,14.246489 12,-4 -2,15 -13,4 z" />
-      <path
-         id="loose-clock-hand"
-         d="m50 56 17 10-4 5-18-9Z"
-         fill="#30383e" />
     </g>
     <g
        id="face"

@@ -20,13 +20,13 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="3.2150803"
-     inkscape:cx="69.671667"
-     inkscape:cy="69.827184"
+     inkscape:zoom="5.0029277"
+     inkscape:cx="56.766761"
+     inkscape:cy="36.078874"
      inkscape:window-width="1443"
      inkscape:window-height="698"
      inkscape:window-x="266"
-     inkscape:window-y="231"
+     inkscape:window-y="175"
      inkscape:window-maximized="0"
      inkscape:current-layer="drowned-bulwark-zombie" />
   <title
@@ -100,7 +100,7 @@
        style="fill:url(#drowned-bulwark-body-gradient)" />
     <path
        id="face-shadow"
-       d="m 10.996743,-21.824314 c -15.0000005,-9 -30.677817,6.11066 -29.509611,21.29734222 C -17.406735,13.852753 -3.792828,28.173847 11.207172,19.173847 14.990517,6.9694611 20.774399,-4.4761 10.996743,-21.824314 Z"
+       d="m 10.996743,-21.824314 c -15.0000005,-9 -30.677817,6.11066 -29.509611,21.29734222 C -17.406735,13.852753 -3.792828,28.173847 11.207172,19.173847 18.911775,7.8408519 21.208954,-7.9525369 10.996743,-21.824314 Z"
        fill="#203b3b"
        sodipodi:nodetypes="cscc" />
     <path
@@ -139,7 +139,8 @@
          fill="#78945b">
         <path
            id="shield-moss-top"
-           d="m 24,-30 c 8,5 16,5 28,5 l 1,9 c -11,-4 -20,-2 -29,3 z" />
+           d="m 25.425448,-28.338069 c 8.985574,1.845355 14.216568,1.942981 25.477017,4.182327 l 0.155742,8.071316 c -11,-4 -17.229016,-1.915574 -26.229016,3.084426 z"
+           sodipodi:nodetypes="ccccc" />
         <path
            id="shield-moss-side"
            d="M 28.322345,0.94608153 C 33.705903,10.327836 33.159502,18.124289 23.576761,26.501108 L 24.38789,-0.50522683 c 1.411943,0.18239688 2.986103,-0.12185958 3.934455,1.45130836 z"

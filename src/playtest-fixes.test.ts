@@ -522,6 +522,27 @@ describe("progression safety and presentation", () => {
     expect(document.querySelector<HTMLElement>(".campaign-ladder-viewport")!.scrollTop).toBe(913);
   });
 
+  it("renders campaign tiers one per row from highest to lowest with numbered markers", () => {
+    const manager = new ProfileManager(new TestStore());
+    const game = new Game(new Input(document.querySelector("canvas")!), manager);
+    const ui = new Ui(
+      game,
+      document.querySelector("#hud")!,
+      document.querySelector("#overlay")!,
+      document.querySelector("#toast")!,
+    );
+    game.returnToMenu();
+    ui.render(true);
+    document.querySelector<HTMLElement>('[data-action="open-campaign"]')!.click();
+
+    const tiers = [...document.querySelectorAll<HTMLElement>(".campaign-tier-node")];
+    expect(tiers.map((tier) => tier.querySelector(".tier-node-copy b")?.textContent))
+      .toEqual(["Clockwork Citadel", "Drowned Mire", "Astral Rift", "Caldera Crucible",
+        "Fallout Exclusion", "Sunscorched Dominion", "Snowbound Keep", "Forest Frontier"]);
+    expect(tiers.map((tier) => tier.querySelector(".campaign-tier-marker")?.textContent))
+      .toEqual(["8", "7", "6", "5", "4", "3", "2", "1"]);
+  });
+
   it("shows each equipment tier sprite inside its matching shop row", () => {
     const manager = new ProfileManager(new TestStore());
     const game = new Game(new Input(document.querySelector("canvas")!), manager);

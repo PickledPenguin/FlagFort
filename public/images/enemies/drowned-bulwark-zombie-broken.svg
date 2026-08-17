@@ -20,15 +20,15 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="3.9037926"
-     inkscape:cx="54.818486"
-     inkscape:cy="35.862561"
+     inkscape:zoom="3.7309325"
+     inkscape:cx="54.946048"
+     inkscape:cy="23.854626"
      inkscape:window-width="1457"
      inkscape:window-height="849"
      inkscape:window-x="186"
      inkscape:window-y="33"
      inkscape:window-maximized="0"
-     inkscape:current-layer="svg2" />
+     inkscape:current-layer="drowned-bulwark-broken-zombie" />
   <title
      id="title">Drowned Bulwark zombie with broken shield</title>
   <desc
@@ -100,36 +100,8 @@
       <circle
          id="lower-hand"
          cx="29"
-         cy="25"
+         cy="23.123793"
          r="9" />
-    </g>
-    <g
-       id="shield-remnants"
-       fill="#53635f"
-       stroke="#263c3a"
-       stroke-width="2.5"
-       stroke-linejoin="round"
-       transform="translate(-9.3597887,-2.3399471)">
-      <path
-         id="gripped-remnant"
-         d="M 27,12 44,7 54,19 41,38 26,28 Z" />
-      <path
-         id="upper-fragment"
-         d="m 33,-29 18,4 -5,18 -17,-7 z" />
-      <path
-         id="lower-fragment"
-         d="m 28.951814,1.5580109 9,-12.9999999 8,10.99999994 -9,10.00000036 z" />
-    </g>
-    <g
-       id="remnant-moss"
-       fill="#78945b"
-       transform="translate(-9.3597887,-1.6713908)">
-      <path
-         id="upper-moss"
-         d="m 33,-29 18,4 -3,7 c -7,-4 -12,-3 -18,-1 z" />
-      <path
-         id="grip-moss"
-         d="m 28,13 16,-5 5,6 c -8,-2 -14,1 -20,6 z" />
     </g>
     <ellipse
        id="body"
@@ -143,7 +115,7 @@
        style="fill:url(#drowned-bulwark-body-gradient)" />
     <path
        id="face-shadow"
-       d="m 13.541261,-20.44945 c -15.0000007,-9 -30.677817,6.11066 -29.509611,21.29734228 C -14.862217,15.227617 -1.2483097,29.548711 13.75169,20.548711 17.535035,8.3443253 23.318917,-3.1012357 13.541261,-20.44945 Z"
+       d="m 13.541261,-20.44945 c -15.0000007,-9 -30.677817,6.11066 -29.509611,21.29734228 C -14.862217,15.227617 -1.6958393,28.973316 13.30416,19.973316 17.087505,7.7689302 23.318917,-3.1012357 13.541261,-20.44945 Z"
        fill="#203b3b"
        sodipodi:nodetypes="cscc" />
     <path

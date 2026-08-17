@@ -161,11 +161,11 @@ describe("seeded generation", () => {
   });
 
   it("names the exact mutation target and stat", () => {
-    expect(mutationText("basicWeight", 0)).toBe("Basic zombie spawn weight +12.");
-    expect(mutationText("waveSize", 3)).toBe("Each portal wave size +6 zombies.");
-    expect(mutationText("health", 0.12)).toBe("All zombies health +24%.");
-    expect(mutationText("damage", 0)).toBe("All zombies player damage +10%.");
-    expect(mutationText("structureDamage", 0)).toBe("All zombies structure damage +12%.");
+    expect(mutationText("basicWeight", 0)).toBe("+12 Basic zombie spawn weight");
+    expect(mutationText("waveSize", 3)).toBe("+3 zombies to the next wave");
+    expect(mutationText("health", 0.12)).toBe("+12% health for all zombies");
+    expect(mutationText("damage", 0)).toBe("+10% player damage for all zombies");
+    expect(mutationText("structureDamage", 0)).toBe("+12% structure damage for all zombies");
   });
 });
 
@@ -1242,6 +1242,41 @@ describe("phase and run rules", () => {
       .updatePlayerChaseBudget(lurker, 30);
     expect(lurker.targetId).toBe("player");
     expect(lurker.playerChaseCooldown).toBeUndefined();
+  });
+
+  it("exempts projectile zombies from chase budgets and leads only moving players", () => {
+    const game = new Game(fakeInput());
+    game.startRun("normal", "projectile-player-pursuit", [], true, { settle: false });
+    game.player.x = 1900;
+    game.player.y = 1800;
+    const archer = testEnemy({
+      kind: "archer",
+      x: 1600,
+      y: 1800,
+      targetId: "player",
+      playerChaseRemaining: 0,
+      playerChaseCooldown: BALANCE.navigation.playerChaseCooldown,
+    });
+    const definition = ENEMY_REGISTRY.archer;
+    const internals = game as unknown as {
+      playerVelocity: { x: number; y: number };
+      updatePlayerChaseBudget(target: Enemy, dt: number): void;
+      enemyRangedAttack(enemy: Enemy, target: typeof game.player | typeof game.flag, dt: number): void;
+    };
+
+    internals.updatePlayerChaseBudget(archer, 30);
+    expect(archer.targetId).toBe("player");
+    expect(archer.playerChaseCooldown).toBe(BALANCE.navigation.playerChaseCooldown);
+
+    internals.playerVelocity = { x: 0, y: 160 };
+    internals.enemyRangedAttack(archer, game.player, definition.attack.chargeSeconds);
+    expect(game.projectiles.at(-1)!.vy).toBeGreaterThan(0);
+
+    archer.cooldown = 0;
+    game.flag.x = 1900;
+    game.flag.y = 1800;
+    internals.enemyRangedAttack(archer, game.flag, definition.attack.chargeSeconds);
+    expect(game.projectiles.at(-1)!.vy).toBeCloseTo(0);
   });
 
   it("completes the deterministic ten-night loop with three dawn choices per night", () => {

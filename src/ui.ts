@@ -46,6 +46,7 @@ import {
   type DailyRewardStatus,
 } from "./profile";
 import type { RunBounty } from "./bounties";
+import { mutationPresentation } from "./choices";
 
 const labels: Record<StructureKind, string> = {
   wall: "Wall",
@@ -146,6 +147,8 @@ export class Ui {
   private seedDraft = "";
   private selectedChallenges = new Set<string>();
   private campaignOpen = false;
+  private campaignScrollPending = false;
+  private campaignPointerScrollTop: number | null = null;
   private bountyOpen = false;
   private bountyOrigin: BountyOrigin | null = null;
   private selectedCampaignTierId: CampaignTierId = "forest";
@@ -202,6 +205,12 @@ export class Ui {
         audioManager.play("ui-hover");
       }, { capture: true });
       layer.addEventListener("pointerdown", (event) => {
+        const campaignCard = (event.target as HTMLElement).closest(
+          '[data-action="select-campaign-tier"],[data-action="flip-campaign-tier-back"]',
+        );
+        this.campaignPointerScrollTop = campaignCard
+          ? this.overlay.querySelector<HTMLElement>(".campaign-ladder-viewport")?.scrollTop ?? null
+          : null;
         if ((event.target as HTMLElement).closest("button:disabled,[aria-disabled='true']")) {
           audioManager.play("ui-invalid");
         }
@@ -286,10 +295,11 @@ export class Ui {
   }
 
   private syncCampaignLadderScroll(): void {
-    if (!this.campaignOpen) return;
+    if (!this.campaignOpen || !this.campaignScrollPending) return;
     const viewport = this.overlay.querySelector<HTMLElement>(".campaign-ladder-viewport");
     const selected = this.overlay.querySelector<HTMLElement>(".campaign-tier-node.selected");
     if (!viewport || !selected) return;
+    this.campaignScrollPending = false;
     const viewportRect = viewport.getBoundingClientRect();
     const selectedRect = selected.getBoundingClientRect();
     if (selectedRect.top < viewportRect.top) {
@@ -492,12 +502,13 @@ export class Ui {
     const progress = this.campaignProgress();
     const selected = campaignTier(this.selectedCampaignTierId);
     const currentTierId = highestUnlockedCampaignTierId(progress);
-    const tiers = CAMPAIGN_TIERS.map((tier) => {
+    const tiers = [...CAMPAIGN_TIERS].reverse().map((tier) => {
       const unlocked = isCampaignTierUnlocked(tier, progress);
       const defeated = progress.defeatedTierIds.includes(tier.id);
       const active = tier.id === this.flippedCampaignTierId;
       const current = tier.id === currentTierId;
       return `<article class="campaign-tier-node ${unlocked ? "unlocked" : "locked"} ${defeated ? "defeated" : ""} ${current ? "current" : ""} ${tier.id === selected.id ? "selected" : ""} ${active ? "flipped" : ""}" style="--tier-accent:${tier.accent}">
+        <span class="campaign-tier-marker" aria-hidden="true">${tier.order + 1}</span>
         <div class="campaign-tier-card"><div class="campaign-tier-card-inner">
           <button class="tier-card-face tier-card-front" data-action="select-campaign-tier" data-campaign-tier="${tier.id}" aria-pressed="${active}" aria-hidden="${active}" tabindex="${active ? "-1" : "0"}" aria-label="${tier.name}${unlocked ? " unlocked" : " locked"}">
             <img class="tier-backdrop" src="${tier.backdrop}" alt="">
@@ -1071,7 +1082,7 @@ export class Ui {
     return `<button class="choice-pair" data-choice="${index}" aria-label="${choice.name} and ${choice.mutationName}" ${locked ? "disabled" : ""}>
       <article class="benefit-card"><span class="card-art">${this.choiceIcon(choice)}</span><small>${choice.kind}</small><h3>${choice.name}</h3><p class="${choice.kind === "upgrade" ? "upgrade-card-copy" : ""}">${this.choiceDescription(choice)}</p></article>
       <span class="choice-connector"><i></i><b>AND</b><i></i></span>
-      <article class="mutation-card"><span class="card-art mutation-art">${this.mutationIcon(choice)}</span><small>mutation</small><h3>${choice.mutationName}</h3><p>${choice.mutationDescription}</p></article>
+      <article class="mutation-card"><span class="card-art mutation-art">${this.mutationIcon(choice)}</span><small>mutation</small><h3>${choice.mutationName}</h3><p class="mutation-card-copy">${this.choiceMutationDescription(choice)}</p></article>
       <span class="pair-select">${buildBarIcon("selected-tier")} Apply both</span>
     </button>`;
   }
@@ -1102,6 +1113,15 @@ export class Ui {
       upgraded = current + amount;
     }
     return `<span class="upgrade-summary">${summary}</span><span class="upgrade-comparison">${compact(current)}${suffix} -&gt; ${compact(upgraded)}${suffix}</span>`;
+  }
+
+  private choiceMutationDescription(choice: Choice): string {
+    const presentation = mutationPresentation(
+      choice.mutationId,
+      this.game.mutations[choice.mutationId],
+      choice.mutationTargetKinds,
+    );
+    return `<span class="mutation-summary">${presentation.summary}</span><span class="mutation-comparison">${presentation.comparison}</span>`;
   }
 
   private dawnHeading(): string {
@@ -1548,7 +1568,9 @@ export class Ui {
     const action = target.dataset.action;
     const panelBeforeAction = this.menuPanel;
     const menuModalScrollTop = this.overlay.querySelector<HTMLElement>(".menu-modal > .modal")?.scrollTop;
-    const campaignLadderScrollTop = this.overlay.querySelector<HTMLElement>(".campaign-ladder-viewport")?.scrollTop;
+    const campaignLadderScrollTop = this.campaignPointerScrollTop
+      ?? this.overlay.querySelector<HTMLElement>(".campaign-ladder-viewport")?.scrollTop;
+    this.campaignPointerScrollTop = null;
     let upgradeFeedbackSelector: string | null = null;
     const difficulty = target.dataset.difficulty as Difficulty | undefined;
     if (difficulty) {
@@ -1581,6 +1603,7 @@ export class Ui {
         this.selectedCampaignTierId = highestUnlockedCampaignTierId(this.campaignProgress());
         this.flippedCampaignTierId = null;
         this.campaignOpen = true;
+        this.campaignScrollPending = true;
         break;
       case "close-campaign":
         this.campaignOpen = false;
@@ -1604,6 +1627,10 @@ export class Ui {
           const tier = campaignTier(tierId);
           const footer = this.overlay.querySelector<HTMLElement>(".campaign-ladder-modal > footer");
           if (footer) footer.innerHTML = this.campaignTierFooterMarkup(tier);
+          const viewport = this.overlay.querySelector<HTMLElement>(".campaign-ladder-viewport");
+          if (viewport && campaignLadderScrollTop !== undefined) {
+            viewport.scrollTop = campaignLadderScrollTop;
+          }
           this.lastOverlayKey = this.overlayKey();
         }
         return;
@@ -1618,6 +1645,10 @@ export class Ui {
         front?.setAttribute("tabindex", "0");
         target.setAttribute("aria-hidden", "true");
         target.setAttribute("tabindex", "-1");
+        const viewport = this.overlay.querySelector<HTMLElement>(".campaign-ladder-viewport");
+        if (viewport && campaignLadderScrollTop !== undefined) {
+          viewport.scrollTop = campaignLadderScrollTop;
+        }
         this.lastOverlayKey = this.overlayKey();
         return;
       }

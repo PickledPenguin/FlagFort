@@ -22,9 +22,9 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="5.8200645"
-     inkscape:cx="46.305329"
-     inkscape:cy="52.319008"
+     inkscape:zoom="9.179261"
+     inkscape:cx="42.541551"
+     inkscape:cy="62.913561"
      inkscape:window-width="1560"
      inkscape:window-height="726"
      inkscape:window-x="0"
@@ -39,34 +39,38 @@
      id="clockwork-ironwood-depleted">
     <path
        id="roots"
-       d="M 39.840924,61.960078 24.843379,86.331089 H 43.59031 L 49.214389,75.08293 56.713161,86.331089 H 72.648053 L 54.838468,61.022732 Z"
+       d="M 43.037364,62.175088 28.14876,86.546099 43.59031,86.331089 49.214389,75.08293 56.713161,86.331089 H 71.885464 C 66.133496,77.943313 60.691838,70.212208 54.838468,61.894262 Z"
        fill="#5f4633"
        stroke="#29282a"
        stroke-width="4.68673"
-       stroke-linejoin="round" />
+       stroke-linejoin="round"
+       sodipodi:nodetypes="cccccccc" />
     <path
        id="stump"
-       d="m 37.028884,65.709465 1.874693,-29.057744 9.373466,-5.624079 11.248158,6.561426 -1.874693,29.057743 z"
+       d="m 40.210965,66.876228 0.177583,-30.224507 8.100634,-3.926969 9.869256,4.758247 -0.70793,29.163812 z"
        fill="#705039"
        stroke="#29282a"
        stroke-width="5.62408"
-       stroke-linejoin="round" />
+       stroke-linejoin="round"
+       sodipodi:nodetypes="cccccc" />
     <path
        id="cut-face"
-       d="m 38.903577,36.651721 9.373466,-5.624079 11.248158,6.561426 -11.248158,7.498772 z"
+       d="m 39.539993,36.651721 8.73705,-4.033038 10.505672,4.864316 -10.399603,6.544147 z"
        fill="#a57a4c"
        stroke="#29282a"
        stroke-width="3.74939"
-       stroke-linejoin="round" />
+       stroke-linejoin="round"
+       sodipodi:nodetypes="ccccc" />
     <path
        id="growth-rings"
-       d="m 44.527656,36.651721 3.749387,-1.874693 5.624079,2.81204 -5.624079,3.749386 z"
+       d="m 44.527656,36.651721 3.749387,-1.874693 4.881593,2.705971 -4.669454,2.900831 z"
        fill="none"
        stroke="#634930"
-       stroke-width="1.87469" />
+       stroke-width="1.87469"
+       sodipodi:nodetypes="ccccc" />
     <path
        id="silent-pipe"
-       d="m 61.508785,55.398652 h 7.389882 V 42.275801"
+       d="m 61.508785,55.633118 h 7.389882 V 42.510267"
        fill="none"
        stroke="#8f5a3d"
        stroke-width="3.74939"

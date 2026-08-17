@@ -21,15 +21,15 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="3.2854106"
-     inkscape:cx="35.764175"
-     inkscape:cy="48.395778"
+     inkscape:zoom="4.5469193"
+     inkscape:cx="42.556287"
+     inkscape:cy="60.920369"
      inkscape:window-width="1602"
      inkscape:window-height="813"
      inkscape:window-x="0"
      inkscape:window-y="33"
      inkscape:window-maximized="0"
-     inkscape:current-layer="hands" />
+     inkscape:current-layer="pupils" />
   <title
      id="title">Magma Spitter zombie</title>
   <desc
@@ -134,12 +134,12 @@
       <circle
          id="upper-pupil"
          cx="13"
-         cy="-10"
+         cy="-10.500493"
          r="2.5" />
       <circle
          id="lower-pupil"
          cx="13.19866"
-         cy="8.6093817"
+         cy="9.1098757"
          r="2.5" />
     </g>
   </g>

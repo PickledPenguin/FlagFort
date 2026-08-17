@@ -1379,6 +1379,10 @@ img.icon.mouse-glyph {
   font-weight: 900;
 }
 
+.mutation-card-copy { display: grid; gap: 5px; }
+.mutation-summary { color: #dce8db; }
+.mutation-comparison { color: #f7ca4b; font-weight: 900; }
+
 .card-art > img {
   width: 70px;
   height: 70px;
@@ -5201,8 +5205,9 @@ img.icon {
 .campaign-ladder-modal header p { margin: 4px 0 0; color: #b9c8b9; font-size: 11px; }
 .campaign-level { flex: 0 0 auto; display: grid; place-items: center; width: 78px; height: 58px; border: 2px solid #f7ca4b; border-radius: 14px; color: #f6d96f; font-size: 8px; font-weight: 950; }
 .campaign-level b { font: 950 25px/1 Impact, sans-serif; }
-.campaign-ladder-viewport { min-width: 0; overflow-y: auto; overscroll-behavior: contain; padding: 18px; scrollbar-color: #6ab47a #07170e; }
-.campaign-tier-grid { width: min(1020px, 100%); min-width: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 0 auto; }
+.campaign-ladder-viewport { min-width: 0; overflow-y: auto; overflow-anchor: none; overscroll-behavior: contain; padding: 18px; scrollbar-color: #6ab47a #07170e; }
+.campaign-tier-grid { position: relative; width: min(1020px, 100%); min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; margin: 0 auto; }
+.campaign-tier-grid::before { content: ""; position: absolute; top: 32px; bottom: 32px; left: 29px; width: 4px; border-radius: 999px; background: rgba(157,224,168,.3); box-shadow: 0 0 12px rgba(116,243,165,.2); }
 .campaign-ladder-rail { position: relative; width: min(900px, 100%); height: 3800px; min-width: 0; margin: 0 auto; }
 .campaign-ladder-rail::before { content: ""; position: absolute; z-index: 0; inset: 0 auto 0 27px; width: 12px; border: 2px solid rgba(255,255,255,.18); border-radius: 99px; background: #06170e; box-shadow: 0 0 20px rgba(0,0,0,.5); }
 .campaign-ladder-rail::after { content: ""; position: absolute; z-index: 0; bottom: 0; left: 30px; width: 6px; height: var(--ladder-progress); border-radius: 99px; background: linear-gradient(#f7ca4b, #74f3a5); box-shadow: 0 0 18px rgba(116,243,165,.8); }
@@ -5211,8 +5216,10 @@ img.icon {
 .campaign-track-marker small { font-size: 6px; font-weight: 950; line-height: 1; }
 .campaign-track-marker b { font: 950 18px/1 Impact, sans-serif; }
 .campaign-track-marker.reward { width: 42px; height: 42px; margin-left: 6px; border-color: #d4ad3e; color: #f7d762; }
-.campaign-tier-node { min-width: 0; }
-.campaign-tier-card { width: 100%; min-width: 0; height: 150px; perspective: 1200px; }
+.campaign-tier-node { position: relative; z-index: 1; min-width: 0; display: grid; grid-template-columns: 62px minmax(0, 1fr); align-items: center; gap: 14px; }
+.campaign-tier-marker { width: 48px; height: 48px; display: grid; place-items: center; justify-self: center; border: 3px solid var(--tier-accent); border-radius: 50%; color: var(--tier-accent); background: #0b2116; box-shadow: 0 0 16px color-mix(in srgb, var(--tier-accent) 35%, transparent); font: 950 20px/1 Impact, sans-serif; }
+.campaign-tier-node.current .campaign-tier-marker { color: #201b09; border-color: #f7ca4b; background: #f7ca4b; }
+.campaign-tier-card { width: 100%; min-width: 0; height: 205px; perspective: 1200px; }
 .campaign-tier-card-inner { position: relative; width: 100%; height: 100%; min-width: 0; transform-style: preserve-3d; transition: transform 520ms cubic-bezier(.2,.72,.2,1); }
 .campaign-tier-node.flipped { z-index: 4; }
 .campaign-tier-node.flipped .campaign-tier-card-inner { transform: rotateY(180deg); }
@@ -5230,7 +5237,7 @@ img.icon {
 .tier-card-heading em { margin-top: 1px; color: #cbd7cc; font-size: 9px; font-style: normal; }
 .tier-card-badges { min-width: 0; display: flex; align-items: flex-start; justify-content: flex-end; gap: 5px; }
 .tier-card-badges > strong { padding: 5px 8px; border: 1px solid var(--tier-accent); border-radius: 999px; color: var(--tier-accent); font-size: 9px; }
-.tier-card-back > p { margin: 0; overflow: hidden; color: #cbd7cc; font-size: 10px; line-height: 1.25; white-space: nowrap; text-overflow: ellipsis; }
+.tier-card-back > p { margin: 0; color: #cbd7cc; font-size: 10px; line-height: 1.35; }
 .tier-card-enemies { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; min-width: 0; }
 .tier-card-enemies span { min-width: 0; display: grid; grid-template-columns: 42px minmax(0, 1fr); grid-template-rows: 1fr 1fr; align-items: center; gap: 0 5px; padding: 3px; border: 1px solid rgba(255,255,255,.12); border-radius: 8px; background: rgba(255,255,255,.04); }
 .tier-card-enemies span.boss { border-color: rgba(255,101,91,.5); background: rgba(54,17,17,.3); }
@@ -5321,7 +5328,7 @@ img.icon {
   .campaign-ladder-viewport { padding: 12px; }
   .tier-details { grid-template-columns: minmax(0, 1fr); }
   .tier-requirements, .tier-enemies, .tier-milestones { grid-column: 1; }
-  .campaign-tier-card { height: 150px; }
+  .campaign-tier-card { height: 205px; }
   .tier-card-front { grid-template-columns: 78px minmax(0, 1fr) auto; }
   .tier-card-back { grid-template-columns: minmax(0, 1fr); }
   .tier-medallion { width: 68px; height: 68px; }
@@ -5342,7 +5349,9 @@ img.icon {
 
 @media (max-width: 560px) {
   .play-mode-grid { grid-template-columns: minmax(0, 1fr); }
-  .campaign-tier-grid { grid-template-columns: minmax(0, 1fr); }
+  .campaign-tier-node { grid-template-columns: 48px minmax(0, 1fr); gap: 8px; }
+  .campaign-tier-grid::before { left: 22px; }
+  .campaign-tier-marker { width: 40px; height: 40px; font-size: 17px; }
   .tier-card-front { grid-template-columns: 66px minmax(0, 1fr); }
   .tier-state { grid-column: 2; justify-self: start; }
   .campaign-ladder-modal > footer { grid-template-columns: minmax(0, 1fr); }

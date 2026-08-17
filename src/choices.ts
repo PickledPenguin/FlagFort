@@ -66,13 +66,18 @@ function mutationTargets(
   return exact.length > 0 ? exact : introduced;
 }
 
-export function mutationText(
+export interface MutationPresentation {
+  summary: string;
+  comparison: string;
+}
+
+export function mutationPresentation(
   key: keyof Mutations,
   current: number,
   targets: readonly RosterEnemyKind[] = [],
-): string {
-  const next = current + BALANCE.mutations[key].amount;
-  const amount = Math.round(next);
+): MutationPresentation {
+  const amount = BALANCE.mutations[key].amount;
+  const next = current + amount;
   const names = targets.map((kind) => ENEMY_REGISTRY[kind].displayName).join(", ");
   if (key === "basicWeight" || key === "runnerWeight" || key === "breakerWeight"
     || key === "jumperWeight" || key === "summonerWeight") {
@@ -83,10 +88,20 @@ export function mutationText(
       jumperWeight: "Jumper zombie",
       summonerWeight: "Summoner zombie",
     };
-    return `${names || fallbackNames[key] || "Selected zombie"} spawn weight +${amount}.`;
+    return {
+      summary: `+${Math.round(amount)} ${names || fallbackNames[key] || "Selected zombie"} spawn weight`,
+      comparison: `+${Math.round(current)} -> +${Math.round(next)}`,
+    };
   }
-  if (key === "waveSize") return `Each portal wave size +${amount} zombies.`;
-  const percent = Math.round(next * 100);
+  if (key === "waveSize") {
+    return {
+      summary: `+${Math.round(amount)} zombies to the next wave`,
+      comparison: `+${Math.round(current)} -> +${Math.round(next)}`,
+    };
+  }
+  const amountPercent = Math.round(amount * 100);
+  const currentPercent = Math.round(current * 100);
+  const nextPercent = Math.round(next * 100);
   const stat: Record<"health" | "damage" | "speed" | "attackSpeed" | "structureDamage", string> = {
     health: "health",
     damage: "player damage",
@@ -94,9 +109,18 @@ export function mutationText(
     attackSpeed: "attack speed",
     structureDamage: "structure damage",
   };
-  return names
-    ? `${names} ${stat[key]} +${percent}%.`
-    : `All zombies ${stat[key]} +${percent}%.`;
+  return {
+    summary: `+${amountPercent}% ${stat[key]} for ${names || "all zombies"}`,
+    comparison: `+${currentPercent}% -> +${nextPercent}%`,
+  };
+}
+
+export function mutationText(
+  key: keyof Mutations,
+  current: number,
+  targets: readonly RosterEnemyKind[] = [],
+): string {
+  return mutationPresentation(key, current, targets).summary;
 }
 
 function upgradeText(key: keyof Upgrades, current: number): string {

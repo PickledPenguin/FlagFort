@@ -430,6 +430,37 @@ describe("event-driven HUD interaction", () => {
     expect(cards[0]?.textContent).not.toContain("Long rate explanation");
   });
 
+  it("shows mutation base amounts separately from previous and selected totals", () => {
+    const { game, overlay, ui } = createHarness();
+    game.phase = "dawn";
+    game.mutations.waveSize = 15;
+    game.mutations.attackSpeed = 0.09;
+    game.choices = [
+      {
+        id: "maxHealth", name: "Heartwood", description: "Long health explanation",
+        mutationId: "waveSize", mutationName: "Rising Dead", mutationDescription: "stale copy",
+        kind: "upgrade",
+      },
+      {
+        id: "bowDamage", name: "Strong Draw", description: "Long damage explanation",
+        mutationId: "attackSpeed", mutationName: "Frenzy", mutationDescription: "stale copy",
+        mutationTargetKinds: ["basic", "runner"],
+        kind: "upgrade",
+      },
+    ];
+
+    ui.render(true);
+
+    const cards = overlay.querySelectorAll<HTMLElement>(".mutation-card");
+    expect(cards[0]?.querySelector(".mutation-summary")?.textContent)
+      .toBe("+3 zombies to the next wave");
+    expect(cards[0]?.querySelector(".mutation-comparison")?.textContent).toBe("+15 -> +18");
+    expect(cards[1]?.querySelector(".mutation-summary")?.textContent)
+      .toBe("+8% attack speed for Basic Zombie, Runner");
+    expect(cards[1]?.querySelector(".mutation-comparison")?.textContent).toBe("+9% -> +17%");
+    expect(cards[0]?.textContent).not.toContain("stale copy");
+  });
+
   it("contains keyboard focus in the new threat warning", () => {
     const { game, overlay, ui } = createHarness();
     game.phase = "dawn";

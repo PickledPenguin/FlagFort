@@ -124,7 +124,7 @@ describe("mire enemies", () => {
     expect(node.infectionHintTime).toBe(0.42);
   });
 
-  it("permanently cleanses a parasite only when its resource is depleted", () => {
+  it("cleanses the current parasite on depletion but allows deterministic reinfection", () => {
     const game = gameFixture();
     const node = game.world.resources[0]!;
     node.infected = true;
@@ -149,7 +149,18 @@ describe("mire enemies", () => {
     (game as unknown as { updateResourceMechanics(dt: number): void })
       .updateResourceMechanics(1);
     expect(game.infectionTravelers).toHaveLength(0);
-    expect(node.infected).toBe(false);
+    expect(node.infected).toBe(true);
+
+    node.infected = false;
+    for (const other of game.world.resources) {
+      if (other !== node) other.infected = true;
+    }
+    const lurker = spawn(game, "mire-lurker", node.x + 25, node.y);
+    lurker.health = 0;
+    lurker.deathReason = "combat";
+    (game as unknown as { resolveEnemyDeath(enemy: Enemy): void })
+      .resolveEnemyDeath(lurker);
+    expect(game.infectionTravelers.at(-1)?.targetId).toBe(node.id);
   });
 
   it("registers Sporecaster as a Drowned Mire seeding suppression enemy", () => {
@@ -300,23 +311,23 @@ describe("mire enemies", () => {
     expect(definition.areaStrike).toBeUndefined();
     expect(definition.summon).toMatchObject({
       kinds: ["mire-lurker"],
-      cooldown: 1,
+      cooldown: 5,
       maximumLiving: BALANCE.tierMechanics.mire.bossLurkerMaximumLiving,
       popupText: "LURKER RISES",
     });
   });
 
-  it("spawns one deterministic Mire Lurker per second without root ruptures", () => {
+  it("spawns one deterministic Mire Lurker every five seconds until armor breaks", () => {
     const first = gameFixture();
     const second = gameFixture();
     const firstBoss = spawn(first, "mireheart-titan", first.player.x + 500, first.player.y);
     const secondBoss = spawn(second, "mireheart-titan", second.player.x + 500, second.player.y);
-    firstBoss.summonCooldown = 1;
-    secondBoss.summonCooldown = 1;
+    firstBoss.summonCooldown = 5;
+    secondBoss.summonCooldown = 5;
     for (const game of [first, second]) {
       const boss = game === first ? firstBoss : secondBoss;
       (game as unknown as { updateEnemySummon(enemy: Enemy, dt: number): void })
-        .updateEnemySummon(boss, 1);
+        .updateEnemySummon(boss, 5);
     }
 
     expect(first.areaStrikes).toHaveLength(0);
@@ -325,6 +336,14 @@ describe("mire enemies", () => {
       .toHaveLength(1);
     expect(second.enemies.filter((enemy) => enemy.summonedBy === secondBoss.id))
       .toHaveLength(1);
+
+    const summonedBeforeBreak = first.enemies.filter((enemy) => enemy.summonedBy === firstBoss.id).length;
+    firstBoss.armor = 0;
+    firstBoss.summonCooldown = 0;
+    (first as unknown as { updateEnemySummon(enemy: Enemy, dt: number): void })
+      .updateEnemySummon(firstBoss, 5);
+    expect(first.enemies.filter((enemy) => enemy.summonedBy === firstBoss.id))
+      .toHaveLength(summonedBeforeBreak);
   });
 
   it("freezes on shell break, releases flag-priority parasites, and drains life", () => {
@@ -336,7 +355,6 @@ describe("mire enemies", () => {
     (game as unknown as { updateResourceMechanics(dt: number): void })
       .updateResourceMechanics(0);
     const boss = spawn(game, "mireheart-titan", game.flag.x + 780, game.flag.y);
-    const definition = ENEMY_REGISTRY["mireheart-titan"];
     const nearbyTurret = turret(1900, boss.x + 55, boss.y);
     game.structures = [nearbyTurret];
     game.player.x = boss.x - 55;
@@ -366,12 +384,12 @@ describe("mire enemies", () => {
     game.update(0.1);
     expect(game.timer).toBeCloseTo(19.9);
 
+    const summonedBefore = game.enemies.filter((enemy) => enemy.summonedBy === boss.id).length;
     boss.summonCooldown = 0;
     (game as unknown as { updateEnemySummon(enemy: Enemy, dt: number): void })
       .updateEnemySummon(boss, BALANCE.fixedStep);
-    expect(game.enemies.find((enemy) => enemy.summonedBy === boss.id))
-      .toMatchObject({ kind: "mire-lurker", countsTowardWave: false });
-    expect(boss.summonCooldown).toBe(definition.summon!.cooldown);
+    expect(game.enemies.filter((enemy) => enemy.summonedBy === boss.id))
+      .toHaveLength(summonedBefore);
 
     boss.health = boss.maxHealth - 100;
     boss.cooldown = 0;

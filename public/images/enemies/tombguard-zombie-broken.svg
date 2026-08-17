@@ -47,33 +47,6 @@
        cy="2.356092"
        style="fill:#e8bb66;fill-opacity:1;stroke:#754a2d;stroke-opacity:1" />
     <g
-       id="broken-sandstone-armor"
-       fill="#c9924e"
-       stroke="#765234"
-       stroke-width="3"
-       stroke-linejoin="round"
-       transform="translate(-0.24340567,0.7302171)">
-      <path
-         id="upper-armor-remnant"
-         d="m -23.615088,-26.166434 14.2851348,-0.966917 2.614673,12.773547 -10.1071548,6.8443714 -12.637378,-0.5446718 z" />
-      <path
-         id="lower-armor-remnant"
-         d="M -29.289895,10.770878 -17.010877,9.2789945 -6.1809178,17.980257 -9.4975912,28.888954 -24.141519,27.003383 Z" />
-    </g>
-    <g
-       id="armor-rubble"
-       fill="#d5a657"
-       stroke="#765234"
-       stroke-width="2"
-       transform="translate(-0.24340567,2.9208684)">
-      <path
-         id="upper-rubble"
-         d="m 2,-27 9,2 -5,9 -8,-4 z" />
-      <path
-         id="lower-rubble"
-         d="m -4.3813026,17.639064 10,-4 4,8 -8.99999999,5 z" />
-    </g>
-    <g
        id="broken-scarab-crest"
        fill="#32aeb0"
        stroke="#235f65"

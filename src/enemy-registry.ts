@@ -282,7 +282,7 @@ export const TARGETED_ENEMY_BALANCE = {
   },
   drownedBulwark: { baseHealth: 310 },
   mireheartTitan: {
-    lurkerSpawnInterval: 1,
+    lurkerSpawnInterval: 5,
     maximumLivingLurkers: 18,
   },
   aetherGunner: { targetingRangeMultiplier: 1.5, timeLockDuration: 2 },

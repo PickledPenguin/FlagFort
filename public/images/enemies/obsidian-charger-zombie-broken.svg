@@ -30,7 +30,7 @@
      inkscape:window-x="0"
      inkscape:window-y="33"
      inkscape:window-maximized="0"
-     inkscape:current-layer="charge-debris" />
+     inkscape:current-layer="obsidian-charger-zombie-broken" />
   <title
      id="title">Obsidian Charger zombie with broken armor</title>
   <desc
@@ -62,22 +62,6 @@
        stroke-linejoin="round"
        sodipodi:nodetypes="sssssss" />
     <g
-       id="remaining-obsidian-shards"
-       fill="#292630"
-       stroke="#141419"
-       stroke-width="2"
-       stroke-linejoin="round">
-      <path
-         id="upper-shard"
-         d="m -16.091973,-26.348963 12.0000005,-7 10,12 -12,7 z" />
-      <path
-         id="lower-shard"
-         d="m -11.138862,24.465284 11.9999996,7 9.0000004,-13 -12.0000004,-6 z" />
-      <path
-         id="rear-shard"
-         d="m -33.225128,-1.6828991 9,-8 5,10.00000004 z" />
-    </g>
-    <g
        id="eyes"
        fill="#ffd47a"
        stroke="#1c1b20"
@@ -88,34 +72,6 @@
       <path
          id="lower-eye"
          d="M 13.266607,15.86647 14.699403,2.7917966 6.0568389,11.864066 Z" />
-    </g>
-    <g
-       id="charge-debris"
-       fill="#4b424f"
-       opacity="0.9">
-      <path
-         id="flying-shard"
-         d="m -20.605954,-14.923055 8,-5 3.9999999,9 -8.9999999,3 z" />
-      <path
-         id="fallen-shard"
-         d="m -29.140669,13.969945 11.999999,-5.0000001 4,8.0000001 z" />
-    </g>
-    <g
-       id="exposed-lava-cracks"
-       fill="none"
-       stroke="#ff7a2d"
-       stroke-width="3"
-       stroke-linecap="round"
-       stroke-linejoin="round"
-       transform="translate(-4)">
-      <path
-         id="upper-crack"
-         d="m -8.356477,-25.061918 6.4108807,6.938083 7.6435229,-4.232642"
-         sodipodi:nodetypes="ccc" />
-      <path
-         id="lower-crack"
-         d="M -3.9924862,24.767358 2.2401559,20.302074 8,23.945597"
-         sodipodi:nodetypes="ccc" />
     </g>
   </g>
 </svg>

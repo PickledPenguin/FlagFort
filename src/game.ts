@@ -367,6 +367,7 @@ export class Game {
   private playerDamageWarned = false;
   private flagWarningCooldown = 0;
   private footstepCooldown = 0;
+  private playerVelocity: Vec2 = { x: 0, y: 0 };
   private healingActive = false;
   private readonly tutorialTarget: TutorialTarget = {
     x: center,
@@ -1200,7 +1201,13 @@ export class Game {
 
     this.rebuildSpatial(false);
     if (!isTimeLocked(this.player)) this.updateAim();
+    const playerXBeforeUpdate = this.player.x;
+    const playerYBeforeUpdate = this.player.y;
     this.updatePlayer(dt);
+    this.playerVelocity = dt > 0 ? {
+      x: (this.player.x - playerXBeforeUpdate) / dt,
+      y: (this.player.y - playerYBeforeUpdate) / dt,
+    } : { x: 0, y: 0 };
     this.updateResourceMechanics(dt);
     this.updateMeleeSwing(dt);
     this.updateStructures(dt);
@@ -2024,7 +2031,7 @@ export class Game {
   private updateResourceMechanics(dt: number): void {
     this.ensureObstacleSpatial();
     for (const node of this.infectedResources) {
-      if (!node.infected || node.health <= 0) {
+      if (!node.infected || node.destroyed) {
         this.infectedResources.delete(node);
         this.infectionProximityResources.delete(node);
         continue;
@@ -2041,7 +2048,7 @@ export class Game {
       BALANCE.tierMechanics.mire.hintRadius,
       this.obstacleQueryScratch,
     )) {
-      if ("tier" in item || !item.infected || item.health <= 0) continue;
+      if ("tier" in item || !item.infected) continue;
       const node = item;
       this.infectedResources.add(node);
       const dx = node.x - this.player.x;
@@ -2091,7 +2098,7 @@ export class Game {
     if (this.infectionTravelers.length > 0) {
       this.infectionTravelers = this.infectionTravelers.filter((traveler) => {
         const target = this.resourcesById.get(traveler.targetId);
-        if (!target || target.infected || target.health <= 0 || target.destroyed) return false;
+        if (!target || target.infected || target.destroyed) return false;
         const angle = Math.atan2(target.y - traveler.y, target.x - traveler.x);
         const travel = Math.min(distance(traveler, target), traveler.speed * dt);
         traveler.x += Math.cos(angle) * travel;
@@ -2842,15 +2849,16 @@ export class Game {
   }
 
   private canEnemyChasePlayer(enemy: Enemy): boolean {
-    const mode = ENEMY_REGISTRY[enemy.kind].targeting.mode;
-    if (mode === "player") return true;
+    const definition = ENEMY_REGISTRY[enemy.kind];
+    if (definition.targeting.mode === "player" || definition.projectile) return true;
     return (enemy.playerChaseCooldown ?? 0) <= 0
       && (enemy.playerChaseRemaining ?? BALANCE.navigation.playerChaseDuration) > 0;
   }
 
   private updatePlayerChaseBudget(enemy: Enemy, dt: number): void {
     const definition = ENEMY_REGISTRY[enemy.kind];
-    if (definition.targeting.mode === "player" || enemy.objectivePriority === "flag") return;
+    if (definition.targeting.mode === "player" || definition.projectile
+      || enemy.objectivePriority === "flag") return;
     const cooldownBefore = enemy.playerChaseCooldown ?? 0;
     enemy.playerChaseCooldown = Math.max(0, cooldownBefore - dt);
     if (cooldownBefore > 0 && enemy.playerChaseCooldown === 0) {
@@ -3574,7 +3582,17 @@ export class Game {
     if (!this.isValidEnemyProjectileTarget(enemy, target)) return;
     enemy.chargeProgress = (enemy.chargeProgress ?? 0) + dt * (enemy.attackSpeedMultiplier ?? 1);
     enemy.attackWindup = Math.min(1, enemy.chargeProgress / definition.attack.chargeSeconds);
-    enemy.angle = Math.atan2(target.y - enemy.y, target.x - enemy.x);
+    const trackingPoint = target === this.player
+      ? predictInterceptPoint(
+        enemy,
+        target,
+        this.playerVelocity,
+        projectile.speed,
+        Math.min(projectile.lifetime, projectile.range / projectile.speed),
+        BALANCE.structure.turretAim.leadFactor,
+      )
+      : target;
+    enemy.angle = Math.atan2(trackingPoint.y - enemy.y, trackingPoint.x - enemy.x);
     if (enemy.chargeProgress < definition.attack.chargeSeconds) return;
     const structureTarget = "kind" in target && "tier" in target ? target : null;
     const validTarget = target === this.player || target === this.flag
@@ -3583,7 +3601,17 @@ export class Game {
     enemy.chargeProgress = 0;
     enemy.attackWindup = 0;
     enemy.cooldown = enemy.attackRate;
-    const angle = Math.atan2(target.y - enemy.y, target.x - enemy.x);
+    const aimPoint = target === this.player
+      ? predictInterceptPoint(
+        enemy,
+        target,
+        this.playerVelocity,
+        projectile.speed,
+        Math.min(projectile.lifetime, projectile.range / projectile.speed),
+        BALANCE.structure.turretAim.leadFactor,
+      )
+      : target;
+    const angle = Math.atan2(aimPoint.y - enemy.y, aimPoint.x - enemy.x);
     enemy.angle = angle;
     const targetId = target === this.player ? "player" : target === this.flag ? "flag" : structureTarget!.id;
     this.projectiles.push({
@@ -3813,7 +3841,7 @@ export class Game {
       let target: ResourceNode | undefined;
       let targetDistanceSquared = Number.POSITIVE_INFINITY;
       for (const node of this.world.resources) {
-        if (node.infected || node.destroyed || node.health <= 0) continue;
+        if (node.infected || node.destroyed) continue;
         const dx = node.x - enemy.x;
         const dy = node.y - enemy.y;
         const distanceSquared = dx * dx + dy * dy;
@@ -3925,6 +3953,7 @@ export class Game {
     const summon = definition.summon;
     if (!summon) return;
     if (enemy.countsTowardWave === false) return;
+    if (enemy.kind === "mireheart-titan" && (enemy.armor ?? 0) <= 0) return;
     enemy.summonCooldown -= dt * (enemy.attackSpeedMultiplier ?? 1);
     if (enemy.summonCooldown > 0) return;
     const living = this.enemies.filter((item) => item.summonedBy === enemy.id && item.health > 0).length;

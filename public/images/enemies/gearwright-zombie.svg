@@ -20,15 +20,15 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="3.9008345"
-     inkscape:cx="56.270011"
-     inkscape:cy="43.708596"
+     inkscape:zoom="8.2800788"
+     inkscape:cx="66.122559"
+     inkscape:cy="43.659005"
      inkscape:window-width="1710"
      inkscape:window-height="728"
      inkscape:window-x="0"
      inkscape:window-y="33"
      inkscape:window-maximized="0"
-     inkscape:current-layer="gearwright-zombie" />
+     inkscape:current-layer="visor-lights" />
   <title
      id="title">Gearwright zombie</title>
   <desc
@@ -113,18 +113,20 @@
        transform="matrix(0,1.1171278,-1.1171278,0,-15.248566,-3.2087222)">
       <rect
          id="left-light"
-         x="-9"
-         y="-21"
+         x="0.50622994"
+         y="-21.370083"
          width="7"
          height="4"
-         rx="2" />
+         rx="2"
+         transform="rotate(-27.829812)" />
       <rect
          id="right-light"
-         x="6"
-         y="-22"
+         x="-2.5359013"
+         y="-24.12059"
          width="7"
          height="4"
-         rx="2" />
+         rx="2"
+         transform="rotate(22.912132)" />
     </g>
     <g
        id="floating-hands"

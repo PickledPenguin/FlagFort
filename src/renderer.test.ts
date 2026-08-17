@@ -1,8 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
 import { ASSETS } from "./assets";
 import { CAMPAIGN_BIOMES, campaignTier } from "./campaign";
+import { BALANCE } from "./config";
 import { ENEMY_REGISTRY } from "./enemy-registry";
-import { createWeatherField, enemyAttackTelegraphColor, Renderer } from "./renderer";
+import {
+  createWeatherField,
+  enemyAttackTelegraphColor,
+  Renderer,
+  worldWeatherParticlePosition,
+} from "./renderer";
 
 describe("enemy attack telegraphs", () => {
   it("matches every projectile attack windup to its configured projectile color", () => {
@@ -15,9 +21,39 @@ describe("enemy attack telegraphs", () => {
   it("retains the shared danger color for melee attack windups", () => {
     expect(enemyAttackTelegraphColor("basic")).toBe("rgba(255,78,68,.75)");
   });
+
+  it("draws awakened Mire parasites with the shared melee countdown ring", () => {
+    const renderer = Object.create(Renderer.prototype) as {
+      ctx: Partial<CanvasRenderingContext2D> & { strokeStyle: string; lineWidth: number };
+      drawEnemyAttackWindup(enemy: unknown): void;
+    };
+    renderer.ctx = {
+      strokeStyle: "",
+      lineWidth: 0,
+      beginPath: vi.fn(),
+      arc: vi.fn(),
+      stroke: vi.fn(),
+    };
+
+    renderer.drawEnemyAttackWindup({ kind: "mire-lurker", attackWindup: 0.5, radius: 16 });
+
+    expect(renderer.ctx.strokeStyle).toBe("rgba(255,78,68,.75)");
+    expect(renderer.ctx.arc).toHaveBeenCalledWith(0, 0, 27, -Math.PI / 2, Math.PI / 2);
+    expect(renderer.ctx.stroke).toHaveBeenCalledOnce();
+  });
 });
 
 describe("world-space biome weather", () => {
+  it("keeps ambient particle positions independent from camera movement", () => {
+    const particle = createWeatherField("world-anchor", 1, CAMPAIGN_BIOMES.mire.weather!)[0]!;
+    const beforeCameraMove = worldWeatherParticlePosition(particle, 12.5);
+    const afterCameraMove = worldWeatherParticlePosition(particle, 12.5);
+
+    expect(afterCameraMove).toEqual(beforeCameraMove);
+    expect(beforeCameraMove.x).toBeGreaterThanOrEqual(-particle.driftAmplitude);
+    expect(beforeCameraMove.x).toBeLessThanOrEqual(BALANCE.mapSize + particle.driftAmplitude);
+  });
+
   it("builds varied deterministic fields from purpose-specific visual seeds", () => {
     const weather = campaignTier("snowy").biome.weather!;
     const first = createWeatherField("snow-run", 120, weather);
