@@ -269,19 +269,100 @@ type EnemyDefinitionInput = Omit<EnemyDefinition, "capabilities" | "ram"> & {
 };
 
 export const DEFAULT_RAM_COOLDOWN_SECONDS = 5;
+export const ARMORED_BOSS_DURABILITY = {
+  exposedHealthMultiplier: 2,
+  armorHealthMultiplier: 0.75,
+} as const;
 
-const enemy = (definition: EnemyDefinitionInput): EnemyDefinition => ({
-  ...definition,
-  capabilities: {
-    knockbackImmune: definition.tier === 10 && !definition.rosterEligible,
-    canUseTunnels: definition.tier !== 10 || definition.rosterEligible,
-    ...definition.capabilities,
+export const TARGETED_ENEMY_BALANCE = {
+  cometSlinger: {
+    targetingRangeMultiplier: 2,
+    projectileRange: 1040,
+    projectileLifetime: 2,
   },
-  ram: definition.ram ? {
-    cooldownSeconds: DEFAULT_RAM_COOLDOWN_SECONDS,
-    ...definition.ram,
-  } : undefined,
-});
+  drownedBulwark: { baseHealth: 310 },
+  mireheartTitan: {
+    lurkerSpawnInterval: 1,
+    maximumLivingLurkers: 18,
+  },
+  aetherGunner: { targetingRangeMultiplier: 1.5, timeLockDuration: 2 },
+} as const;
+
+const enemy = (definition: EnemyDefinitionInput): EnemyDefinition => {
+  const armoredBoss = definition.tier === 10 && !definition.rosterEligible && definition.armor;
+  const tuned: EnemyDefinition = {
+    ...definition,
+    base: armoredBoss ? {
+      ...definition.base,
+      health: definition.base.health * ARMORED_BOSS_DURABILITY.exposedHealthMultiplier,
+    } : definition.base,
+    armor: armoredBoss ? {
+      ...definition.armor!,
+      health: definition.armor!.health * ARMORED_BOSS_DURABILITY.armorHealthMultiplier,
+    } : definition.armor,
+    capabilities: {
+      knockbackImmune: definition.tier === 10 && !definition.rosterEligible,
+      canUseTunnels: definition.tier !== 10 || definition.rosterEligible,
+      ...definition.capabilities,
+    },
+    ram: definition.ram ? {
+      cooldownSeconds: DEFAULT_RAM_COOLDOWN_SECONDS,
+      ...definition.ram,
+    } : undefined,
+  };
+  if (tuned.id === "comet-slinger" && tuned.projectile) {
+    tuned.targeting.attackRange *= TARGETED_ENEMY_BALANCE.cometSlinger.targetingRangeMultiplier;
+    tuned.movement.preferredRange *= TARGETED_ENEMY_BALANCE.cometSlinger.targetingRangeMultiplier;
+    tuned.projectile.range = TARGETED_ENEMY_BALANCE.cometSlinger.projectileRange;
+    tuned.projectile.lifetime = TARGETED_ENEMY_BALANCE.cometSlinger.projectileLifetime;
+    tuned.projectile.pierces = true;
+  }
+  if (tuned.id === "drowned-bulwark") {
+    tuned.base.health = TARGETED_ENEMY_BALANCE.drownedBulwark.baseHealth;
+  }
+  if (tuned.id === "mireheart-titan") {
+    tuned.areaStrike = undefined;
+    if (tuned.armor) tuned.armor.breakStatusPulse = undefined;
+    tuned.summon = {
+      initialCooldown: {
+        minimum: TARGETED_ENEMY_BALANCE.mireheartTitan.lurkerSpawnInterval,
+        maximum: TARGETED_ENEMY_BALANCE.mireheartTitan.lurkerSpawnInterval,
+      },
+      cooldown: TARGETED_ENEMY_BALANCE.mireheartTitan.lurkerSpawnInterval,
+      cappedRetryCooldown: TARGETED_ENEMY_BALANCE.mireheartTitan.lurkerSpawnInterval,
+      maximumLiving: TARGETED_ENEMY_BALANCE.mireheartTitan.maximumLivingLurkers,
+      kinds: ["mire-lurker"],
+      particleColor: "#68cda6",
+      particleCount: 12,
+      popupText: "LURKER RISES",
+    };
+    tuned.description = "Shatter its cypress shell, survive the frozen break moment and flag-bound parasites, and stop its life drain and rising Lurkers.";
+  }
+  if (tuned.id === "aether-gunner" && tuned.projectile) {
+    tuned.targeting.attackRange *= TARGETED_ENEMY_BALANCE.aetherGunner.targetingRangeMultiplier;
+    tuned.movement.preferredRange *= TARGETED_ENEMY_BALANCE.aetherGunner.targetingRangeMultiplier;
+    tuned.projectile.statusEffect = {
+      kind: "time-lock",
+      duration: TARGETED_ENEMY_BALANCE.aetherGunner.timeLockDuration,
+      targets: ["player", "turret"],
+      popupTextColor: "#d9fffb",
+      particleColor: "#79e7df",
+      popupText: "Time Lock",
+      visual: "time-lock",
+    };
+    tuned.description = "Fires aether bolts that Time Lock targets; on death, a cyan burst Time Locks nearby players and turrets for 2 seconds without damage.";
+  }
+  if (tuned.id === "chronoforge-colossus" && tuned.areaStrike?.statusEffect) {
+    tuned.areaStrike.statusEffect = {
+      ...tuned.areaStrike.statusEffect,
+      kind: "time-lock",
+      duration: TARGETED_ENEMY_BALANCE.aetherGunner.timeLockDuration,
+      popupText: "Time Lock",
+      visual: "time-lock",
+    };
+  }
+  return tuned;
+};
 
 export const ENEMY_REGISTRY: Record<EnemyKind, EnemyDefinition> = {
   basic: enemy({ id: "basic", displayName: "Basic Zombie", description: "A steady attacker focused on the flag.", tell: "Green body", tier: 1, introductionNight: 1, selectionWeight: 3, spawnWeight: 70, threat: 1, xp: 1, base: { health: 42, speed: 115, damage: 7, structureDamage: 8, attackRate: 1.15, radius: 23 }, caps: { perWave: 999, simultaneous: 999 }, assets: { portrait: "enemies/basic-zombie", body: "gameplay/enemies/basic/body", hand: "gameplay/enemies/basic/hand" }, audio: { attack: "zombie-attack", death: "zombie-death" }, targeting: { mode: "standard", detectionRadius: 330, attackRange: 0, lockSeconds: 0.6 }, movement: { avoidStructures: false, obstacleFallback: true, preferredRange: 0, meleeSpikes: true }, attack: { mode: "melee", chargeSeconds: 0.294 }, death: { mode: "none" }, rosterEligible: true, countsForKills: true }),

@@ -1,7 +1,29 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_RAM_COOLDOWN_SECONDS, ENEMY_REGISTRY, ROSTER_TIERS, enemyRenderDimensions, introducedRosterEnemies, rosterMilestones, selectEnemyRoster } from "./enemy-registry";
+import { ARMORED_BOSS_DURABILITY, DEFAULT_RAM_COOLDOWN_SECONDS, ENEMY_REGISTRY, ROSTER_TIERS, enemyRenderDimensions, introducedRosterEnemies, rosterMilestones, selectEnemyRoster } from "./enemy-registry";
 
 describe("deterministic enemy roster", () => {
+  it("doubles exposed health and reduces armor by 25 percent for every armored boss", () => {
+    const original = {
+      "frost-warden": { health: 900, armor: 560 },
+      "dune-colossus": { health: 1040, armor: 610 },
+      "caldera-sovereign": { health: 1180, armor: 690 },
+      "reactor-revenant": { health: 1320, armor: 780 },
+      "eclipse-regent": { health: 1460, armor: 860 },
+      "mireheart-titan": { health: 1600, armor: 940 },
+      "chronoforge-colossus": { health: 1760, armor: 1040 },
+    } as const;
+    for (const [kind, durability] of Object.entries(original)) {
+      const definition = ENEMY_REGISTRY[kind as keyof typeof original];
+      expect(definition.base.health).toBe(
+        durability.health * ARMORED_BOSS_DURABILITY.exposedHealthMultiplier,
+      );
+      expect(definition.armor?.health).toBe(
+        durability.armor * ARMORED_BOSS_DURABILITY.armorHealthMultiplier,
+      );
+      expect(definition.armor?.scalesWithHealth).toBe(true);
+    }
+    expect(ENEMY_REGISTRY.tombguard.armor?.health).toBe(110);
+  });
   it("gives every charging enemy the shared five-second recovery window", () => {
     const chargingEnemies = Object.values(ENEMY_REGISTRY).filter((definition) => definition.ram);
     expect(chargingEnemies.map((definition) => definition.id).sort())

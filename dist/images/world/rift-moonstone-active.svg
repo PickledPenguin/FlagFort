@@ -58,17 +58,5 @@
        stroke="#c7c8df"
        stroke-width="4"
        stroke-linecap="round" />
-    <path
-       id="rift-energy"
-       d="M 18.251312,61.592845 C 29.875034,56.217989 29.44122,75.001274 39.27545,68.733267"
-       fill="none"
-       stroke="#a96eff"
-       stroke-width="4"
-       stroke-linecap="round"
-       sodipodi:nodetypes="cc" />
-    <path
-       d="M 60.350566,47.174808 C 63.561794,35.569291 76.90018,46.842606 79.213893,35.678071"
-       style="fill:none;stroke:#a96eff;stroke-width:4;stroke-linecap:round"
-       id="path1" />
   </g>
 </svg>

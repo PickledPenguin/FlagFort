@@ -68,6 +68,7 @@ import type { ProfileManager, RunSettlementResult } from "./profile";
 import { campaignTier } from "./campaign";
 import { calculateXpRewards, settleCoinInvestment } from "./rewards";
 import { biomePopupColor } from "./popup-colors";
+import { predictInterceptPoint } from "./intercept";
 import { selectRunBounties, type BountyMetric, type RunBounty } from "./bounties";
 import {
   emptyPlaytestActivity,
@@ -192,6 +193,14 @@ interface TimeRewindState {
   lastTickSecond: number;
 }
 
+export interface MireArmorBreakFreezeState {
+  bossId: number;
+  boss: Enemy;
+  x: number;
+  y: number;
+  elapsed: number;
+}
+
 const center = BALANCE.mapSize / 2;
 export const LOCAL_PLAYER_ID: PlayerId = "local-player";
 function emptyEnemyCounts(): Record<EnemyKind, number> {
@@ -257,9 +266,15 @@ export class Game {
   infectionTravelers: Array<{ x: number; y: number; targetId: number; speed: number }> = [];
   sandTunnels: Array<{ id: number; entry: Vec2; exit: Vec2; remaining: number; cooldown: number }> = [];
   private activeSandstormers: Enemy[] = [];
+  private resourcesById = new Map<number, ResourceNode>();
+  private infectedResources = new Set<ResourceNode>();
+  private persistentRadiationResources = new Set<ResourceNode>();
+  private infectionProximityResources = new Set<ResourceNode>();
+  private infectionProximityScratch = new Set<ResourceNode>();
   clockworkEarlyKills = 0;
   clockPenaltyNotice: { kills: number; seconds: number } | null = null;
   timeRewind: TimeRewindState | null = null;
+  mireArmorBreakFreeze: MireArmorBreakFreezeState | null = null;
   selectedSlot = 1;
   selectedTiers: Record<StructureKind, Tier> = {
     wall: "wood",
@@ -422,6 +437,13 @@ export class Game {
     this.nextId = 1000;
     const challengeModifiers = this.getChallengeModifiers();
     this.world = generateWorld(this.seed, challengeModifiers.resourceNodeMultiplier, this.activeCampaignTierId);
+    this.resourcesById = new Map(this.world.resources.map((node) => [node.id, node]));
+    this.infectedResources = new Set(this.world.resources.filter((node) => node.infected));
+    this.persistentRadiationResources = new Set(
+      this.world.resources.filter((node) => node.persistentRadiation),
+    );
+    this.infectionProximityResources.clear();
+    this.infectionProximityScratch.clear();
     this.night = 1;
     this.timer = this.getDayDuration();
     this.phaseElapsed = 0;
@@ -469,6 +491,7 @@ export class Game {
     this.clockworkEarlyKills = 0;
     this.clockPenaltyNotice = null;
     this.timeRewind = null;
+    this.mireArmorBreakFreeze = null;
     this.navigationFields.clear();
     this.structureRevision = 0;
     this.nightWaveScheduled = false;
@@ -1129,6 +1152,11 @@ export class Game {
       this.input.endFrame();
       return;
     }
+    if (this.mireArmorBreakFreeze) {
+      this.updateMireArmorBreakFreeze(dt);
+      this.input.endFrame();
+      return;
+    }
     if (this.phase === "dawn" && this.dawnChoiceLockRemaining > 0) {
       const wasLocked = this.dawnChoiceLockRemaining > 0;
       this.dawnChoiceLockRemaining = Math.max(0, this.dawnChoiceLockRemaining - dt);
@@ -1171,7 +1199,7 @@ export class Game {
     }
 
     this.rebuildSpatial(false);
-    this.updateAim();
+    if (!isTimeLocked(this.player)) this.updateAim();
     this.updatePlayer(dt);
     this.updateResourceMechanics(dt);
     this.updateMeleeSwing(dt);
@@ -1221,6 +1249,7 @@ export class Game {
   }
 
   private updatePlayer(dt: number): void {
+    if (isTimeLocked(this.player)) return;
     let x = 0;
     let y = 0;
     if (this.input.keys.has("KeyA")) x -= 1;
@@ -1829,7 +1858,15 @@ export class Game {
       }
     }
     if (!target) return;
-    structure.angle = Math.atan2(target.y - structure.y, target.x - structure.x);
+    const aimPoint = predictInterceptPoint(
+      structure,
+      target,
+      { x: target.velocityX ?? 0, y: target.velocityY ?? 0 },
+      BALANCE.bow.speed,
+      range / BALANCE.bow.speed,
+      BALANCE.structure.turretAim.leadFactor,
+    );
+    structure.angle = Math.atan2(aimPoint.y - structure.y, aimPoint.x - structure.x);
     if (structure.cooldown > 0) return;
     structure.cooldown = Math.max(
       0.16,
@@ -1958,7 +1995,24 @@ export class Game {
     // No resource collected audio, muddles the specific resource hit sounds and not necessary
     //emitAudioCue({ cue: "resource-collected", position: { x: node.x, y: node.y } });
     if (node.health <= 0) {
-      this.burst(node.x, node.y, "#aab0aa", 12, "DEPLETED");
+      const cleansed = Boolean(node.infected);
+      if (cleansed) {
+        node.infected = false;
+        node.infectionHinted = false;
+        node.infectionProximityInside = false;
+        node.infectionHintTime = 0;
+        node.infectionAttackTime = 0;
+        node.infectionCooldown = 0;
+        this.infectedResources.delete(node);
+        this.infectionProximityResources.delete(node);
+      }
+      this.burst(
+        node.x,
+        node.y,
+        cleansed ? "#79e6c1" : "#aab0aa",
+        12,
+        cleansed ? BALANCE.tierMechanics.mire.cleansePopupText : "DEPLETED",
+      );
       emitAudioCue({ cue: "resource-depleted", position: { x: node.x, y: node.y } });
       if (node.kind === "diamond" && this.activeCampaignTierId === "clockwork") {
         this.createTimeLockBurst(node);
@@ -1968,18 +2022,44 @@ export class Game {
   }
 
   private updateResourceMechanics(dt: number): void {
-    for (const node of this.world.resources) {
+    this.ensureObstacleSpatial();
+    for (const node of this.infectedResources) {
+      if (!node.infected || node.health <= 0) {
+        this.infectedResources.delete(node);
+        this.infectionProximityResources.delete(node);
+        continue;
+      }
       node.infectionHintTime = Math.max(0, (node.infectionHintTime ?? 0) - dt);
       node.infectionAttackTime = Math.max(0, (node.infectionAttackTime ?? 0) - dt);
       node.infectionCooldown = Math.max(0, (node.infectionCooldown ?? 0) - dt);
-      if (!node.infected) continue;
-      const inside = distance(node, this.player) <= BALANCE.tierMechanics.mire.hintRadius;
-      if (inside && !node.infectionProximityInside) {
+    }
+    const nearbyInfected = this.infectionProximityScratch;
+    nearbyInfected.clear();
+    for (const item of this.obstacleHash.queryInto(
+      this.player.x,
+      this.player.y,
+      BALANCE.tierMechanics.mire.hintRadius,
+      this.obstacleQueryScratch,
+    )) {
+      if ("tier" in item || !item.infected || item.health <= 0) continue;
+      const node = item;
+      this.infectedResources.add(node);
+      const dx = node.x - this.player.x;
+      const dy = node.y - this.player.y;
+      if (dx * dx + dy * dy > BALANCE.tierMechanics.mire.hintRadius ** 2) continue;
+      nearbyInfected.add(node);
+      if (!this.infectionProximityResources.has(node)) {
         node.infectionHinted = true;
         node.infectionHintTime = 0.42;
       }
-      node.infectionProximityInside = inside;
+      node.infectionProximityInside = true;
     }
+    for (const node of this.infectionProximityResources) {
+      if (nearbyInfected.has(node)) continue;
+      node.infectionProximityInside = false;
+    }
+    this.infectionProximityScratch = this.infectionProximityResources;
+    this.infectionProximityResources = nearbyInfected;
     const decayDuration = BALANCE.tierMechanics.wasteland.radiationDayDecayDuration;
     for (const hazard of this.radiationHazards) {
       const beforeActivation = hazard.activationRemaining;
@@ -1995,32 +2075,37 @@ export class Game {
         this.applyRadiationAt(hazard, hazard.radius, activeDt, true);
       }
     }
-    this.radiationHazards = this.radiationHazards.filter(
-      (hazard) => (hazard.decayRemaining ?? 1) > 0,
-    );
-    for (const node of this.world.resources) {
-      if (!node.persistentRadiation || node.destroyed) continue;
+    if (this.radiationHazards.length > 0) {
+      this.radiationHazards = this.radiationHazards.filter(
+        (hazard) => (hazard.decayRemaining ?? 1) > 0,
+      );
+    }
+    for (const node of this.persistentRadiationResources) {
+      if (node.destroyed) continue;
       this.applyPersistentResourceRadiation(node, dt);
     }
     for (const enemy of this.enemies) {
       if (enemy.health <= 0 || !ENEMY_REGISTRY[enemy.kind].capabilities.radiationAura) continue;
       this.applyRadiationAt(enemy, BALANCE.tierMechanics.wasteland.radiationRadius, dt);
     }
-    this.infectionTravelers = this.infectionTravelers.filter((traveler) => {
-      const target = this.world.resources.find((node) => node.id === traveler.targetId && !node.infected);
-      if (!target) return false;
-      const angle = Math.atan2(target.y - traveler.y, target.x - traveler.x);
-      const travel = Math.min(distance(traveler, target), traveler.speed * dt);
-      traveler.x += Math.cos(angle) * travel;
-      traveler.y += Math.sin(angle) * travel;
-      if (distance(traveler, target) > target.radius) return true;
-      target.infected = true;
-      target.infectionHinted = false;
-      target.infectionProximityInside = false;
-      target.infectionAttackTime = 0.45;
-      this.burst(target.x, target.y, "#79e6c1", 16, "INFECTED");
-      return false;
-    });
+    if (this.infectionTravelers.length > 0) {
+      this.infectionTravelers = this.infectionTravelers.filter((traveler) => {
+        const target = this.resourcesById.get(traveler.targetId);
+        if (!target || target.infected || target.health <= 0 || target.destroyed) return false;
+        const angle = Math.atan2(target.y - traveler.y, target.x - traveler.x);
+        const travel = Math.min(distance(traveler, target), traveler.speed * dt);
+        traveler.x += Math.cos(angle) * travel;
+        traveler.y += Math.sin(angle) * travel;
+        if (distance(traveler, target) > target.radius) return true;
+        target.infected = true;
+        this.infectedResources.add(target);
+        target.infectionHinted = false;
+        target.infectionProximityInside = false;
+        target.infectionAttackTime = 0.45;
+        this.burst(target.x, target.y, "#79e6c1", 16, "INFECTED");
+        return false;
+      });
+    }
   }
 
   private applyRadiationAt(source: Vec2, radius: number, dt: number, persistent = false): void {
@@ -2035,6 +2120,7 @@ export class Game {
       }
       if (persistent) {
         node.persistentRadiation = true;
+        this.persistentRadiationResources.add(node);
         continue;
       }
       if (node.persistentRadiation) continue;
@@ -2043,10 +2129,16 @@ export class Game {
   }
 
   private applyPersistentResourceRadiation(node: ResourceNode, dt: number): void {
-      const remaining = Math.max(0, node.maxHealth - (node.harvestDamage ?? 0) - (node.radiationDamage ?? 0));
-      const damage = Math.min(remaining, BALANCE.tierMechanics.wasteland.radiationDamagePerSecond * dt);
-      node.radiationDamage = (node.radiationDamage ?? 0) + damage;
-      node.health = Math.max(0, node.health - damage);
+    const remaining = Math.max(
+      0,
+      node.maxHealth - (node.harvestDamage ?? 0) - (node.radiationDamage ?? 0),
+    );
+    const damage = Math.min(
+      remaining,
+      BALANCE.tierMechanics.wasteland.radiationDamagePerSecond * dt,
+    );
+    node.radiationDamage = (node.radiationDamage ?? 0) + damage;
+    node.health = Math.max(0, node.health - damage);
   }
 
   private updatePortals(dt: number): void {
@@ -2396,6 +2488,15 @@ export class Game {
       if (enemy.kind === "sandstormer" && enemy.health > 0) this.activeSandstormers.push(enemy);
     }
     for (const enemy of this.enemies) {
+      if (dt > 0 && enemy.motionSampleX !== undefined && enemy.motionSampleY !== undefined) {
+        enemy.velocityX = (enemy.x - enemy.motionSampleX) / dt;
+        enemy.velocityY = (enemy.y - enemy.motionSampleY) / dt;
+      } else {
+        enemy.velocityX ??= 0;
+        enemy.velocityY ??= 0;
+      }
+      enemy.motionSampleX = enemy.x;
+      enemy.motionSampleY = enemy.y;
       if ((enemy.ghostRemaining ?? 0) > 0) {
         enemy.ghostRemaining = Math.max(0, enemy.ghostRemaining! - dt);
         if (enemy.ghostRemaining <= 0) {
@@ -2411,6 +2512,7 @@ export class Game {
       enemy.flash = Math.max(0, enemy.flash - dt);
       enemy.jumpCooldown = Math.max(0, enemy.jumpCooldown - dt);
       enemy.routeCommitment = Math.max(0, enemy.routeCommitment - dt);
+      this.updatePlayerChaseBudget(enemy, dt);
       enemy.bossSlamWave = Math.max(0, (enemy.bossSlamWave ?? 0) - dt);
       if (enemy.kind === "dune-burrower" && !enemy.tunnelCreated) {
         enemy.tunnelCooldown = Math.max(0, (enemy.tunnelCooldown ?? 0) - dt);
@@ -2477,8 +2579,15 @@ export class Game {
         this.moveEnemyToward(enemy, target, dt, true);
         continue;
       }
+      if (enemy.objectivePriority === "flag"
+        && distance(enemy, this.player) <= bossPlayerReach) {
+        this.enemyAttack(enemy, this.player, dt);
+        this.moveEnemyToward(enemy, target, dt, true);
+        continue;
+      }
       if ((definition.attack.mode === "arrow" || definition.attack.mode === "acid")
-        && targetDistance <= this.enemyAttackRange(enemy)) {
+        && targetDistance <= this.enemyAttackRange(enemy)
+        && this.isValidEnemyProjectileTarget(enemy, target)) {
         this.enemyRangedAttack(enemy, target, dt);
         continue;
       }
@@ -2660,6 +2769,10 @@ export class Game {
       enemy.forcedBlockerId = null;
     }
     const definition = ENEMY_REGISTRY[enemy.kind];
+    if (enemy.objectivePriority === "flag" && this.flagPresent) {
+      enemy.targetId = "flag";
+      return;
+    }
     if (definition.targeting.mode === "flag" || definition.targeting.mode === "rammer") {
       enemy.targetId = "flag";
       return;
@@ -2687,7 +2800,8 @@ export class Game {
         && distance(enemy, lockedTarget) <= detection * BALANCE.navigation.targetHysteresis) return;
       enemy.targetId = "flag";
       for (const priority of definition.targeting.priorities ?? []) {
-        if (priority === "player" && distance(enemy, this.player) <= detection) {
+        if (priority === "player" && distance(enemy, this.player) <= detection
+          && this.canEnemyChasePlayer(enemy)) {
           enemy.targetId = "player";
           break;
         }
@@ -2706,12 +2820,12 @@ export class Game {
       enemy.routeCommitment = definition.targeting.lockSeconds;
       return;
     }
-    const playerInRange = distance(enemy, this.player) <= detection;
+    const playerInRange = distance(enemy, this.player) <= detection
+      && this.canEnemyChasePlayer(enemy);
     const turret = this.nearestStructure(enemy, detection, "turret");
     const harvester = this.nearestStructure(enemy, detection, "harvester");
     if (definition.targeting.mode === "archer") {
-      const canTargetFlag = definition.projectile?.targets.includes("flag") ?? true;
-      enemy.targetId = turret?.id ?? (playerInRange || !canTargetFlag ? "player" : "flag");
+      enemy.targetId = turret?.id ?? (playerInRange ? "player" : "flag");
       return;
     }
     if (definition.targeting.mode === "acidslinger") {
@@ -2725,6 +2839,44 @@ export class Game {
     else if (turret) enemy.targetId = turret.id;
     else if (harvester) enemy.targetId = harvester.id;
     else enemy.targetId = "flag";
+  }
+
+  private canEnemyChasePlayer(enemy: Enemy): boolean {
+    const mode = ENEMY_REGISTRY[enemy.kind].targeting.mode;
+    if (mode === "player") return true;
+    return (enemy.playerChaseCooldown ?? 0) <= 0
+      && (enemy.playerChaseRemaining ?? BALANCE.navigation.playerChaseDuration) > 0;
+  }
+
+  private updatePlayerChaseBudget(enemy: Enemy, dt: number): void {
+    const definition = ENEMY_REGISTRY[enemy.kind];
+    if (definition.targeting.mode === "player" || enemy.objectivePriority === "flag") return;
+    const cooldownBefore = enemy.playerChaseCooldown ?? 0;
+    enemy.playerChaseCooldown = Math.max(0, cooldownBefore - dt);
+    if (cooldownBefore > 0 && enemy.playerChaseCooldown === 0) {
+      enemy.playerChaseRemaining = BALANCE.navigation.playerChaseDuration;
+    }
+    const detection = definition.targeting.detectionRadius;
+    const dx = enemy.x - this.player.x;
+    const dy = enemy.y - this.player.y;
+    const playerInRange = dx * dx + dy * dy <= detection * detection;
+    if (!playerInRange) {
+      enemy.playerChaseRemaining = BALANCE.navigation.playerChaseDuration;
+      if (enemy.targetId === "player") {
+        this.invalidateEnemyTarget(enemy);
+        this.selectEnemyTarget(enemy);
+      }
+      return;
+    }
+    if (enemy.targetId !== "player") return;
+    enemy.playerChaseRemaining = Math.max(
+      0,
+      (enemy.playerChaseRemaining ?? BALANCE.navigation.playerChaseDuration) - dt,
+    );
+    if (enemy.playerChaseRemaining > 0) return;
+    enemy.playerChaseCooldown = BALANCE.navigation.playerChaseCooldown;
+    this.invalidateEnemyTarget(enemy);
+    this.selectEnemyTarget(enemy);
   }
 
   private getEnemyTarget(enemy: Enemy): (Player | Flag | Structure | TutorialTarget) | null {
@@ -3318,26 +3470,31 @@ export class Game {
 
   private applyTimeLockStatus(target: Player | Structure, duration: number): void {
     applyTimeLock(target, duration);
-    this.burst(target.x, target.y, "#79e7df", 8, "TIME LOCK", "#d9fffb", -24);
+    const config = BALANCE.tierMechanics.clockwork;
+    this.burst(
+      target.x,
+      target.y,
+      config.timeLockParticleColor,
+      config.timeLockApplicationParticleCount,
+      config.timeLockPopupText,
+      config.timeLockPopupColor,
+      -24,
+    );
+    emitAudioCue({ cue: "portal-spawn", position: { x: target.x, y: target.y } });
   }
 
   private createTimeLockBurst(origin: Vec2): void {
     const radius = BALANCE.tierMechanics.clockwork.timeLockBurstRadius;
     const duration = BALANCE.tierMechanics.clockwork.timeLockSeconds;
+    const effectDuration = BALANCE.tierMechanics.clockwork.timeLockBurstEffectSeconds;
     this.areaEffects.push({
-      kind: "death-burst",
+      kind: "time-lock-burst",
       x: origin.x,
       y: origin.y,
       radius,
-      remaining: 0.48,
-      duration: 0.48,
-      appearance: {
-        center: "rgba(121,231,223,.1)",
-        middle: "rgba(121,231,223,.2)",
-        edge: "rgba(121,231,223,.38)",
-        stroke: "rgba(183,255,248,.98)",
-        highlight: "rgba(217,255,251,.98)",
-      },
+      remaining: effectDuration,
+      duration: effectDuration,
+      appearance: BALANCE.tierMechanics.clockwork.timeLockAppearance,
     });
     if (distance(origin, this.player) <= radius + this.player.radius) {
       this.applyTimeLockStatus(this.player, duration);
@@ -3347,8 +3504,14 @@ export class Game {
         || distance(origin, structure) > radius + structure.radius) continue;
       this.applyTimeLockStatus(structure, duration);
     }
-    this.burst(origin.x, origin.y, "#79e7df", 28, "TIME LOCK", "#d9fffb");
-    emitAudioCue({ cue: "popper-burst", position: origin });
+    this.burst(
+      origin.x,
+      origin.y,
+      BALANCE.tierMechanics.clockwork.timeLockParticleColor,
+      BALANCE.tierMechanics.clockwork.timeLockBurstParticleCount,
+      BALANCE.tierMechanics.clockwork.timeLockPopupText,
+      BALANCE.tierMechanics.clockwork.timeLockPopupColor,
+    );
   }
 
   private applyBurnStatus(
@@ -3408,6 +3571,7 @@ export class Game {
     const definition = ENEMY_REGISTRY[enemy.kind];
     const projectile = definition.projectile;
     if (!projectile) return;
+    if (!this.isValidEnemyProjectileTarget(enemy, target)) return;
     enemy.chargeProgress = (enemy.chargeProgress ?? 0) + dt * (enemy.attackSpeedMultiplier ?? 1);
     enemy.attackWindup = Math.min(1, enemy.chargeProgress / definition.attack.chargeSeconds);
     enemy.angle = Math.atan2(target.y - enemy.y, target.x - enemy.x);
@@ -3445,6 +3609,20 @@ export class Game {
       cue: (definition.audio.projectile ?? "zombie-attack") as import("./audio").SoundId,
       position: { x: enemy.x, y: enemy.y },
     });
+  }
+
+  private isValidEnemyProjectileTarget(
+    enemy: Enemy,
+    target: Player | Flag | Structure,
+  ): boolean {
+    const targets = ENEMY_REGISTRY[enemy.kind].projectile?.targets;
+    if (!targets) return false;
+    const targetKind = "tier" in target
+      ? target.kind
+      : target === this.player
+        ? "player"
+        : "flag";
+    return targets.includes(targetKind);
   }
 
   private updateEnemyRam(enemy: Enemy, dt: number): boolean {
@@ -3632,8 +3810,19 @@ export class Game {
       this.burst(enemy.x, enemy.y, "#b7dd63", 20, "FALLOUT");
     }
     if (enemy.kind === "mire-lurker" && reason === "combat") {
-      const target = this.world.resources.filter((node) => !node.infected && !node.destroyed)
-        .sort((a, b) => distance(enemy, a) - distance(enemy, b) || a.id - b.id)[0];
+      let target: ResourceNode | undefined;
+      let targetDistanceSquared = Number.POSITIVE_INFINITY;
+      for (const node of this.world.resources) {
+        if (node.infected || node.destroyed || node.health <= 0) continue;
+        const dx = node.x - enemy.x;
+        const dy = node.y - enemy.y;
+        const distanceSquared = dx * dx + dy * dy;
+        if (!target || distanceSquared < targetDistanceSquared
+          || (distanceSquared === targetDistanceSquared && node.id < target.id)) {
+          target = node;
+          targetDistanceSquared = distanceSquared;
+        }
+      }
       if (target) {
         this.infectionTravelers.push({ x: enemy.x, y: enemy.y, targetId: target.id, speed: 330 });
         this.burst(enemy.x, enemy.y, "#79e6c1", 14, "PARASITE");
@@ -4262,7 +4451,6 @@ export class Game {
     }
     if (!enemy.bossHalfSummoned
       && (enemy.kind === "eclipse-regent"
-        || enemy.kind === "mireheart-titan"
         || enemy.kind === "chronoforge-colossus")
       && healthBefore > enemy.maxHealth * 0.5
       && enemy.health <= enemy.maxHealth * 0.5) {
@@ -4318,7 +4506,13 @@ export class Game {
         if (source === "turret") this.bountyCounters.turretKills += 1;
         if (source === "spikes") this.bountyCounters.spikeKills += 1;
       }
-      this.burst(enemy.x, enemy.y, "#8fc75d", this.isBossEnemyKind(enemy.kind) ? 40 : 14, this.isBossEnemyKind(enemy.kind) ? "BOSS DOWN" : undefined);
+      this.burst(
+        enemy.x,
+        enemy.y,
+        this.getCampaignTier().biome.palette.enemyBody,
+        this.isBossEnemyKind(enemy.kind) ? 40 : 14,
+        this.isBossEnemyKind(enemy.kind) ? "BOSS DOWN" : undefined,
+      );
     }
   }
 
@@ -4363,6 +4557,14 @@ export class Game {
     this.shake = Math.max(this.shake, this.isBossEnemyKind(enemy.kind)
       ? this.bossShake(armorConfig.breakShake)
       : armorConfig.breakShake);
+    if (enemy.kind === "mireheart-titan") {
+      this.beginMireArmorBreakFreeze(enemy);
+      if (!enemy.bossHalfSummoned) {
+        enemy.bossHalfSummoned = true;
+        this.triggerTierBossHalfHealth(enemy);
+      }
+      return;
+    }
     if (enemy.kind === "chronoforge-colossus") return;
     const pulse = armorConfig.breakStatusPulse;
     if (!pulse) return;
@@ -4402,6 +4604,8 @@ export class Game {
           effect.particleColor,
           effect.popupText,
         );
+      } else if (effect.kind === "time-lock") {
+        this.applyTimeLockStatus(this.player, effect.duration);
       }
     }
     for (const structure of this.structures) {
@@ -4415,6 +4619,8 @@ export class Game {
           effect.particleColor,
           effect.popupText,
         );
+      } else if (effect.kind === "time-lock") {
+        this.applyTimeLockStatus(structure, effect.duration);
       }
     }
   }
@@ -5114,7 +5320,8 @@ export class Game {
 
     if (boss.kind === "mireheart-titan") {
       const config = BALANCE.tierMechanics.mire;
-      const infected = this.world.resources.filter((node) => node.infected && !node.destroyed)
+      const infected = [...this.infectedResources]
+        .filter((node) => node.infected && node.health > 0 && !node.destroyed)
         .sort((a, b) => a.id - b.id);
       for (const node of infected) {
         node.infectionAttackTime = 0.75;
@@ -5129,10 +5336,46 @@ export class Game {
         tentacle.structureDamage *= config.bossTentacleDamageRatio;
         tentacle.speed = config.bossTentacleSpeed;
         tentacle.targetId = "flag";
+        tentacle.objectivePriority = "flag";
       }
-      this.burst(boss.x, boss.y, "#79e6c1", 46, "THE MIRE RISES");
+      this.burst(
+        boss.x,
+        boss.y,
+        config.armorBreakParticleColor,
+        config.releasedParticleCount,
+      );
       emitAudioCue({ cue: "summoner-cast", position: { x: boss.x, y: boss.y } });
     }
+  }
+
+  private beginMireArmorBreakFreeze(boss: Enemy): void {
+    this.mireArmorBreakFreeze = {
+      bossId: boss.id,
+      boss,
+      x: boss.x,
+      y: boss.y,
+      elapsed: 0,
+    };
+    const config = BALANCE.tierMechanics.mire;
+    this.shake = Math.max(this.shake, this.bossShake(config.armorBreakShake));
+    this.burst(
+      boss.x,
+      boss.y,
+      config.armorBreakParticleColor,
+      config.armorBreakParticleCount,
+    );
+    emitAudioCue({ cue: "boss-roar", position: { x: boss.x, y: boss.y } });
+  }
+
+  private updateMireArmorBreakFreeze(dt: number): void {
+    const freeze = this.mireArmorBreakFreeze;
+    if (!freeze) return;
+    freeze.boss.flash = 0;
+    freeze.elapsed += Math.max(0, dt);
+    const config = BALANCE.tierMechanics.mire;
+    const duration = config.armorBreakFreezeExpansionSeconds
+      + config.armorBreakFreezeHoldSeconds;
+    if (freeze.elapsed >= duration) this.mireArmorBreakFreeze = null;
   }
 
   private updateTimeRewind(dt: number): void {

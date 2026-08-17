@@ -246,6 +246,13 @@ export interface Enemy extends Circle {
   tunnelCooldown?: number;
   tunnelCreated?: boolean;
   mireTentacle?: boolean;
+  objectivePriority?: "flag";
+  playerChaseRemaining?: number;
+  playerChaseCooldown?: number;
+  motionSampleX?: number;
+  motionSampleY?: number;
+  velocityX?: number;
+  velocityY?: number;
 }
 
 export interface Projectile extends Circle {
@@ -291,7 +298,7 @@ export interface Particle extends Vec2 {
 }
 
 export interface AreaEffect extends Vec2 {
-  kind: "boss-slam" | "frost-slam" | "death-burst";
+  kind: "boss-slam" | "frost-slam" | "death-burst" | "time-lock-burst";
   sourceEnemyKind?: EnemyKind;
   radius: number;
   remaining: number;

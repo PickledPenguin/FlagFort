@@ -100,6 +100,27 @@ export function createWeatherField(
   }));
 }
 
+export function createViewportWeatherField(
+  seed: string,
+  count: number,
+  weather: ParticleWeather,
+): WeatherParticleDefinition[] {
+  const rng = new SeededRng(`${seed}:viewport:${weather.seedKey}`);
+  return Array.from({ length: count }, () => ({
+    x: rng.range(0, BALANCE.logicalWidth),
+    y: rng.range(0, BALANCE.logicalHeight),
+    fallSpeed: rng.range(...weather.fallSpeed),
+    radius: rng.range(...weather.radius),
+    driftAmplitude: rng.range(...weather.driftAmplitude),
+    driftSpeed: rng.range(...weather.driftSpeed),
+    phase: rng.range(0, Math.PI * 2),
+    spawnGap: rng.range(
+      weather.spawnGapRatio[0] * BALANCE.logicalHeight,
+      weather.spawnGapRatio[1] * BALANCE.logicalHeight,
+    ),
+  }));
+}
+
 export function enemyAttackTelegraphColor(kind: EnemyKind): string {
   return ENEMY_REGISTRY[kind].projectile?.color ?? "rgba(255,78,68,.75)";
 }
@@ -144,6 +165,7 @@ export class Renderer {
   private weatherIntensity = 0;
   private weatherFieldKey = "";
   private weatherField: WeatherParticleDefinition[] = [];
+  private viewportColor = "";
 
   constructor(private readonly canvas: HTMLCanvasElement) {
     const ctx = canvas.getContext("2d");
@@ -271,7 +293,10 @@ export class Renderer {
     const biomePalette = game.getCampaignTier().biome.palette;
     const viewportColor = game.tutorialMode ? "#000000" : biomePalette.viewport;
     this.canvas.style.backgroundColor = viewportColor;
-    document.documentElement.style.setProperty("--biome-viewport", viewportColor);
+    if (viewportColor !== this.viewportColor) {
+      this.viewportColor = viewportColor;
+      document.documentElement.style.setProperty("--biome-viewport", viewportColor);
+    }
     ctx.fillStyle = viewportColor;
     ctx.fillRect(0, 0, BALANCE.logicalWidth, BALANCE.logicalHeight);
 
@@ -291,6 +316,7 @@ export class Renderer {
     for (const effect of game.areaEffects) {
       if (effect.kind === "frost-slam") this.drawAreaEffect(effect);
     }
+    if (game.mireArmorBreakFreeze) this.drawMireArmorBreakFreeze(game);
     if (game.tutorialMode) this.drawTutorialArenaFade();
     ctx.restore();
     if (game.timeRewind) {
@@ -364,6 +390,39 @@ export class Renderer {
       ctx.font = `900 ${Math.max(10, radius * 0.14)}px system-ui`;
       ctx.fillText("NIGHT REWIND", 0, radius * 0.58);
     }
+    ctx.restore();
+  }
+
+  private drawMireArmorBreakFreeze(game: Game): void {
+    const freeze = game.mireArmorBreakFreeze;
+    if (!freeze) return;
+    const config = BALANCE.tierMechanics.mire;
+    const expansionProgress = Math.min(
+      1,
+      freeze.elapsed / config.armorBreakFreezeExpansionSeconds,
+    );
+    const eased = 1 - (1 - expansionProgress) ** 3;
+    const radius = Math.max(1, config.armorBreakFreezeRadius * eased);
+    const appearance = config.armorBreakAppearance;
+    const ctx = this.ctx;
+    ctx.save();
+    const gradient = ctx.createRadialGradient(freeze.x, freeze.y, 0, freeze.x, freeze.y, radius);
+    gradient.addColorStop(0, appearance.center);
+    gradient.addColorStop(0.76, appearance.middle);
+    gradient.addColorStop(0.94, appearance.edge);
+    gradient.addColorStop(1, appearance.rim);
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.arc(freeze.x, freeze.y, radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = appearance.rim;
+    ctx.lineWidth = 9;
+    ctx.stroke();
+    ctx.strokeStyle = appearance.innerRim;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(freeze.x, freeze.y, Math.max(1, radius - 10), 0, Math.PI * 2);
+    ctx.stroke();
     ctx.restore();
   }
 
@@ -1520,7 +1579,9 @@ export class Renderer {
     }
     const path = effect.kind === "boss-slam"
       ? ASSETS.effects.bossSlamWave
-      : ASSETS.enemyDeathBursts[effect.sourceEnemyKind ?? "popper"];
+      : effect.kind === "time-lock-burst"
+        ? ASSETS.effects.timeLockBurst
+        : ASSETS.enemyDeathBursts[effect.sourceEnemyKind ?? "popper"];
     if (!path) return;
     const size = radius * 2;
     this.ctx.save();
@@ -1949,14 +2010,17 @@ export class Renderer {
     this.weatherIntensity += Math.sign(target - this.weatherIntensity)
       * Math.min(Math.abs(target - this.weatherIntensity), dt / Math.max(0.1, fadeSeconds));
     if (!weather || this.weatherIntensity <= 0.002) return;
-    const fieldCount = Math.ceil(
+    const viewportBound = game.activeCampaignTierId === "mire";
+    const fieldCount = viewportBound ? weather.particleCount : Math.ceil(
       weather.particleCount * BALANCE.mapSize * BALANCE.mapSize
       / (BALANCE.logicalWidth * BALANCE.logicalHeight),
     );
     const fieldKey = `${game.seed}:${game.activeCampaignTierId}:${fieldCount}`;
     if (fieldKey !== this.weatherFieldKey) {
       this.weatherFieldKey = fieldKey;
-      this.weatherField = createWeatherField(fieldKey, fieldCount, weather);
+      this.weatherField = viewportBound
+        ? createViewportWeatherField(fieldKey, fieldCount, weather)
+        : createWeatherField(fieldKey, fieldCount, weather);
     }
     const ctx = this.ctx;
     ctx.save();
@@ -1968,10 +2032,14 @@ export class Renderer {
     }
     const elapsed = game.stats.elapsed;
     for (const particle of this.weatherField) {
-      const cycleHeight = BALANCE.mapSize + particle.spawnGap;
-      const y = (particle.y + elapsed * particle.fallSpeed) % cycleHeight - particle.spawnGap;
-      const x = particle.x
+      const cycleHeight = (viewportBound ? BALANCE.logicalHeight : BALANCE.mapSize)
+        + particle.spawnGap;
+      const localY = (particle.y + elapsed * particle.fallSpeed) % cycleHeight
+        - particle.spawnGap;
+      const localX = particle.x
         + Math.sin(elapsed * particle.driftSpeed + particle.phase) * particle.driftAmplitude;
+      const x = viewportBound ? game.camera.x - BALANCE.logicalWidth / 2 + localX : localX;
+      const y = viewportBound ? game.camera.y - BALANCE.logicalHeight / 2 + localY : localY;
       if (!this.visible(game, x, y, particle.radius + 4)) continue;
       ctx.beginPath();
       ctx.arc(x, y, particle.radius, 0, Math.PI * 2);

@@ -21,12 +21,12 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:zoom="2.6050991"
-     inkscape:cx="61.034145"
-     inkscape:cy="59.690626"
+     inkscape:cx="61.034146"
+     inkscape:cy="59.690628"
      inkscape:window-width="1383"
      inkscape:window-height="616"
      inkscape:window-x="114"
-     inkscape:window-y="59"
+     inkscape:window-y="33"
      inkscape:window-maximized="0"
      inkscape:current-layer="ruin-siren-zombie" />
   <title
@@ -59,17 +59,17 @@
      id="ruin-siren-zombie">
     <g
        id="radio-pack"
-       transform="translate(11.655624,3.885208)">
+       transform="translate(5.5138231,3.885208)">
       <path
          id="antenna-one"
-         d="m -31.215226,14.594901 -25,7 m 24,-13.8253079 -23,-4.5218365"
+         d="m -25.215226,14.594901 -25,7 m 24,-13.8253079 -23,-4.5218365"
          stroke="#303936"
          stroke-width="3"
          stroke-linecap="round"
          sodipodi:nodetypes="cccc" />
       <rect
          id="radio-case"
-         x="-43"
+         x="-37"
          y="-27"
          width="31"
          height="54"
@@ -77,25 +77,13 @@
          fill="#4d5852"
          stroke="#252f2b"
          stroke-width="3" />
-      <path
-         id="radio-panel"
-         d="m -37,4 h 19 v 15 h -19 z"
-         fill="#303b36"
-         stroke="#202925"
-         stroke-width="2" />
-      <circle
-         id="radio-dial"
-         cx="-31"
-         cy="11"
-         r="3"
-         fill="#b7d951" />
     </g>
     <g
        id="hands"
        fill="#5f7863"
        stroke="#2b4034"
        stroke-width="2.5"
-       transform="translate(11.655624,3.885208)">
+       transform="translate(5.5138231,3.885208)">
       <circle
          id="switch-hand"
          cx="35"
@@ -113,18 +101,18 @@
        fill="#607d68"
        stroke="#2b4034"
        stroke-width="3"
-       cx="11.655624"
+       cx="5.5138235"
        cy="3.8852079" />
     <path
        id="salvaged-vest"
-       d="m -5.344376,-17.114792 13,9 14,-9 13,12 -4.587197,28.582785 -12.964158,-4.105914 -18.801846,3.752713 -6.646799,-27.229584 z"
+       d="m -11.486177,-17.114792 13.0000001,9 13.9999999,-9 13,12 -4.587197,28.582785 -12.964158,-4.105914 -18.8018459,3.752713 -6.6467991,-27.229584 z"
        fill="#77705b"
        stroke="#403d34"
        stroke-width="2.5"
        sodipodi:nodetypes="ccccccccc" />
     <g
        id="emergency-siren"
-       transform="matrix(0,-0.82785575,0.82785575,0,-6.003446,-11.331176)">
+       transform="matrix(0,-0.82785575,0.82785575,0,-6.1452469,-11.331176)">
       <path
          id="siren-lens"
          d="m -18.115426,-32.58412 c 0,-13 14.0000001,-17 24.0000001,-9 3.0000003,3 4.0000003,6 4.0000003,9 z"
@@ -144,7 +132,7 @@
        fill="#efffc8"
        stroke="#2b4034"
        stroke-width="1.5"
-       transform="translate(11.655624,3.885208)">
+       transform="translate(5.5138231,3.885208)">
       <ellipse
          id="upper-eye"
          cx="8"
@@ -163,7 +151,7 @@
     <g
        id="pupils"
        fill="#d64739"
-       transform="translate(11.655624,3.885208)">
+       transform="translate(5.5138231,3.885208)">
       <circle
          id="upper-pupil"
          cx="11"
@@ -177,6 +165,6 @@
     </g>
     <g
        id="broadcast-switch"
-       transform="translate(11.655624,3.885208)" />
+       transform="translate(5.5138231,3.885208)" />
   </g>
 </svg>

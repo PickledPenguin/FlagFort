@@ -60,10 +60,11 @@
        stroke-linecap="round" />
     <path
        id="metal-flecks"
-       d="m39 61 5-3m20 13 6-4m-42 9 4-2"
+       d="m 39,61 5,-3 m 20,13 6,-4"
        fill="none"
        stroke="#9d772d"
        stroke-width="4"
-       stroke-linecap="round" />
+       stroke-linecap="round"
+       sodipodi:nodetypes="cccc" />
   </g>
 </svg>

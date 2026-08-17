@@ -1,1 +1,38 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96"><path id="dead-tree" d="m38 90 5-40-18-17 7-7 13 13 3-31h9l2 24 14-12 7 8-20 17 4 45z" fill="#714826" stroke="#30261b" stroke-width="6"/><path d="m44 57-19 4m35-12 20 9" stroke="#9a6335" stroke-width="5"/></svg>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 96 96"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="tree-depleted.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="1.5554673"
+     inkscape:cx="108.64902"
+     inkscape:cy="46.609789"
+     inkscape:window-width="1357"
+     inkscape:window-height="584"
+     inkscape:window-x="0"
+     inkscape:window-y="33"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg1" />
+  <path
+     id="dead-tree"
+     d="m38 90 5-40-18-17 7-7 13 13 3-31h9l2 24 14-12 7 8-20 17 4 45z"
+     fill="#714826"
+     stroke="#30261b"
+     stroke-width="6" />
+</svg>

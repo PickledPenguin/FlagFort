@@ -100,13 +100,17 @@ describe("astral enemies", () => {
 
     expect(definition.assets.portrait).toBe("enemies/comet-slinger-zombie");
     expect(definition.render).toEqual({ aspectRatio: 120 / 108, width: 83, height: 75 });
-    expect(definition.targeting).toMatchObject({ mode: "flag", attackRange: 470, innerRadius: 210 });
+    expect(definition.targeting).toMatchObject({ mode: "flag", attackRange: 940, innerRadius: 210 });
     expect(definition.projectile).toMatchObject({
       appearance: "comet",
       damageSource: "comet-slinger",
       pierces: true,
+      range: 1040,
+      lifetime: 2,
       targets: ["player", "wall", "door", "spikes", "harvester", "turret", "flag"],
     });
+    expect(definition.projectile!.speed * definition.projectile!.lifetime)
+      .toBeGreaterThanOrEqual(definition.targeting.attackRange);
     expect(definition.rosterEligible).toBe(true);
     expect(definition.campaignTierIds).toEqual(["rift"]);
     for (const tier of ["forest", "snowy", "desert", "volcanic", "wasteland"] as const) {
@@ -115,11 +119,15 @@ describe("astral enemies", () => {
     }
   });
 
-  it("drives a piercing comet through an aligned wall and into the flag", () => {
+  it("drives a piercing comet over a resource and through an aligned wall into the flag", () => {
     const game = gameFixture();
     const definition = ENEMY_REGISTRY["comet-slinger"];
-    game.world.resources = [];
     const slinger = spawn(game, "comet-slinger", game.flag.x - 360, game.flag.y);
+    const resource = game.world.resources[0]!;
+    resource.x = game.flag.x - 250;
+    resource.y = game.flag.y;
+    const resourceHealth = resource.health;
+    game.world.resources = [resource];
     const blocker = wall(1450, game.flag.x - 150, game.flag.y);
     game.structures = [blocker];
 
@@ -142,6 +150,7 @@ describe("astral enemies", () => {
     (game as unknown as { updateProjectiles(dt: number): void }).updateProjectiles(0.7);
 
     expect(blocker.health).toBe(blocker.maxHealth - slinger.structureDamage);
+    expect(resource.health).toBe(resourceHealth);
     expect(game.flag.health).toBe(game.flag.maxHealth - slinger.damage);
     expect(game.projectiles).toHaveLength(1);
     expect(game.particles.some((particle) => particle.color === "#b89cff")).toBe(true);

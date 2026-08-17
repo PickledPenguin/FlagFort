@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FlagFort campaign progression review</title>
+  <style>
+    :root { color-scheme: dark; --bg:#06130d; --panel:#0b2116; --panel2:#10291b; --ink:#edf5e9; --muted:#a9b9aa; --green:#74f3a5; --gold:#f7ca4b; --line:#41644b; --danger:#ff8f85; }
+    * { box-sizing:border-box; }
+    body { margin:0; color:var(--ink); background:radial-gradient(circle at 75% 0,rgba(116,243,165,.14),transparent 28%),var(--bg); font:15px/1.5 Inter,system-ui,sans-serif; }
+    main { width:min(1180px,calc(100% - 32px)); margin:0 auto; padding:46px 0 70px; }
+    header.hero { display:grid; grid-template-columns:minmax(0,1.4fr) minmax(280px,.6fr); gap:24px; align-items:end; margin-bottom:28px; }
+    .eyebrow { margin:0 0 8px; color:var(--green); font-size:12px; font-weight:900; letter-spacing:.17em; }
+    h1,h2,h3 { margin:0; font-family:Impact,"Arial Narrow Bold",sans-serif; text-transform:uppercase; letter-spacing:.02em; }
+    h1 { max-width:760px; padding-block:8px 12px; font-size:clamp(48px,7vw,86px); line-height:1.1; overflow:visible; }
+    h1 span { color:var(--green); }
+    .summary { margin:16px 0 0; max-width:760px; color:#d5e1d2; font-size:18px; }
+    .status { padding:18px; border:2px solid rgba(116,243,165,.5); border-radius:18px; background:rgba(11,33,22,.9); box-shadow:0 7px 0 #020a06; }
+    .status strong { display:block; color:var(--green); font-size:22px; }
+    .status span { color:var(--muted); }
+    section { margin-top:24px; }
+    .section-title { margin-bottom:12px; font-size:28px; }
+    .comparison { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+    .card { min-width:0; padding:20px; border:2px solid var(--line); border-radius:18px; background:linear-gradient(145deg,rgba(16,41,27,.96),rgba(8,26,17,.98)); box-shadow:0 6px 0 rgba(0,0,0,.35); }
+    .card.before { border-color:#714641; }
+    .card.after { border-color:rgba(116,243,165,.62); }
+    .card small { color:var(--muted); font-weight:900; letter-spacing:.12em; }
+    .card h3 { margin:5px 0 10px; font-size:25px; }
+    .logic { display:grid; gap:8px; margin-top:14px; }
+    .logic span { padding:10px 12px; border-radius:10px; background:rgba(255,255,255,.05); }
+    .before .logic b { color:var(--danger); }
+    .after .logic b { color:var(--green); }
+    .screens { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+    figure { min-width:0; margin:0; overflow:hidden; border:2px solid rgba(157,224,168,.4); border-radius:18px; background:#07170f; box-shadow:0 7px 0 #020a06; }
+    figure img { display:block; width:100%; height:auto; }
+    figcaption { padding:13px 15px; color:var(--muted); }
+    figcaption b { color:var(--ink); }
+    .rules { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+    .rule { min-width:0; padding:16px; border:1px solid rgba(157,224,168,.32); border-radius:14px; background:rgba(11,33,22,.8); }
+    .rule b { display:block; margin-bottom:4px; color:var(--gold); }
+    .checks { display:flex; flex-wrap:wrap; gap:9px; }
+    .check { padding:9px 12px; border:1px solid rgba(116,243,165,.42); border-radius:999px; color:#b9efc5; background:rgba(39,100,61,.25); font-size:13px; font-weight:800; }
+    .note { margin-top:16px; padding:14px 16px; border-left:4px solid var(--gold); color:#d8dfcd; background:rgba(247,202,75,.08); }
+    @media (max-width:800px) { header.hero,.comparison,.screens,.rules { grid-template-columns:minmax(0,1fr); } main { width:min(100% - 20px,1180px); padding-top:24px; } }
+  </style>
+</head>
+<body>
+<main>
+  <header class="hero">
+    <div>
+      <p class="eyebrow">FLAGFORT IMPLEMENTATION REVIEW</p>
+      <h1>Campaign access, <span>without the grind wall</span></h1>
+      <p class="summary">Players can now enter the next campaign after proving mastery of the previous tier, while level-based coin rewards remain protected by their exact XP thresholds.</p>
+    </div>
+    <aside class="status"><strong>IMPLEMENTED + VERIFIED</strong><span>Logic, compact campaign selector, focused home XP strip, and responsive browser checks are complete.</span></aside>
+  </header>
+
+  <section>
+    <h2 class="section-title">Unlock behavior</h2>
+    <div class="comparison">
+      <article class="card before"><small>BEFORE</small><h3>Both gates required</h3><p>A player could clear a campaign and still be blocked from the next one while grinding levels.</p><div class="logic"><span><b>Level requirement</b> must be met</span><span><b>Previous campaign</b> must also be cleared</span></div></article>
+      <article class="card after"><small>NOW</small><h3>Either path grants access</h3><p>Skill progression and XP progression are equally valid ways to reach the next campaign.</p><div class="logic"><span><b>Reach the tier level</b> OR</span><span><b>Clear the previous campaign</b></span></div></article>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="section-title">Real game surfaces at 960 × 540</h2>
+    <div class="screens">
+      <figure><img src="campaign-progression-home.png" alt="FlagFort main menu with focused defender level strip at the top center"><figcaption><b>Main menu:</b> the top-center strip shows the current level, up to two levels before and after, current XP, tier markers, and nearby coin rewards.</figcaption></figure>
+      <figure><img src="campaign-progression-selector.png" alt="FlagFort compact campaign tier selector"><figcaption><b>Campaign selector:</b> the former reward ladder is gone. Eight campaign cards fill a compact, scrollable two-column tier view with a persistent play action.</figcaption></figure>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="section-title">Progression guarantees</h2>
+    <div class="rules">
+      <article class="rule"><b>Access is flexible</b>Tier access checks player level OR the previous tier clear.</article>
+      <article class="rule"><b>Coins stay level-locked</b>Coin milestones ignore campaign access and grant only when their exact level is reached.</article>
+      <article class="rule"><b>No duplicated ladder</b>The campaign modal contains tier cards only. XP and level rewards live on the home progression strip.</article>
+    </div>
+    <p class="note">At Level 1, only valid levels are shown, so the window begins with Levels 1, 2, and 3 rather than inventing Levels 0 and -1. From Level 3 onward it shows the requested five-level window.</p>
+  </section>
+
+  <section>
+    <h2 class="section-title">Verification</h2>
+    <div class="checks"><span class="check">Full npm test suite passed</span><span class="check">TypeScript + production build passed</span><span class="check">362 SVGs validated</span><span class="check">960 × 540 browser audit passed</span><span class="check">1280 × 720 browser audit passed</span><span class="check">No console errors</span></div>
+  </section>
+</main>
+</body>
+</html>

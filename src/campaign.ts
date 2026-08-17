@@ -52,6 +52,7 @@ export interface CampaignBiomeDefinition {
     clearingCenter: string;
     clearingEdge: string;
     foliage: readonly [string, string, string, string];
+    enemyBody: string;
   };
   weather?: {
     kind: "falling-particles";
@@ -79,6 +80,7 @@ export const CAMPAIGN_BIOMES = {
       clearingCenter: "#315c36",
       clearingEdge: "#1c4930",
       foliage: ["#113b26", "#17452a", "#214f2c", "#285932"],
+      enemyBody: "#8fc75d",
     },
   },
   snow: {
@@ -111,6 +113,7 @@ export const CAMPAIGN_BIOMES = {
       clearingCenter: "#f1f6f4",
       clearingEdge: "#c7dcdd",
       foliage: ["#acc7c9", "#b9d0d0", "#c5d9d8", "#d0e2e0"],
+      enemyBody: "#a8d2d4",
     },
     weather: {
       kind: "falling-particles",
@@ -142,6 +145,7 @@ export const CAMPAIGN_BIOMES = {
       clearingCenter: "#e4ad65",
       clearingEdge: "#b96f38",
       foliage: ["#744126", "#89502b", "#9c5e31", "#ad6d38"],
+      enemyBody: "#a77c4f",
     },
     weather: {
       kind: "falling-particles",
@@ -168,6 +172,7 @@ export const CAMPAIGN_BIOMES = {
       clearingCenter: "#4a2922",
       clearingEdge: "#24171a",
       foliage: ["#171116", "#21171a", "#2d1c1d", "#3a2220"],
+      enemyBody: "#64584e",
     },
     weather: {
       kind: "falling-particles",
@@ -199,6 +204,7 @@ export const CAMPAIGN_BIOMES = {
       clearingCenter: "#4b5137",
       clearingEdge: "#282f25",
       foliage: ["#19231d", "#242d23", "#303728", "#3c422e"],
+      enemyBody: "#81915d",
     },
     weather: {
       kind: "falling-particles",
@@ -230,6 +236,7 @@ export const CAMPAIGN_BIOMES = {
       clearingCenter: "#393765",
       clearingEdge: "#181b40",
       foliage: ["#111630", "#181d3c", "#22264a", "#2d3058"],
+      enemyBody: "#786fa5",
     },
     weather: {
       kind: "falling-particles",
@@ -261,6 +268,7 @@ export const CAMPAIGN_BIOMES = {
       clearingCenter: "#2b4b3b",
       clearingEdge: "#102b25",
       foliage: ["#091d19", "#102820", "#183329", "#224033"],
+      enemyBody: "#668f78",
     },
     weather: {
       kind: "falling-particles",
@@ -292,6 +300,7 @@ export const CAMPAIGN_BIOMES = {
       clearingCenter: "#4b4a45",
       clearingEdge: "#23292f",
       foliage: ["#1d252b", "#293138", "#3a4143", "#4d514b"],
+      enemyBody: "#8d917b",
     },
     weather: {
       kind: "falling-particles",
@@ -504,11 +513,14 @@ export function isCampaignTierUnlocked(
   tier: CampaignTierDefinition,
   progress: CampaignProgressView,
 ): boolean {
-  if (progress.level < tier.unlock.level) return false;
-  if (tier.unlock.previousTierId && !progress.defeatedTierIds.includes(tier.unlock.previousTierId)) {
-    return false;
-  }
-  return !(tier.unlock.additional?.length);
+  const reachedLevel = progress.level >= tier.unlock.level;
+  const defeatedPrevious = tier.unlock.previousTierId
+    ? progress.defeatedTierIds.includes(tier.unlock.previousTierId)
+    : false;
+  const primaryPathComplete = tier.unlock.previousTierId
+    ? reachedLevel || defeatedPrevious
+    : reachedLevel;
+  return primaryPathComplete && !(tier.unlock.additional?.length);
 }
 
 export function highestUnlockedCampaignTierId(
@@ -529,13 +541,14 @@ export function campaignUnlockRequirementText(
     requirements.push(`Defeat ${previous.name}`);
   }
   requirements.push(...(tier.unlock.additional?.map((condition) => condition.label) ?? []));
+  const accessUnlocked = isCampaignTierUnlocked(tier, progress);
   return requirements.map((label, index) => {
     const met = index === 0
       ? progress.level >= tier.unlock.level
       : index === 1 && tier.unlock.previousTierId
         ? progress.defeatedTierIds.includes(tier.unlock.previousTierId)
         : false;
-    return `${met ? "Complete" : "Required"}: ${label}`;
+    return `${met ? "Complete" : accessUnlocked ? "Alternative" : "Option"}: ${label}`;
   });
 }
 
@@ -544,21 +557,17 @@ export function earnedCampaignMilestones(
   claimedRewardIds: readonly string[],
 ): CampaignMilestone[] {
   const claimed = new Set(claimedRewardIds);
-  return CAMPAIGN_TIERS.flatMap((tier) => (
-    isCampaignTierUnlocked(tier, progress)
-      ? tier.milestones.filter((milestone) => (
-          milestone.level <= progress.level
-          && !claimed.has(milestone.id)
-          && !(milestone.legacyIds ?? []).some((id) => claimed.has(id))
-        ))
-      : []
-  ));
+  return CAMPAIGN_TIERS.flatMap((tier) => tier.milestones.filter((milestone) => (
+    milestone.level <= progress.level
+    && !claimed.has(milestone.id)
+    && !(milestone.legacyIds ?? []).some((id) => claimed.has(id))
+  )));
 }
 
 export function isCampaignMilestoneAvailable(
-  tier: CampaignTierDefinition,
+  _tier: CampaignTierDefinition,
   milestone: CampaignMilestone,
   progress: CampaignProgressView,
 ): boolean {
-  return milestone.level <= progress.level && isCampaignTierUnlocked(tier, progress);
+  return milestone.level <= progress.level;
 }

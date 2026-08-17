@@ -102,7 +102,7 @@ describe("clockwork enemies", () => {
 
     expect(definition.assets.portrait).toBe("enemies/aether-gunner-zombie");
     expect(definition.render).toEqual({ aspectRatio: 116 / 104, width: 86, height: 77 });
-    expect(definition.targeting).toMatchObject({ mode: "archer", attackRange: 490, innerRadius: 220 });
+    expect(definition.targeting).toMatchObject({ mode: "archer", attackRange: 735, innerRadius: 220 });
     expect(definition.projectile).toMatchObject({
       appearance: "aether",
       damageSource: "aether-gunner",
@@ -110,12 +110,12 @@ describe("clockwork enemies", () => {
       pierces: false,
       targets: ["turret", "player", "flag"],
       statusEffect: {
-        kind: "slow",
-        duration: 2.6,
-        targets: ["turret"],
+        kind: "time-lock",
+        duration: 2,
+        targets: ["player", "turret"],
         popupTextColor: "#d9fffb",
         particleColor: "#79e7df",
-        popupText: "Aether Locked",
+        popupText: "Time Lock",
       },
     });
     expect(definition).toMatchObject({ rosterEligible: true, campaignTierIds: ["clockwork"] });
@@ -151,13 +151,12 @@ describe("clockwork enemies", () => {
     (game as unknown as { updateProjectiles(dt: number): void }).updateProjectiles(0.5);
 
     expect(target.health).toBe(target.maxHealth - gunner.structureDamage);
-    expect(target.statuses?.slow?.remaining).toBe(2.6);
+    expect(target.statuses?.timeLock?.remaining).toBe(2);
     expect(game.projectiles).toHaveLength(0);
     expect(game.particles.some((particle) => particle.color === "#79e7df")).toBe(true);
     expect(game.particles.some((particle) =>
-      particle.text === "Aether Locked"
-      && particle.color === "#d9fffb"
-      && particle.textStrokeColor === BALANCE.ui.statusPopupStrokeColor))
+      particle.text === "TIME LOCK"
+      && particle.color === "#d9fffb"))
       .toBe(true);
   });
 
@@ -232,7 +231,7 @@ describe("clockwork enemies", () => {
       rngSeedKey: "chronoforge-colossus:gearfall",
       damageSource: "chronoforge-colossus",
       randomStrikeCount: 7,
-      statusEffect: { kind: "slow", duration: 3.8, targets: ["player", "turret"] },
+      statusEffect: { kind: "time-lock", duration: 2, targets: ["player", "turret"] },
     });
     expect(definition.summon).toMatchObject({
       kinds: ["gearwright"],
@@ -291,7 +290,7 @@ describe("clockwork enemies", () => {
     expect(boss.summonCooldown).toBe(definition.summon!.cooldown);
   });
 
-  it("applies a non-damaging one-second Time Lock burst when an Aether Gunner dies", () => {
+  it("applies a non-damaging two-second Time Lock burst when an Aether Gunner dies", () => {
     const game = gameFixture();
     const gunner = spawn(game, "aether-gunner", game.player.x + 40, game.player.y);
     const nearbyTurret = turret(2500, game.player.x - 40, game.player.y);
@@ -307,12 +306,26 @@ describe("clockwork enemies", () => {
 
     expect(game.player.health).toBe(playerHealth);
     expect(nearbyTurret.health).toBe(turretHealth);
-    expect(game.player.statuses?.timeLock?.remaining).toBe(1);
-    expect(nearbyTurret.statuses?.timeLock?.remaining).toBe(1);
+    expect(game.player.statuses?.timeLock?.remaining).toBe(2);
+    expect(nearbyTurret.statuses?.timeLock?.remaining).toBe(2);
+    expect(game.areaEffects.at(-1)?.kind).toBe("time-lock-burst");
     expect((game as unknown as { statusMovementMultiplier(target: typeof game.player): number })
       .statusMovementMultiplier(game.player)).toBe(0);
     expect((game as unknown as { statusAttackSpeedMultiplier(target: Structure): number })
       .statusAttackSpeedMultiplier(nearbyTurret)).toBe(0);
+    game.phase = "night";
+    game.timer = 999;
+    game.player.angle = 0.37;
+    nearbyTurret.angle = -0.42;
+    game.input.keys.add("KeyD");
+    game.input.mouse.x = 0;
+    game.input.mouse.y = 0;
+    const playerX = game.player.x;
+    game.update(0.1);
+    expect(game.player.x).toBe(playerX);
+    expect(game.player.angle).toBe(0.37);
+    expect(nearbyTurret.angle).toBe(-0.42);
+    expect(game.projectiles).toHaveLength(0);
   });
 
   it("triggers the same Time Lock burst when a Clockwork diamond node is depleted", () => {
@@ -330,8 +343,8 @@ describe("clockwork enemies", () => {
     }).harvestNode(node, "diamond", 1);
 
     expect(node.health).toBe(0);
-    expect(game.player.statuses?.timeLock?.remaining).toBe(1);
-    expect(nearbyTurret.statuses?.timeLock?.remaining).toBe(1);
+    expect(game.player.statuses?.timeLock?.remaining).toBe(2);
+    expect(nearbyTurret.statuses?.timeLock?.remaining).toBe(2);
   });
 
   it("rewinds the full night once while preserving defender damage and broken boss state", () => {

@@ -315,7 +315,7 @@ describe("Frost Warden", () => {
     const wall = structure(731, "wall", warden.x + 80, warden.y + 40);
     game.structures = [turret, wall];
 
-    expect(warden.health).toBeLessThan(firstBoss.health);
+    expect(warden.health).toBeGreaterThan(firstBoss.health);
     expect(warden.maxArmor! + warden.maxHealth).toBeGreaterThan(firstBoss.maxHealth);
     const healthBefore = warden.health;
     damageEnemy(game, warden, warden.armor!, "player-melee");

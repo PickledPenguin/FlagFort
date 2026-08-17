@@ -1,5 +1,5 @@
 import type { Difficulty, EnemyKind, ResourceKind, StructureKind, Tier, Upgrades } from "./types";
-import { ENEMY_REGISTRY } from "./enemy-registry";
+import { ENEMY_REGISTRY, TARGETED_ENEMY_BALANCE } from "./enemy-registry";
 
 const ENEMY_BASE_STATS = Object.fromEntries(
   Object.values(ENEMY_REGISTRY).map((entry) => [entry.id, entry.base]),
@@ -101,16 +101,46 @@ export const BALANCE = {
       hintRadius: 190,
       tentacleDamage: 18,
       tentacleCooldown: 2.5,
+      cleansePopupText: "CLEANSED",
       bossTentacleHealthRatio: 0.28,
       bossTentacleDamageRatio: 0.45,
       bossTentacleSpeed: 205,
       bossTentacleRadius: 16,
+      bossLurkerSpawnInterval: TARGETED_ENEMY_BALANCE.mireheartTitan.lurkerSpawnInterval,
+      bossLurkerMaximumLiving: TARGETED_ENEMY_BALANCE.mireheartTitan.maximumLivingLurkers,
+      armorBreakFreezeExpansionSeconds: 0.42,
+      armorBreakFreezeHoldSeconds: 0.68,
+      armorBreakFreezeRadius: 520,
+      armorBreakShake: 22,
+      armorBreakParticleColor: "#79e6c1",
+      armorBreakParticleCount: 54,
+      releasedParticleCount: 46,
+      armorBreakAppearance: {
+        center: "rgba(217,255,236,.08)",
+        middle: "rgba(104,205,166,.14)",
+        edge: "rgba(121,230,193,.32)",
+        rim: "rgba(217,255,236,.94)",
+        innerRim: "rgba(68,127,96,.9)",
+      },
     },
     clockwork: {
       timedLifeSeconds: 10,
       dayPenaltyPerEarlyKill: 2,
-      timeLockSeconds: 1,
+      timeLockSeconds: TARGETED_ENEMY_BALANCE.aetherGunner.timeLockDuration,
       timeLockBurstRadius: 190,
+      timeLockBurstEffectSeconds: 0.48,
+      timeLockParticleColor: "#79e7df",
+      timeLockApplicationParticleCount: 8,
+      timeLockBurstParticleCount: 28,
+      timeLockPopupColor: "#d9fffb",
+      timeLockPopupText: "TIME LOCK",
+      timeLockAppearance: {
+        center: "rgba(121,231,223,.1)",
+        middle: "rgba(121,231,223,.2)",
+        edge: "rgba(121,231,223,.38)",
+        stroke: "rgba(183,255,248,.98)",
+        highlight: "rgba(217,255,251,.98)",
+      },
       rewindFreezeSeconds: 1,
       rewindDuration: 3.4,
       rewindMergeDuration: 0.8,
@@ -135,6 +165,8 @@ export const BALANCE = {
     fullyStuckAttackDelay: 1.5,
     fullyStuckMaximumProgressPerSecond: 0.25,
     stuckBlockerSearchPadding: 12,
+    playerChaseDuration: 5,
+    playerChaseCooldown: 5,
   },
   ui: {
     dawnChoiceClickDelay: 0.5,
@@ -229,6 +261,9 @@ export const BALANCE = {
     turretRate: [1.25, 1.05, 0.82, 0.62],
     harvesterSpeed: [0.8, 1.02, 1.28, 1.6],
     harvesterArm: [98, 108, 120, 134],
+    turretAim: {
+      leadFactor: 0.84,
+    },
   },
   repair: {
     interval: 0.22,

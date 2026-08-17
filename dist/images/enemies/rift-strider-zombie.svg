@@ -21,14 +21,14 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:zoom="3.9442896"
-     inkscape:cx="24.719281"
-     inkscape:cy="46.649719"
+     inkscape:cx="54.382417"
+     inkscape:cy="48.677967"
      inkscape:window-width="1530"
      inkscape:window-height="689"
      inkscape:window-x="0"
      inkscape:window-y="33"
      inkscape:window-maximized="0"
-     inkscape:current-layer="pupils" />
+     inkscape:current-layer="rift-strider-zombie" />
   <title
      id="title">Rift Strider zombie</title>
   <desc
@@ -99,7 +99,7 @@
     <ellipse
        id="body"
        cx="-5.7670622"
-       rx="27"
+       rx="23.704096"
        ry="24"
        fill="url(#rift-strider-body-gradient)"
        stroke="#252952"

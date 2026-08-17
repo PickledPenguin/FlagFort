@@ -21,14 +21,14 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:zoom="4.5826708"
-     inkscape:cx="57.171901"
-     inkscape:cy="66.227755"
+     inkscape:cx="56.517261"
+     inkscape:cy="47.897833"
      inkscape:window-width="1635"
      inkscape:window-height="814"
      inkscape:window-x="0"
      inkscape:window-y="33"
      inkscape:window-maximized="0"
-     inkscape:current-layer="grasping-claws" />
+     inkscape:current-layer="mire-lurker-zombie" />
   <title
      id="title">Mire Lurker zombie</title>
   <desc
@@ -145,22 +145,5 @@
          id="lower-claws"
          d="m 46,24 10,-7 m -9,8 10,2 m -11,-2 7,9" />
     </g>
-    <path
-       id="leech-tongue"
-       d="m 21.745707,4.1271466 c 13,1 4.213808,4.4324936 16.213808,0.4324935"
-       fill="none"
-       stroke="url(#mire-lurker-tongue-gradient)"
-       stroke-width="5"
-       stroke-linecap="round"
-       sodipodi:nodetypes="cc"
-       style="stroke:url(#mire-lurker-tongue-gradient)" />
-    <path
-       id="tongue-tip"
-       d="M 36.057538,1.1083538 44.797563,3.0088703 38.033135,8.860581"
-       fill="#d4828a"
-       stroke="#6f4858"
-       stroke-width="1.5"
-       stroke-linejoin="round"
-       style="fill:#ad6b76;fill-opacity:1" />
   </g>
 </svg>

@@ -17,7 +17,6 @@ import {
   campaignTier,
   campaignUnlockRequirementText,
   highestUnlockedCampaignTierId,
-  isCampaignMilestoneAvailable,
   isCampaignTierUnlocked,
   type CampaignReward,
 } from "./campaign";
@@ -355,6 +354,7 @@ export class Ui {
     const equipmentAvailable = profile ? canAffordAnyEquipment(profile) : false;
     return `
       <section class="screen menu-screen">
+        ${this.campaignLevelWindowMarkup()}
         ${this.profileChipMarkup()}
         <nav class="meta-actions" aria-label="Progression and equipment">
           <button class="progression-action" data-action="upgrades" aria-label="Upgrades. Spend XP${upgradeAvailable ? ". Upgrade available" : ""}"><img src="${ASSETS.ui["upgrade-node"]}" alt="" aria-hidden="true"><span><b>Upgrades</b><small>Spend XP</small></span>${this.purchaseBadgeMarkup(upgradeAvailable)}</button>
@@ -379,7 +379,7 @@ export class Ui {
       <div class="play-mode-grid" aria-label="Play modes">
         <article class="play-mode-card campaign-mode-card">
           <img src="./images/campaign/campaign-mode.svg" alt="" aria-hidden="true">
-          <div><small>PLAY MODE</small><h2>Single-Player Campaign</h2><p>Climb the XP ladder, unlock new biomes, and conquer a unique boss in every tier.</p></div>
+          <div><small>PLAY MODE</small><h2>Single-Player Campaign</h2><p>Level up or clear campaigns to unlock new biomes and unique bosses.</p></div>
           <button class="primary" data-action="open-campaign">${icon("play")} Play Campaign</button>
         </article>
         <article class="play-mode-card multiplayer-mode-card" aria-disabled="true">
@@ -422,6 +422,45 @@ export class Ui {
     return reward.label;
   }
 
+  private campaignLevelWindowMarkup(): string {
+    const profile = this.game.profileManager?.profile;
+    if (!profile) return "";
+    const progress = levelProgress(profile.lifetimeXp);
+    const currentLevel = profile.playerLevel;
+    const firstLevel = Math.max(1, currentLevel - 2);
+    const lastLevel = currentLevel + 2;
+    const levels = Array.from(
+      { length: lastLevel - firstLevel + 1 },
+      (_, index) => firstLevel + index,
+    );
+    const claimed = new Set(profile.campaign.claimedRewardIds);
+    const denominator = Math.max(1, lastLevel - firstLevel);
+    const fill = Math.min(100, Math.max(0,
+      (currentLevel - firstLevel + progress.ratio) / denominator * 100,
+    ));
+    return `<aside class="menu-level-window" style="--level-count:${levels.length};--level-fill:${fill}%"
+      role="progressbar" aria-label="Defender level progress" aria-valuemin="${firstLevel}" aria-valuemax="${lastLevel}" aria-valuenow="${currentLevel}">
+      <div class="menu-level-heading"><span>DEFENDER LEVEL <b>${currentLevel}</b></span><small>${Math.floor(progress.current)} / ${progress.required} XP</small></div>
+      <div class="menu-level-track"><i></i></div>
+      ${levels.map((level) => {
+        const tier = CAMPAIGN_TIERS.find((item) => item.unlock.level === level);
+        const milestone = CAMPAIGN_TIERS.flatMap((item) => item.milestones)
+          .find((item) => item.level === level);
+        const state = level < currentLevel ? "completed" : level === currentLevel ? "current" : "future";
+        const rewardState = milestone
+          ? claimed.has(milestone.id) ? "claimed" : level <= currentLevel ? "earned" : "upcoming"
+          : "";
+        const detail = milestone?.reward.kind === "coins"
+          ? `${milestone.reward.amount}¢`
+          : tier ? `TIER ${tier.order + 1}` : "";
+        const title = milestone?.reward.kind === "coins"
+          ? `Level ${level}: ${milestone.reward.amount} Coin reward${rewardState === "claimed" ? ", claimed" : ""}`
+          : tier ? `Level ${level}: ${tier.name}` : `Level ${level}`;
+        return `<span class="menu-level-node ${state} ${rewardState}" title="${title}"><b>${level}</b>${detail ? `<small>${detail}</small>` : ""}</span>`;
+      }).join("")}
+    </aside>`;
+  }
+
   private campaignTierBackMarkup(
     tier: (typeof CAMPAIGN_TIERS)[number],
     unlocked: boolean,
@@ -435,7 +474,7 @@ export class Ui {
     const boss = ENEMY_REGISTRY[tier.boss];
     const bossCard = `<span class="boss"><img src="${campaignEnemyPortrait(tier.boss, tier.id)}" alt=""><b>${boss.displayName}</b><small>BOSS · NIGHT 10</small></span>`;
     return `<button class="tier-card-face tier-card-back" data-action="flip-campaign-tier-back" data-campaign-tier="${tier.id}" aria-label="Return to ${tier.name} card front" aria-hidden="${!active}" tabindex="${active ? "0" : "-1"}">
-      <header><span class="tier-card-heading"><small>TIER ${tier.order + 1}</small><b>${tier.name}</b><em>${tier.subtitle}</em></span><span class="tier-card-badges"><span class="tier-card-requirements">${requirements.map((requirement) => `<i class="${requirement.startsWith("Complete") ? "met" : "unmet"}">${requirement}</i>`).join("")}</span><strong>${unlocked ? "READY" : "LOCKED"}</strong></span></header>
+      <header><span class="tier-card-heading"><small>TIER ${tier.order + 1}</small><b>${tier.name}</b><em>${tier.subtitle}</em></span><span class="tier-card-badges"><span class="tier-card-requirements">${requirements.map((requirement) => `<i class="${requirement.startsWith("Complete") ? "met" : requirement.startsWith("Alternative") ? "alternative" : "unmet"}">${requirement}</i>`).join("")}</span><strong>${unlocked ? "READY" : "LOCKED"}</strong></span></header>
       <p>${tier.description}</p>
       <div class="tier-card-enemies" aria-label="Special zombies and boss">${enemies}${bossCard}</div>
     </button>`;
@@ -445,59 +484,34 @@ export class Ui {
     const progress = this.campaignProgress();
     const unlocked = isCampaignTierUnlocked(tier, progress);
     const requirements = campaignUnlockRequirementText(tier, progress);
-    return `<div><small>SELECTED TIER</small><b>${tier.name}</b><span>Select its card to inspect special zombies and mechanics.</span><div class="campaign-footer-requirements">${requirements.map((requirement) => `<i class="${requirement.startsWith("Complete") ? "met" : "unmet"}">${requirement}</i>`).join("")}</div></div>
+    return `<div><small>SELECTED TIER</small><b>${tier.name}</b><span>Reach its level or clear the previous tier to play.</span><div class="campaign-footer-requirements">${requirements.map((requirement) => `<i class="${requirement.startsWith("Complete") ? "met" : requirement.startsWith("Alternative") ? "alternative" : "unmet"}">${requirement}</i>`).join("")}</div></div>
       <button class="primary" data-action="start-campaign-tier" ${unlocked ? "" : "disabled"}>${icon("play")} ${unlocked ? `Play ${tier.name}` : "Tier Locked"}</button>`;
   }
 
   private campaignLadderMarkup(): string {
     const progress = this.campaignProgress();
-    const profile = this.game.profileManager?.profile;
-    const claimed = new Set(profile?.campaign.claimedRewardIds ?? []);
     const selected = campaignTier(this.selectedCampaignTierId);
     const currentTierId = highestUnlockedCampaignTierId(progress);
-    const maximumLevel = Math.max(...CAMPAIGN_TIERS.flatMap((tier) => [
-      tier.unlock.level,
-      ...tier.milestones.map((milestone) => milestone.level),
-    ]));
-    const levelPosition = (level: number) => Math.max(0, Math.min(100,
-      (level - 1) / Math.max(1, maximumLevel - 1) * 100));
-    const events: Array<{ level: number; markup: string }> = CAMPAIGN_TIERS.map((tier) => {
+    const tiers = CAMPAIGN_TIERS.map((tier) => {
       const unlocked = isCampaignTierUnlocked(tier, progress);
       const defeated = progress.defeatedTierIds.includes(tier.id);
       const active = tier.id === this.flippedCampaignTierId;
       const current = tier.id === currentTierId;
-      return {
-        level: tier.unlock.level,
-        markup: `<article class="campaign-track-event campaign-tier-node ${unlocked ? "unlocked" : "locked"} ${defeated ? "defeated" : ""} ${current ? "current" : ""} ${tier.id === selected.id ? "selected" : ""} ${active ? "flipped" : ""}" style="--tier-accent:${tier.accent};--track-position:${levelPosition(tier.unlock.level)}%">
-        <span class="campaign-track-marker"><small>LV</small><b>${tier.unlock.level}</b></span>
+      return `<article class="campaign-tier-node ${unlocked ? "unlocked" : "locked"} ${defeated ? "defeated" : ""} ${current ? "current" : ""} ${tier.id === selected.id ? "selected" : ""} ${active ? "flipped" : ""}" style="--tier-accent:${tier.accent}">
         <div class="campaign-tier-card"><div class="campaign-tier-card-inner">
           <button class="tier-card-face tier-card-front" data-action="select-campaign-tier" data-campaign-tier="${tier.id}" aria-pressed="${active}" aria-hidden="${active}" tabindex="${active ? "-1" : "0"}" aria-label="${tier.name}${unlocked ? " unlocked" : " locked"}">
             <img class="tier-backdrop" src="${tier.backdrop}" alt="">
             <span class="tier-medallion"><img src="${tier.icon}" alt=""></span>
-            <span class="tier-node-copy"><small>TIER ${tier.order + 1}</small><b>${tier.name}</b><em>${tier.subtitle}</em></span>
+            <span class="tier-node-copy"><small>TIER ${tier.order + 1} · LEVEL ${tier.unlock.level}</small><b>${tier.name}</b><em>${tier.subtitle}</em></span>
             <span class="tier-state">${defeated ? "CLEARED" : current ? "CURRENT" : unlocked ? "UNLOCKED" : "LOCKED"}</span>
           </button>
           ${this.campaignTierBackMarkup(tier, unlocked, active)}
         </div></div>
-      </article>`,
-      };
-    });
-    events.push(...CAMPAIGN_TIERS.flatMap((tier) => tier.milestones.map((milestone) => {
-      const rewardClaimed = claimed.has(milestone.id);
-      const tierUnlocked = isCampaignTierUnlocked(tier, progress);
-      const earned = isCampaignMilestoneAvailable(tier, milestone, progress);
-      return {
-        level: milestone.level,
-        markup: `<article class="campaign-track-event campaign-reward-node ${rewardClaimed ? "claimed" : earned ? "earned" : "locked"}" style="--tier-accent:${tier.accent};--track-position:${levelPosition(milestone.level)}%">
-          <span class="campaign-track-marker reward"><small>LV</small><b>${milestone.level}</b></span>
-          <span class="campaign-track-reward">${this.rewardMarkup(milestone.reward)}<small>${rewardClaimed ? "CLAIMED" : earned ? "EARNED" : tierUnlocked ? "LEVEL REWARD" : "TIER LOCKED"}</small></span>
-        </article>`,
-      };
-    })));
-    const trackEvents = events.sort((a, b) => b.level - a.level).map((event) => event.markup).join("");
+      </article>`;
+    }).join("");
     return `<section class="screen modal-screen campaign-ladder-screen"><div class="campaign-ladder-modal" role="dialog" aria-modal="true" aria-labelledby="campaign-ladder-title">
-      <header><div><p class="eyebrow">SINGLE-PLAYER CAMPAIGN</p><h2 id="campaign-ladder-title">Raise Your Standard</h2><p>Climb with XP, claim rewards, and clear each tier to unlock the next.</p></div><span class="campaign-level">LEVEL <b>${progress.level}</b></span><button class="icon-button" data-action="close-campaign" aria-label="Close">${icon("close")}</button></header>
-      <div class="campaign-ladder-viewport"><div class="campaign-ladder-rail" style="--ladder-progress:${levelPosition(progress.level)}%">${trackEvents}</div></div>
+      <header><div><p class="eyebrow">SINGLE-PLAYER CAMPAIGN</p><h2 id="campaign-ladder-title">Choose Your Campaign</h2><p>Reach a tier's level or clear the previous campaign to unlock it.</p></div><button class="icon-button" data-action="close-campaign" aria-label="Close">${icon("close")}</button></header>
+      <div class="campaign-ladder-viewport"><div class="campaign-tier-grid">${tiers}</div></div>
       <footer>${this.campaignTierFooterMarkup(selected)}</footer>
     </div></section>`;
   }
@@ -1154,7 +1168,7 @@ export class Ui {
           <p>NEW CAMPAIGN TIER</p><img src="${unlockedTier.icon}" alt=""><h3>${unlockedTier.name}</h3><strong>UNLOCKED!</strong>
           <small>${unlockedTier.subtitle} is ready to play</small>
         </aside>` : ""}
-        ${campaignRewards.length ? `<div class="campaign-reward-claimed"><span>LADDER REWARD${campaignRewards.length === 1 ? "" : "S"} CLAIMED</span><strong>${campaignCoinTotal > 0 ? coinAmount(campaignCoinTotal, "+") : campaignRewards.map((milestone) => this.rewardMarkup(milestone.reward)).join(" · ")}</strong></div>` : ""}
+        ${campaignRewards.length ? `<div class="campaign-reward-claimed"><span>LEVEL REWARD${campaignRewards.length === 1 ? "" : "S"} CLAIMED</span><strong>${campaignCoinTotal > 0 ? coinAmount(campaignCoinTotal, "+") : campaignRewards.map((milestone) => this.rewardMarkup(milestone.reward)).join(" · ")}</strong></div>` : ""}
         <div class="reward-body"><div class="reward-list"><div class="reward-categories">${categories.map(([label, value], index) => `<div class="reward-line" style="--reveal-index:${index}">
           <span ${label === "Challenge Bonus" ? `title="${this.escapeAttribute(this.challengeRewardDetails())}"` : ""}>${label}</span><b>+${value} XP</b></div>`).join("")}</div>
         <button class="reward-skip" data-action="reveal-rewards">Show totals now</button>

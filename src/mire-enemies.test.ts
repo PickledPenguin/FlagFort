@@ -124,6 +124,34 @@ describe("mire enemies", () => {
     expect(node.infectionHintTime).toBe(0.42);
   });
 
+  it("permanently cleanses a parasite only when its resource is depleted", () => {
+    const game = gameFixture();
+    const node = game.world.resources[0]!;
+    node.infected = true;
+    node.infectionCooldown = 1;
+    node.health = 1;
+    game.player.x = node.x + BALANCE.tierMechanics.mire.hintRadius + 100;
+    game.player.y = node.y;
+    (game as unknown as { updateResourceMechanics(dt: number): void })
+      .updateResourceMechanics(30);
+    expect(node.infected).toBe(true);
+    node.infectionCooldown = 1;
+    (game as unknown as {
+      harvestNode(target: typeof node, tier: "diamond", scale: number): void;
+    }).harvestNode(node, "diamond", 1);
+
+    expect(node.health).toBe(0);
+    expect(node.infected).toBe(false);
+    expect(game.particles.some((particle) =>
+      particle.text === BALANCE.tierMechanics.mire.cleansePopupText)).toBe(true);
+
+    game.infectionTravelers.push({ x: node.x, y: node.y, targetId: node.id, speed: 330 });
+    (game as unknown as { updateResourceMechanics(dt: number): void })
+      .updateResourceMechanics(1);
+    expect(game.infectionTravelers).toHaveLength(0);
+    expect(node.infected).toBe(false);
+  });
+
   it("registers Sporecaster as a Drowned Mire seeding suppression enemy", () => {
     const definition = ENEMY_REGISTRY.sporecaster;
 
@@ -198,6 +226,7 @@ describe("mire enemies", () => {
     const definition = ENEMY_REGISTRY["drowned-bulwark"];
 
     expect(definition.assets.portrait).toBe("enemies/drowned-bulwark-zombie");
+    expect(definition.base.health).toBe(310);
     expect(definition.render).toEqual({ aspectRatio: 116 / 104, width: 109, height: 98 });
     expect(definition.armor).toMatchObject({
       health: 150,
@@ -262,59 +291,50 @@ describe("mire enemies", () => {
     expect(definition.armor).toMatchObject({
       scalesWithHealth: true,
       brokenSprite: "enemies/mireheart-titan-broken",
-      breakStatusPulse: {
-        statusEffect: {
-          kind: "slow",
-          duration: 4.8,
-          targets: ["player", "turret"],
-        },
-      },
     });
+    expect(definition.armor?.breakStatusPulse).toBeUndefined();
     expect(definition.attack.lifeSteal).toMatchObject({
       healingRatio: 0.6,
       popupText: "HEART DRAINS",
     });
-    expect(definition.areaStrike).toMatchObject({
-      rngSeedKey: "mireheart-titan:root-ruptures",
-      damageSource: "mireheart-titan",
-      randomStrikeCount: 7,
-      statusEffect: {
-        kind: "slow",
-        duration: 3.4,
-        targets: ["player", "turret"],
-      },
-    });
+    expect(definition.areaStrike).toBeUndefined();
     expect(definition.summon).toMatchObject({
       kinds: ["mire-lurker"],
-      maximumLiving: 2,
-      popupText: "LURKERS RISE",
+      cooldown: 1,
+      maximumLiving: BALANCE.tierMechanics.mire.bossLurkerMaximumLiving,
+      popupText: "LURKER RISES",
     });
   });
 
-  it("creates deterministic root ruptures around the defender", () => {
+  it("spawns one deterministic Mire Lurker per second without root ruptures", () => {
     const first = gameFixture();
     const second = gameFixture();
     const firstBoss = spawn(first, "mireheart-titan", first.player.x + 500, first.player.y);
     const secondBoss = spawn(second, "mireheart-titan", second.player.x + 500, second.player.y);
-    const config = ENEMY_REGISTRY["mireheart-titan"].areaStrike!;
+    firstBoss.summonCooldown = 1;
+    secondBoss.summonCooldown = 1;
+    for (const game of [first, second]) {
+      const boss = game === first ? firstBoss : secondBoss;
+      (game as unknown as { updateEnemySummon(enemy: Enemy, dt: number): void })
+        .updateEnemySummon(boss, 1);
+    }
 
-    (first as unknown as { createAreaStrikeAttack(enemy: Enemy): void })
-      .createAreaStrikeAttack(firstBoss);
-    (second as unknown as { createAreaStrikeAttack(enemy: Enemy): void })
-      .createAreaStrikeAttack(secondBoss);
-
-    expect(first.areaStrikes).toEqual(second.areaStrikes);
-    expect(first.areaStrikes).toHaveLength(
-      config.randomStrikeCount + Number(config.includesTargetedStrike),
-    );
-    expect(first.areaStrikes.every((strike) =>
-      strike.sourceEnemyKind === "mireheart-titan")).toBe(true);
-    expect(first.areaStrikes.some((strike) =>
-      strike.x === first.player.x && strike.y === first.player.y)).toBe(true);
+    expect(first.areaStrikes).toHaveLength(0);
+    expect(second.areaStrikes).toHaveLength(0);
+    expect(first.enemies.filter((enemy) => enemy.summonedBy === firstBoss.id))
+      .toHaveLength(1);
+    expect(second.enemies.filter((enemy) => enemy.summonedBy === secondBoss.id))
+      .toHaveLength(1);
   });
 
-  it("breaks its shell, bog-binds defenders, summons capped Lurkers, and drains life", () => {
+  it("freezes on shell break, releases flag-priority parasites, and drains life", () => {
     const game = gameFixture();
+    const infectedNode = game.world.resources[0]!;
+    infectedNode.infected = true;
+    game.player.x = infectedNode.x;
+    game.player.y = infectedNode.y;
+    (game as unknown as { updateResourceMechanics(dt: number): void })
+      .updateResourceMechanics(0);
     const boss = spawn(game, "mireheart-titan", game.flag.x + 780, game.flag.y);
     const definition = ENEMY_REGISTRY["mireheart-titan"];
     const nearbyTurret = turret(1900, boss.x + 55, boss.y);
@@ -328,10 +348,23 @@ describe("mire enemies", () => {
 
     expect(boss.health).toBe(boss.maxHealth);
     expect(boss.armor).toBe(0);
-    expect(game.player.statuses?.slow?.remaining).toBe(4.8);
-    expect(nearbyTurret.statuses?.slow?.remaining).toBe(4.8);
-    expect(game.particles.some((particle) => particle.text === "MIREHEART AWAKENS"))
-      .toBe(true);
+    expect(game.player.statuses?.slow).toBeUndefined();
+    expect(nearbyTurret.statuses?.slow).toBeUndefined();
+    expect(game.mireArmorBreakFreeze).toMatchObject({ bossId: boss.id, elapsed: 0 });
+    const released = game.enemies.filter((enemy) => enemy.mireTentacle);
+    expect(released.length).toBeGreaterThan(0);
+    expect(released.every((enemy) => enemy.targetId === "flag"
+      && enemy.objectivePriority === "flag")).toBe(true);
+    game.phase = "night";
+    game.timer = 20;
+    game.update(BALANCE.tierMechanics.mire.armorBreakFreezeExpansionSeconds);
+    expect(game.timer).toBe(20);
+    expect(game.mireArmorBreakFreeze).not.toBeNull();
+    game.update(BALANCE.tierMechanics.mire.armorBreakFreezeHoldSeconds);
+    expect(game.mireArmorBreakFreeze).toBeNull();
+    expect(game.timer).toBe(20);
+    game.update(0.1);
+    expect(game.timer).toBeCloseTo(19.9);
 
     boss.summonCooldown = 0;
     (game as unknown as { updateEnemySummon(enemy: Enemy, dt: number): void })

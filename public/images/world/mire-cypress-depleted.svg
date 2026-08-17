@@ -39,36 +39,36 @@
      id="mire-cypress-depleted">
     <path
        id="raised-roots"
-       d="M43 58 27 87h17l7-13 8 13h16L57 57Z"
+       d="m 58.999982,58 16,29 h -17 l -7,-13 -8,13 h -16 l 18,-30 z"
        fill="#604832"
        stroke="#283629"
        stroke-width="5"
        stroke-linejoin="round" />
     <path
        id="stump"
-       d="M 37.525808,67.954572 C 41.980805,56.763966 39.156565,46.190605 40,35 l 9,-6 13,6 c 0.392692,11.039185 -3.751471,23.53517 1.153413,32.459265"
+       d="M 64.474174,67.954572 C 60.019177,56.763966 62.843417,46.190605 61.999982,35 l -9,-6 -13,6 c -0.392692,11.039185 3.751471,23.53517 -1.153413,32.459265"
        fill="#71543c"
        stroke="#283629"
        stroke-width="6"
        stroke-linejoin="round"
        sodipodi:nodetypes="ccccc"
-       style="stroke-width:5.1;stroke-dasharray:none;fill:#604832;fill-opacity:1" />
+       style="fill:#604832;fill-opacity:1;stroke-width:5.1;stroke-dasharray:none" />
     <path
        id="cut-face"
-       d="m40 35 9-6 13 6-11 8Z"
+       d="m 61.999982,35 -9,-6 -13,6 11,8 z"
        fill="#a08058"
        stroke="#283629"
        stroke-width="4"
        stroke-linejoin="round" />
     <path
        id="rings"
-       d="m46 35 4-2 6 2-5 3Z"
+       d="m 55.999982,35 -4,-2 -6,2 5,3 z"
        fill="none"
        stroke="#5b4532"
        stroke-width="2" />
     <path
        id="moss"
-       d="M38 51c6-4 8 3 13-1 4-3 6 2 10 0"
+       d="m 63.999982,51 c -6,-4 -8,3 -13,-1 -4,-3 -6,2 -10,0"
        fill="none"
        stroke="#718c55"
        stroke-width="4"

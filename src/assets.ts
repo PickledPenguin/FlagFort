@@ -189,6 +189,7 @@ export const ASSETS = {
     uraniumBloodSplatter: image("effects/uranium-blood-splatter"),
     mireParasite: image("effects/mire-parasite"),
     infestingNode: image("effects/infesting-node"),
+    timeLockBurst: image("effects/time-lock-burst"),
   },
   cursors: {
     ringAllowed: image("gameplay/cursors/ring-allowed"),

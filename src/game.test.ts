@@ -1138,7 +1138,7 @@ describe("phase and run rules", () => {
     expect(game.portals).toHaveLength(portalsAfter);
   });
 
-  it("turns every infected Mire resource into a low-health combat tentacle at boss half health", () => {
+  it("turns every infected Mire resource into a flag-priority tentacle at boss armor break", () => {
     const game = new Game(fakeInput());
     game.startRun("normal", "mire-half-event", [], true, { campaignTierId: "mire" });
     const infected = game.world.resources.filter((node) => node.infected && !node.destroyed);
@@ -1148,15 +1148,16 @@ describe("phase and run rules", () => {
     game.phaseElapsed = BALANCE.endless.bossSpawnDelay;
     game.update(BALANCE.fixedStep);
     const boss = game.enemies.find((enemy) => enemy.kind === "mireheart-titan")!;
-    boss.armor = 0;
     (game as unknown as {
       damageEnemy(enemy: Enemy, amount: number, color: string, source: "player-melee", owner: string): void;
-    }).damageEnemy(boss, boss.health * 0.55, "#fff", "player-melee", game.player.id);
+    }).damageEnemy(boss, boss.armor!, "#fff", "player-melee", game.player.id);
 
     const tentacles = game.enemies.filter((enemy) => enemy.mireTentacle);
     expect(tentacles).toHaveLength(infected.length);
     expect(tentacles.every((enemy) => enemy.child && enemy.countsTowardWave === false)).toBe(true);
     expect(tentacles.every((enemy) => enemy.health < ENEMY_REGISTRY["mire-lurker"].base.health)).toBe(true);
+    expect(tentacles.every((enemy) => enemy.targetId === "flag"
+      && enemy.objectivePriority === "flag")).toBe(true);
   });
 
   it("rewinds the Clockwork night once without restoring defender damage", () => {
@@ -1191,6 +1192,56 @@ describe("phase and run rules", () => {
     expect(boss.bossHalfSummoned).toBe(true);
     expect(game.enemies).toEqual([boss]);
     expect((game as unknown as { timeRewind: unknown }).timeRewind).toBeNull();
+  });
+
+  it("limits ordinary player pursuit to five seconds and rearms after cooldown", () => {
+    const game = new Game(fakeInput());
+    game.startRun("normal", "player-chase-budget", [], true, { settle: false });
+    game.flag.x = 400;
+    game.flag.y = 400;
+    game.player.x = 1800;
+    game.player.y = 1800;
+    const enemy = testEnemy({
+      kind: "basic",
+      x: 1700,
+      y: 1800,
+      targetId: null,
+      playerChaseRemaining: BALANCE.navigation.playerChaseDuration,
+    });
+    game.enemies = [enemy];
+    const internals = game as unknown as {
+      selectEnemyTarget(target: Enemy): void;
+      updatePlayerChaseBudget(target: Enemy, dt: number): void;
+    };
+
+    internals.selectEnemyTarget(enemy);
+    expect(enemy.targetId).toBe("player");
+    internals.updatePlayerChaseBudget(enemy, BALANCE.navigation.playerChaseDuration);
+    expect(enemy.targetId).toBe("flag");
+    expect(enemy.playerChaseCooldown).toBe(BALANCE.navigation.playerChaseCooldown);
+
+    internals.updatePlayerChaseBudget(enemy, BALANCE.navigation.playerChaseCooldown);
+    internals.selectEnemyTarget(enemy);
+    expect(enemy.targetId).toBe("player");
+
+    game.player.x = 3000;
+    internals.updatePlayerChaseBudget(enemy, 0.1);
+    expect(enemy.playerChaseRemaining).toBe(BALANCE.navigation.playerChaseDuration);
+  });
+
+  it("preserves unlimited pursuit for enemies whose core targeting mode is player", () => {
+    const game = new Game(fakeInput());
+    game.startRun("normal", "core-player-pursuit", [], true, { settle: false });
+    const lurker = testEnemy({
+      kind: "mire-lurker",
+      x: game.player.x + 100,
+      y: game.player.y,
+      targetId: "player",
+    });
+    (game as unknown as { updatePlayerChaseBudget(target: Enemy, dt: number): void })
+      .updatePlayerChaseBudget(lurker, 30);
+    expect(lurker.targetId).toBe("player");
+    expect(lurker.playerChaseCooldown).toBeUndefined();
   });
 
   it("completes the deterministic ten-night loop with three dawn choices per night", () => {

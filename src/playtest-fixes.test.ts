@@ -8,7 +8,7 @@ import { Game, LOCAL_PLAYER_ID } from "./game";
 import { Input } from "./input";
 import { META_BALANCE } from "./meta-balance";
 import type { KeyValueStore } from "./platform";
-import { ProfileManager, migrateProfile } from "./profile";
+import { ProfileManager, lifetimeXpAtLevel, migrateProfile } from "./profile";
 import { calculateXpRewards } from "./rewards";
 import { createMutations, createUnlocks, createUpgrades } from "./rules";
 import type { Enemy, Structure } from "./types";
@@ -435,7 +435,7 @@ describe("progression safety and presentation", () => {
     expect(document.querySelector('[data-equipment-item="helmet"].upgrade-feedback')).not.toBeNull();
   });
 
-  it("opens Campaign on the highest unlocked tier with level-positioned rewards", () => {
+  it("opens Campaign on the highest unlocked tier without duplicating the level reward track", () => {
     const manager = new ProfileManager(new TestStore());
     manager.profile.playerLevel = 7;
     manager.profile.campaign.defeatedTierIds = ["forest"];
@@ -453,8 +453,8 @@ describe("progression safety and presentation", () => {
       .closest(".campaign-tier-node");
     expect(snowy?.classList.contains("selected")).toBe(true);
     expect(snowy?.classList.contains("current")).toBe(true);
-    expect(snowy?.querySelector(".campaign-track-marker")?.textContent).toContain("5");
-    expect(document.querySelectorAll(".campaign-reward-node")).toHaveLength(21);
+    expect(document.querySelectorAll(".campaign-tier-grid .campaign-tier-node")).toHaveLength(8);
+    expect(document.querySelectorAll(".campaign-reward-node")).toHaveLength(0);
     expect(document.querySelector(".campaign-footer-requirements")?.textContent)
       .toContain("Reach Level 5");
 
@@ -477,6 +477,27 @@ describe("progression safety and presentation", () => {
     expect(returnedSnowy?.classList.contains("flipped")).toBe(false);
     expect(returnedSnowy?.querySelector(".campaign-tier-card-inner")).toBe(snowyCardInner);
     expect(returnedSnowy?.querySelector(".tier-card-front")?.getAttribute("aria-pressed")).toBe("false");
+  });
+
+  it("shows the current level with two neighboring levels on each side on the main menu", () => {
+    const manager = new ProfileManager(new TestStore());
+    manager.profile.lifetimeXp = lifetimeXpAtLevel(7) + 120;
+    manager.profile.playerLevel = 7;
+    const game = new Game(new Input(document.querySelector("canvas")!), manager);
+    const ui = new Ui(
+      game,
+      document.querySelector("#hud")!,
+      document.querySelector("#overlay")!,
+      document.querySelector("#toast")!,
+    );
+    game.returnToMenu();
+    ui.render(true);
+
+    const nodes = [...document.querySelectorAll<HTMLElement>(".menu-level-node")];
+    expect(nodes.map((node) => node.querySelector("b")?.textContent)).toEqual(["5", "6", "7", "8", "9"]);
+    expect(document.querySelector(".menu-level-node.current b")?.textContent).toBe("7");
+    expect(document.querySelector(".menu-level-window")?.textContent).toContain("120 / 1050 XP");
+    expect(document.querySelector(".menu-level-window")?.textContent).toContain("55¢");
   });
 
   it("keeps Campaign ladder scroll position while flipping a tier", () => {

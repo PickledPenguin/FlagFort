@@ -1,14 +1,79 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="72" height="52" viewBox="-36 -26 72 52" role="img" aria-labelledby="title desc">
-  <title id="title">Infesting node</title>
-  <desc id="desc">A small luminous Mire seed wrapped in reed-like tendrils.</desc>
-  <metadata>FlagFort editable gameplay asset. Center pivot: 0,0.</metadata>
-  <g id="node" aria-label="Infesting node">
-    <ellipse id="shadow" cx="0" cy="5" rx="27" ry="12" fill="#071713" opacity=".7"/>
-    <path id="outer-shell" d="M-27 2C-18-16 8-22 27-6C20 15-5 23-27 2Z" fill="#1b4d3f" stroke="#0b261f" stroke-width="4"/>
-    <path id="reed-1" d="M-24 0C-13-2-13-15-3-20" fill="none" stroke="#79e6c1" stroke-width="4" stroke-linecap="round"/>
-    <path id="reed-2" d="M23-5C10-4 12 12 1 18" fill="none" stroke="#79e6c1" stroke-width="4" stroke-linecap="round"/>
-    <ellipse id="lumen" cx="0" cy="0" rx="10" ry="8" fill="#a9f0ce"/>
-    <circle id="glint" cx="-4" cy="-3" r="3" fill="#effff8"/>
+<svg
+   width="72"
+   height="52"
+   viewBox="-36 -26 72 52"
+   role="img"
+   aria-labelledby="title desc"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="infesting-node.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="3.433874"
+     inkscape:cx="86.78245"
+     inkscape:cy="14.997638"
+     inkscape:window-width="1527"
+     inkscape:window-height="688"
+     inkscape:window-x="0"
+     inkscape:window-y="33"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="node" />
+  <title
+     id="title">Infesting node</title>
+  <desc
+     id="desc">A small luminous Mire seed wrapped in reed-like tendrils.</desc>
+  <metadata
+     id="metadata1">FlagFort editable gameplay asset. Center pivot: 0,0.</metadata>
+  <g
+     id="node"
+     aria-label="Infesting node">
+    <path
+       id="outer-shell"
+       d="M-27 2C-18-16 8-22 27-6C20 15-5 23-27 2Z"
+       fill="#1b4d3f"
+       stroke="#0b261f"
+       stroke-width="4" />
+    <path
+       id="reed-1"
+       d="M-24 0C-13-2-13-15-3-20"
+       fill="none"
+       stroke="#79e6c1"
+       stroke-width="4"
+       stroke-linecap="round" />
+    <path
+       id="reed-2"
+       d="M23-5C10-4 12 12 1 18"
+       fill="none"
+       stroke="#79e6c1"
+       stroke-width="4"
+       stroke-linecap="round" />
+    <ellipse
+       id="lumen"
+       cx="0"
+       cy="0"
+       rx="10"
+       ry="8"
+       fill="#a9f0ce" />
+    <circle
+       id="glint"
+       cx="-4"
+       cy="-3"
+       r="3"
+       fill="#effff8" />
   </g>
 </svg>

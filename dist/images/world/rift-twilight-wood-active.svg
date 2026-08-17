@@ -22,9 +22,9 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="3.0191974"
-     inkscape:cx="39.414449"
-     inkscape:cy="41.070518"
+     inkscape:zoom="3.7492682"
+     inkscape:cx="3.2006246"
+     inkscape:cy="8.0015615"
      inkscape:window-width="1619"
      inkscape:window-height="793"
      inkscape:window-x="0"
@@ -73,10 +73,11 @@
        fill="#d5b5ff" />
     <path
        id="bark-glow"
-       d="m 48.375723,79 -4,-13 7,-11 -4,-12 7,-18"
+       d="m 48.375723,79 -4,-13 7,-8.846025 -2.056734,-5.938569"
        fill="none"
        stroke="#a98ae8"
        stroke-width="3"
-       stroke-linecap="round" />
+       stroke-linecap="round"
+       sodipodi:nodetypes="cccc" />
   </g>
 </svg>
