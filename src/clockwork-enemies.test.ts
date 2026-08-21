@@ -5,6 +5,7 @@ import { BALANCE } from "./config";
 import { ENEMY_REGISTRY, isBossEnemyKind, selectEnemyRoster } from "./enemy-registry";
 import { Game } from "./game";
 import { Input } from "./input";
+import { pathIntersectsObstacle } from "./pathfinding";
 import type { Enemy, Structure } from "./types";
 
 function gameFixture(): Game {
@@ -119,10 +120,33 @@ describe("clockwork enemies", () => {
       },
     });
     expect(definition).toMatchObject({ rosterEligible: true, campaignTierIds: ["clockwork"] });
+    expect(definition.movement).toMatchObject({ avoidStructures: true, obstacleFallback: false });
     for (const tier of ["forest", "snowy", "desert", "volcanic", "wasteland", "rift", "mire"] as const) {
       expect(Object.values(selectEnemyRoster("staged-aether-gunner", tier)))
         .not.toContain("aether-gunner");
     }
+  });
+
+  it("keeps an Aether Gunner on a valid structure-aware detour", () => {
+    const game = gameFixture();
+    game.world.resources = [];
+    const gunner = spawn(game, "aether-gunner", game.flag.x - 420, game.flag.y);
+    const target = turret(2450, game.flag.x + 420, game.flag.y);
+    const wallLine = Array.from({ length: 11 }, (_, index): Structure => ({
+      ...turret(2460 + index, game.flag.x, game.flag.y - 360 + index * 72),
+      kind: "wall",
+      radius: BALANCE.structure.radius.wall,
+    }));
+    game.structures = [...wallLine, target];
+    gunner.targetId = target.id;
+
+    (game as unknown as {
+      refreshEnemyPath(enemy: Enemy, target: Structure): void;
+    }).refreshEnemyPath(gunner, target);
+
+    expect(gunner.path.length).toBeGreaterThan(0);
+    expect(gunner.routeIncludesStructures).toBe(true);
+    expect(pathIntersectsObstacle(gunner, gunner.path, wallLine, gunner.radius)).toBe(false);
   });
 
   it("prioritizes a turret and stalls it with a high-velocity aether bolt", () => {
@@ -376,7 +400,12 @@ describe("clockwork enemies", () => {
   it("rewinds the full night once while preserving defender damage and broken boss state", () => {
     const game = gameFixture();
     game.phase = "night";
+    game.night = 10;
     game.timer = 11.25;
+    game.waveSchedule = ["basic", "aether-gunner", "gearwright"];
+    (game as unknown as { waveScheduleCursor: number }).waveScheduleCursor = 3;
+    for (const portal of game.portals) portal.spawned = portal.assignedSpawns;
+    const originalWave = [...game.waveSchedule];
     game.player.health -= 17;
     game.flag.health -= 23;
     const nearbyTurret = turret(2700, game.player.x + 80, game.player.y);
@@ -411,7 +440,14 @@ describe("clockwork enemies", () => {
     expect(boss.health).toBe(boss.maxHealth * 0.5);
     expect(boss.armor).toBe(0);
     expect(boss.bossHalfSummoned).toBe(true);
+    expect(boss.countsTowardWave).toBe(true);
     expect(game.timer).toBe(BALANCE.nightDuration);
+    expect(game.waveSchedule).toEqual(originalWave);
+    expect((game as unknown as { waveScheduleCursor: number }).waveScheduleCursor).toBe(0);
+    expect(game.portals.filter((portal) => !portal.temporary).every((portal) => portal.spawned === 0))
+      .toBe(true);
+    expect(Math.min(...game.portals.filter((portal) => !portal.temporary).map((portal) =>
+      Math.hypot(boss.x - portal.x, boss.y - portal.y)))).toBeCloseTo(18);
     expect(game.player.health).toBe(playerHealth);
     expect(game.flag.health).toBe(flagHealth);
     expect(nearbyTurret.health).toBe(turretHealth);

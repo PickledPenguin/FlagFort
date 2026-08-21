@@ -95,12 +95,17 @@ describe("astral enemies", () => {
     expect(wall.health).toBe(wall.maxHealth);
   });
 
-  it("registers Comet Slinger as an Astral Rift flag-line ranged attacker", () => {
+  it("registers Comet Slinger with player, turret, then flag priority", () => {
     const definition = ENEMY_REGISTRY["comet-slinger"];
 
     expect(definition.assets.portrait).toBe("enemies/comet-slinger-zombie");
     expect(definition.render).toEqual({ aspectRatio: 120 / 108, width: 83, height: 75 });
-    expect(definition.targeting).toMatchObject({ mode: "flag", attackRange: 940, innerRadius: 210 });
+    expect(definition.targeting).toMatchObject({
+      mode: "priority",
+      priorities: ["player", "turret", "flag"],
+      attackRange: 940,
+      innerRadius: 210,
+    });
     expect(definition.projectile).toMatchObject({
       appearance: "comet",
       damageSource: "comet-slinger",
@@ -130,6 +135,8 @@ describe("astral enemies", () => {
     game.world.resources = [resource];
     const blocker = wall(1450, game.flag.x - 150, game.flag.y);
     game.structures = [blocker];
+    game.player.x = game.flag.x + definition.targeting.attackRange + 200;
+    game.player.y = game.flag.y;
 
     (game as unknown as { selectEnemyTarget(enemy: Enemy): void }).selectEnemyTarget(slinger);
     expect(slinger.targetId).toBe("flag");
@@ -154,6 +161,32 @@ describe("astral enemies", () => {
     expect(game.flag.health).toBe(game.flag.maxHealth - slinger.damage);
     expect(game.projectiles).toHaveLength(1);
     expect(game.particles.some((particle) => particle.color === "#b89cff")).toBe(true);
+  });
+
+  it("retargets a Comet Slinger from the flag to player, then turret, without scan delay", () => {
+    const game = gameFixture();
+    const definition = ENEMY_REGISTRY["comet-slinger"];
+    const slinger = spawn(game, "comet-slinger", game.flag.x - 600, game.flag.y);
+    const turretTarget = { ...wall(1451, slinger.x + 280, slinger.y), kind: "turret" as const };
+    game.structures = [turretTarget];
+    (game as unknown as { rebuildSpatial(force?: boolean): void }).rebuildSpatial(true);
+    game.player.x = slinger.x + definition.targeting.attackRange + 20;
+    game.player.y = slinger.y;
+    slinger.targetId = "flag";
+    (game as unknown as { selectEnemyTarget(enemy: Enemy): void }).selectEnemyTarget(slinger);
+    expect(slinger.targetId).toBe(turretTarget.id);
+    slinger.scanCooldown = 10;
+
+    (game as unknown as { updateEnemies(dt: number): void }).updateEnemies(BALANCE.fixedStep);
+    expect(slinger.targetId).toBe(turretTarget.id);
+
+    game.player.x = slinger.x + definition.targeting.attackRange - 5;
+    (game as unknown as { updateEnemies(dt: number): void }).updateEnemies(BALANCE.fixedStep);
+    expect(slinger.targetId).toBe("player");
+
+    game.player.x = slinger.x + definition.targeting.attackRange + 20;
+    (game as unknown as { updateEnemies(dt: number): void }).updateEnemies(BALANCE.fixedStep);
+    expect(slinger.targetId).toBe(turretTarget.id);
   });
 
   it("registers Void Herald as an Astral Rift caller of Rift Striders", () => {

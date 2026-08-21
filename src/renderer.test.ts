@@ -7,8 +7,29 @@ import {
   createWeatherField,
   enemyAttackTelegraphColor,
   Renderer,
+  structureRenderLayers,
   worldWeatherParticlePosition,
 } from "./renderer";
+import type { Structure } from "./types";
+
+describe("structure render layers", () => {
+  it("draws other structures, then harvester arms, then harvester bodies", () => {
+    const structure = (id: number, kind: Structure["kind"]): Structure => ({
+      id, kind, tier: "wood", x: id, y: id, radius: 30, health: 100, maxHealth: 100,
+      cooldown: 0, angle: 0, lastArmAngle: 0, harvesterHitResourceIds: new Set(), flash: 0,
+    });
+    const wall = structure(1, "wall");
+    const firstHarvester = structure(2, "harvester");
+    const turret = structure(3, "turret");
+    const secondHarvester = structure(4, "harvester");
+
+    const layers = structureRenderLayers([firstHarvester, wall, secondHarvester, turret]);
+
+    expect(layers.otherStructures).toEqual([wall, turret]);
+    expect(layers.harvesterArms).toEqual([firstHarvester, secondHarvester]);
+    expect(layers.harvesterBodies).toEqual([firstHarvester, secondHarvester]);
+  });
+});
 
 describe("enemy attack telegraphs", () => {
   it("matches every projectile attack windup to its configured projectile color", () => {

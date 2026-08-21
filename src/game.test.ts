@@ -308,6 +308,18 @@ describe("resource obstacle navigation", () => {
     expect(pathIntersectsObstacle(start, path, [obstacle], 23)).toBe(false);
   });
 
+  it("chooses a collision-safe grid entry when a clear enemy maps into a blocked resource cell", () => {
+    const obstacle = { x: 500, y: 500, radius: 42 };
+    const start = { x: 560, y: 560 };
+    const goal = { x: 820, y: 560 };
+    const navigation = new NavigationGrid([obstacle], 23);
+
+    const path = navigation.find(start, goal);
+
+    expect(path.length).toBeGreaterThan(0);
+    expect(pathIntersectsObstacle(start, path, [obstacle], 23)).toBe(false);
+  });
+
   it("routes different zombie radii through dense clusters and narrow passages", () => {
     const obstacles = [
       { x: 460, y: 360, radius: 44 },
@@ -693,17 +705,17 @@ describe("phase and run rules", () => {
     for (const kind of introducedSpecials) expect(scheduledKinds).toContain(kind);
   });
 
-  it("warns about and forecasts every campaign special on its introduction night", () => {
+  it("warns about and forecasts every selected campaign roster special on its introduction night", () => {
     const introductionNights = [3, 5, 7] as const;
 
     for (const tier of CAMPAIGN_TIERS) {
-      tier.specialEnemies.forEach((special, index) => {
-        const introductionNight = introductionNights[index];
-        if (!introductionNight) throw new Error(`Missing introduction night for ${special}`);
+      introductionNights.forEach((introductionNight, index) => {
         const game = new Game(fakeInput());
-        game.startRun("normal", `special-introduction-${tier.id}-${special}`, [], true, {
+        game.startRun("normal", `special-introduction-${tier.id}-${introductionNight}`, [], true, {
           campaignTierId: tier.id,
         });
+        const rosterTier = introductionNight as 3 | 5 | 7;
+        const special = game.enemyRoster[rosterTier];
         game.night = introductionNight - 1;
         game.phase = "dawn";
 
@@ -716,7 +728,8 @@ describe("phase and run rules", () => {
 
         (game as unknown as { beginNight(): void }).beginNight();
         const forecastKinds = game.getWaveForecast().map((entry) => entry.kind);
-        for (const introducedSpecial of tier.specialEnemies.slice(0, index + 1)) {
+        for (const introducedNight of introductionNights.slice(0, index + 1)) {
+          const introducedSpecial = game.enemyRoster[introducedNight];
           expect(forecastKinds, `${tier.id} Night ${introductionNight} forecast`)
             .toContain(introducedSpecial);
         }

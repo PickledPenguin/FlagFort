@@ -21,6 +21,16 @@ const resourceColors = {
 
 const center = BALANCE.mapSize / 2;
 
+export function structureRenderLayers(structures: readonly Structure[]): {
+  otherStructures: Structure[];
+  harvesterArms: Structure[];
+  harvesterBodies: Structure[];
+} {
+  const otherStructures = structures.filter((structure) => structure.kind !== "harvester");
+  const harvesters = structures.filter((structure) => structure.kind === "harvester");
+  return { otherStructures, harvesterArms: harvesters, harvesterBodies: harvesters };
+}
+
 export const SIMPLE_ENEMY_OUTLINE_COLORS: Record<CampaignTierId, string> = {
   forest: "#29462c",
   snowy: "#173746",
@@ -511,15 +521,20 @@ export class Renderer {
     }
     this.drawSandTunnels(game);
     if (game.hasActiveFlag()) this.drawFlag(game);
-    for (const structure of game.structures) {
+    const structureLayers = structureRenderLayers(game.structures);
+    for (const structure of structureLayers.otherStructures) {
       if (this.visible(game, structure.x, structure.y, structure.radius + 140)) {
         this.drawStructure(structure, game.player, false);
       }
     }
-    for (const structure of game.structures) {
-      if (structure.kind === "harvester"
-        && this.visible(game, structure.x, structure.y, structure.radius + 140)) {
+    for (const structure of structureLayers.harvesterArms) {
+      if (this.visible(game, structure.x, structure.y, structure.radius + 140)) {
         this.drawHarvesterArm(structure);
+      }
+    }
+    for (const structure of structureLayers.harvesterBodies) {
+      if (this.visible(game, structure.x, structure.y, structure.radius + 140)) {
+        this.drawStructure(structure, game.player, false);
       }
     }
     for (const effect of game.areaEffects) {

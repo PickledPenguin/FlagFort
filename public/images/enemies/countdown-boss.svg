@@ -1,17 +1,265 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160">
-  <g id="countdown-boss" transform="matrix(.80014306 0 0 .80014306 -123.8113 13.663182)">
-    <circle id="body" cx="255.21658" cy="78.475067" r="65.587669" fill="#446f3d" stroke="#203321" stroke-width="8"/>
-    <path id="upper-right-arm" d="m304.5016 42.543048 30.27458-13.50012 13.38695 26.029036-10.0053 20.544946-6.23727-17.435068-14.94119 9.364441" fill="#446f3d" stroke="#203321" stroke-width="8"/>
-    <path id="upper-left-arm" d="m206.17655 41.75778-30.27458-13.50012-13.38695 26.029036 10.0053 20.544946 6.23727-17.435068 14.94119 9.364441" fill="#446f3d" stroke="#203321" stroke-width="8"/>
-    <path id="middle-right-arm" d="m317.83508 72.355972 32.17141 7.987741-5.46447 28.755187-20.52899 10.038 5.81201-17.5814-17.53988-1.812399" fill="#446f3d" stroke="#203321" stroke-width="8"/>
-    <path id="middle-left-arm" d="m192.65936 76.354553-32.17141 7.987741 5.46447 28.755196 20.52899 10.038-5.81201-17.58141 17.53988-1.8124" fill="#446f3d" stroke="#203321" stroke-width="8"/>
-    <path id="lower-arms" d="m198.56601 104.852-26.6587 26.72086 18 18 26.35285.98682-14.86668-14.36407 14.12457-10.37786m96.5482-22.00648 25.84106 20.76159-17.0368 23.8006-22.84652.48709 12.659-13.51425-15.15647-9.01185" fill="#446f3d" stroke="#203321" stroke-width="8"/>
-    <g id="face" transform="matrix(1.1287419 0 0 1.1287419 -32.815053 -10.706594)">
-      <ellipse id="right-eye" cx="232.74924" cy="-56.676678" rx="12.24283" ry="11.245036" fill="#601026" transform="rotate(30.478174)"/>
-      <ellipse id="left-eye" cx="-207.12158" cy="202.00929" rx="12.24283" ry="11.245036" fill="#601026" transform="matrix(-.86182244 .5072101 .5072101 .86182244 0 0)"/>
-      <rect id="right-brow" width="39.479359" height="12.362195" x="180.3092" y="-56.809326" rx="2.3014581" ry="1.3422852" transform="matrix(.9141162 .40545231 -.91290291 .40817678 0 0)"/>
-      <rect id="left-brow" width="39.479359" height="12.362195" x="-99.79702" y="221.12897" rx="2.3014581" ry="1.3422852" transform="matrix(-.9141162 .40545231 .91290291 .40817678 0 0)"/>
-      <path id="mouth" d="m258.80529 97.58892-7.19403 9.56693-11.20673-10.85986-6.64292 7.34864-6.5395-13.250429-6.27915 6.080999-9.11057-17.116288c-1.1142-2.093301 7.3265 25.861828 7.9798 25.212268l6.04647-6.01186 7.16268 11.27437c.17116.26943 7.51911-5.38968 8.49955-5.10623.57019.16484 9.44731 11.83359 9.81203 11.39199l8.27047-10.01378 4.77903 9.01435 8.74708-9.80317 6.09379 5.34264-.63196-6.85139 4.54796-2.81975 1.27772 7.88008c.094.57997 7.39009-6.71869 10.38818-14.21928 3.508-8.776246 3.20143-18.633737 2.88281-18.390347l-6.01816 17.3029-5.20806 4.485407-8.03258-7.07699c-.47645-.419772-2.9359 9.75756-3.92898 10.35711-.37331.22538-3.91877-1.44013-5.66433-2.08017-.54805-.20091-2.5366 7.03672-3.78679 6.85856-.96995-.13823-6.22437-8.54256-6.24381-8.5167Z"/>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 180 180"
+   role="img"
+   aria-labelledby="title desc"
+   version="1.1"
+   id="briar-behemoth-svg"
+   sodipodi:docname="countdown-boss.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <title
+     id="title">Briar Behemoth boss</title>
+  <desc
+     id="desc">A huge four-armed forest zombie wearing a simple thornwood crown and vine chest plate.</desc>
+  <metadata
+     id="editor-metadata">FlagFort editable Forest Frontier boss artwork. Arms, body, crown, vines, face, and thorns remain separate named groups.<rdf:RDF>
+  <cc:Work
+     rdf:about="">
+    <dc:title>Briar Behemoth boss</dc:title>
+  </cc:Work>
+</rdf:RDF>
+</metadata>
+  <defs
+     id="definitions">
+    <linearGradient
+       id="briar-body-gradient"
+       x1="0"
+       y1="0"
+       x2="0"
+       y2="1">
+      <stop
+         offset="0"
+         stop-color="#5b8b4f"
+         id="stop1" />
+      <stop
+         offset="1"
+         stop-color="#365f39"
+         id="stop2" />
+    </linearGradient>
+    <linearGradient
+       id="thornwood-gradient"
+       x1="0"
+       y1="0"
+       x2="1"
+       y2="1">
+      <stop
+         offset="0"
+         stop-color="#9a7040"
+         id="stop3" />
+      <stop
+         offset="1"
+         stop-color="#5e3d28"
+         id="stop4" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#thornwood-gradient"
+       id="linearGradient4"
+       x1="-35.733055"
+       y1="-103.81043"
+       x2="35.504413"
+       y2="-32.572958"
+       gradientTransform="scale(1.3749768,0.72728501)"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#thornwood-gradient"
+       id="linearGradient5"
+       x1="-35.733055"
+       y1="-103.81043"
+       x2="35.504413"
+       y2="-32.572958"
+       gradientTransform="scale(1.3749768,0.72728501)"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#briar-body-gradient"
+       id="linearGradient6"
+       x1="-57.5"
+       y1="-57.5"
+       x2="-57.5"
+       y2="57.5"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(0,0.88589506)" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#briar-body-gradient"
+       id="linearGradient7"
+       x1="-88.798355"
+       y1="-56.771712"
+       x2="-88.798355"
+       y2="-7.8126654"
+       gradientTransform="matrix(1.0416848,0,0,0.95998333,4,2)"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#briar-body-gradient"
+       id="linearGradient8"
+       x1="39.839308"
+       y1="-56.771712"
+       x2="39.839308"
+       y2="-7.8126654"
+       gradientTransform="matrix(1.0416848,0,0,0.95998333,-4,2)"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#briar-body-gradient"
+       id="linearGradient9"
+       x1="-74.623999"
+       y1="18.241484"
+       x2="-74.623999"
+       y2="67.990707"
+       gradientTransform="scale(1.1055415,0.90453413)"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#briar-body-gradient"
+       id="linearGradient10"
+       x1="24.874776"
+       y1="18.241484"
+       x2="24.874776"
+       y2="67.990707"
+       gradientTransform="scale(1.1055415,0.90453413)"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#briar-body-gradient"
+       id="linearGradient11"
+       x1="-73.246058"
+       y1="-68.826019"
+       x2="-73.246058"
+       y2="77.666098"
+       gradientTransform="scale(1.2628651,0.7918502)"
+       gradientUnits="userSpaceOnUse" />
+  </defs>
+  <sodipodi:namedview
+     id="namedview"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:current-layer="face"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="1.894381"
+     inkscape:cx="57.010708"
+     inkscape:cy="67.832185"
+     inkscape:window-width="1612"
+     inkscape:window-height="772"
+     inkscape:window-x="0"
+     inkscape:window-y="33"
+     inkscape:window-maximized="0" />
+  <g
+     id="briar-behemoth"
+     transform="translate(90 94)"
+     stroke="#203321"
+     stroke-width="7"
+     stroke-linejoin="round"
+     stroke-linecap="round">
+    <g
+       id="four-arms"
+       fill="url(#briar-body-gradient)"
+       style="fill:url(#linearGradient11)"
+       transform="translate(0,0.88589506)">
+      <path
+         id="upper-left-arm"
+         d="m -41,-31 -31,-18 -13,16 21,24 23,-4 z"
+         style="fill:url(#linearGradient7)" />
+      <path
+         id="upper-right-arm"
+         d="M 41,-31 72,-49 85,-33 64,-9 41,-13 Z"
+         style="fill:url(#linearGradient8)" />
+      <path
+         id="lower-left-arm"
+         d="m -48,20 -31,16 7,22 33,-10 8,-19 z"
+         style="fill:url(#linearGradient9)" />
+      <path
+         id="lower-right-arm"
+         d="M 48,20 79,36 72,58 39,48 31,29 Z"
+         style="fill:url(#linearGradient10)" />
     </g>
+    <circle
+       id="body"
+       cx="0"
+       cy="0.88589507"
+       r="54"
+       fill="url(#briar-body-gradient)"
+       style="fill:url(#linearGradient6)" />
+    <g
+       id="thornwood-crown"
+       fill="url(#thornwood-gradient)"
+       stroke="#402b20"
+       style="fill:url(#linearGradient5)"
+       transform="translate(0,-1.1141049)">
+      <path
+         id="crown-band"
+         d="M -39,-37 -45.632302,-69.802823 -18,-48 0,-72 18,-48 45.317916,-69.488437 39,-37 c -23,13 -55,13 -78,0 z"
+         sodipodi:nodetypes="cccccccc"
+         style="fill:url(#linearGradient4)" />
+    </g>
+    <g
+       id="face"
+       transform="translate(0,0.88589506)">
+      <g
+         id="eyes"
+         fill="#f2ffd1"
+         stroke="none"
+         transform="translate(0,8)">
+        <ellipse
+           id="left-eye"
+           cx="-23.200802"
+           cy="-9.3125067"
+           rx="11"
+           ry="9"
+           transform="rotate(15)" />
+        <ellipse
+           id="right-eye"
+           cx="23.200802"
+           cy="-9.3125067"
+           rx="11"
+           ry="9"
+           transform="rotate(-15)" />
+      </g>
+      <g
+         id="pupils"
+         fill="#7b1743"
+         stroke="none"
+         transform="translate(0,8)">
+        <circle
+           id="left-pupil"
+           cx="-17"
+           cy="-14"
+           r="5" />
+        <circle
+           id="right-pupil"
+           cx="17"
+           cy="-14"
+           r="5" />
+      </g>
+      <path
+         id="brow"
+         d="m -34,-20 26.6242184,9.088535 M 34,-20 9.1729341,-10.87149"
+         fill="none"
+         sodipodi:nodetypes="cccc" />
+      <path
+         id="mouth"
+         d="m -21,22 9,8 10,-8 10,9 12,-11"
+         fill="none" />
+    </g>
+    <g
+       id="body-thorns-7"
+       fill="#754c2d"
+       stroke="#402b20"
+       stroke-width="3"
+       transform="translate(8.408544,32.896771)" />
   </g>
 </svg>

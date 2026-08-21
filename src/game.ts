@@ -86,6 +86,7 @@ import {
   activeRosterEnemies,
   endlessRosterAdditions,
   endlessRosterMilestones,
+  enemyTargetPriorities,
   isBossEnemyKind,
   mutationWeightKey,
   rosterMilestones,
@@ -2554,6 +2555,7 @@ export class Game {
         this.invalidateEnemyTarget(enemy);
         this.selectEnemyTarget(enemy);
       }
+      this.updateRangedPriorityTarget(enemy);
       this.resolveEnemyStructureOverlap(enemy, dt);
       if (definition.ram && this.updateEnemyRam(enemy, dt)) continue;
       if (enemy.jumpTime > 0) {
@@ -2784,6 +2786,7 @@ export class Game {
       enemy.targetId = "flag";
       return;
     }
+    if (definition.projectile && this.selectRangedPriorityTarget(enemy)) return;
     const detection = definition.targeting.detectionRadius;
     if (definition.targeting.mode === "player") {
       enemy.targetId = distance(enemy, this.player) <= detection ? "player" : "flag";
@@ -2846,6 +2849,73 @@ export class Game {
     else if (turret) enemy.targetId = turret.id;
     else if (harvester) enemy.targetId = harvester.id;
     else enemy.targetId = "flag";
+  }
+
+  private rangedPriorityTarget(
+    enemy: Enemy,
+    priority: ReturnType<typeof enemyTargetPriorities>[number],
+  ): number | "player" | "flag" | null {
+    const definition = ENEMY_REGISTRY[enemy.kind];
+    if (priority === "player") {
+      return distance(enemy, this.player) <= this.enemyAttackRange(enemy)
+        && this.canEnemyChasePlayer(enemy) ? "player" : null;
+    }
+    if (priority === "flag") return this.flagPresent ? "flag" : null;
+    return this.nearestStructure(enemy, definition.targeting.detectionRadius, priority)?.id ?? null;
+  }
+
+  private setRangedPriorityTarget(
+    enemy: Enemy,
+    targetId: number | "player" | "flag",
+  ): void {
+    if (enemy.targetId === targetId) return;
+    enemy.targetId = targetId;
+    enemy.path = [];
+    enemy.pathIndex = 0;
+    enemy.pathCooldown = 0;
+    enemy.routeIncludesStructures = false;
+    enemy.routeCommitment = ENEMY_REGISTRY[enemy.kind].targeting.lockSeconds;
+    enemy.forcedBlockerId = null;
+  }
+
+  private selectRangedPriorityTarget(
+    enemy: Enemy,
+    priorities = enemyTargetPriorities(ENEMY_REGISTRY[enemy.kind]),
+  ): boolean {
+    for (const priority of priorities) {
+      const targetId = this.rangedPriorityTarget(enemy, priority);
+      if (targetId === null) continue;
+      this.setRangedPriorityTarget(enemy, targetId);
+      return true;
+    }
+    return false;
+  }
+
+  private updateRangedPriorityTarget(enemy: Enemy): void {
+    const definition = ENEMY_REGISTRY[enemy.kind];
+    if (!definition.projectile || definition.attack.mode === "melee") return;
+    const priorities = enemyTargetPriorities(definition);
+    const playerPriority = priorities.indexOf("player");
+    if (playerPriority < 0) return;
+    if (enemy.targetId === "player") {
+      if (this.rangedPriorityTarget(enemy, "player") !== null) return;
+      if (!this.selectRangedPriorityTarget(enemy, priorities.slice(playerPriority + 1))) {
+        this.setRangedPriorityTarget(enemy, "flag");
+      }
+      return;
+    }
+    const currentTarget = this.getEnemyTarget(enemy);
+    const currentPriority = currentTarget === this.player
+      ? playerPriority
+      : currentTarget === this.flag
+        ? priorities.indexOf("flag")
+        : currentTarget && "tier" in currentTarget
+          ? priorities.indexOf(currentTarget.kind)
+          : priorities.length;
+    if (playerPriority < (currentPriority < 0 ? priorities.length : currentPriority)
+      && this.rangedPriorityTarget(enemy, "player") !== null) {
+      this.setRangedPriorityTarget(enemy, "player");
+    }
   }
 
   private canEnemyChasePlayer(enemy: Enemy): boolean {
@@ -3270,11 +3340,14 @@ export class Game {
         const gapRoute = gapNavigation.find(enemy, target, targetRadius);
         const directDistance = Math.max(1, distance(enemy, target));
         const routeDistance = this.pathLength(enemy, gapRoute);
+        const allowsObstacleFallback = ENEMY_REGISTRY[enemy.kind].movement.obstacleFallback;
         if (
           gapRoute.length > 0
           && !pathIntersectsObstacle(enemy, gapRoute, navigationalStructures, enemy.radius)
-          && routeDistance <= directDistance * BALANCE.navigation.runnerMaximumDetourRatio
-          && routeDistance - directDistance <= BALANCE.navigation.runnerMaximumExtraDistance
+          && (!allowsObstacleFallback || (
+            routeDistance <= directDistance * BALANCE.navigation.runnerMaximumDetourRatio
+            && routeDistance - directDistance <= BALANCE.navigation.runnerMaximumExtraDistance
+          ))
         ) {
           enemy.path = gapRoute;
           enemy.pathIndex = 0;
@@ -3847,7 +3920,7 @@ export class Game {
       });
       this.burst(enemy.x, enemy.y, "#b7dd63", 20, "FALLOUT");
     }
-    if (enemy.kind === "mire-lurker" && reason === "combat") {
+    if (enemy.kind === "mire-lurker" && !enemy.mireTentacle && reason === "combat") {
       let target: ResourceNode | undefined;
       let targetDistanceSquared = Number.POSITIVE_INFINITY;
       for (const node of this.world.resources) {
@@ -5476,6 +5549,20 @@ export class Game {
     boss.pathCooldown = 0;
     boss.deathReason = null;
     boss.deathResolved = false;
+    boss.countsTowardWave = true;
+    const validPortals = this.portals
+      .filter((portal) => !portal.temporary)
+      .sort((a, b) => a.id - b.id);
+    const portalRng = new SeededRng(`${this.seed}:chronoforge-rewind:${this.night}`);
+    const rewindPortal = validPortals.length > 0 ? portalRng.pick(validPortals) : undefined;
+    if (rewindPortal) {
+      const arrivalAngle = portalRng.range(0, Math.PI * 2);
+      boss.x = rewindPortal.x + Math.cos(arrivalAngle) * 18;
+      boss.y = rewindPortal.y + Math.sin(arrivalAngle) * 18;
+      boss.angle = Math.atan2(this.flag.y - boss.y, this.flag.x - boss.x);
+      this.burst(boss.x, boss.y, "#79e7df", 28, "REWOUND");
+      emitAudioCue({ cue: "portal-spawn", position: { x: boss.x, y: boss.y } });
+    }
     this.enemies = [boss];
     this.timer = rewind.fullDuration;
     this.phaseElapsed = 0;
@@ -5485,6 +5572,7 @@ export class Game {
       portal.spawned = 0;
       portal.spawnCooldown = 0;
     }
+    this.bossSpawnedThisNight = true;
     this.timeRewind = null;
     this.notify("THE NIGHT BEGINS AGAIN", true);
     emitAudioCue({ cue: "night-start" });

@@ -40,7 +40,7 @@ export class NavigationGrid {
   }
 
   find(start: Vec2, goal: Vec2, goalRadius = 0): Vec2[] {
-    const startCell = this.nearestOpen(this.toCell(start));
+    const startCell = this.nearestOpen(this.toCell(start), start);
     const exactGoalCell = this.toCell(goal);
     const exactGoalOpen = !this.isBlocked(exactGoalCell);
     const goalCell = exactGoalOpen
@@ -191,18 +191,47 @@ export class NavigationGrid {
     this.heapScores[b] = score;
   }
 
-  private nearestOpen(origin: GridCell): GridCell {
+  private nearestOpen(origin: GridCell, exactStart?: Vec2): GridCell {
     if (!this.isBlocked(origin)) return origin;
+    let fallback: GridCell | null = null;
+    let fallbackDistance = Number.POSITIVE_INFINITY;
     for (let radius = 1; radius <= 6; radius += 1) {
+      let best: GridCell | null = null;
+      let bestDistance = Number.POSITIVE_INFINITY;
       for (let dx = -radius; dx <= radius; dx += 1) {
         for (let dy = -radius; dy <= radius; dy += 1) {
           if (Math.abs(dx) !== radius && Math.abs(dy) !== radius) continue;
           const candidate = { x: origin.x + dx, y: origin.y + dy };
-          if (this.inBounds(candidate) && !this.isBlocked(candidate)) return candidate;
+          if (!this.inBounds(candidate) || this.isBlocked(candidate)) continue;
+          const center = this.cellCenter(candidate);
+          const candidateDistance = exactStart
+            ? Math.hypot(center.x - exactStart.x, center.y - exactStart.y)
+            : Math.hypot(dx, dy);
+          if (candidateDistance < fallbackDistance
+            || (candidateDistance === fallbackDistance && fallback
+              && this.key(candidate.x, candidate.y) < this.key(fallback.x, fallback.y))) {
+            fallback = candidate;
+            fallbackDistance = candidateDistance;
+          }
+          const reachable = !exactStart || this.obstacles.every((obstacle) =>
+            !segmentHitsCircle(
+              exactStart,
+              center,
+              obstacle,
+              this.actorRadius + this.margin,
+            ));
+          if (!reachable) continue;
+          if (candidateDistance < bestDistance
+            || (candidateDistance === bestDistance && best
+              && this.key(candidate.x, candidate.y) < this.key(best.x, best.y))) {
+            best = candidate;
+            bestDistance = candidateDistance;
+          }
         }
       }
+      if (best) return best;
     }
-    return origin;
+    return fallback ?? origin;
   }
 
   private nearestOpenGoal(

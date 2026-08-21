@@ -494,6 +494,8 @@ describe("event-driven HUD interaction", () => {
     click(overlay.querySelector('[data-action="encyclopedia"]')!);
     expect(overlay.querySelectorAll(".enemy-codex-tile"))
       .toHaveLength(Object.keys(ENEMY_REGISTRY).length);
+    const grid = overlay.querySelector<HTMLElement>(".enemy-codex-grid")!;
+    grid.scrollTop = 240;
 
     const clockwork = overlay.querySelector<HTMLElement>(
       '[data-enemy-kind="chronoforge-colossus"]',
@@ -506,8 +508,16 @@ describe("event-driven HUD interaction", () => {
     expect(details.getAttribute("aria-modal")).toBe("true");
     expect(details.textContent).toContain("Chronoforge Colossus");
     expect(details.textContent).toContain("Telegraphed circles Time Lock players and turrets without dealing damage.");
+    expect(details.querySelectorAll(".enemy-icon-stat")).toHaveLength(6);
+    expect(details.textContent).toContain("Structure Damage");
+    expect(details.textContent).toContain("ATTACK TYPE");
+    expect(details.textContent).toContain("TARGETS");
+    expect(details.textContent).toContain("TRAITS");
+    expect(details.textContent).not.toContain("COMBAT TRAITS");
+    expect(overlay.querySelector<HTMLElement>(".enemy-codex-grid")!.scrollTop).toBe(240);
 
     click(details.querySelector('[data-action="close-enemy-details"]')!);
+    expect(overlay.querySelector<HTMLElement>(".enemy-codex-grid")!.scrollTop).toBe(240);
     click(overlay.querySelector('[data-codex-sort="name"]')!);
     expect(overlay.querySelector(".enemy-codex-tile b")?.textContent).toBe("Acidslinger");
   });

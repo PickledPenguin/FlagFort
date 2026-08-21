@@ -163,6 +163,21 @@ describe("mire enemies", () => {
     expect(game.infectionTravelers.at(-1)?.targetId).toBe(node.id);
   });
 
+  it("does not seed an infestation when an armor-break parasite dies", () => {
+    const game = gameFixture();
+    const parasite = spawn(game, "mire-lurker", game.flag.x + 180, game.flag.y);
+    parasite.mireTentacle = true;
+    parasite.objectivePriority = "flag";
+    parasite.health = 0;
+    parasite.deathReason = "combat";
+
+    (game as unknown as { resolveEnemyDeath(enemy: Enemy): void })
+      .resolveEnemyDeath(parasite);
+
+    expect(game.infectionTravelers).toHaveLength(0);
+    expect(game.particles.some((particle) => particle.text === "PARASITE")).toBe(false);
+  });
+
   it("registers Sporecaster as a Drowned Mire seeding suppression enemy", () => {
     const definition = ENEMY_REGISTRY.sporecaster;
 

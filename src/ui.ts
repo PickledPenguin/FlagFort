@@ -10,7 +10,12 @@ import { CHALLENGES, challengeXpBonusPercent, resolveChallengeModifiers } from "
 import { challengeIcon } from "./challenge-icons";
 import { audioManager, type AudioVolumeChannel } from "./audio";
 import { ASSETS, campaignEnemyPortrait } from "./assets";
-import { ENEMY_REGISTRY } from "./enemy-registry";
+import {
+  ENEMY_REGISTRY,
+  enemyTargetPriorities,
+  type EnemyDefinition,
+  type EnemyTargetKind,
+} from "./enemy-registry";
 import type { ActionKind, CampaignTierId, Choice, Difficulty, EnemyKind, StructureKind, Tier, Upgrades } from "./types";
 import {
   CAMPAIGN_TIERS,
@@ -156,6 +161,7 @@ export class Ui {
   private flippedCampaignTierId: CampaignTierId | null = null;
   private enemyCodexSort: EnemyCodexSort = "tier";
   private selectedEnemyCodexKind: EnemyKind | null = null;
+  private enemyCodexScrollTop = 0;
   private profileColorDraft: string;
   private profileEyeDraft: EyeStyle;
   private dailyRewardVisible: boolean;
@@ -268,6 +274,7 @@ export class Ui {
     else this.overlay.innerHTML = "";
     this.decorateMenuPanel();
     this.syncCampaignLadderScroll();
+    this.syncEnemyCodexScroll();
     if (this.selectedEnemyCodexKind && this.menuPanel === "encyclopedia") {
       this.focusDialog(".enemy-details-modal");
     } else if (this.tutorialOpen && !this.tutorialExitConfirmation) {
@@ -312,6 +319,12 @@ export class Ui {
     } else if (selectedRect.bottom > viewportRect.bottom) {
       viewport.scrollTop = Math.max(0, viewport.scrollTop + selectedRect.bottom - viewportRect.bottom + 12);
     }
+  }
+
+  private syncEnemyCodexScroll(): void {
+    if (this.menuPanel !== "encyclopedia") return;
+    const grid = this.overlay.querySelector<HTMLElement>(".enemy-codex-grid");
+    if (grid) grid.scrollTop = this.enemyCodexScrollTop;
   }
 
   private overlayKey(): string {
@@ -485,9 +498,22 @@ export class Ui {
     active: boolean,
   ): string {
     const requirements = campaignUnlockRequirementText(tier, this.campaignProgress());
-    const enemies = tier.specialEnemies.map((kind) => {
-      const enemy = ENEMY_REGISTRY[kind];
-      return `<span><b>${enemy.displayName}</b><img src="${campaignEnemyPortrait(kind, tier.id)}" alt=""><small>NIGHT ${enemy.introductionNight}</small></span>`;
+    const possibleSpecials = tier.id === "forest"
+      ? Object.values(ENEMY_REGISTRY)
+        .filter((enemy) => enemy.rosterEligible
+          && enemy.selectionWeight > 0
+          && !enemy.campaignTierIds
+          && [3, 5, 7].includes(enemy.introductionNight))
+        .map((enemy) => enemy.id)
+      : [...tier.specialEnemies];
+    const slots = new Map<number, EnemyKind[]>();
+    for (const kind of possibleSpecials) {
+      const night = ENEMY_REGISTRY[kind].introductionNight;
+      slots.set(night, [...(slots.get(night) ?? []), kind]);
+    }
+    const enemies = [...slots.entries()].sort(([a], [b]) => a - b).map(([night, kinds]) => {
+      const options = kinds.map((kind) => `<i><b>${ENEMY_REGISTRY[kind].displayName}</b><img src="${campaignEnemyPortrait(kind, tier.id)}" alt=""></i>`).join("");
+      return `<span class="tier-card-enemy-slot ${kinds.length > 1 ? "multiple" : "single"}"><em>${options}</em><small>NIGHT ${night}</small></span>`;
     }).join("");
     const boss = ENEMY_REGISTRY[tier.boss];
     const bossCard = `<span class="boss"><b>${boss.displayName}</b><img src="${campaignEnemyPortrait(tier.boss, tier.id)}" alt=""><small>BOSS · NIGHT ${boss.introductionNight}</small></span>`;
@@ -796,7 +822,7 @@ export class Ui {
         return a.introductionNight - b.introductionNight
           || a.displayName.localeCompare(b.displayName);
       }
-      return a.tier - b.tier
+      return this.enemyCampaignTier(a.id).order - this.enemyCampaignTier(b.id).order
         || a.introductionNight - b.introductionNight
         || a.displayName.localeCompare(b.displayName);
     });
@@ -836,38 +862,91 @@ export class Ui {
     const unlocked = isCampaignTierUnlocked(campaign, this.campaignProgress());
     const health = Math.round(definition.base.health);
     const armor = definition.armor ? Math.round(definition.armor.health) : 0;
-    const speedLabel = definition.base.speed >= 155 ? "Very fast"
-      : definition.base.speed >= 125 ? "Fast"
-        : definition.base.speed >= 90 ? "Steady"
-          : definition.base.speed >= 60 ? "Slow" : "Very slow";
-    const attackLabel = definition.projectile
-      ? `Ranged ${definition.attack.mode}`
-      : definition.attack.mode === "boss" ? "Heavy melee" : "Melee";
-    const rangeRatio = Math.min(100, definition.targeting.attackRange / 8);
+    const speedLabel = definition.base.speed >= 155 ? "Very Fast"
+      : definition.base.speed >= 125 ? "Fast" : "Normal";
+    const attackLabel = definition.attack.mode === "boss" ? "Boss"
+      : definition.ram ? "Charge"
+        : definition.projectile?.pierces ? "Ranged Piercing"
+          : definition.projectile ? "Ranged" : "Melee";
     const abilities = this.enemyAbilityNotes(kind);
     return `<section class="enemy-details-layer"><article class="enemy-details-modal ${unlocked ? "" : "locked"}"
       role="dialog" aria-modal="true" aria-labelledby="enemy-details-title">
       <button class="modal-close" data-action="close-enemy-details" aria-label="Back to enemy encyclopedia">${icon("arrow-left")}</button>
       <div class="enemy-details-hero">
         <span class="enemy-details-art"><img src="${campaignEnemyPortrait(kind, campaign.id)}" alt=""></span>
-        <div><p class="eyebrow">${campaign.name} · TIER ${definition.tier}</p>
+        <div><p class="eyebrow">${campaign.name} · CAMPAIGN TIER ${campaign.order + 1}</p>
           <h2 id="enemy-details-title">${definition.displayName}</h2>
           <strong>INTRODUCED NIGHT ${definition.introductionNight}</strong>
           <p>${definition.description}</p></div>
       </div>
       ${unlocked ? "" : `<p class="enemy-spoiler-note">${buildBarIcon("locked", { className: "enemy-lock-icon" })} This enemy belongs to a campaign tier you have not unlocked yet. The campaign already previews its roster, so tactical details remain available here.</p>`}
       <div class="enemy-detail-stats">
-        <span style="--stat:${Math.min(100, health / 18)}%"><small>HEALTH</small><b>${health}</b><i></i></span>
-        <span style="--stat:${Math.min(100, armor / 12)}%"><small>ARMOR</small><b>${armor || "None"}</b><i></i></span>
-        <span style="--stat:${Math.min(100, definition.base.speed / 1.8)}%"><small>MOVEMENT</small><b>${speedLabel}</b><i></i></span>
-        <span style="--stat:${Math.min(100, definition.base.damage * 2.2)}%"><small>PLAYER DAMAGE</small><b>${Math.round(definition.base.damage)}</b><i></i></span>
-        <span style="--stat:${rangeRatio}%"><small>ATTACK</small><b>${attackLabel}</b><i></i></span>
+        ${this.enemyNumberStat("health", "Health", health)}
+        ${this.enemyNumberStat("armor", "Armor", armor)}
+        <span class="enemy-icon-stat movement"><i class="enemy-stat-icon">${this.enemyStatGlyph("movement", definition.base.speed)}</i><small>MOVEMENT</small><b>${speedLabel}</b></span>
+        ${this.enemyNumberStat("player-damage", "Player Damage", Math.round(definition.base.damage))}
+        ${this.enemyNumberStat("structure-damage", "Structure Damage", Math.round(definition.base.structureDamage))}
+        <span class="enemy-icon-stat attack-type"><i class="enemy-stat-icon">${this.enemyAttackTypeIcon(definition)}</i><small>ATTACK TYPE</small><b>${attackLabel}</b></span>
       </div>
+      ${this.enemyTargetsMarkup(definition)}
       <div class="enemy-detail-notes">
         <section><small>RECOGNIZE IT</small><p>${definition.tell}</p></section>
-        <section><small>COMBAT TRAITS</small><ul>${abilities.map((ability) => `<li>${ability}</li>`).join("")}</ul></section>
+        <section><small>TRAITS</small><ul>${abilities.map((ability) => `<li>${ability}</li>`).join("")}</ul></section>
       </div>
     </article></section>`;
+  }
+
+  private enemyNumberStat(
+    kind: "health" | "armor" | "player-damage" | "structure-damage",
+    label: string,
+    value: number,
+  ): string {
+    return `<span class="enemy-icon-stat ${kind}"><i class="enemy-stat-icon">${this.enemyStatGlyph(kind)}<b>${value}</b></i><small>${label}</small></span>`;
+  }
+
+  private enemyStatGlyph(
+    kind: "health" | "armor" | "movement" | "player-damage" | "structure-damage",
+    speed = 0,
+  ): string {
+    if (kind === "health") return '<svg viewBox="0 0 64 60" aria-hidden="true"><path d="M32 55 7 32C-7 13 17-4 32 14 47-4 71 13 57 32Z"/></svg>';
+    if (kind === "armor") return '<svg viewBox="0 0 64 68" aria-hidden="true"><path d="M32 3 58 13v20c0 17-11 27-26 32C17 60 6 50 6 33V13Z"/></svg>';
+    if (kind === "movement") {
+      const arrows = speed >= 155 ? 3 : speed >= 125 ? 2 : 1;
+      return `<svg viewBox="0 0 70 60" aria-hidden="true">${Array.from({ length: arrows }, (_, index) => `<path d="M${10 + index * 18} 48V15m-9 10 9-10 9 10"/>`).join("")}</svg>`;
+    }
+    return '<svg viewBox="0 0 68 68" aria-hidden="true"><path d="m34 2 7 17 18-7-7 18 14 9-17 7 7 18-18-7-9 14-7-17-18 7 7-18-14-9 17-7-7-18 18 7Z"/></svg>';
+  }
+
+  private enemyAttackTypeIcon(definition: EnemyDefinition): string {
+    if (definition.attack.mode === "boss") {
+      return '<svg viewBox="0 0 64 60" aria-hidden="true"><path d="m7 49-3-35 18 15L32 6l10 23 18-15-3 35Z"/><path d="M8 50h48"/></svg>';
+    }
+    if (definition.ram) {
+      return '<svg viewBox="0 0 64 60" aria-hidden="true"><path d="M5 30h46M37 13l17 17-17 17"/><path d="M8 16v28"/></svg>';
+    }
+    if (definition.projectile) return `${buildBarIcon("nighttime-bow")}${definition.projectile.pierces ? '<i class="piercing-mark">»</i>' : ""}`;
+    return buildBarIcon("fists", { tier: "wood" });
+  }
+
+  private enemyTargetsMarkup(definition: EnemyDefinition): string {
+    const collapsed = enemyTargetPriorities(definition).reduce<EnemyTargetKind[]>((targets, target) => {
+      const normalized = target === "door" || target === "spikes" ? "wall" : target;
+      if (!targets.includes(normalized)) targets.push(normalized);
+      return targets;
+    }, []);
+    const targets = collapsed.map((target) => {
+      const label = target === "player" ? "Player"
+        : target === "flag" ? "Flag"
+          : target === "wall" ? "Structures"
+            : target[0]!.toUpperCase() + target.slice(1);
+      const symbol = target === "player"
+        ? `<img src="${ASSETS.player.body}" alt="">`
+        : target === "flag"
+          ? `<img src="${ASSETS.flag.cloth}" alt="">`
+          : buildBarIcon(target, { tier: "wood" });
+      return `<span title="${label}">${symbol}<small>${label}</small></span>`;
+    }).join("");
+    return `<section class="enemy-targets"><small>TARGETS</small><div>${targets}</div></section>`;
   }
 
   private enemyAbilityNotes(kind: EnemyKind): string[] {
@@ -879,6 +958,10 @@ export class Ui {
     if (definition.projectile?.statusEffect) {
       notes.push(`Projectiles inflict ${definition.projectile.statusEffect.kind.replace("-", " ")} on ${definition.projectile.statusEffect.targets.join(" and ")}.`);
     }
+    if (definition.projectile?.secondaryStatusEffect) {
+      notes.push(`Projectiles also inflict ${definition.projectile.secondaryStatusEffect.kind.replace("-", " ")}.`);
+    }
+    if (definition.projectile?.pierces) notes.push("Projectiles pierce through aligned targets.");
     if (definition.attack.statusEffect) {
       notes.push(`Melee hits inflict ${definition.attack.statusEffect.kind.replace("-", " ")}.`);
     }
@@ -893,6 +976,13 @@ export class Ui {
     if (definition.areaStrike?.resolution === "time-lock") {
       notes.push("Telegraphed circles Time Lock players and turrets without dealing damage.");
     } else if (definition.areaStrike) notes.push("Marks several circles before a damaging area strike.");
+    if (definition.aimedProjectile) notes.push("Periodically predicts the player's movement before firing acid.");
+    if (definition.phaseSlam) {
+      notes.push(`At half health, slams the ground and calls ${definition.phaseSlam.reinforcementCount} ${ENEMY_REGISTRY[definition.phaseSlam.reinforcementKind].displayName}${definition.phaseSlam.reinforcementCount === 1 ? "" : "s"}.`);
+    }
+    if (definition.capabilities.fireAura) notes.push("Radiates heat that ignites nearby defenders and structures.");
+    if (definition.capabilities.radiationAura) notes.push("Carries a radiation aura that poisons defenders and decays resources.");
+    if (definition.capabilities.meleeRetaliation) notes.push("Melee attackers are burned in retaliation.");
     if (definition.death.mode === "split") notes.push("Splits into smaller enemies when defeated in combat.");
     if (definition.death.mode === "burst") notes.push("Bursts on combat defeat and threatens nearby defenders or structures.");
     if (definition.capabilities.knockbackImmune) notes.push("Immune to knockback.");
@@ -1701,6 +1791,8 @@ export class Ui {
     const action = target.dataset.action;
     const panelBeforeAction = this.menuPanel;
     const menuModalScrollTop = this.overlay.querySelector<HTMLElement>(".menu-modal > .modal")?.scrollTop;
+    const enemyCodexGrid = this.overlay.querySelector<HTMLElement>(".enemy-codex-grid");
+    if (enemyCodexGrid) this.enemyCodexScrollTop = enemyCodexGrid.scrollTop;
     const campaignLadderScrollTop = this.campaignPointerScrollTop
       ?? this.overlay.querySelector<HTMLElement>(".campaign-ladder-viewport")?.scrollTop;
     this.campaignPointerScrollTop = null;

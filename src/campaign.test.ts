@@ -630,12 +630,20 @@ describe("data-driven campaign tiers", () => {
   });
 
   it("assigns every biome's three configured specials to distinct roster tiers", () => {
-    for (const tier of CAMPAIGN_TIERS.filter((item) => item.specialEnemies.length > 0)) {
+    for (const tier of CAMPAIGN_TIERS.filter((item) => item.id !== "forest" && item.specialEnemies.length > 0)) {
       const roster = selectEnemyRoster("campaign-special-slots", tier.id);
       const specialEnemies = new Set<string>(tier.specialEnemies);
       expect(Object.values(roster).filter((kind) => specialEnemies.has(kind))).toHaveLength(3);
       expect(new Set(Object.values(roster)).size).toBe(5);
     }
+  });
+
+  it("keeps Forest Frontier roster slots seed-random across all shared candidates", () => {
+    const rosters = Array.from({ length: 20 }, (_, index) =>
+      selectEnemyRoster(`forest-card-options-${index}`, "forest"));
+    expect(new Set(rosters.map((roster) => roster[3])).size).toBeGreaterThan(1);
+    expect(new Set(rosters.map((roster) => roster[5])).size).toBeGreaterThan(1);
+    expect(new Set(rosters.map((roster) => roster[7])).size).toBeGreaterThan(1);
   });
 
   it("accepts either the level path or previous-clear path for every later tier", () => {
