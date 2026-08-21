@@ -512,7 +512,7 @@ export class Ui {
       slots.set(night, [...(slots.get(night) ?? []), kind]);
     }
     const enemies = [...slots.entries()].sort(([a], [b]) => a - b).map(([night, kinds]) => {
-      const options = kinds.map((kind) => `<i><b>${ENEMY_REGISTRY[kind].displayName}</b><img src="${campaignEnemyPortrait(kind, tier.id)}" alt=""></i>`).join("");
+      const options = kinds.map((kind, index) => `${index > 0 ? '<u class="tier-enemy-separator" aria-hidden="true">/</u>' : ""}<i><b>${ENEMY_REGISTRY[kind].displayName}</b><img src="${campaignEnemyPortrait(kind, tier.id)}" alt=""></i>`).join("");
       return `<span class="tier-card-enemy-slot ${kinds.length > 1 ? "multiple" : "single"}"><em>${options}</em><small>NIGHT ${night}</small></span>`;
     }).join("");
     const boss = ENEMY_REGISTRY[tier.boss];
@@ -940,7 +940,13 @@ export class Ui {
           : target === "wall" ? "Structures"
             : target[0]!.toUpperCase() + target.slice(1);
       const symbol = target === "player"
-        ? `<img src="${ASSETS.player.body}" alt="">`
+        ? `<i class="player-target-icon" aria-hidden="true">
+            <img class="player-target-body" src="${ASSETS.player.body}" alt="">
+            <img class="player-target-details" src="${ASSETS.player.bodyDetails}" alt="">
+            <img class="player-target-eyes" src="${ASSETS.player.eyes.round}" alt="">
+            <img class="player-target-hand upper" src="${ASSETS.player.hands.wood}" alt="">
+            <img class="player-target-hand lower" src="${ASSETS.player.hands.wood}" alt="">
+          </i>`
         : target === "flag"
           ? `<img src="${ASSETS.flag.cloth}" alt="">`
           : buildBarIcon(target, { tier: "wood" });
@@ -966,7 +972,11 @@ export class Ui {
       notes.push(`Melee hits inflict ${definition.attack.statusEffect.kind.replace("-", " ")}.`);
     }
     if (definition.attack.lifeSteal) notes.push("Successful attacks restore its health.");
-    if (definition.leap) notes.push("Telegraphs a leap over constructed defenses.");
+    if (definition.leap) {
+      notes.push(kind === "rift-strider"
+        ? `Phases across constructed defenses, with a ${definition.leap.cooldown}s cooldown between uses.`
+        : "Telegraphs a leap over constructed defenses.");
+    }
     if (definition.ram) notes.push("Loads a charge that can breach several structures in one rush.");
     if (definition.summon) {
       const summons = definition.summon.kinds?.map((summon) => ENEMY_REGISTRY[summon].displayName).join(" or ")
@@ -1071,7 +1081,7 @@ export class Ui {
         const next = nextEquipmentTier(item.tier);
         const price = equipmentUpgradePrice(item.tier);
         const shownTier = item.tier ?? "wood";
-        return `<article class="shop-item" data-equipment-item="${kind}">
+        return `<article class="shop-item ${kind === "sword" ? "shop-item-wide" : "shop-item-compact"}" data-equipment-item="${kind}">
           <div class="shop-art"><img src="${META_BALANCE.assets.equipment[kind][shownTier]}" alt=""></div>
           <p class="eyebrow">${item.tier ? `${item.tier.toUpperCase()} TIER` : "LOCKED"}</p>
           <h3>${copy[kind].title}</h3><p>${copy[kind].text}</p>

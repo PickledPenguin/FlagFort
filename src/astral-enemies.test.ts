@@ -40,7 +40,7 @@ describe("astral enemies", () => {
     expect(definition.render).toEqual({ aspectRatio: 116 / 104, width: 84, height: 75 });
     expect(definition.leap).toMatchObject({
       range: 250,
-      cooldown: 2.8,
+      cooldown: 5,
       duration: 0.38,
       particleColor: "#9f7cff",
       launchPopupText: "PHASE",

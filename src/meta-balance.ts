@@ -178,7 +178,7 @@ export const META_BALANCE = {
   },
 } as const;
 
-export const EQUIPMENT_ORDER: readonly EquipmentKind[] = ["helmet", "wrench", "sword", "mallet"];
+export const EQUIPMENT_ORDER: readonly EquipmentKind[] = ["sword", "wrench", "helmet", "mallet"];
 export const EQUIPMENT_TIER_ORDER: readonly EquipmentTier[] = ["wood", "stone", "gold", "diamond"];
 
 export function permanentUpgradeCost(levelToBuy: number): number {

@@ -98,6 +98,7 @@ async function bootstrap(): Promise<void> {
       };
       spawnPreviewEnemy(game.flag.x + 220, game.flag.y, "dune-burrower");
       spawnPreviewEnemy(game.flag.x - 180, game.flag.y - 60, "sandstormer");
+      spawnPreviewEnemy(game.flag.x - 135, game.flag.y + 35, "basic");
       spawnPreviewEnemy(game.flag.x - 80, game.flag.y - 40, "runner");
       const burrower = game.enemies.find((enemy) => enemy.kind === "dune-burrower");
       if (burrower) burrower.tunnelCooldown = 0;

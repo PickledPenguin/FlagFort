@@ -1,6 +1,6 @@
 import { BALANCE } from "./config";
 import { isBurning, isPoisoned, isSlowed, isTimeLocked } from "./status-effects";
-import { allAssetPaths, ASSETS } from "./assets";
+import { allAssetPaths, ASSETS, campaignEnemyPortrait } from "./assets";
 import { BUILD_BAR_ICON_PATHS } from "./build-bar-icons";
 import { ENEMY_REGISTRY, enemyRenderDimensions } from "./enemy-registry";
 import type { Game } from "./game";
@@ -1527,6 +1527,26 @@ export class Renderer {
     }
     const handReach = enemy.radius + 11 + enemy.attackWindup * 10;
     const handDiameter = enemy.radius * 0.7;
+    if ((enemy.kind === "basic" || enemy.kind === "runner")
+      && game.activeCampaignTierId === "desert") {
+      this.drawSprite(
+        campaignEnemyPortrait(enemy.kind, "desert"),
+        -40,
+        -40,
+        80,
+        80,
+        enemy.flash > 0,
+      );
+      ctx.restore();
+      this.healthBar(
+        enemy.x,
+        enemy.y - enemy.radius - 12,
+        55,
+        enemy.health / enemy.maxHealth,
+        "#d2574e",
+      );
+      return;
+    }
     const simpleOutlineColor = enemy.kind === "basic" || enemy.kind === "runner"
       ? SIMPLE_ENEMY_OUTLINE_COLORS[game.activeCampaignTierId]
       : enemy.kind === "breaker" || enemy.kind === "jumper"

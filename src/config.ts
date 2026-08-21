@@ -148,7 +148,9 @@ export const BALANCE = {
   },
   navigation: {
     cellSize: 72,
+    fineCellSize: 18,
     obstacleMargin: 10,
+    pathTraversalMargin: 1,
     zombieClearance: 39,
     stuckRepathTime: 0.7,
     repathIntervalMin: 0.65,

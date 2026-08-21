@@ -472,6 +472,12 @@ describe("progression safety and presentation", () => {
     document.querySelector<HTMLElement>('[data-action="close-panel"]')!.click();
     document.querySelector<HTMLElement>('[data-action="shop"]')!.click();
     const shopModal = document.querySelector<HTMLElement>(".shop-modal")!;
+    expect([...document.querySelectorAll<HTMLElement>(".shop-item")]
+      .map((item) => item.dataset.equipmentItem))
+      .toEqual(["sword", "wrench", "helmet", "mallet"]);
+    expect(document.querySelectorAll(".shop-item-compact")).toHaveLength(3);
+    expect(document.querySelector('[data-equipment-item="sword"]')?.classList)
+      .toContain("shop-item-wide");
     shopModal.scrollTop = 245;
     document.querySelector<HTMLElement>('[data-action="buy-equipment"][data-equipment="helmet"]')!.click();
     expect(document.querySelector<HTMLElement>(".shop-modal")!.scrollTop).toBe(245);
@@ -520,6 +526,11 @@ describe("progression safety and presentation", () => {
     expect(returnedSnowy?.classList.contains("flipped")).toBe(false);
     expect(returnedSnowy?.querySelector(".campaign-tier-card-inner")).toBe(snowyCardInner);
     expect(returnedSnowy?.querySelector(".tier-card-front")?.getAttribute("aria-pressed")).toBe("false");
+
+    document.querySelector<HTMLElement>('[data-action="select-campaign-tier"][data-campaign-tier="forest"]')
+      ?.click();
+    expect(document.querySelectorAll("[data-campaign-tier='forest'] .tier-enemy-separator").length)
+      .toBeGreaterThan(0);
   });
 
   it("shows the current level with two neighboring levels on each side on the main menu", () => {

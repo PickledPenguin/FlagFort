@@ -1,16 +1,21 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
-   viewBox="-52 -40 104 80"
+   viewBox="-52 -40 80 80"
    role="img"
    aria-labelledby="title description"
    version="1.1"
    id="svg3"
    sodipodi:docname="desert-runner-zombie.svg"
    inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   width="80"
+   height="80"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
-   xmlns:svg="http://www.w3.org/2000/svg">
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
   <defs
      id="defs3" />
   <sodipodi:namedview
@@ -22,15 +27,15 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="4.244762"
-     inkscape:cx="85.87054"
-     inkscape:cy="36.86897"
+     inkscape:zoom="1.9267194"
+     inkscape:cx="29.583965"
+     inkscape:cy="60.98449"
      inkscape:window-width="1291"
      inkscape:window-height="602"
-     inkscape:window-x="428"
-     inkscape:window-y="510"
+     inkscape:window-x="209"
+     inkscape:window-y="182"
      inkscape:window-maximized="0"
-     inkscape:current-layer="desert-runner-zombie-appearance" />
+     inkscape:current-layer="svg3" />
   <title
      id="title">Desert runner zombie</title>
   <desc
@@ -39,7 +44,8 @@
      id="desert-runner-zombie-appearance"
      fill="#82b17d"
      stroke="#315640"
-     stroke-width="3">
+     stroke-width="3"
+     transform="translate(-20.760678,1.0380339)">
     <circle
        id="upper-hand"
        cx="31"
@@ -55,29 +61,33 @@
     <circle
        id="body"
        r="20"
-       style="fill:#ecc984;fill-opacity:1;stroke:#754a2d;stroke-opacity:1" />
+       style="fill:#ecc984;fill-opacity:1;stroke:#754a2d;stroke-opacity:1"
+       cx="0"
+       cy="0" />
   </g>
   <g
      id="eyes"
-     fill="#fff1c4">
+     fill="#fff1c4"
+     transform="translate(-20.760678,1.0380339)">
     <ellipse
        cx="8"
        cy="-9"
        rx="7"
        ry="5"
-       transform="rotate(25.783 8 -9)"
+       transform="rotate(25.783,8,-9)"
        id="ellipse1" />
     <ellipse
        cx="8"
        cy="9"
        rx="7"
        ry="5"
-       transform="rotate(-25.783 8 9)"
+       transform="rotate(-25.783,8,9)"
        id="ellipse2" />
   </g>
   <g
      id="pupils"
-     fill="#8f3428">
+     fill="#8f3428"
+     transform="translate(-20.760678,1.0380339)">
     <circle
        cx="11"
        cy="-8"
@@ -93,9 +103,18 @@
   </g>
   <path
      id="brows"
-     d="M-9-7 2-2M-7 11 4 5"
+     d="m -29.760678,-5.9619661 11,4.99999998 m -9,13.00000012 11,-6.0000001"
      fill="none"
      stroke="#4b3c28"
      stroke-width="3"
      style="stroke:#754a2d;stroke-opacity:1" />
+  <metadata
+     id="metadata1">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:title>Desert runner zombie</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
 </svg>

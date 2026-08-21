@@ -518,6 +518,19 @@ describe("event-driven HUD interaction", () => {
 
     click(details.querySelector('[data-action="close-enemy-details"]')!);
     expect(overlay.querySelector<HTMLElement>(".enemy-codex-grid")!.scrollTop).toBe(240);
+
+    click(overlay.querySelector('[data-enemy-kind="basic"]')!);
+    const playerTarget = overlay.querySelector<HTMLElement>(".player-target-icon")!;
+    expect(playerTarget.querySelectorAll("img")).toHaveLength(5);
+    expect(playerTarget.querySelector(".player-target-eyes")).not.toBeNull();
+    expect(playerTarget.querySelectorAll(".player-target-hand")).toHaveLength(2);
+    click(overlay.querySelector('[data-action="close-enemy-details"]')!);
+
+    click(overlay.querySelector('[data-enemy-kind="rift-strider"]')!);
+    expect(overlay.querySelector(".enemy-details-modal")?.textContent)
+      .toContain("5s cooldown between uses");
+    click(overlay.querySelector('[data-action="close-enemy-details"]')!);
+
     click(overlay.querySelector('[data-codex-sort="name"]')!);
     expect(overlay.querySelector(".enemy-codex-tile b")?.textContent).toBe("Acidslinger");
   });

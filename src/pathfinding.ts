@@ -18,8 +18,7 @@ const DIRECTIONS: ReadonlyArray<readonly [number, number, number]> = [
 ];
 
 export class NavigationGrid {
-  readonly cellSize = BALANCE.navigation.cellSize;
-  readonly columns = Math.ceil(BALANCE.mapSize / this.cellSize);
+  readonly columns: number;
   private readonly blocked = new Set<number>();
   private readonly cameFrom: Int32Array;
   private readonly gScore: Float64Array;
@@ -31,7 +30,9 @@ export class NavigationGrid {
     readonly obstacles: readonly Circle[],
     readonly actorRadius: number,
     readonly margin: number = BALANCE.navigation.obstacleMargin,
+    readonly cellSize: number = BALANCE.navigation.cellSize,
   ) {
+    this.columns = Math.ceil(BALANCE.mapSize / this.cellSize);
     const cellCount = this.columns * this.columns;
     this.cameFrom = new Int32Array(cellCount);
     this.gScore = new Float64Array(cellCount);
@@ -40,6 +41,22 @@ export class NavigationGrid {
   }
 
   find(start: Vec2, goal: Vec2, goalRadius = 0): Vec2[] {
+    if (this.segmentIsClear(
+      start,
+      goal,
+      this.actorRadius + BALANCE.navigation.pathTraversalMargin,
+    )) return [goal];
+    const path = this.findOnGrid(start, goal, goalRadius);
+    if (path.length > 0 || this.cellSize <= BALANCE.navigation.fineCellSize) return path;
+    return new NavigationGrid(
+      this.obstacles,
+      this.actorRadius,
+      BALANCE.navigation.pathTraversalMargin,
+      BALANCE.navigation.fineCellSize,
+    ).find(start, goal, goalRadius);
+  }
+
+  private findOnGrid(start: Vec2, goal: Vec2, goalRadius: number): Vec2[] {
     const startCell = this.nearestOpen(this.toCell(start), start);
     const exactGoalCell = this.toCell(goal);
     const exactGoalOpen = !this.isBlocked(exactGoalCell);
@@ -80,6 +97,7 @@ export class NavigationGrid {
       for (const [dx, dy, movementCost] of DIRECTIONS) {
         const next = { x: current.x + dx, y: current.y + dy };
         if (!this.inBounds(next) || this.isBlocked(next)) continue;
+        if (!this.canTraverse(current, next)) continue;
         if (dx !== 0 && dy !== 0) {
           if (this.isBlocked({ x: current.x + dx, y: current.y })
             || this.isBlocked({ x: current.x, y: current.y + dy })) continue;
@@ -111,13 +129,30 @@ export class NavigationGrid {
       for (let x = minX; x <= maxX; x += 1) {
         for (let y = minY; y <= maxY; y += 1) {
           const point = this.cellCenter({ x, y });
-          const halfDiagonal = this.cellSize * 0.42;
-          if (Math.hypot(point.x - obstacle.x, point.y - obstacle.y) <= radius + halfDiagonal) {
+          const rasterPadding = this.cellSize > BALANCE.navigation.fineCellSize
+            ? this.cellSize * 0.42
+            : 0;
+          if (Math.hypot(point.x - obstacle.x, point.y - obstacle.y) < radius + rasterPadding) {
             this.blocked.add(this.key(x, y));
           }
         }
       }
     }
+  }
+
+  private canTraverse(from: GridCell, to: GridCell): boolean {
+    const start = this.cellCenter(from);
+    const end = this.cellCenter(to);
+    return this.segmentIsClear(start, end);
+  }
+
+  private segmentIsClear(
+    start: Vec2,
+    end: Vec2,
+    inflate = this.actorRadius + this.margin,
+  ): boolean {
+    return this.obstacles.every((obstacle) =>
+      !segmentHitsCircle(start, end, obstacle, inflate));
   }
 
   private reconstruct(
@@ -315,7 +350,7 @@ export function pathIntersectsObstacle(
   path: readonly Vec2[],
   obstacles: readonly Circle[],
   actorRadius: number,
-  margin = BALANCE.navigation.obstacleMargin,
+  margin = BALANCE.navigation.pathTraversalMargin,
 ): boolean {
   let previous = start;
   for (const point of path) {

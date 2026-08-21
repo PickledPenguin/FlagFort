@@ -3238,8 +3238,13 @@ export class Game {
       enemy.pathIndex = 0;
       enemy.routeIncludesStructures = false;
     } else this.refreshEnemyPath(enemy, target);
-    const waypoint = enemy.path[enemy.pathIndex] ?? target;
-    if (distance(enemy, waypoint) < 34 && enemy.pathIndex < enemy.path.length - 1) enemy.pathIndex += 1;
+    const waypointRadius = Math.max(8, Math.min(18, enemy.radius * 0.65));
+    let waypoint = enemy.path[enemy.pathIndex] ?? target;
+    while (distance(enemy, waypoint) <= waypointRadius
+      && enemy.pathIndex < enemy.path.length - 1) {
+      enemy.pathIndex += 1;
+      waypoint = enemy.path[enemy.pathIndex] ?? target;
+    }
     const active = enemy.path[enemy.pathIndex] ?? target;
     const angle = Math.atan2(active.y - enemy.y, active.x - enemy.x);
     const attackMode = ENEMY_REGISTRY[enemy.kind].attack.mode;
@@ -3311,7 +3316,25 @@ export class Game {
   ): void {
     const routeInvalidated = enemy.routeIncludesStructures
       && enemy.routeStructureRevision !== this.structureRevision;
-    if ((enemy.path.length === 0 || (enemy.pathCooldown <= 0 && enemy.routeCommitment <= 0)) || routeInvalidated) {
+    let staleRoute = false;
+    if (enemy.pathCooldown <= 0 && enemy.pathIndex < enemy.path.length) {
+      const naturalObstacles = this.world.resources.filter((node) => !node.destroyed);
+      const routeObstacles = enemy.routeIncludesStructures
+        ? [
+          ...naturalObstacles,
+          ...this.structures.filter((structure) =>
+            !("id" in target && target.id === structure.id)),
+        ]
+        : naturalObstacles;
+      staleRoute = pathIntersectsObstacle(
+        enemy,
+        enemy.path.slice(enemy.pathIndex),
+        routeObstacles,
+        enemy.radius,
+      );
+    }
+    if ((enemy.path.length === 0 || (enemy.pathCooldown <= 0 && enemy.routeCommitment <= 0))
+      || routeInvalidated || staleRoute) {
       const avoidsStructures = ENEMY_REGISTRY[enemy.kind].movement.avoidStructures;
       enemy.pathCooldown = avoidsStructures
         ? BALANCE.navigation.runnerRepathInterval

@@ -213,7 +213,9 @@ describe("shared snowy slow status", () => {
     archer.pathCooldown = 10;
     const startX = archer.x;
 
-    internals.updateEnemies(ENEMY_REGISTRY.archer.attack.chargeSeconds);
+    for (let frame = 0; frame < 180; frame += 1) {
+      internals.updateEnemies(BALANCE.fixedStep);
+    }
 
     expect(ENEMY_REGISTRY.archer.projectile!.targets).not.toContain("wall");
     expect(game.projectiles).toHaveLength(0);
